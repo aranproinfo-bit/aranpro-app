@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
-import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
+import { formatDate, formatRut, formatCLP, validateRut } from '../../utils/formatters';
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { AranproLogo } from '../common/MauranLogo';
@@ -12,7 +12,7 @@ import {
   HardHat, BookOpen, FileCheck, Upload, RefreshCw, PenTool,
   HelpCircle, Settings, Smartphone, Layers, CheckSquare, MessageCircle,
   Paperclip, FileUp, QrCode, Presentation, Compass, ClipboardCheck,
-  ArrowRight, Scale, ChevronRight
+  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp
 } from 'lucide-react';
 
 export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
@@ -57,6 +57,17 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
   const [penWidth, setPenWidth] = useState(2.5);
   const [signatureImage, setSignatureImage] = useState(companySettings?.signatureDataUrl || '');
   const [hasCanvasDrawn, setHasCanvasDrawn] = useState(false);
+
+  // Estado para acordeón de "Sobre la aplicación" (Estilo ECP)
+  const [aboutOpenSections, setAboutOpenSections] = useState({
+    general: true,
+    quienesSomos: false,
+    misionVision: false,
+    licencia: false
+  });
+  const toggleAboutSection = (key) => {
+    setAboutOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   // Estados de Formación Técnica y Acreditaciones (Técnico en Construcción / Construcción Civil)
   const [academicRecords, setAcademicRecords] = useState(companySettings?.academicBackground || [
@@ -644,12 +655,12 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
 
   // Menú de Navegación Lateral (Estilo ECP)
   const navSubItems = [
-    { id: 'empresa', label: 'Empresa & Representante', icon: Building2, desc: 'Datos de facturación, RUT y representante legal' },
-    { id: 'firma', label: 'Firma Digital & Timbre', icon: PenTool, desc: 'Firma manuscrita en canvas y vista previa PDF' },
-    { id: 'acreditacion', label: 'Acreditaciones & Perfil Técnico', icon: HardHat, desc: 'Técnico en Construcción, RNAC Minvu y diplomas' },
-    { id: 'postulaciones', label: 'Postulaciones & Dossier', icon: Briefcase, desc: 'Carta de presentación, cartas de recomendación y licitación' },
+    { id: 'empresa', label: 'Empresa', icon: Building2, desc: 'Datos de la empresa, RUT, representante y firma' },
+    { id: 'firma', label: 'Firma Digital', icon: PenTool, desc: 'Firma manuscrita en canvas y vista previa PDF' },
+    { id: 'acreditacion', label: 'Acreditaciones & Diplomas', icon: HardHat, desc: 'Técnico en Construcción, RNAC Minvu y títulos' },
+    { id: 'postulaciones', label: 'Postulaciones & Dossier', icon: Briefcase, desc: 'Carta de presentación, referencias y licitaciones' },
     { id: 'respaldos', label: 'Respaldos & Seguridad', icon: Key, desc: 'Backup integral JSON, PIN maestro y restauración' },
-    { id: 'sobre_app', label: 'Sobre la Plataforma', icon: BookOpen, desc: 'Ley N° 21.442, versión y soporte técnico' }
+    { id: 'sobre_app', label: 'Sobre la aplicación', icon: BookOpen, desc: 'Versión, quiénes somos, misión, visión y licencia' }
   ];
 
   return (
@@ -754,41 +765,47 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
                 </p>
               </div>
 
-              {/* DATOS DE LA EMPRESA */}
+              {/* 1. DATOS DE LA EMPRESA (TIPO ECP SCREENSHOT 2) */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                  Datos de la Empresa / Razón Social
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                  <Building2 className="w-4 h-4 text-[#0F3D2E]" />
+                  <span>🏢 DATOS DE LA EMPRESA</span>
                 </h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Razón Social / Nombre Comercial *
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      RAZÓN SOCIAL *
                     </label>
                     <input
                       type="text"
                       value={empresaForm.provisionalName}
                       onChange={(e) => setEmpresaForm({ ...empresaForm, provisionalName: e.target.value })}
+                      placeholder="Ej: ARANPRO SpA"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      RUT de la Empresa *
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      RUT *
                     </label>
                     <div className="relative">
                       <input
                         type="text"
                         value={empresaForm.companyRut}
                         onChange={(e) => setEmpresaForm({ ...empresaForm, companyRut: e.target.value })}
+                        placeholder="Ej: 76.999.888-1"
                         className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                         required
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        ✓ RUT Válido
+                      <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-0.5 rounded border ${
+                        validateRut(empresaForm.companyRut)
+                          ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                          : 'text-amber-700 bg-amber-50 border-amber-200'
+                      }`}>
+                        {validateRut(empresaForm.companyRut) ? '✓ RUT válido' : '⚠️ RUT a verificar'}
                       </span>
                     </div>
                   </div>
@@ -796,24 +813,26 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Dirección Comercial
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      DIRECCIÓN
                     </label>
                     <input
                       type="text"
                       value={empresaForm.address}
                       onChange={(e) => setEmpresaForm({ ...empresaForm, address: e.target.value })}
+                      placeholder="Ej: Av. Cuatro Esquinas 1520, Of. 402"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Ciudad / Comuna
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      CIUDAD
                     </label>
                     <input
                       type="text"
                       value={empresaForm.city}
                       onChange={(e) => setEmpresaForm({ ...empresaForm, city: e.target.value })}
+                      placeholder="Ej: La Serena, Coquimbo, Chile"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                     />
                   </div>
@@ -821,168 +840,356 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Teléfono / WhatsApp 24/7
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      PAÍS DE OPERACIÓN
+                    </label>
+                    <select
+                      value={empresaForm.country || 'Chile'}
+                      onChange={(e) => setEmpresaForm({ ...empresaForm, country: e.target.value })}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                    >
+                      <option value="Chile">Chile</option>
+                    </select>
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Define el país usado en documentos y en el prompt. También actualiza moneda e impuesto en Presupuesto.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      TELÉFONO
                     </label>
                     <input
                       type="tel"
                       value={empresaForm.phone}
                       onChange={(e) => setEmpresaForm({ ...empresaForm, phone: e.target.value })}
+                      placeholder="+56958118504"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Correo Oficial de Contacto
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      EMAIL
                     </label>
                     <input
                       type="email"
                       value={empresaForm.email}
                       onChange={(e) => setEmpresaForm({ ...empresaForm, email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Sitio Web Oficial
-                    </label>
-                    <input
-                      type="url"
-                      value={empresaForm.website}
-                      onChange={(e) => setEmpresaForm({ ...empresaForm, website: e.target.value })}
+                      placeholder="contacto@aranpro.cl"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* REPRESENTANTE LEGAL / FIRMANTE */}
-              <div className="pt-6 border-t border-slate-100 space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                  Representante Legal & Administrador Titular
-                </h4>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Nombre Completo *
-                    </label>
-                    <input
-                      type="text"
-                      value={empresaForm.adminName}
-                      onChange={(e) => setEmpresaForm({ ...empresaForm, adminName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      RUT del Representante *
-                    </label>
-                    <input
-                      type="text"
-                      value={empresaForm.adminRut}
-                      onChange={(e) => setEmpresaForm({ ...empresaForm, adminRut: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Cargo / Rol en Contratos
-                    </label>
-                    <input
-                      type="text"
-                      value={empresaForm.adminRole}
-                      onChange={(e) => setEmpresaForm({ ...empresaForm, adminRole: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Registro Nacional Minvu (RNAC N°) *
-                    </label>
-                    <input
-                      type="text"
-                      value={empresaForm.rnacNumber}
-                      onChange={(e) => setEmpresaForm({ ...empresaForm, rnacNumber: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-[#0F3D2E] focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Categoría en el Registro Minvu
-                    </label>
-                    <input
-                      type="text"
-                      value={empresaForm.rnacCategory}
-                      onChange={(e) => setEmpresaForm({ ...empresaForm, rnacCategory: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    SITIO WEB
+                  </label>
+                  <input
+                    type="url"
+                    value={empresaForm.website}
+                    onChange={(e) => setEmpresaForm({ ...empresaForm, website: e.target.value })}
+                    placeholder="https://aranpro.cl"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                  />
                 </div>
               </div>
 
-              {/* PERFIL PARA LICITACIONES Y CARTAS */}
+              {/* 2. PERFIL PARA LICITACIONES Y CARTAS (TIPO ECP SCREENSHOT 2) */}
               <div className="pt-6 border-t border-slate-100 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#D4B895]" />
-                    Perfil Maestro para Licitaciones y Postulaciones
-                  </h4>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      Perfil para licitaciones y cartas
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Este texto es la presentación maestra de tu empresa. Se reutiliza en cartas para clientes particulares y en cartas de licitación, sin prometer experiencia que no puedas acreditar.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={handleSuggestPresentationFromHistory}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-[11px] font-bold transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-[11px] font-bold transition-all shrink-0 self-start sm:self-center"
                   >
-                    <Sparkles className="w-3 h-3 text-amber-700" />
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                     ✨ Sugerir desde mi historial
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Rubro o Especialidad Principal
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      RUBRO O ESPECIALIDAD PRINCIPAL
                     </label>
                     <input
                       type="text"
                       value={empresaForm.specialty}
                       onChange={(e) => setEmpresaForm({ ...empresaForm, specialty: e.target.value })}
+                      placeholder="Ej: obras civiles, mantención de áreas verdes, administración de condominios"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Año de Inicio de Actividades
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      AÑO DE INICIO DE ACTIVIDADES
                     </label>
                     <input
                       type="number"
                       value={empresaForm.startYear}
                       onChange={(e) => setEmpresaForm({ ...empresaForm, startYear: e.target.value })}
+                      placeholder="Ej: 2018"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Presentación Estándar de la Empresa
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    PRESENTACIÓN ESTÁNDAR DE LA EMPRESA
                   </label>
                   <textarea
                     rows={4}
                     value={empresaForm.presentationText}
                     onChange={(e) => setEmpresaForm({ ...empresaForm, presentationText: e.target.value })}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                    placeholder="Describe experiencia, especialidades técnicas en construcción, forma de trabajo y fortalezas comprobables..."
+                    placeholder="Describe experiencia, especialidades, forma de trabajo y fortalezas comprobables..."
                   />
                 </div>
               </div>
 
+              {/* 3. REPRESENTANTE LEGAL / FIRMANTE (TIPO ECP SCREENSHOT 1) */}
+              <div className="pt-6 border-t border-slate-100 space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <UserCheck className="w-4 h-4 text-[#0F3D2E]" />
+                    Representante Legal / Firmante
+                  </h4>
+                  <p className="text-[11px] text-amber-700 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span>💡</span>
+                    <span>Aparecen en Contratos, documentos legales y al pie de los PDFs.</span>
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      NOMBRE COMPLETO *
+                    </label>
+                    <input
+                      type="text"
+                      value={empresaForm.adminName}
+                      onChange={(e) => setEmpresaForm({ ...empresaForm, adminName: e.target.value })}
+                      placeholder="Ej: Juan Pérez González"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      RUT DEL REPRESENTANTE *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={empresaForm.adminRut}
+                        onChange={(e) => setEmpresaForm({ ...empresaForm, adminRut: e.target.value })}
+                        placeholder="Ej: 12.345.678-9"
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                        required
+                      />
+                      <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-0.5 rounded border ${
+                        validateRut(empresaForm.adminRut)
+                          ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                          : 'text-amber-700 bg-amber-50 border-amber-200'
+                      }`}>
+                        {validateRut(empresaForm.adminRut) ? '✓' : '⚠️'}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      CARGO / ROL
+                    </label>
+                    <input
+                      type="text"
+                      value={empresaForm.adminRole}
+                      onChange={(e) => setEmpresaForm({ ...empresaForm, adminRole: e.target.value })}
+                      placeholder="Ej: Gerente General, Rep..."
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Registro Nacional Minvu (RNAC N°)
+                    </label>
+                    <input
+                      type="text"
+                      value={empresaForm.rnacNumber}
+                      onChange={(e) => setEmpresaForm({ ...empresaForm, rnacNumber: e.target.value })}
+                      placeholder="Ej: 48.912"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-[#0F3D2E] focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Categoría en el Registro Minvu
+                    </label>
+                    <input
+                      type="text"
+                      value={empresaForm.rnacCategory}
+                      onChange={(e) => setEmpresaForm({ ...empresaForm, rnacCategory: e.target.value })}
+                      placeholder="Ej: Persona Natural (Vigente)"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. FIRMA DIGITAL (TIPO ECP SCREENSHOT 1) */}
+              <div className="pt-6 border-t border-slate-100 space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <PenTool className="w-4 h-4 text-[#0F3D2E]" />
+                    Firma digital
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Tu firma aparecerá al pie de cada presupuesto PDF junto a tu nombre y cargo. Dibújala directamente aquí o sube una foto de tu firma manuscrita.
+                  </p>
+                </div>
+
+                {/* FIRMA MANUSCRITA CONTROLES */}
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Color:</span>
+                    <div className="flex items-center gap-1.5">
+                      {[
+                        { color: '#0f172a', label: 'Negro' },
+                        { color: '#0f2b5c', label: 'Azul Marino' },
+                        { color: '#1d4ed8', label: 'Azul Rey' },
+                        { color: '#b91c1c', label: 'Rojo' },
+                        { color: '#6b21a8', label: 'Morado' },
+                        { color: '#0F3D2E', label: 'Verde ARANPRO' }
+                      ].map(c => (
+                        <button
+                          key={c.color}
+                          type="button"
+                          onClick={() => setPenColor(c.color)}
+                          className={`w-5 h-5 rounded-full border-2 transition-transform ${
+                            penColor === c.color ? 'scale-125 border-slate-900 shadow-xs ring-2 ring-slate-400/50' : 'border-white'
+                          }`}
+                          style={{ backgroundColor: c.color }}
+                          title={c.label}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Grosor:</span>
+                    <div className="flex items-center gap-1">
+                      {[
+                        { w: 1.5, label: '—' },
+                        { w: 2.5, label: '——' },
+                        { w: 4.0, label: '———' }
+                      ].map(item => (
+                        <button
+                          key={item.w}
+                          type="button"
+                          onClick={() => setPenWidth(item.w)}
+                          className={`px-2.5 py-1 text-xs font-mono font-bold rounded-lg border transition-all ${
+                            penWidth === item.w ? 'bg-[#0F3D2E] text-white border-[#0F3D2E]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                          title={`Grosor ${item.w}px`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition-all flex items-center gap-1.5 shadow-xs">
+                      <Upload className="w-3.5 h-3.5 text-slate-500" />
+                      Subir firma
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleUploadSignatureFile}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={clearSignatureCanvas}
+                      className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-bold text-rose-700 transition-all flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3 text-rose-500" />
+                      Limpiar
+                    </button>
+                  </div>
+                </div>
+
+                {/* CANVAS DE DIBUJO */}
+                <div className="space-y-1">
+                  <div className="border-2 border-slate-300 rounded-2xl bg-white p-2 flex items-center justify-center relative overflow-hidden shadow-inner">
+                    <canvas
+                      ref={canvasRef}
+                      width={640}
+                      height={200}
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                      className="w-full max-w-xl h-44 cursor-crosshair touch-none bg-transparent"
+                    />
+                    {!hasCanvasDrawn && !signatureImage && (
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-300 text-xs font-medium">
+                        ✍️ Dibuja tu firma en este recuadro...
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 text-center">
+                    Dibuja con el mouse o trackpad · También puedes subir una foto de tu firma
+                  </p>
+                </div>
+
+                {/* VISTA PREVIA EN PDF (IDÉNTICA A SCREENSHOT 1) */}
+                <div className="space-y-2 pt-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                    VISTA PREVIA EN PDF
+                  </span>
+                  <div className="p-6 bg-slate-50/70 border border-slate-200 rounded-2xl max-w-xl mx-auto shadow-xs">
+                    <div className="h-20 flex items-end justify-center mb-2">
+                      {signatureImage ? (
+                        <img
+                          src={signatureImage}
+                          alt="Firma Manuscrita"
+                          className="max-h-20 max-w-xs object-contain"
+                        />
+                      ) : (
+                        <span className="text-xs text-slate-300 italic">Espacio reservado para firma manuscrita</span>
+                      )}
+                    </div>
+                    <div className="border-t border-slate-400 pt-2 flex items-start justify-between text-xs">
+                      <div>
+                        <span className="text-[11px] font-bold text-slate-900 block">Nombre</span>
+                        <span className="text-[11px] text-slate-500 block">{empresaForm.provisionalName || empresaForm.brandName}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[11px] text-slate-400 italic">Firma autorizada</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* BOTÓN GUARDAR CAMBIOS */}
               <div className="pt-4 flex justify-end">
                 <button
                   type="button"
@@ -2390,37 +2597,163 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
             </div>
           )}
 
-          {/* ==================== SUB-PESTAÑA 6: SOBRE LA PLATAFORMA ==================== */}
+          {/* ==================== SUB-PESTAÑA 6: SOBRE LA PLATAFORMA (TIPO ECP SCREENSHOT 3) ==================== */}
           {activeSubTab === 'sobre_app' && (
             <div className="space-y-6">
-              <div className="border-b border-slate-100 pb-4">
-                <span className="text-[10px] font-bold text-[#D4B895] uppercase tracking-wider block">
-                  Información Institucional
-                </span>
-                <h3 className="text-lg font-black text-slate-900">
-                  ARANPRO • Suite Integral de Copropiedad Inmobiliaria
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Versión 2.4.0 • Edición Especial Conforme a la Ley N° 21.442 de Copropiedad Inmobiliaria.
-                </p>
-              </div>
-
-              <div className="space-y-3 text-xs text-slate-700 leading-relaxed">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                  <h4 className="font-bold text-slate-900 text-sm">1. Marco Legal Chileno (Ley N° 21.442)</h4>
-                  <p>
-                    Esta plataforma ha sido desarrollada para cumplir estrictamente con los mandatos de la nueva legislación chilena:
-                    asambleas telemáticas y quórums especiales (Art. 15°), fondos de reserva obligatorios (Art. 6°), rendición de cuentas documentada (Art. 20°),
-                    responsabilidad real del nuevo adquirente e imputación notarial de deudas (Art. 36°) y el Libro Oficial de Novedades y Reclamos.
-                  </p>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <span className="text-[10px] font-bold text-[#D4B895] uppercase tracking-wider block">
+                    Información Institucional
+                  </span>
+                  <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-[#0F3D2E]" />
+                    <span>SOBRE LA APLICACIÓN</span>
+                  </h3>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                  <h4 className="font-bold text-slate-900 text-sm">2. Soporte Técnico y Garantía Operativa</h4>
+                <button
+                  type="button"
+                  onClick={handleSaveAllSettings}
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2"
+                >
+                  <Check className="w-4 h-4 text-white" />
+                  Guardar Cambios
+                </button>
+              </div>
+
+              {/* CARD PRINCIPAL (SCREENSHOT 3) */}
+              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 shadow-xs space-y-2">
+                <h4 className="text-lg font-black text-slate-900">
+                  ARANPRO • Suite de Administración
+                </h4>
+                <p className="text-xs font-bold text-slate-700">
+                  Versión 2.0.0 · Edición de lanzamiento PWA
+                </p>
+                <div className="pt-2 text-xs text-slate-600 space-y-1">
                   <p>
-                    Para consultas de soporte, personalizaciones de módulos o asesoría en licitaciones de comunidades:
-                    contacto directo al teléfono <strong>{empresaForm.phone}</strong> o vía correo a <strong>{empresaForm.email}</strong>.
+                    <strong>Titular de derechos:</strong> ARANPRO SpA
                   </p>
+                  <p>
+                    <strong>Sitio web oficial:</strong>{' '}
+                    <a
+                      href="https://aranpro.cl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#0F3D2E] hover:underline font-bold"
+                    >
+                      https://aranpro.cl
+                    </a>
+                  </p>
+                </div>
+              </div>
+
+              {/* ACORDEÓN DE SECCIONES (SCREENSHOT 3) */}
+              <div className="space-y-3">
+                {/* 1. INFORMACIÓN GENERAL */}
+                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => toggleAboutSection('general')}
+                    className="w-full px-5 py-4 text-left font-bold text-xs text-slate-900 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
+                  >
+                    <span>1. Información general</span>
+                    {aboutOpenSections.general ? (
+                      <ChevronUp className="w-4 h-4 text-slate-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
+                    )}
+                  </button>
+                  {aboutOpenSections.general && (
+                    <div className="px-5 py-4 text-xs text-slate-600 leading-relaxed space-y-2 border-t border-slate-100">
+                      <p>
+                        ARANPRO Suite es una herramienta de apoyo integral para la gestión y administración de comunidades y condominios bajo el marco legal de la Ley N° 21.442 de Copropiedad Inmobiliaria.
+                      </p>
+                      <p>
+                        Su motor contable permite la elaboración de presupuestos, prorrateo y control de partidas de gasto común, rendición documentada mediante colillas y comprobantes bancarios, planificación de mantenimiento preventivo, quórums de asamblea telemática y generación de documentación oficial con firma digital manuscrita sincronizada.
+                      </p>
+                      <p className="text-[11px] text-slate-500 italic pt-1">
+                        Sus cálculos, presupuestos y resultados son referenciales y auditables en todo momento por el Comité de Administración y la asamblea de copropietarios antes de su utilización contractual, técnica o comercial.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. QUIÉNES SOMOS */}
+                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => toggleAboutSection('quienesSomos')}
+                    className="w-full px-5 py-4 text-left font-bold text-xs text-slate-900 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
+                  >
+                    <span>2. Quiénes somos</span>
+                    {aboutOpenSections.quienesSomos ? (
+                      <ChevronUp className="w-4 h-4 text-slate-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
+                    )}
+                  </button>
+                  {aboutOpenSections.quienesSomos && (
+                    <div className="px-5 py-4 text-xs text-slate-600 leading-relaxed space-y-2 border-t border-slate-100">
+                      <p>
+                        ARANPRO es una empresa liderada por <strong>John Andrés Arancibia Maureira</strong>, Administrador Profesional de Condominios acreditado por el Colegio de Gestión y Administración Inmobiliaria (CGAI Chile Socio N° 13-563), la Asociación Gremial AGACECH e inscrito en el Registro Nacional de Administradores Minvu (RNAC N° 48.912).
+                      </p>
+                      <p>
+                        Nuestra gran ventaja competitiva radica en la formación técnica y constructiva de nuestro equipo: <strong>Técnico en Construcción titulado y estudiante avanzado de Construcción Civil</strong>. Esta sólida base constructiva nos permite auditar, fiscalizar y supervisar con criterio experto obras de mantención, salas de bombas, cubiertas, filtraciones y contratos de proveedores, garantizando la preservación y plusvalía del patrimonio comunitario.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. MISIÓN Y VISIÓN */}
+                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => toggleAboutSection('misionVision')}
+                    className="w-full px-5 py-4 text-left font-bold text-xs text-slate-900 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
+                  >
+                    <span>3. Misión y visión</span>
+                    {aboutOpenSections.misionVision ? (
+                      <ChevronUp className="w-4 h-4 text-slate-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
+                    )}
+                  </button>
+                  {aboutOpenSections.misionVision && (
+                    <div className="px-5 py-4 text-xs text-slate-600 leading-relaxed space-y-2 border-t border-slate-100">
+                      <p>
+                        <strong>Misión:</strong> Brindar a las comunidades y comités de administración una gestión transparente, moderna, eficiente y técnica, transformando la experiencia de copropietarios y residentes a través de herramientas digitales de vanguardia y una fiscalización constructiva permanente en terreno.
+                      </p>
+                      <p>
+                        <strong>Visión:</strong> Consolidarnos como la suite y empresa de administración de referencia en la Región de Coquimbo y a nivel nacional, sinónimo de plusvalía inmobiliaria, rendición de cuentas intachable, cumplimiento estricto de la Ley 21.442 y tranquilidad vecinal.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. LICENCIA DE USO */}
+                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => toggleAboutSection('licencia')}
+                    className="w-full px-5 py-4 text-left font-bold text-xs text-slate-900 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
+                  >
+                    <span>4. Licencia de uso</span>
+                    {aboutOpenSections.licencia ? (
+                      <ChevronUp className="w-4 h-4 text-slate-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
+                    )}
+                  </button>
+                  {aboutOpenSections.licencia && (
+                    <div className="px-5 py-4 text-xs text-slate-600 leading-relaxed space-y-2 border-t border-slate-100">
+                      <p>
+                        Software protegido por la legislación chilena e internacional de propiedad intelectual y derechos de autor. Licencia de uso otorgada exclusivamente para las comunidades y copropietarios legalmente contratados y administrados bajo los servicios de ARANPRO.
+                      </p>
+                      <p>
+                        Toda la información contable, nóminas de residentes, cartolas bancarias, actas y balances gozan de estricta reserva, cifrado y respaldo bajo protocolos de seguridad informática. Queda prohibida su reproducción o distribución sin autorización expresa de ARANPRO SpA.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
