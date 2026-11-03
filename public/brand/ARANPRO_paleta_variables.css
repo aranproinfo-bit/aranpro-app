@@ -1,0 +1,15 @@
+/* ARANPRO — Paleta de colores corporativa */
+:root {
+  --aranpro-verde-bosque: #0F3D2E;
+  --aranpro-champan: #D4B895;
+  --aranpro-gris-pizarra: #4A4F4F;
+  --aranpro-gris-claro: #E9EBE8;
+  --aranpro-marfil: #F5F4EF;
+}
+/* Sugerencias de uso:
+   Botones principales y cabeceras: verde bosque.
+   Acentos y detalles: champán.
+   Texto secundario: gris pizarra.
+   Fondos y separadores: marfil y gris claro.
+   En fondo verde, utilizar texto marfil para mejor contraste.
+*/

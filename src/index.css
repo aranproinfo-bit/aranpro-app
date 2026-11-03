@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+:root {
+  --aranpro-verde-bosque: #0F3D2E;
+  --aranpro-verde-oscuro: #0A291F;
+  --aranpro-champan: #D4B895;
+  --aranpro-champan-claro: #E8D7C1;
+  --aranpro-gris-pizarra: #4A4F4F;
+  --aranpro-gris-claro: #E9EBE8;
+  --aranpro-marfil: #F5F4EF;
+}
+
+@theme {
+  /* Paleta Corporativa Oficial ARANPRO */
+  --color-forest: #0F3D2E;
+  --color-forest-dark: #0A291F;
+  --color-forest-deep: #071F17;
+  --color-champagne: #D4B895;
+  --color-champagne-light: #E8D7C1;
+  --color-slate-gray: #4A4F4F;
+  --color-light-gray: #E9EBE8;
+  --color-ivory: #F5F4EF;
+  --color-ivory-warm: #F5F4EF;
+}
+
+@layer base {
+  body {
+    background-color: var(--aranpro-marfil);
+    color: #0F3D2E;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom scrollbar con colores ARANPRO */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #F5F4EF;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4B895;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0F3D2E;
+}
+
+/* Reglas de Impresión y Exportación a PDF (Ley 21.442, Cartas, Colillas y Bitácoras) */
+@media print {
+  @page {
+    size: portrait;
+    margin: 8mm 10mm;
+  }
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  .no-print, nav, aside, header, .sidebar-container {
+    display: none !important;
+  }
+
+  /* Ocultar todo el árbol de componentes del DOM fuera del modal impreso para evitar páginas en blanco iniciales */
+  body:has(.print-area) > *:not(:has(.print-area)) {
+    display: none !important;
+  }
+  body:has(.print-area) #root > *:not(:has(.print-area)) {
+    display: none !important;
+  }
+  body:has(.print-area) main > *:not(:has(.print-area)) {
+    display: none !important;
+  }
+
+  /* Resetear contenedores del modal activo para que el print-area sea el único elemento visible en el tope exacto */
+  .fixed:has(.print-area) {
+    position: static !important;
+    inset: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+  .fixed:has(.print-area) > div {
+    max-width: 100% !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-area {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Regla estricta para garantizar 1 sola página exacta sin desbordes */
+  .print-single-page {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    max-height: 270mm !important;
+    overflow: hidden !important;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

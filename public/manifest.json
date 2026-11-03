@@ -1,0 +1,23 @@
+{
+  "name": "ARANPRO • Suite de Administración",
+  "short_name": "ARANPRO App",
+  "description": "Suite de gestión inmobiliaria Ley N° 21.442 y portal de copropietarios ARANPRO.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F3D2E",
+  "theme_color": "#0F3D2E",
+  "icons": [
+    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ]
+}

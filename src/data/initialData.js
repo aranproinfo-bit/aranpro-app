@@ -1,0 +1,1216 @@
+// Datos iniciales de demostración para administración de condominios
+// Inspirado en el condominio de casas que inicia el 01 de Diciembre
+
+export const initialCommunities = [
+  {
+    id: 'com-cerezos',
+    slug: 'los-cerezos',
+    name: 'Condominio Los Cerezos',
+    type: 'Casas',
+    address: 'Camino San Ramón 4500',
+    city: 'La Serena / Coquimbo',
+    totalUnits: 16,
+    reserveFundPercentage: 5, // 5% legal según ley 21.442
+    initialBankBalance: 640000, // Saldo inicial en cuenta corriente al recibir la comunidad
+    accumulatedReserveFund: 1120000, // Fondo de reserva acumulado histórico
+    bankInfo: {
+      bank: 'Banco Estado',
+      accountType: 'Cuenta Corriente',
+      accountNumber: '210-987654-0',
+      holderName: 'Comunidad Condominio Los Cerezos',
+      rut: '65.184.920-K',
+      email: 'pagos.loscerezos@gmail.com'
+    },
+    // Unidades / Casas
+    units: [
+      {
+        id: 'u-1', number: '1', owner: 'Carlos Morales Rojas', rut: '15.420.312-4', phone: '+56 9 8451 2290', email: 'carlos.morales@gmail.com',
+        sharePercentage: 6.25, previousDebt: 0, creditBalance: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '',
+        paidAmount: 42500, paid: true, password: '1', isCommittee: true, committeeRole: 'Presidente Comité',
+        payerSameAsOwner: true,
+        parkingNumber: 'Est. 1', storageNumber: 'Bod. 1', vehicles: 'KJ-89-21', pets: '1 Perro (Golden Retriever - Bruno)',
+        notesHistory: [
+          { id: 'n-1', date: '2026-10-18', author: 'John Arancibia (Admin)', type: 'General', text: 'Copropietario revisó y aprobó cotizaciones para mantención de portón.' }
+        ],
+        additionalUsers: [
+          { id: 'au-1', role: 'Cónyuge / Familiar (Pagadora)', name: 'Carolina Díaz M.', rut: '16.102.334-5', phone: '+56 9 8451 9900', email: 'carolina.diaz@gmail.com', password: '1' }
+        ],
+        repactacion: { active: false, totalHistoricalDebt: 0, installmentAmount: 0, totalInstallments: 0, paidInstallments: 0, notes: '' }
+      },
+      {
+        id: 'u-2', number: '2', owner: 'Patricia Vega Fuentes', rut: '14.890.115-9', phone: '+56 9 9123 4567', email: 'pavega@hotmail.com',
+        sharePercentage: 6.25, previousDebt: 0, creditBalance: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '',
+        paidAmount: 45000, paid: true, password: '2', isCommittee: false, committeeRole: '',
+        payerSameAsOwner: true,
+        parkingNumber: 'Est. 2', storageNumber: 'Bod. 2', vehicles: 'HG-65-10', pets: 'Sin mascotas declaradas',
+        notesHistory: [
+          { id: 'n-2a', date: '2026-10-25', author: 'John Arancibia (Admin)', type: 'Cobranza', text: 'Vecina transfirió $45.000 (abono mayor al cobro). Saldo a favor de $2.500 registrado.' }
+        ],
+        additionalUsers: [],
+        repactacion: { active: false, totalHistoricalDebt: 0, installmentAmount: 0, totalInstallments: 0, paidInstallments: 0, notes: '' }
+      },
+      {
+        id: 'u-3', number: '3', owner: 'Gonzalo Silva Araya', rut: '16.230.984-2', phone: '+56 9 7654 3210', email: 'gonzalo.silva@vtr.net',
+        sharePercentage: 6.25, previousDebt: 41200, creditBalance: 0, currentCharge: 42500, extraCharge: 12000, extraChargeDescription: 'Control remoto adicional portón',
+        paidAmount: 0, paid: false, password: '3', isCommittee: false, committeeRole: '',
+        payerSameAsOwner: false,
+        parkingNumber: 'Est. 3', storageNumber: 'Bod. 3', vehicles: 'LK-12-90', pets: '2 Gatos (Luna y Simón)',
+        notesHistory: [
+          { id: 'n-2', date: '2026-10-22', author: 'John Arancibia (Admin)', type: 'Acuerdo', text: 'Arrendataria Daniela Rojas pagará saldo de control remoto el día 30.' }
+        ],
+        additionalUsers: [
+          { id: 'au-3', role: 'Arrendatario(a) / Pagador Gasto Común', name: 'Daniela Rojas P.', rut: '19.120.440-1', phone: '+56 9 6543 2109', email: 'daniela.rojas@gmail.com', password: '3' }
+        ],
+        repactacion: { active: false, totalHistoricalDebt: 0, installmentAmount: 0, totalInstallments: 0, paidInstallments: 0, notes: '' }
+      },
+      {
+        id: 'u-4', number: '4', owner: 'Marcela Castillo Gómez', rut: '13.784.512-8', phone: '+56 9 8234 1199', email: 'marce.castillo@gmail.com',
+        sharePercentage: 6.25, previousDebt: 0, creditBalance: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '',
+        paidAmount: 42500, paid: true, password: '4', isCommittee: true, committeeRole: 'Tesorera Comité',
+        payerSameAsOwner: true, parkingNumber: 'Est. 4', storageNumber: 'Bod. 4', vehicles: 'BB-CC-44', pets: '1 Perro (Mestizo)', notesHistory: [], additionalUsers: [],
+        repactacion: { active: false, totalHistoricalDebt: 0, installmentAmount: 0, totalInstallments: 0, paidInstallments: 0, notes: '' }
+      },
+      { id: 'u-5', number: '5', owner: 'Rodrigo Fuentes Díaz', rut: '17.112.450-1', phone: '+56 9 9876 5432', email: 'rfuentes@empresa.cl', sharePercentage: 6.25, previousDebt: 0, creditBalance: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '5', payerSameAsOwner: true, parkingNumber: 'Est. 5', storageNumber: 'Bod. 5', vehicles: 'RF-88-21', pets: '', notesHistory: [], additionalUsers: [], repactacion: { active: false, totalHistoricalDebt: 0, installmentAmount: 0, totalInstallments: 0, paidInstallments: 0, notes: '' } },
+      {
+        id: 'u-6', number: '6', owner: 'María José Herrera V.', rut: '18.402.193-K', phone: '+56 9 7111 2233', email: 'mjherrera@outlook.com',
+        sharePercentage: 6.25, previousDebt: 0, creditBalance: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '',
+        paidAmount: 0, paid: false, password: '6', payerSameAsOwner: true,
+        parkingNumber: 'Est. 6', storageNumber: 'Bod. 6', vehicles: 'RT-44-22', pets: '1 Perro (Poodle - Toby)',
+        notesHistory: [
+          { id: 'n-3', date: '2026-10-05', author: 'John Arancibia (Admin)', type: 'Acuerdo', text: 'Se suscribe formalmente convenio de repactación en 8 cuotas de $30.000 con visto bueno del comité.' }
+        ],
+        additionalUsers: [],
+        repactacion: {
+          active: true,
+          totalHistoricalDebt: 240000,
+          installmentAmount: 30000,
+          totalInstallments: 8,
+          paidInstallments: 2,
+          notes: 'Convenio deuda histórica 2025 en 8 cuotas de $30.000'
+        }
+      },
+      { id: 'u-7', number: '7', owner: 'Fernando Soto Tapia', rut: '12.945.320-7', phone: '+56 9 8765 4321', email: 'fernando.soto@gmail.com', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '7', parkingNumber: 'Est. 7', storageNumber: 'Bod. 7', vehicles: 'FS-90-12', pets: '1 Gato', notesHistory: [] },
+      { id: 'u-8', number: '8', owner: 'Claudia Valenzuela M.', rut: '15.932.100-3', phone: '+56 9 9345 6789', email: 'cvalenzuela@gmail.com', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 0, paid: false, password: '8', parkingNumber: 'Est. 8', storageNumber: 'Bod. 8', vehicles: 'CV-11-22', pets: '', notesHistory: [] },
+      { id: 'u-9', number: '9', owner: 'Jorge Ramírez Toro', rut: '14.221.340-5', phone: '+56 9 8122 3344', email: 'jorge.ramirez@vtr.net', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '9', parkingNumber: 'Est. 9', storageNumber: 'Bod. 9', vehicles: 'JR-33-44', pets: 'Sin mascotas', notesHistory: [] },
+      { id: 'u-10', number: '10', owner: 'Loreto Campusano E.', rut: '16.782.910-6', phone: '+56 9 9234 5678', email: 'loreto.campusano@gmail.com', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '10', parkingNumber: 'Est. 10', storageNumber: 'Bod. 10', vehicles: 'LC-55-66', pets: '1 Perro', notesHistory: [] },
+      { id: 'u-11', number: '11', owner: 'Esteban Muñoz Bravo', rut: '15.110.229-8', phone: '+56 9 7890 1234', email: 'esteban.munoz@yahoo.es', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '11', parkingNumber: 'Est. 11', storageNumber: 'Bod. 11', vehicles: 'EM-77-88', pets: '', notesHistory: [] },
+      {
+        id: 'u-12', number: '12', owner: 'Camila Pinto Sepúlveda', rut: '17.840.119-2', phone: '+56 9 8901 2345', email: 'cpinto@gmail.com',
+        sharePercentage: 6.25, previousDebt: 127500, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 0, paid: false, password: '12',
+        parkingNumber: 'Est. 12', storageNumber: 'Bod. 12', vehicles: 'CP-99-00', pets: '2 Gatos',
+        notesHistory: [
+          { id: 'n-12a', date: '2026-10-10', author: 'John Arancibia (Admin)', type: 'Corte de Suministro (Art. 20)', text: 'Unidad acumula 3 meses impagos ($170.000 total). Se prepara carta de requerimiento prejudicial y notificación previa de suspensión de suministro eléctrico según Art. 20 Ley 21.442.' }
+        ]
+      },
+      { id: 'u-13', number: '13', owner: 'Manuel Pizarro Cortés', rut: '11.890.342-1', phone: '+56 9 9456 7890', email: 'mpizarro@coquimbo.cl', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '13', parkingNumber: 'Est. 13', storageNumber: 'Bod. 13', vehicles: 'MP-22-33', pets: '', notesHistory: [] },
+      { id: 'u-14', number: '14', owner: 'Andrea Lagos Carvajal', rut: '16.550.210-4', phone: '+56 9 7345 6789', email: 'andrea.lagos@gmail.com', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '14', parkingNumber: 'Est. 14', storageNumber: 'Bod. 14', vehicles: 'AL-44-55', pets: '1 Perro Pastor Alemán', notesHistory: [] },
+      { id: 'u-15', number: '15', owner: 'Sebastián Zepeda L.', rut: '18.120.903-7', phone: '+56 9 8567 8901', email: 'szepeda@live.cl', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '15', parkingNumber: 'Est. 15', storageNumber: 'Bod. 15', vehicles: 'SZ-66-77', pets: '', notesHistory: [] },
+      { id: 'u-16', number: '16', owner: 'Valeska Barraza M.', rut: '15.670.384-9', phone: '+56 9 9678 9012', email: 'vbarraza@gmail.com', sharePercentage: 6.25, previousDebt: 0, currentCharge: 42500, extraCharge: 0, extraChargeDescription: '', paidAmount: 42500, paid: true, password: '16', parkingNumber: 'Est. 16', storageNumber: 'Bod. 16', vehicles: 'VB-88-99', pets: '1 Gato', notesHistory: [] },
+    ],
+    // Período activo (Noviembre 2026 para cobrar en Diciembre)
+    activePeriod: {
+      month: 11,
+      year: 2026,
+      dueDate: '2026-12-10',
+      status: 'EMITIDO'
+    },
+    // Gastos del período con respaldos (Boletas / Facturas reales)
+    expenses: [
+      {
+        id: 'exp-1',
+        category: 'Servicios Básicos',
+        description: 'Luz común Alumbrado y Portón Eléctrico',
+        provider: 'CGE Compañía General de Electricidad S.A.',
+        providerRut: '76.411.321-7',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8842109',
+        date: '2026-11-04',
+        amount: 118400,
+        fundSource: 'ordinario',
+        isRecurring: true,
+        status: 'pagado',
+        paymentDate: '2026-11-05',
+        paymentReference: 'TR-994201',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-11-06',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Boleta consumo alumbrado perimetral y motor de acceso.'
+      },
+      {
+        id: 'exp-2',
+        category: 'Servicios Básicos',
+        description: 'Agua potable riego jardines y áreas comunes',
+        provider: 'Aguas del Valle S.A.',
+        providerRut: '96.969.840-4',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'AV-554190',
+        date: '2026-11-06',
+        amount: 86500,
+        fundSource: 'ordinario',
+        isRecurring: true,
+        status: 'pagado',
+        paymentDate: '2026-11-07',
+        paymentReference: 'TR-994315',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-11-07',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Consumo medidor general de áreas comunes.'
+      },
+      {
+        id: 'exp-3',
+        category: 'Mantenciones',
+        description: 'Mantención preventiva mensual de portón eléctrico y fotoceldas',
+        provider: 'Automatizaciones Norte SpA',
+        providerRut: '77.123.456-8',
+        documentType: 'Factura Exenta',
+        documentNumber: 'FE-1049',
+        date: '2026-11-12',
+        amount: 95000,
+        fundSource: 'ordinario',
+        isRecurring: true,
+        status: 'pagado',
+        paymentDate: '2026-11-14',
+        paymentReference: 'TR-995110',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-11-13',
+        receiptUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Lubricación cremalleras, calibración sensores y test de baterías de respaldo.'
+      },
+      {
+        id: 'exp-4',
+        category: 'Aseo y Áreas Verdes',
+        description: 'Servicio quincenal de corte de césped, poda y retiro de podas',
+        provider: 'Jardines del Elqui - Juan Perez M.',
+        providerRut: '14.892.341-2',
+        documentType: 'Boleta de Honorarios',
+        documentNumber: 'BH-320',
+        date: '2026-11-15',
+        amount: 160000,
+        fundSource: 'ordinario',
+        isRecurring: true,
+        status: 'pagado',
+        paymentDate: '2026-11-16',
+        paymentReference: 'TR-995802',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-11-16',
+        receiptUrl: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: '2 visitas realizadas en el mes. Retiro de ramas en camión.'
+      },
+      {
+        id: 'exp-5',
+        category: 'Administración y Seguros',
+        description: 'Honorarios administración mensual y rendición de cuentas',
+        provider: 'ARANPRO • Gestión Integral',
+        providerRut: '76.999.888-1',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-102',
+        date: '2026-11-20',
+        amount: 185000,
+        fundSource: 'ordinario',
+        isRecurring: true,
+        status: 'pagado',
+        paymentDate: '2026-11-20',
+        paymentReference: 'TR-996410',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-11-20',
+        receiptUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Honorarios administración periodo Noviembre 2026 según contrato.'
+      },
+      {
+        id: 'exp-6',
+        category: 'Reparaciones e Imprevistos',
+        description: 'Cambio de impulsor y sello mecánico sala de bombas de agua potable (Urgencia)',
+        provider: 'Hidráulica & Bombas del Norte SpA',
+        providerRut: '76.543.210-9',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-4180',
+        date: '2026-11-22',
+        amount: 280000,
+        fundSource: 'fondo_reserva',
+        isRecurring: false,
+        status: 'pagado',
+        paymentDate: '2026-11-23',
+        paymentReference: 'TR-997014',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-11-22',
+        receiptUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Aprobado con cargo a Fondo de Reserva Ley 21.442. No incrementa cuota ordinaria de copropietarios.'
+      },
+      {
+        id: 'exp-7',
+        category: 'Mantenciones',
+        description: 'Recarga y certificación semestral de extintores de incendio comunes (DS 44)',
+        provider: 'Extintores y Seguridad Chile Ltda.',
+        providerRut: '78.901.234-5',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-1560',
+        date: '2026-11-26',
+        amount: 48000,
+        fundSource: 'ordinario',
+        isRecurring: false,
+        status: 'pendiente',
+        paymentDate: '',
+        paymentReference: '',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: false,
+        approvedAt: null,
+        receiptUrl: '',
+        receiptNotes: 'Factura recepcionada. Pago programado contra entrega de certificados y sellos vigentes.'
+      }
+    ],
+    // Historial de meses cerrados anteriores
+    periodHistory: [
+      {
+        id: 'hist-2026-11',
+        month: 11,
+        year: 2026,
+        closedAt: '2026-11-30',
+        totalExpenses: 644900,
+        reserveFundAmount: 35100,
+        grandTotal: 680000,
+        totalCollected: 637500,
+        unitsPaidCount: 15,
+        unitsCount: 16
+      },
+      {
+        id: 'hist-2026-10',
+        month: 10,
+        year: 2026,
+        closedAt: '2026-10-31',
+        totalExpenses: 620000,
+        reserveFundAmount: 31000,
+        grandTotal: 651000,
+        totalCollected: 610300,
+        unitsPaidCount: 15,
+        unitsCount: 16
+      },
+      {
+        id: 'hist-2026-04',
+        month: 4,
+        year: 2026,
+        closedAt: '2026-04-30',
+        totalExpenses: 450000,
+        reserveFundAmount: 22500,
+        grandTotal: 472500,
+        totalCollected: 460000,
+        unitsPaidCount: 15,
+        unitsCount: 16
+      },
+      {
+        id: 'hist-2026-03',
+        month: 3,
+        year: 2026,
+        closedAt: '2026-03-31',
+        totalExpenses: 480000,
+        reserveFundAmount: 24000,
+        grandTotal: 504000,
+        totalCollected: 470000,
+        unitsPaidCount: 14,
+        unitsCount: 16
+      }
+    ],
+    // Histórico de Gastos con Diferenciación de Administraciones (Mi Administración vs Traspaso Anterior)
+    historicalExpenses: [
+      // --- OCTUBRE 2026: MI ADMINISTRACIÓN (ARANPRO) ---
+      {
+        id: 'hexp-oct-1',
+        period: '2026-10',
+        periodLabel: 'Octubre 2026',
+        administrationType: 'current',
+        administrationName: 'Aranpro SpA (Administración Actual)',
+        category: 'Servicios Básicos (Uso y Consumo)',
+        description: 'Consumo alumbrado perimetral, pasillos y motor portón',
+        provider: 'CGE Compañía General de Electricidad S.A.',
+        providerRut: '76.411.321-7',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8719042',
+        date: '2026-10-04',
+        amount: 114500,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-10-06',
+        paymentReference: 'TR-881240',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-10-07',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Factura mensual CGE cancelada vía TEF.'
+      },
+      {
+        id: 'hexp-oct-2',
+        period: '2026-10',
+        periodLabel: 'Octubre 2026',
+        administrationType: 'current',
+        administrationName: 'Aranpro SpA (Administración Actual)',
+        category: 'Mantención Periódica',
+        description: 'Mantención mensual preventiva portón vehicular e intercomunicador',
+        provider: 'Portones Automáticos del Norte SpA',
+        providerRut: '76.992.140-5',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-3310',
+        date: '2026-10-12',
+        amount: 65000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-10-14',
+        paymentReference: 'TR-882015',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-10-15',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Certificado de mantención firmado por conserje.'
+      },
+      {
+        id: 'hexp-oct-3',
+        period: '2026-10',
+        periodLabel: 'Octubre 2026',
+        administrationType: 'current',
+        administrationName: 'Aranpro SpA (Administración Actual)',
+        category: 'Aseo y Áreas Verdes',
+        description: 'Servicio quincenal de corte de césped, poda de cercos y aseo pasillos',
+        provider: 'Jardines & Paisajismo El Valle Ltda.',
+        providerRut: '77.810.990-2',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-9024',
+        date: '2026-10-18',
+        amount: 180000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-10-20',
+        paymentReference: 'TR-883901',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-10-21',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Conforme con inspección de áreas verdes.'
+      },
+      // --- SEPTIEMBRE 2026: ADMINISTRACIÓN ANTERIOR (TRASPASO INICIAL) ---
+      {
+        id: 'hexp-sep-1',
+        period: '2026-09',
+        periodLabel: 'Septiembre 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Servicios Básicos (Uso y Consumo)',
+        description: 'Consumo eléctrico alumbrado y áreas comunes - Período anterior',
+        provider: 'CGE Compañía General de Electricidad S.A.',
+        providerRut: '76.411.321-7',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8610441',
+        date: '2026-09-05',
+        amount: 135200,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-09-08',
+        paymentReference: 'TEF-774012',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-09-09',
+        approvedBy: 'Comité de Administración (Gestión Anterior)',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Carpeta física de traspaso: Folio 44.'
+      },
+      {
+        id: 'hexp-sep-2',
+        period: '2026-09',
+        periodLabel: 'Septiembre 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Reparaciones e Imprevistos',
+        description: 'Reparación de urgencia motor portón por trabamiento (Sin mantención preventiva)',
+        provider: 'Servicios Técnicos Integrales Don Luis E.I.R.L.',
+        providerRut: '76.104.992-K',
+        documentType: 'Boleta de Honorarios',
+        documentNumber: 'BH-5501',
+        date: '2026-09-14',
+        amount: 145000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-09-15',
+        paymentReference: 'CHQ-002491',
+        paymentMethod: 'cheque',
+        approvedByCommittee: false,
+        approvedAt: null,
+        approvedBy: null,
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Gasto no programado por falta de mantenimiento previo.'
+      },
+      {
+        id: 'hexp-sep-3',
+        period: '2026-09',
+        periodLabel: 'Septiembre 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Aseo y Áreas Verdes',
+        description: 'Servicio de limpieza y retiro de basura septiembre',
+        provider: 'Jardines & Paisajismo El Valle Ltda.',
+        providerRut: '77.810.990-2',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8812',
+        date: '2026-09-20',
+        amount: 190000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-09-22',
+        paymentReference: 'TEF-775199',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-09-23',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Recibido en balance de traspaso.'
+      },
+      // --- AGOSTO 2026: ADMINISTRACIÓN ANTERIOR (TRASPASO INICIAL) ---
+      {
+        id: 'hexp-ago-1',
+        period: '2026-08',
+        periodLabel: 'Agosto 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Servicios Básicos (Uso y Consumo)',
+        description: 'Consumo eléctrico alumbrado común agosto',
+        provider: 'CGE Compañía General de Electricidad S.A.',
+        providerRut: '76.411.321-7',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8511200',
+        date: '2026-08-04',
+        amount: 128900,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-08-07',
+        paymentReference: 'TEF-661040',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-08-08',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Factura archivada en carpeta física de traspaso.'
+      },
+      {
+        id: 'hexp-ago-2',
+        period: '2026-08',
+        periodLabel: 'Agosto 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Mantención Periódica',
+        description: 'Reparación y cambio de sellos bomba de agua presurizadora',
+        provider: 'Bombas & Riego HidroValle SpA',
+        providerRut: '76.320.101-3',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-1420',
+        date: '2026-08-16',
+        amount: 95000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-08-18',
+        paymentReference: 'CHQ-002480',
+        paymentMethod: 'cheque',
+        approvedByCommittee: true,
+        approvedAt: '2026-08-19',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Se reemplazó rodamiento y empaquetadura.'
+      },
+      {
+        id: 'hexp-ago-3',
+        period: '2026-08',
+        periodLabel: 'Agosto 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Aseo y Áreas Verdes',
+        description: 'Servicio mensual aseo pasillos y jardinería',
+        provider: 'Jardines & Paisajismo El Valle Ltda.',
+        providerRut: '77.810.990-2',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8702',
+        date: '2026-08-20',
+        amount: 185000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-08-22',
+        paymentReference: 'TEF-662190',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-08-23',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Comprobante archivado en traspaso.'
+      },
+      // --- ABRIL 2026: ADMINISTRACIÓN ANTERIOR ---
+      {
+        id: 'hexp-abr-1',
+        period: '2026-04',
+        periodLabel: 'Abril 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Servicios Básicos (Uso y Consumo)',
+        description: 'Consumo eléctrico alumbrado general abril',
+        provider: 'CGE Compañía General de Electricidad S.A.',
+        providerRut: '76.411.321-7',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8201',
+        date: '2026-04-05',
+        amount: 122000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-04-08',
+        paymentReference: 'TEF-551090',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-04-09',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Comprobante recibido en traspaso.'
+      },
+      {
+        id: 'hexp-abr-2',
+        period: '2026-04',
+        periodLabel: 'Abril 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Aseo y Áreas Verdes',
+        description: 'Servicio de aseo común y mantención de césped',
+        provider: 'Jardines & Paisajismo El Valle Ltda.',
+        providerRut: '77.810.990-2',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8400',
+        date: '2026-04-20',
+        amount: 175000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-04-22',
+        paymentReference: 'TEF-552400',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-04-23',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Factura archivada en carpeta física.'
+      },
+      // --- MARZO 2026: ADMINISTRACIÓN ANTERIOR ---
+      {
+        id: 'hexp-mar-1',
+        period: '2026-03',
+        periodLabel: 'Marzo 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Servicios Básicos (Uso y Consumo)',
+        description: 'Consumo eléctrico áreas comunes marzo',
+        provider: 'CGE Compañía General de Electricidad S.A.',
+        providerRut: '76.411.321-7',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-8100',
+        date: '2026-03-05',
+        amount: 130000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-03-08',
+        paymentReference: 'TEF-441090',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-03-09',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Factura de luz traspasada en acta.'
+      },
+      {
+        id: 'hexp-mar-2',
+        period: '2026-03',
+        periodLabel: 'Marzo 2026',
+        administrationType: 'previous',
+        administrationName: 'Administración Valdés & Cía (Gestión Anterior)',
+        category: 'Mantención Periódica',
+        description: 'Certificación anual extintores y revisión red húmeda (DS 44 / Ley 21.442)',
+        provider: 'Extintores y Seguridad Chile Ltda.',
+        providerRut: '78.901.234-5',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-1200',
+        date: '2026-03-15',
+        amount: 85000,
+        fundSource: 'ordinario',
+        status: 'pagado',
+        paymentDate: '2026-03-18',
+        paymentReference: 'TEF-442110',
+        paymentMethod: 'transferencia',
+        approvedByCommittee: true,
+        approvedAt: '2026-03-19',
+        approvedBy: 'Comité de Administración',
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Sellos y etiquetas vigentes hasta marzo 2027.'
+      }
+    ],
+    // Mural de Avisos / Comunicados para los Vecinos
+    announcements: [
+      {
+        id: 'ann-1',
+        title: 'Mantención preventiva de portón eléctrico y entrega de controles',
+        content: 'Estimados vecinos: Este jueves entre las 10:00 y 12:30 hrs se realizará la mantención preventiva del motor de acceso principal. Durante ese horario el portón operará de forma manual asistida.',
+        priority: 'Importante',
+        date: '2026-11-25',
+        author: 'Administración ARANPRO'
+      },
+      {
+        id: 'ann-2',
+        title: 'Bienvenida a Plataforma Digital ARANPRO — Transparencia Total',
+        content: 'Ya se encuentra habilitado el portal exclusivo de nuestra comunidad. Cada propietario puede revisar las facturas reales del mes, descargar su colilla de cobro e informar sus transferencias en línea.',
+        priority: 'Informativo',
+        date: '2026-11-20',
+        author: 'John Arancibia • Administrador'
+      }
+    ],
+    // Biblioteca de Documentos Oficiales (Ley 21.442)
+    documents: [
+      {
+        id: 'doc-1',
+        title: 'Reglamento de Copropiedad Vigente (Actualizado Ley 21.442)',
+        category: 'Reglamento',
+        date: '2026-03-15',
+        fileUrl: ''
+      },
+      {
+        id: 'doc-2',
+        title: 'Plan de Emergencia y Evacuación ante Siniestros (PES)',
+        category: 'Seguridad y Emergencia',
+        date: '2026-06-10',
+        fileUrl: ''
+      },
+      {
+        id: 'doc-3',
+        title: 'Acta Asamblea Ordinaria Anual y Elección de Comité',
+        category: 'Actas de Asamblea',
+        date: '2026-09-22',
+        fileUrl: ''
+      }
+    ],
+    // Directorio de Proveedores y Contratistas de la Comunidad
+    providers: [
+      {
+        id: 'prov-1',
+        name: 'CGE Compañía General de Electricidad S.A.',
+        commercialName: 'CGE Distribución',
+        rut: '76.411.321-7',
+        category: 'Servicios Básicos (Uso y Consumo)',
+        specialty: 'Distribución y Suministro Eléctrico Común',
+        contactPerson: 'Mesa Empresas y Condominios',
+        phone: '+56 600 777 7777',
+        emergencyPhone: '+56 800 800 767',
+        email: 'atencion.empresas@cge.cl',
+        address: 'Av. Pdte. Balmaceda 1398, Santiago / Coquimbo',
+        documentTypeDefault: 'Factura Electrónica',
+        isContract: true,
+        contractDetails: 'Suministro continuo tarifa BT1 / Medidor N° 849201',
+        bankInfo: {
+          bank: 'Banco Santander',
+          accountType: 'Cuenta Corriente',
+          accountNumber: '00-6102934-1',
+          rut: '76.411.321-7',
+          holderName: 'CGE Compañía General de Electricidad S.A.',
+          email: 'pagos.empresas@cge.cl'
+        },
+        notes: 'Pago mensual antes del vencimiento del día 18 para evitar corte de suministro en accesos.'
+      },
+      {
+        id: 'prov-2',
+        name: 'Aguas del Valle S.A.',
+        commercialName: 'Aguas del Valle',
+        rut: '96.969.840-4',
+        category: 'Servicios Básicos (Uso y Consumo)',
+        specialty: 'Agua Potable, Alcantarillado y Riego Común',
+        contactPerson: 'Atención Clientes Comerciales',
+        phone: '+56 600 400 4444',
+        emergencyPhone: '+56 600 400 4444',
+        email: 'clientes@aguasdelvalle.cl',
+        address: 'Los Carrera 330, La Serena',
+        documentTypeDefault: 'Factura Electrónica',
+        isContract: true,
+        contractDetails: 'Servicio continuo Agua Potable / Arranque N° 99120',
+        bankInfo: {
+          bank: 'Banco de Chile',
+          accountType: 'Cuenta Corriente',
+          accountNumber: '110-09283-02',
+          rut: '96.969.840-4',
+          holderName: 'Aguas del Valle S.A.',
+          email: 'recaudacion@aguasdelvalle.cl'
+        },
+        notes: 'Pago con cargo a gastos comunes del período.'
+      },
+      {
+        id: 'prov-3',
+        name: 'Automatizaciones Norte SpA',
+        commercialName: 'Automatizaciones Norte',
+        rut: '77.123.456-8',
+        category: 'Mantención Periódica',
+        specialty: 'Portones Eléctricos, Motores BFT, Cremalleras y Balizas',
+        contactPerson: 'Rodrigo Espinoza (Técnico Jefe)',
+        phone: '+56 9 8765 4321',
+        emergencyPhone: '+56 9 8765 4321',
+        email: 'automatizaciones.norte@gmail.com',
+        address: 'Balmaceda 2100, La Serena',
+        documentTypeDefault: 'Factura Exenta',
+        isContract: true,
+        contractDetails: 'Mantención preventiva mensual ($95.000/mes) + atención de urgencias',
+        bankInfo: {
+          bank: 'Banco BCI',
+          accountType: 'Cuenta Corriente',
+          accountNumber: '77890123',
+          rut: '77.123.456-8',
+          holderName: 'Automatizaciones Norte SpA',
+          email: 'pagos.automatizaciones@gmail.com'
+        },
+        notes: 'Técnico certificado con repuestos para motores de acceso vehicular en taller móvil.'
+      },
+      {
+        id: 'prov-4',
+        name: 'Jardines del Elqui - Juan Pérez M.',
+        commercialName: 'Jardines del Elqui',
+        rut: '14.892.341-2',
+        category: 'Aseo y Áreas Verdes',
+        specialty: 'Paisajismo, Poda, Desmalezado y Mantención de Riego',
+        contactPerson: 'Juan Pérez Morales',
+        phone: '+56 9 9234 5678',
+        emergencyPhone: '+56 9 9234 5678',
+        email: 'jardines.elqui@gmail.com',
+        address: 'Calle San Joaquín 890, La Serena',
+        documentTypeDefault: 'Boleta de Honorarios',
+        isContract: true,
+        contractDetails: 'Servicio quincenal de corte de césped, bordeado y poda de árboles perimetrales',
+        bankInfo: {
+          bank: 'BancoEstado',
+          accountType: 'CuentaRUT',
+          accountNumber: '14892341',
+          rut: '14.892.341-2',
+          holderName: 'Juan Pérez Morales',
+          email: 'jardines.elqui@gmail.com'
+        },
+        notes: 'Emite boleta de honorarios mensual con retención de ley SII (13.75%).'
+      },
+      {
+        id: 'prov-5',
+        name: 'Previred S.A.',
+        commercialName: 'Previred Cotizaciones',
+        rut: '76.012.345-K',
+        category: 'Sueldos y Previsión',
+        specialty: 'Pago Electrónico de Cotizaciones Previsionales (Art. 18 Ley 21.442)',
+        contactPerson: 'Mesa de Ayuda Previred',
+        phone: '+56 600 656 0000',
+        emergencyPhone: '+56 600 656 0000',
+        email: 'contacto@previred.com',
+        address: 'Moneda 970, Santiago',
+        documentTypeDefault: 'Planilla Previred',
+        isContract: false,
+        contractDetails: 'Pago obligatorio mensual de imposiciones del personal',
+        bankInfo: {
+          bank: 'Banco de Chile',
+          accountType: 'Cuenta Corriente',
+          accountNumber: '990-12345-00',
+          rut: '76.012.345-K',
+          holderName: 'Previred S.A.',
+          email: 'comprobantes@previred.com'
+        },
+        notes: 'Acredita cumplimiento previsional legal del personal del condominio.'
+      },
+      {
+        id: 'prov-6',
+        name: 'Extintores y Seguridad Chile Ltda.',
+        commercialName: 'SegurExtintores',
+        rut: '78.901.234-5',
+        category: 'Mantención Periódica',
+        specialty: 'Recarga y Certificación Anual de Extintores (Norma DS 44)',
+        contactPerson: 'Claudio Valenzuela',
+        phone: '+56 9 7654 3210',
+        emergencyPhone: '+56 9 7654 3210',
+        email: 'contacto@segurextintores.cl',
+        address: 'Av. El Santo 1540, La Serena',
+        documentTypeDefault: 'Factura Electrónica',
+        isContract: false,
+        contractDetails: 'Servicio anual de inspección y prueba hidrostática de equipos contra incendios',
+        bankInfo: {
+          bank: 'Banco Santander',
+          accountType: 'Cuenta Corriente',
+          accountNumber: '70-19283-4',
+          rut: '78.901.234-5',
+          holderName: 'Extintores y Seguridad Chile Ltda.',
+          email: 'pagos@segurextintores.cl'
+        },
+        notes: 'Empresa acreditada ante el Ministerio de Salud para mantención de extintores.'
+      },
+      {
+        id: 'prov-7',
+        name: 'ARANPRO • Gestión Integral',
+        commercialName: 'ARANPRO',
+        rut: '76.999.888-1',
+        category: 'Administración y Seguros',
+        specialty: 'Administración Profesional de Condominios y Asesoría Legal',
+        contactPerson: 'John Arancibia (Registro MINVU N° 44.201)',
+        phone: '+56 9 1234 5678',
+        emergencyPhone: '+56 9 1234 5678',
+        email: 'contacto@aranpro.cl',
+        address: 'Av. Cuatro Esquinas 1020, La Serena',
+        documentTypeDefault: 'Factura Electrónica',
+        isContract: true,
+        contractDetails: 'Contrato de administración formal según Ley N° 21.442',
+        bankInfo: {
+          bank: 'Banco de Chile',
+          accountType: 'Cuenta Corriente',
+          accountNumber: '190-28394-01',
+          rut: '76.999.888-1',
+          holderName: 'ARANPRO Gestión Inmobiliaria SpA',
+          email: 'finanzas@aranpro.cl'
+        },
+        notes: 'Honorarios mensuales de administración y rendición de cuentas oficial.'
+      }
+    ],
+    // Pagos informados pendientes de revisión o ya aprobados
+    paymentReports: [
+      {
+        id: 'pay-1',
+        receiptFolio: 'REC-2026-001',
+        unitNumber: '1',
+        owner: 'Carlos Morales Rojas',
+        amount: 42500,
+        date: '2026-11-28',
+        transferNumber: 'TRF-994120',
+        receiptImg: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=800&q=80',
+        status: 'APROBADO'
+      },
+      {
+        id: 'pay-2',
+        receiptFolio: 'REC-2026-002',
+        unitNumber: '2',
+        owner: 'Patricia Vega Fuentes',
+        amount: 42500,
+        date: '2026-11-29',
+        transferNumber: 'TRF-110293',
+        receiptImg: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=800&q=80',
+        status: 'APROBADO'
+      },
+      {
+        id: 'pay-3',
+        receiptFolio: 'REC-2026-003',
+        unitNumber: '4',
+        owner: 'Marcela Castillo Gómez',
+        amount: 42500,
+        date: '2026-11-30',
+        transferNumber: 'TRF-881290',
+        receiptImg: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&w=800&q=80',
+        status: 'APROBADO'
+      }
+    ]
+  },
+  {
+    id: 'com-palmas',
+    slug: 'las-palmas',
+    name: 'Condominio Las Palmas',
+    type: 'Casas',
+    address: 'Av. El Molino 1250',
+    city: 'Coquimbo',
+    totalUnits: 12,
+    reserveFundPercentage: 5,
+    bankInfo: {
+      bank: 'Banco Santander',
+      accountType: 'Cuenta Corriente',
+      accountNumber: '74-12345-6',
+      holderName: 'Comunidad Condominio Las Palmas',
+      rut: '65.234.110-8',
+      email: 'comunidad.laspalmas@gmail.com'
+    },
+    units: [
+      { id: 'u-p1', number: '1', owner: 'Roberto Tapia V.', rut: '13.450.912-1', phone: '+56 9 9111 2233', email: 'roberto@gmail.com', sharePercentage: 8.33, previousDebt: 0, currentCharge: 38000, paid: true, password: '1', parkingNumber: 'E-01', storageNumber: 'B-01', vehicles: 'TT-11-22', pets: '1 Perro', notesHistory: [] },
+      { id: 'u-p2', number: '2', owner: 'Jimena Castro S.', rut: '14.120.340-9', phone: '+56 9 9222 3344', email: 'jimena@gmail.com', sharePercentage: 8.33, previousDebt: 0, currentCharge: 38000, paid: true, password: '2', parkingNumber: 'E-02', storageNumber: 'B-02', vehicles: 'JC-33-44', pets: 'Sin mascotas', notesHistory: [] },
+      { id: 'u-p3', number: '3', owner: 'Víctor Morales P.', rut: '15.670.120-3', phone: '+56 9 9333 4455', email: 'victor@gmail.com', sharePercentage: 8.33, previousDebt: 0, currentCharge: 38000, paid: false, password: '3', parkingNumber: 'E-03', storageNumber: 'B-03', vehicles: 'VM-55-66', pets: '2 Gatos', notesHistory: [] }
+    ],
+    activePeriod: {
+      month: 11,
+      year: 2026,
+      dueDate: '2026-12-05',
+      status: 'EMITIDO'
+    },
+    expenses: [
+      {
+        id: 'exp-p1',
+        category: 'Servicios Básicos',
+        description: 'Luz y motores de acceso',
+        provider: 'CGE S.A.',
+        documentType: 'Factura Electrónica',
+        documentNumber: 'F-90231',
+        date: '2026-11-05',
+        amount: 82000,
+        receiptUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        receiptNotes: 'Consumo de luz común del mes.'
+      }
+    ],
+    paymentReports: []
+  }
+];
+
+export const initialCompanySettings = {
+  brandName: 'ARANPRO',
+  subtitle: 'Gestión Integral',
+  provisionalName: 'ARANPRO • Gestión Integral',
+  administratorName: 'John Andrés Arancibia Maureira',
+  adminName: 'John Andrés Arancibia Maureira',
+  adminRut: '14.882.140-K',
+  adminRole: 'Representante Legal y Administrador Titular',
+  companyRut: '76.999.888-1',
+  rnacNumber: '48.912',
+  signatureDataUrl: '',
+  title: 'Administrador Profesional de Condominios y Edificios',
+  experienceSince: '2019',
+  slogan: 'Comunidades bien gestionadas, mayor tranquilidad',
+  tagline: 'Comunidades bien gestionadas, mayor tranquilidad',
+  phone: '+56 9 5811 8504',
+  email: 'contacto@aranpro.cl',
+  region: 'Región de Coquimbo y todo Chile',
+  adminPin: 'admin123',
+  pillars: [
+    {
+      id: 'personas',
+      title: 'Personas y Comunidad',
+      desc: 'Atención cercana, empática y resolutiva para cada vecino y comité de administración.',
+      icon: 'Users'
+    },
+    {
+      id: 'gestion',
+      title: 'Gestión Eficiente',
+      desc: 'Procesos operativos ágiles, proveedores calificados y mantención preventiva continua.',
+      icon: 'Settings'
+    },
+    {
+      id: 'transparencia',
+      title: 'Transparencia y Control',
+      desc: 'Acceso total y digital a boletas, facturas y respaldos reales de cada peso gastado.',
+      icon: 'ShieldCheck'
+    },
+    {
+      id: 'valorizacion',
+      title: 'Valorización Patrimonial',
+      desc: 'Conservación y mejora del patrimonio común para incrementar la plusvalía de su hogar.',
+      icon: 'Building2'
+    }
+  ],
+  colors: {
+    forest: '#0F3D2E',
+    champagne: '#D4B895',
+    slateGray: '#4A4F4F',
+    lightGray: '#E9EBE8',
+    ivory: '#F5F4EF'
+  },
+  accreditations: {
+    cgai: {
+      name: 'CGAI Chile (Colegio de Gestión y Administración Inmobiliaria)',
+      memberNumber: '13-563',
+      status: 'Socio Activo ★★★'
+    },
+    agacech: {
+      name: 'AGACECH (Asociación Gremial de Administradores de Condominios y Edificios de Chile)',
+      status: 'Administrador Acreditado'
+    },
+    diploma: {
+      institution: 'Learning Group / Fundación Emprenden',
+      title: 'Administración de Edificios y Condominios',
+      date: 'Septiembre 2019',
+      location: 'Santiago de Chile'
+    }
+  }
+};
+
+
+export const initialFaqs = [
+  {
+    category: 'Marco Legal & Normativo',
+    question: '¿Qué es un condominio y cuál es el marco legal que lo rige en Chile?',
+    answer: 'Es una construcción o terreno con construcciones acogido al régimen de copropiedad inmobiliaria regulado actualmente por la Ley N° 21.442 (que modernizó la antigua ley 19.537) y sus reglamentos. Su particularidad radica en la coexistencia de bienes de dominio exclusivo (casas o departamentos) y bienes de dominio común (calles internas, iluminación, portones, bombas, áreas verdes) pertenecientes a todos los copropietarios.'
+  },
+  {
+    category: 'Asambleas & Comité',
+    question: '¿Cuál es la diferencia entre una asamblea ordinaria y una extraordinaria?',
+    answer: 'La Ley diferencia las asambleas según las materias a tratar. Las Asambleas Ordinarias se celebran a lo menos una vez al año, oportunidad en que el Administrador debe rendir cuenta documentada de los últimos 12 meses y someter a aprobación el balance y presupuestos. Las Asambleas Extraordinarias se convocan cada vez que las necesidades del condominio lo exijan o a petición del comité o de copropietarios que representen a lo menos el 15% de los derechos. En ellas se tratan temas específicos como modificaciones al reglamento, remoción de miembros del comité, gastos o inversiones extraordinarias.'
+  },
+  {
+    category: 'Asambleas & Comité',
+    question: '¿Están obligados los copropietarios a asistir a las asambleas?',
+    answer: 'Sí. Todo copropietario está obligado a asistir a las asambleas, sea personalmente o debidamente representado mediante poder. Si el reglamento de copropiedad estipula multas por inasistencia no justificada, la administración está facultada para aplicarlas directamente en el cobro del gasto común.'
+  },
+  {
+    category: 'Asambleas & Comité',
+    question: '¿Un copropietario debe cumplir acuerdos tomados si votó en contra o no asistió?',
+    answer: 'Sí. Todo acuerdo adoptado válidamente en conformidad a los quórums exigidos por la ley y el reglamento de copropiedad es obligatorio para la totalidad de los copropietarios y residentes, hayan o no asistido a la asamblea, o hayan votado en contra.'
+  },
+  {
+    category: 'Rendición de Cuentas',
+    question: '¿Quién y cuándo se obliga al administrador a rendir cuentas documentadas?',
+    answer: 'La ley determina la obligación inexcusable del administrador de rendir cuenta documentada en las épocas fijadas por contrato, anualmente en la asamblea ordinaria, y cada vez que el Comité de Administración lo requiera formalmente o al término de su gestión. Además, la ley faculta al Juzgado de Policía Local para exigir la rendición de cuentas si el administrador no cumpliere.'
+  },
+  {
+    category: 'Gastos Comunes & Pagos',
+    question: '¿Quién es el responsable legal del pago de los gastos comunes: arrendatario o copropietario?',
+    answer: 'Ante la comunidad, el responsable legal absoluto es siempre el copropietario de la unidad. Aunque en el contrato de arriendo se pacte que el arrendatario pagará los gastos comunes, este es un acuerdo privado entre partes que no exime al dueño de la vivienda. Si el arrendatario deja el inmueble con deuda, la comunidad cobrará y perseguirá legalmente la deuda al propietario.'
+  },
+  {
+    category: 'Gastos Comunes & Pagos',
+    question: '¿Puede un vecino negarse a pagar mantenciones de servicios que asegura no utilizar?',
+    answer: 'No. La ley es categórica: el hecho de que un copropietario no haga uso efectivo de un determinado servicio, equipamiento o bien de dominio común (ejemplo: portón, ascensor o áreas verdes), o que la vivienda permanezca desocupada temporalmente, no lo exime en ningún caso de contribuir oportunamente al pago íntegro del gasto común.'
+  },
+  {
+    category: 'Seguros & Emergencia',
+    question: '¿Es legal que la comunidad contrate el seguro de incendio en forma colectiva?',
+    answer: 'Sí, y es sumamente recomendable. La ley exige que toda unidad cuente con seguro de incendio. La asamblea o el administrador pueden contratar una póliza colectiva para todo el condominio, lo que abarata significativamente el costo para cada vecino, entrega mayor cobertura y permite pagarlo prorrateado en las cuotas mensuales de gastos comunes.'
+  },
+  {
+    category: 'Seguros & Emergencia',
+    question: '¿Es obligatorio contar con un Plan de Emergencia ante Siniestros (PES)?',
+    answer: 'Es una exigencia legal obligatoria. Todo condominio debe contar con un Plan de Emergencia actualizado ante incendios, sismos y catástrofes, aprobado por el comité y con copia a Carabineros y Bomberos. En nuestra administración capacitamos al personal y vecinos para que no sea un documento archivado, sino un protocolo vivo y conocido.'
+  },
+  {
+    category: 'Uso de Espacios Comunes',
+    question: '¿Se pueden arrendar o ceder los estacionamientos de visita a residentes?',
+    answer: 'No. Los estacionamientos de visitas son bienes de dominio común con un destino exclusivo establecido por ley y por la Dirección de Obras Municipales. Está prohibido darles uso exclusivo permanente, arrendarlos o enajenarlos.'
+  },
+  {
+    category: 'Tecnología & Plataforma',
+    question: '¿Cómo funciona la plataforma web y app PWA que incluye John Arancibia en su administración?',
+    answer: 'Al contratar nuestra administración, la comunidad recibe sin costo adicional una plataforma web propia y aplicación PWA para celulares. Cada vecino ingresa con su RUT a un enlace exclusivo de su condominio para revisar el estado de su cuenta (al día o con deuda), ver el cálculo exacto de su cuota y, lo más importante, acceder con un clic a las boletas y facturas reales que respaldan cada gasto realizado en el mes.'
+  }
+];
+
+
+export const initialCertificates = [
+  {
+    id: 'cert-1',
+    folio: 'CERT-2026-001',
+    verificationCode: 'VRF-94A21',
+    communityName: 'Condominio Los Cerezos',
+    applicantName: 'Carlos Morales Rojas',
+    rut: '15.420.312-4',
+    unitNumber: '1',
+    email: 'carlos.morales@gmail.com',
+    phone: '+56988776655',
+    type: 'Certificado de Gastos Comunes al Día (No Deuda)',
+    purpose: 'Notaría de La Serena / Estudio de Título Compraventa',
+    date: '2026-11-20',
+    status: 'EMITIDO',
+    debtAmount: 0,
+    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    notes: 'Unidad al día auditada conforme Art. 20° y 36° Ley 21.442.'
+  },
+  {
+    id: 'cert-2',
+    folio: 'CERT-2026-002',
+    verificationCode: 'VRF-38C77',
+    communityName: 'Condominio Los Cerezos',
+    applicantName: 'Marcela Castillo Gómez',
+    rut: '16.789.012-3',
+    unitNumber: '4',
+    email: 'marcela.castillo@gmail.com',
+    phone: '+56977665544',
+    type: 'Certificado de Vigencia de Miembro del Comité',
+    purpose: 'BancoEstado • Actualización de Poderes y Firmas Cta. Cte.',
+    date: '2026-11-22',
+    status: 'EMITIDO',
+    debtAmount: 0,
+    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    notes: 'Tesorera del Comité electa válidamente en Asamblea del 28/04/2025.'
+  },
+  {
+    id: 'cert-3',
+    folio: 'CERT-2026-003',
+    verificationCode: 'VRF-12E40',
+    communityName: 'Condominio Los Cerezos',
+    applicantName: 'Daniela Rojas Plaza',
+    rut: '17.345.678-9',
+    unitNumber: '3',
+    email: 'daniela.rojas@hotmail.com',
+    phone: '+56966554433',
+    type: 'Certificado de Residencia y Domicilio',
+    purpose: 'Dirección de Tránsito Municipalidad de La Serena • Renovación Licencia',
+    date: '2026-11-28',
+    status: 'EMITIDO',
+    debtAmount: 0,
+    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    notes: 'Residencia efectiva en Casa 3 validada según registro oficial Art. 17°.'
+  },
+  {
+    id: 'cert-4',
+    folio: 'CERT-2026-004',
+    verificationCode: 'VRF-55B19',
+    communityName: 'Condominio Los Cerezos',
+    applicantName: 'Jorge Alarcón Soto',
+    rut: '18.123.456-7',
+    unitNumber: '8',
+    email: 'jorge.alarcon@empresa.cl',
+    phone: '+56955443322',
+    type: 'Certificado de Buena Convivencia y No Infracciones',
+    purpose: 'Acreditación de Arrendamiento Habitacional',
+    date: '2026-12-01',
+    status: 'SOLICITADO',
+    debtAmount: 0,
+    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    notes: 'Solicitud ingresada por portal de residentes pendiente de firma.'
+  },
+  {
+    id: 'cert-5',
+    folio: 'CERT-2026-005',
+    verificationCode: 'VRF-77D82',
+    communityName: 'Condominio Los Cerezos',
+    applicantName: 'Felipe Valenzuela Silva',
+    rut: '14.992.418-2',
+    unitNumber: '9',
+    email: 'felipe.valenzuela@gmail.com',
+    phone: '+56944332211',
+    type: 'Certificado de Estado de Deuda y Liquidación Morosa',
+    purpose: 'Banco Santander / Notaría • Retención en Compraventa e Inscripción CBR',
+    date: '2026-12-02',
+    status: 'EMITIDO',
+    debtAmount: 245000,
+    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    notes: 'Liquidación morosa con instrucción de Vale Vista para retención notarial según Art. 36° Ley 21.442.'
+  },
+  {
+    id: 'cert-6',
+    folio: 'CERT-2026-006',
+    verificationCode: 'VRF-44K90',
+    communityName: 'Condominio Los Cerezos',
+    applicantName: 'Rodrigo Araya Muñoz',
+    rut: '13.882.190-5',
+    unitNumber: '5',
+    email: 'rodrigo.araya@gmail.com',
+    phone: '+56966221100',
+    type: 'Certificado de Salvoconducto y Desalojo / Mudanza',
+    purpose: 'Autorización y Protocolo de Mudanza de Salida / Transportes Norte',
+    date: '2026-12-03',
+    status: 'EMITIDO',
+    debtAmount: 0,
+    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    notes: 'Gastos al día y garantía de áreas comunes consignada. Mudanza autorizada para el 06/12/2026 de 09:00 a 14:00 hrs.'
+  },
+  {
+    id: 'cert-7',
+    folio: 'CERT-2026-007',
+    verificationCode: 'VRF-88M12',
+    communityName: 'Condominio Los Cerezos',
+    applicantName: 'Patricia Navas Herrera',
+    rut: '12.441.980-3',
+    unitNumber: '2',
+    email: 'patricia.navas@outlook.com',
+    phone: '+56977114433',
+    type: 'Certificado Oficial de Copropiedad y Alícuota de Prorrateo',
+    purpose: 'Banco de Chile • Tasación Hipotecaria y Crédito de Ampliación',
+    date: '2026-12-04',
+    status: 'EMITIDO',
+    debtAmount: 0,
+    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    notes: 'Alícuota oficial de 6.250% y ponderación de derechos sobre bienes comunes acreditada.'
+  }
+];
+
+export const initialChileanProviders = initialCommunities[0].providers || [];
+export const initialHistoricalExpenses = initialCommunities[0].historicalExpenses || [];

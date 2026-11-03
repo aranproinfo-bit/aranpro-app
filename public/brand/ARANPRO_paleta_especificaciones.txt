@@ -1,0 +1,16 @@
+ARANPRO — PALETA DE COLORES CORPORATIVA
+
+Verde bosque (principal): #0F3D2E  | RGB: 15, 61, 46
+Champán (acento):       #D4B895  | RGB: 212, 184, 149
+Gris pizarra:          #4A4F4F  | RGB: 74, 79, 79
+Gris claro:            #E9EBE8  | RGB: 233, 235, 232
+Marfil (fondo):        #F5F4EF  | RGB: 245, 244, 239
+
+APLICACIONES
+Verde bosque: marca, encabezados y botones.
+Champán: detalles, separadores y acentos.
+Gris pizarra: textos secundarios.
+Gris claro: fondos de tarjetas y bordes.
+Marfil: fondo claro y tipografía sobre verde.
+
+Especificación digital en HEX/RGB; para CMYK/impresión profesional se recomienda perfil de color y prueba impresa con la imprenta.
