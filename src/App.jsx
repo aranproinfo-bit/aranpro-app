@@ -8,7 +8,7 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { ReceiptViewerModal } from './components/common/ReceiptViewerModal';
 import { CertificateModal } from './components/public/CertificateModal';
 import { 
-  Building2, ShieldCheck, Home, Key, Lock, ArrowRight, 
+  Building2, User, ShieldCheck, Home, Key, Lock, ArrowRight, 
   ExternalLink, Sparkles, Smartphone, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import './App.css';
