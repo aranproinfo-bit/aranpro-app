@@ -6,16 +6,16 @@ export const DOMAIN_CONFIG = {
   COMMERCIAL_WEB_URL: 'https://aranpro.cl',
 
   // Aplicación Web Progresiva PWA (Gestión de Administrador & Copropietarios)
-  APP_URL: 'https://administracion.aranpro.cl',
+  APP_URL: 'https://portaladministracion.aranpro.cl',
 
   // Enlace directo al portal de residentes con slug opcional
   getResidentLoginUrl: (communitySlug = '') => {
-    const base = 'https://administracion.aranpro.cl';
+    const base = 'https://portaladministracion.aranpro.cl';
     return communitySlug ? `${base}?c=${encodeURIComponent(communitySlug)}` : base;
   },
 
   // Enlace directo al acceso de administrador con PIN
   getAdminLoginUrl: () => {
-    return 'https://administracion.aranpro.cl?role=admin';
+    return 'https://portaladministracion.aranpro.cl?role=admin';
   }
 };
