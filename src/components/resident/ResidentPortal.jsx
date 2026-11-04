@@ -261,6 +261,26 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
             <span className="truncate">Salir</span>
           </button>
         </div>
+
+        {/* Firma Oficial Red-Enlace Soluciones Digitales */}
+        <div className="pt-2 border-t border-[#E9EBE8] text-center">
+          <a
+            href="https://redenlace.cl/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-[10.5px] text-slate-500 hover:text-[#0F3D2E] font-medium transition-colors group cursor-pointer"
+            title="Visitar Red-Enlace Soluciones Digitales"
+          >
+            <img
+              src="/red-enlace-logo.png"
+              alt="Logo Red-Enlace"
+              width={14}
+              height={14}
+              className="h-3 w-auto opacity-70 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0"
+            />
+            <span>Desarrollado por Red-Enlace</span>
+          </a>
+        </div>
       </div>
     </div>
   );

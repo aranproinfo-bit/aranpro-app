@@ -2468,32 +2468,38 @@ export const CompanySettingsAndBackupModule = ({
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900">PIN Maestro de Acceso Administrativo</h4>
-                    <p className="text-[11px] text-slate-500">Clave requerida para ingresar al panel de administración general.</p>
+                    <h4 className="text-xs font-bold text-slate-900">Contraseña / PIN Maestro del Administrador</h4>
+                    <p className="text-[11px] text-slate-500">Clave que utilizas junto con tu RUT ({empresaForm.adminRut || '16.012.871-2'}) para ingresar al panel de administración.</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowPin(!showPin)}
                     className="text-xs font-bold text-[#0F3D2E] hover:underline"
                   >
-                    {showPin ? 'Ocultar PIN' : 'Mostrar PIN'}
+                    {showPin ? 'Ocultar Clave' : 'Mostrar Clave'}
                   </button>
                 </div>
-                <div className="flex items-center gap-3 max-w-xs">
+                <div className="flex items-center gap-3 max-w-sm">
                   <input
                     type={showPin ? 'text' : 'password'}
                     value={adminPin}
                     onChange={(e) => setAdminPin(e.target.value)}
+                    placeholder="Tu clave de administrador"
                     className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-sm font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                   />
                   <button
                     type="button"
                     onClick={handleSaveAllSettings}
-                    className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all whitespace-nowrap"
+                    className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer active:scale-95"
                   >
-                    Actualizar PIN
+                    Guardar Clave
                   </button>
                 </div>
+                {saveFeedback && (
+                  <p className="text-xs font-bold text-emerald-700 animate-in fade-in">
+                    ✅ Contraseña de Administrador actualizada exitosamente en el sistema.
+                  </p>
+                )}
               </div>
 
               {/* CENTRO DE RESPALDOS JSON */}

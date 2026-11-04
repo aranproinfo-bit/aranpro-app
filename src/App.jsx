@@ -519,6 +519,31 @@ function MainApp() {
         )}
       </main>
 
+      {/* Footer Público con Firma Oficial Red-Enlace */}
+      {currentView !== 'admin' && currentView !== 'resident' && (
+        <footer className="py-4 border-t border-slate-200/80 bg-white/60 text-xs text-slate-500">
+          <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <span>© {new Date().getFullYear()} ARANPRO • Suite de Gestión & Copropiedad</span>
+            <a
+              href="https://redenlace.cl/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-slate-600 hover:text-[#0F3D2E] transition-colors text-xs font-semibold group cursor-pointer"
+              title="Visitar Red-Enlace Soluciones Digitales"
+            >
+              <img
+                src="/red-enlace-logo.png"
+                alt="Logo Red-Enlace"
+                width={18}
+                height={18}
+                className="h-4 w-auto opacity-70 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0"
+              />
+              <span>Desarrollado por Red-Enlace Soluciones Digitales</span>
+            </a>
+          </div>
+        </footer>
+      )}
+
       {/* Modales Compartidos en la App */}
       <CertificateModal
         isOpen={showCertModal}
