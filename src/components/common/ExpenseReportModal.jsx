@@ -98,7 +98,7 @@ export const ExpenseReportModal = ({
 
   const handlePrint = () => {
     printDocumentDirectly('expense-rendition-printable-doc', baseDocumentName, {
-      fitPage: true,
+      fitPage: (filteredExpenses.length <= 8),
       margin: '4mm 6mm 4mm 6mm'
     });
   };

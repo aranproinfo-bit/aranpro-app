@@ -110,9 +110,11 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             }
             .no-print { display: none !important; }
             table { width: 100%; border-collapse: collapse; }
+            tr { page-break-inside: avoid !important; break-inside: avoid !important; }
             img { max-width: 100%; height: auto; }
-            .page-break-after { page-break-after: always; break-after: page; }
-            .page-break-inside-avoid { page-break-inside: avoid; break-inside: avoid; }
+            .page-break-after, .dossier-page-break { page-break-after: always !important; break-after: page !important; }
+            .page-break-before { page-break-before: always !important; break-before: page !important; }
+            .page-break-inside-avoid, .avoid-break, .break-inside-avoid { page-break-inside: avoid !important; break-inside: avoid !important; }
             
             /* Ajustes finos de bordes y sombras para impresión */
             .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-xs, .shadow-2xs {
@@ -121,6 +123,41 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             .border-slate-200 { border-color: #cbd5e1 !important; }
             .bg-slate-50 { background-color: #f8fafc !important; }
             .bg-slate-100 { background-color: #f1f5f9 !important; }
+
+            /* Estructura estricta para páginas del Dossier de 3 páginas */
+            .dossier-page {
+              box-sizing: border-box !important;
+              width: 100% !important;
+              min-height: 254mm !important;
+              max-height: 254mm !important;
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: space-between !important;
+              page-break-after: always !important;
+              break-after: page !important;
+              padding: 2mm 0 !important;
+              overflow: hidden !important;
+            }
+            .dossier-page.page-3 {
+              page-break-after: avoid !important;
+              break-after: avoid !important;
+            }
+
+            /* Quitar contenedores y fondos de pantalla en la hoja física impresa */
+            #printable-full-dossier,
+            #printable-commercial-proposal,
+            #printable-app-brochure,
+            #printable-technical-inspection,
+            #printable-comparison-matrix {
+              border: none !important;
+              border-radius: 0 !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              box-shadow: none !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              background: transparent !important;
+            }
             
             ${fitPageStyle}
             ${options.extraStyles || ''}
