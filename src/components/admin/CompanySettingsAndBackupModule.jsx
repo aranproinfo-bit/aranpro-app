@@ -15,7 +15,11 @@ import {
   ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp
 } from 'lucide-react';
 
-export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
+export const CompanySettingsAndBackupModule = ({
+  currentCommunity,
+  activeSubTab: externalActiveSubTab,
+  setActiveSubTab: externalSetActiveSubTab
+}) => {
   const {
     communities = [],
     certificates = [],
@@ -24,17 +28,19 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
   } = useCommunity();
 
   // Sub-pestaña activa tipo ECP ('empresa' | 'firma' | 'acreditacion' | 'postulaciones' | 'respaldos' | 'sobre_app')
-  const [activeSubTab, setActiveSubTab] = useState('empresa');
+  const [internalSubTab, setInternalSubTab] = useState('empresa');
+  const activeSubTab = externalActiveSubTab || internalSubTab;
+  const setActiveSubTab = externalSetActiveSubTab || setInternalSubTab;
 
   // Estado del formulario de Empresa & Representante Legal
   const [empresaForm, setEmpresaForm] = useState({
     brandName: companySettings?.brandName || 'ARANPRO',
     provisionalName: companySettings?.provisionalName || 'ARANPRO • Gestión Integral de Condominios',
-    companyRut: companySettings?.companyRut || '76.999.888-1',
+    companyRut: (companySettings?.companyRut && companySettings.companyRut !== '76.999.888-1') ? companySettings.companyRut : '76.999.888-8',
     address: companySettings?.address || 'Av. Cuatro Esquinas 1520, Of. 402',
     city: companySettings?.city || 'La Serena, Coquimbo',
     country: 'Chile',
-    phone: companySettings?.phone || '+56 9 5811 8504',
+    phone: (companySettings?.phone && companySettings.phone !== '+56 9 4183 2711') ? companySettings.phone : '+56958118504',
     email: companySettings?.email || 'contacto@aranpro.cl',
     website: companySettings?.website || 'https://aranpro.cl',
     // Representante Legal / Firmante
@@ -707,17 +713,9 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
         </div>
       )}
 
-      {/* 2. LAYOUT TIPO ECP: NAVEGACIÓN LATERAL IZQUIERDA + CONTENIDO A LA DERECHA */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* PANEL DE NAVEGACIÓN LATERAL (COL 4) */}
-        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-200 p-3 shadow-xs space-y-1.5">
-          <div className="px-3 py-2 border-b border-slate-100 mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Módulos de Configuración
-            </span>
-            <p className="text-xs font-black text-slate-900 mt-0.5">Centro de Control ARANPRO</p>
-          </div>
-
+      {/* 2. SUB-MENÚ HORIZONTAL DE ACCESO RÁPIDO Y NAVEGACIÓN EN EL MÓDULO */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           {navSubItems.map((item) => {
             const IconComp = item.icon;
             const isActive = activeSubTab === item.id;
@@ -725,32 +723,24 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
               <button
                 key={item.id}
                 onClick={() => setActiveSubTab(item.id)}
-                className={`w-full flex items-start gap-3 p-3.5 rounded-2xl text-left transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#0F3D2E] text-white shadow-md'
-                    : 'text-slate-700 hover:bg-slate-50'
+                    ? 'bg-[#0F3D2E] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-50'
                 }`}
               >
-                <div className={`p-2 rounded-xl shrink-0 ${isActive ? 'bg-[#D4B895] text-[#0F3D2E]' : 'bg-slate-100 text-slate-600'}`}>
-                  <IconComp className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className={`text-xs font-bold ${isActive ? 'text-white' : 'text-slate-900'}`}>
-                    {item.label}
-                  </div>
-                  <div className={`text-[10px] mt-0.5 line-clamp-1 ${isActive ? 'text-emerald-200' : 'text-slate-400'}`}>
-                    {item.desc}
-                  </div>
-                </div>
+                <IconComp className={`w-4 h-4 ${isActive ? 'text-[#D4B895]' : 'text-slate-400'}`} />
+                <span>{item.label}</span>
               </button>
             );
           })}
         </div>
+      </div>
 
-        {/* PANEL DE CONTENIDO (COL 8) */}
-        <div className="lg:col-span-8 bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-xs space-y-6">
+      {/* 3. PANEL DE CONTENIDO EN ANCHO COMPLETO (100% FULL WIDTH) */}
+      <div className="w-full bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-xs space-y-6">
 
-          {/* ==================== SUB-PESTAÑA 1: EMPRESA & REPRESENTANTE LEGAL ==================== */}
+        {/* ==================== SUB-PESTAÑA 1: EMPRESA & REPRESENTANTE LEGAL ==================== */}
           {activeSubTab === 'empresa' && (
             <div className="space-y-6">
               <div className="border-b border-slate-100 pb-4">
@@ -2760,7 +2750,6 @@ export const CompanySettingsAndBackupModule = ({ currentCommunity }) => {
           )}
 
         </div>
-      </div>
 
       {/* ==================== MODAL DE VISTA PREVIA DE CARTA DE POSTULACIÓN (PDF CARTA) ==================== */}
       {previewProposalModal && (

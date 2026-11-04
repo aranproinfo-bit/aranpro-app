@@ -23,7 +23,7 @@ import {
   History, Calendar, FilePlus, ArrowUpDown,
   AlertTriangle, Zap, Droplets, Lock, Unlock, CalendarClock,
   TrendingUp, Calculator, CalendarRange, PieChart, Scale, RotateCcw,
-  Smartphone, Activity, TrendingDown, Layers, Bell
+  Smartphone, Activity, TrendingDown, Layers, Bell, PenTool, HardHat, Key
 } from 'lucide-react';
 
 // Catálogo de Proveedores Habituales en Condominios Chilenos (Autocompletado 1-Click)
@@ -372,7 +372,8 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb }) => {
   const [asambleasSubTab, setAsambleasSubTab] = useState('asamblea'); // 'asamblea' | 'consultas' | 'actas' | 'poderes'
   const [comunicadosSubTab, setComunicadosSubTab] = useState('mural'); // 'mural' | 'reclamos'
   const [comiteSubTab, setComiteSubTab] = useState('reuniones'); // 'reuniones' | 'novedades' | 'tareas' | 'directorio'
-  const [emisionSubTab, setEmisionSubTab] = useState('todos'); // 'todos' | 'auditoria' | 'calculo' | 'despacho' | 'cierre'
+  const [emisionSubTab, setEmisionSubTab] = useState('todos');
+  const [companySubTab, setCompanySubTab] = useState('empresa'); // 'todos' | 'auditoria' | 'calculo' | 'despacho' | 'cierre'
   const [providerSearchQuery, setProviderSearchQuery] = useState('');
   const [providerCategoryFilter, setProviderCategoryFilter] = useState('ALL');
   const [providerContractFilter, setProviderContractFilter] = useState('ALL');
@@ -2924,7 +2925,7 @@ _Administración ARANPRO_`;
     { id: 'asambleas', label: 'Asambleas & Quórum', shortLabel: 'Asambleas', icon: Users, badge: 'Ley 21.442' },
     { id: 'comunicados', label: 'Mural & Reclamos', shortLabel: 'Mural & Reclamos', icon: Megaphone, badge: totalDocsAndAnnCount, alertBadge: pendingTicketsCount > 0 },
     { id: 'certificados', label: 'Certificados', shortLabel: 'Certificados', icon: ShieldCheck, badge: pendingCertificatesCount > 0 ? `${pendingCertificatesCount} pend.` : certificates.length, alertBadge: pendingCertificatesCount > 0 },
-    { id: 'ajustes', label: 'Ajustes & Marca', shortLabel: 'Ajustes', icon: Settings, badge: null }
+    { id: 'ajustes', label: 'Empresa & Ajustes', shortLabel: 'Empresa', icon: Settings, badge: null }
   ];
 
   const openEditCommunityModal = () => {
@@ -3056,6 +3057,9 @@ _Administración ARANPRO_`;
                   }
                   if (tab.id === 'comunicados' && !comunicadosSubTab) {
                     setComunicadosSubTab('mural');
+                  }
+                  if (tab.id === 'ajustes' && !companySubTab) {
+                    setCompanySubTab('empresa');
                   }
                   if (isMobile) setMobileSidebarOpen(false);
                 }}
@@ -3791,6 +3795,137 @@ _Administración ARANPRO_`;
                         {currentCommunity?.communityTickets?.length || 0}
                       </span>
                     )}
+
+              {/* SUB-ÍNDICES DE CONFIGURACIÓN & EMPRESA EN LA BARRA LATERAL */}
+              {tab.id === 'ajustes' && (!sidebarCollapsed || isMobile) && (
+                <div className="ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1" style={{ display: activeTab === 'ajustes' ? 'block' : 'none' }}>
+                  {/* 1. Empresa */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('ajustes');
+                      setCompanySubTab('empresa');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'ajustes' && companySubTab === 'empresa'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Building2 className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'ajustes' && companySubTab === 'empresa' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">1. Empresa & RUT</span>
+                    </div>
+                  </button>
+
+                  {/* 2. Firma Digital */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('ajustes');
+                      setCompanySubTab('firma');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'ajustes' && companySubTab === 'firma'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <PenTool className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'ajustes' && companySubTab === 'firma' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">2. Firma Digital</span>
+                    </div>
+                  </button>
+
+                  {/* 3. Acreditaciones & Títulos */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('ajustes');
+                      setCompanySubTab('acreditacion');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'ajustes' && companySubTab === 'acreditacion'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <HardHat className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'ajustes' && companySubTab === 'acreditacion' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">3. Acreditaciones & Títulos</span>
+                    </div>
+                  </button>
+
+                  {/* 4. Postulaciones & Dossier */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('ajustes');
+                      setCompanySubTab('postulaciones');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'ajustes' && companySubTab === 'postulaciones'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Briefcase className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'ajustes' && companySubTab === 'postulaciones' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">4. Postulaciones & Dossier</span>
+                    </div>
+                  </button>
+
+                  {/* 5. Respaldos & Seguridad */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('ajustes');
+                      setCompanySubTab('respaldos');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'ajustes' && companySubTab === 'respaldos'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Key className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'ajustes' && companySubTab === 'respaldos' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">5. Respaldos & Seguridad</span>
+                    </div>
+                  </button>
+
+                  {/* 6. Sobre la aplicación */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('ajustes');
+                      setCompanySubTab('sobre_app');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'ajustes' && companySubTab === 'sobre_app'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <BookOpen className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'ajustes' && companySubTab === 'sobre_app' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">6. Sobre la aplicación</span>
+                    </div>
+                  </button>
+                </div>
+              )}
                   </button>
 
                   {/* 4. Registro de Amonestaciones & Multas */}
@@ -10900,7 +11035,7 @@ _Administración ARANPRO_`;
 
         {/* TAB 7: AJUSTES, EMPRESA & LICITACIONES ARANPRO */}
         {activeTab === 'ajustes' && (
-          <CompanySettingsAndBackupModule currentCommunity={currentCommunity} />
+          <CompanySettingsAndBackupModule currentCommunity={currentCommunity} activeSubTab={companySubTab} setActiveSubTab={setCompanySubTab} />
         )}
 
         </div>
