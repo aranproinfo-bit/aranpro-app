@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { formatCLP, formatDate, formatRut } from '../../utils/formatters';
+import { formatCLP, formatDate, formatRut, generateCommunityEmailProposal } from '../../utils/formatters';
 import { AranproLogo } from '../common/MauranLogo';
 import {
   Mail, Send, CheckCircle2, AlertTriangle, Clock, Eye,
@@ -23,6 +23,7 @@ export const EmailDispatchTrackingModule = ({
   const units = community?.units || [];
   const currentPeriod = community?.activePeriod || { month: 11, year: 2026 };
   const periodLabel = `${String(currentPeriod.month).padStart(2, '0')}/${currentPeriod.year}`;
+  const officialSenderEmail = community?.email || community?.bankInfo?.email || generateCommunityEmailProposal(community?.name || '');
 
   // Estado del listado de unidades con tracking
   const [trackingList, setTrackingList] = useState(() => {
@@ -196,8 +197,12 @@ export const EmailDispatchTrackingModule = ({
             <Mail className="w-5 h-5 text-[#0F3D2E]" />
             Centro de Despacho Masivo de Correos & Seguimiento (Tracking)
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Comprueba en tiempo real qué vecinos recibieron y abrieron su colilla del período <strong>{periodLabel}</strong> (estilo EdiPro).
+          <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+            <span>Comprueba en tiempo real qué vecinos recibieron y abrieron su colilla del período <strong>{periodLabel}</strong>.</span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono text-[10px] font-bold">
+              <Mail className="w-3 h-3 text-emerald-600" />
+              Remitente oficial: {officialSenderEmail}
+            </span>
           </p>
         </div>
 
@@ -575,6 +580,12 @@ export const EmailDispatchTrackingModule = ({
 
             {/* Simulación del Email que ve el Vecino en su bandeja de entrada */}
             <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs bg-slate-50 font-sans text-xs">
+              {/* Encabezado Técnico de Remitente (Bandeja de Entrada) */}
+              <div className="px-4 py-2 bg-slate-100 border-b border-slate-200 text-[11px] text-slate-600 flex items-center justify-between font-mono">
+                <span>De: <strong>Administración {community.name}</strong> &lt;{officialSenderEmail}&gt;</span>
+                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-1.5 py-0.5 rounded">Verificado aranpro.cl</span>
+              </div>
+
               {/* Header del Correo */}
               <div className="p-4 bg-[#0F3D2E] text-white flex items-center justify-between border-b border-[#D4B895]/30">
                 <div className="flex items-center gap-2.5">

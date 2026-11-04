@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
-import { formatCLP, formatDate, formatRut } from '../../utils/formatters';
+import { formatCLP, formatDate, formatRut, generateCommunityEmailProposal } from '../../utils/formatters';
 import { AranproLogo } from '../common/MauranLogo';
 import { printDocumentDirectly as printFormalDocument } from '../../utils/printDocument';
 import { AssemblyQuorumModule } from './AssemblyQuorumModule';
@@ -1978,11 +1978,13 @@ _Administración ARANPRO_`;
   // Acciones
   const handleCreateCommunity = (e) => {
     if (e) e.preventDefault();
+    const officialEmail = newCommForm.email?.trim() || generateCommunityEmailProposal(newCommForm.name);
     const created = addCommunity({
       name: newCommForm.name,
       type: newCommForm.type,
       address: newCommForm.address,
       city: newCommForm.city,
+      email: officialEmail,
       totalUnits: wizardParsedUnits.length > 0 ? wizardParsedUnits.length : newCommForm.totalUnits,
       reserveFundPercentage: newCommForm.reserveFundPercentage,
       initialBankBalance: newCommForm.initialBankBalance,
@@ -1994,7 +1996,7 @@ _Administración ARANPRO_`;
         accountNumber: newCommForm.accountNumber,
         holderName: `Comunidad ${newCommForm.name}`,
         rut: newCommForm.rut,
-        email: newCommForm.email
+        email: officialEmail
       }
     });
     setShowNewCommModal(false);
@@ -2847,6 +2849,7 @@ _Administración ARANPRO_`;
 
   const openEditCommunityModal = () => {
     if (!currentCommunity) return;
+    const officialEmail = currentCommunity.email || currentCommunity.bankInfo?.email || generateCommunityEmailProposal(currentCommunity.name);
     setEditCommForm({
       name: currentCommunity.name,
       type: currentCommunity.type || 'Casas',
@@ -2860,7 +2863,7 @@ _Administración ARANPRO_`;
       accountNumber: currentCommunity.bankInfo?.accountNumber || '',
       holderName: currentCommunity.bankInfo?.holderName || currentCommunity.name,
       rut: currentCommunity.bankInfo?.rut || '',
-      email: currentCommunity.bankInfo?.email || ''
+      email: officialEmail
     });
     setShowEditCommModal(true);
   };
@@ -11187,7 +11190,16 @@ _Administración ARANPRO_`;
                       required
                       placeholder="Ej: Condominio Los Aromos / Strip Center San Ramón"
                       value={newCommForm.name}
-                      onChange={(e) => setNewCommForm({ ...newCommForm, name: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const prevAuto = generateCommunityEmailProposal(newCommForm.name);
+                        const isAutoOrEmpty = !newCommForm.email || newCommForm.email === prevAuto;
+                        setNewCommForm({
+                          ...newCommForm,
+                          name: val,
+                          email: isAutoOrEmpty ? generateCommunityEmailProposal(val) : newCommForm.email
+                        });
+                      }}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"
                     />
                   </div>
@@ -11245,6 +11257,39 @@ _Administración ARANPRO_`;
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
                       />
                     </div>
+                  </div>
+
+                  {/* Correo Oficial Propuesto para la Comunidad */}
+                  <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-emerald-950">
+                        Correo Oficial de Despacho & Notificaciones *
+                      </label>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+                        ⚡ Propuesta Automática SaaS
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        required
+                        placeholder="admin.comunidad@aranpro.cl"
+                        value={newCommForm.email || generateCommunityEmailProposal(newCommForm.name)}
+                        onChange={(e) => setNewCommForm({ ...newCommForm, email: e.target.value })}
+                        className="flex-1 px-3.5 py-2 rounded-xl border border-emerald-300 bg-white text-sm font-semibold text-emerald-950 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNewCommForm({ ...newCommForm, email: generateCommunityEmailProposal(newCommForm.name) })}
+                        title="Regenerar propuesta según el nombre"
+                        className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        Auto
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-emerald-800 leading-tight">
+                      Los vecinos recibirán cobros y citaciones desde esta casilla oficial con el nombre del condominio. Respuestas se reenviarán a tu bandeja.
+                    </p>
                   </div>
 
                   <div>
@@ -16186,12 +16231,22 @@ _Administración ARANPRO_`;
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Email para Comprobantes</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-slate-700">Email Oficial & Comprobantes</label>
+                      <button
+                        type="button"
+                        onClick={() => setEditCommForm({ ...editCommForm, email: generateCommunityEmailProposal(editCommForm.name) })}
+                        className="text-[10px] text-emerald-700 hover:text-emerald-800 font-bold underline"
+                      >
+                        Auto aranpro.cl
+                      </button>
+                    </div>
                     <input
                       type="email"
                       value={editCommForm.email}
                       onChange={(e) => setEditCommForm({ ...editCommForm, email: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"
+                      placeholder="admin.comunidad@aranpro.cl"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono font-semibold text-emerald-950"
                     />
                   </div>
                 </div>

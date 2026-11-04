@@ -65,3 +65,20 @@ export const getMonthName = (monthNumber) => {
   ];
   return months[monthNumber - 1] || '';
 };
+
+/**
+ * Genera automáticamente la propuesta de correo oficial para una comunidad
+ * Ej: "Condominio Los Cerezos" -> "admin.loscerezos@aranpro.cl"
+ * Ej: "Edificio Las Palmas" -> "admin.laspalmas@aranpro.cl"
+ */
+export const generateCommunityEmailProposal = (communityName, domain = 'aranpro.cl') => {
+  if (!communityName || !communityName.trim()) return '';
+  const clean = communityName
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\b(condominio|edificio|comunidad|strip center|galeria|parcelas|loteo)\b/gi, '')
+    .trim()
+    .replace(/[^a-z0-9]/g, '');
+  const prefix = clean || 'comunidad';
+  return `admin.${prefix}@${domain}`;
+};
