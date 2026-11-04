@@ -4,6 +4,7 @@ import { formatCLP, formatDate, getMonthName } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
 import { AranproLogo } from '../common/MauranLogo';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
+import { UnitAccountStatementView } from '../admin/UnitAccountStatementView';
 import { PwaInstallButton } from '../layout/PwaPrompt';
 import { 
   Building2, Home, User, CheckCircle2, AlertCircle, Eye, 
@@ -21,6 +22,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
   const [committeeAnnForm, setCommitteeAnnForm] = useState({ title: '', content: '', priority: 'Importante' });
   const [showPayModal, setShowPayModal] = useState(false);
   const [showBillModal, setShowBillModal] = useState(false);
+  const [showAccountStatementModal, setShowAccountStatementModal] = useState(false);
   const [showExpenseReportModal, setShowExpenseReportModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPasswordInput, setNewPasswordInput] = useState('');
@@ -1007,12 +1009,22 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                   Revisa el estado de tus transferencias informadas y descarga tu Comprobante Oficial de Pago Foliado.
                 </p>
               </div>
-              <button
-                onClick={() => { setPaymentSubmitted(false); setShowPayModal(true); }}
-                className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs shrink-0"
-              >
-                + Informar Nueva Transferencia
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAccountStatementModal(true)}
+                  className="px-3.5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-[#0F3D2E] font-bold text-xs rounded-xl shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 text-[#0F3D2E]" />
+                  <span>Ver Cartola Cuenta Corriente</span>
+                </button>
+                <button
+                  onClick={() => { setPaymentSubmitted(false); setShowPayModal(true); }}
+                  className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs shrink-0 cursor-pointer"
+                >
+                  + Informar Nueva Transferencia
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
@@ -1756,6 +1768,27 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                 </button>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CARTOLA DE CUENTA CORRIENTE POR UNIDAD */}
+      {showAccountStatementModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/80 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 relative">
+            <button
+              type="button"
+              onClick={() => setShowAccountStatementModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <UnitAccountStatementView
+              community={community}
+              initialUnitId={unit.id}
+              companySettings={companySettings}
+              currentUser={currentUser}
+            />
           </div>
         </div>
       )}

@@ -11,6 +11,8 @@ import { CommitteeMeetingsAndLogModule } from './CommitteeMeetingsAndLogModule';
 import { OfficialCertificatesModule } from './OfficialCertificatesModule';
 import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
+import { UnitAccountStatementView } from './UnitAccountStatementView';
+import { EmailDispatchTrackingModule } from './EmailDispatchTrackingModule';
 import { PwaInstallButton } from '../layout/PwaPrompt';
 import { 
   Building2, Plus, Trash2, Edit3, ExternalLink, Users, 
@@ -3049,6 +3051,34 @@ _Administración ARANPRO_`;
                     </span>
                   </button>
 
+                  {/* Sub-índice: Cartola & Cuenta Corriente por Unidad */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('unidades');
+                      setUnitsSubTab('cuenta_corriente');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'unidades' && unitsSubTab === 'cuenta_corriente'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <FileText className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'unidades' && unitsSubTab === 'cuenta_corriente' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">Cuenta Corriente</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'unidades' && unitsSubTab === 'cuenta_corriente'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      Extracto
+                    </span>
+                  </button>
+
                   {/* Sub-índice 2: Validar Pagos Notificados por Vecinos */}
                   <button
                     type="button"
@@ -5468,6 +5498,16 @@ _Administración ARANPRO_`;
               </div>
             </div>
           </>
+        ) : unitsSubTab === 'cuenta_corriente' ? (
+          /* VISTA SUB-PESTAÑA: CARTOLA Y CUENTA CORRIENTE POR UNIDAD */
+          <div className="space-y-4 animate-fade-in">
+            <UnitAccountStatementView
+              community={currentCommunity}
+              initialUnitId={activeDropdownUnitId}
+              companySettings={companySettings}
+              currentUser={currentUser}
+            />
+          </div>
         ) : unitsSubTab === 'validar_pagos' ? (
           /* VISTA SUB-PESTAÑA: VALIDAR PAGOS NOTIFICADOS POR VECINOS */
           <div className="space-y-4 animate-fade-in">
@@ -10602,8 +10642,19 @@ _Administración ARANPRO_`;
             </div>
             )}
 
-            {/* PASO 3: DESPACHO MASIVO A LOS COPROPIETARIOS */}
-            {(emisionSubTab === 'todos' || emisionSubTab === 'despacho') && (
+            {/* SUB-PESTAÑA 3 EXCLUSIVA: CENTRO DE DESPACHO MASIVO CON TRACKING EDIPRO */}
+            {emisionSubTab === 'despacho' && (
+              <div className="animate-fade-in">
+                <EmailDispatchTrackingModule
+                  community={currentCommunity}
+                  companySettings={companySettings}
+                  currentUser={currentUser}
+                />
+              </div>
+            )}
+
+            {/* PASO 3 EN FLUJO COMPLETO (TODOS): RESUMEN DE DESPACHO */}
+            {emisionSubTab === 'todos' && (
             <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <div className="border-b border-slate-100 pb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#0F3D2E]">

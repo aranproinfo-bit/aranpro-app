@@ -183,7 +183,37 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 11. HABILITAR SEGURIDAD ROW LEVEL SECURITY (RLS)
+-- 11. TABLA DE DESPACHOS MASIVOS DE CORREOS (Tracking estilo EdiPro)
+CREATE TABLE IF NOT EXISTS public.email_dispatches (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    community_id VARCHAR(50) NOT NULL REFERENCES public.communities(id) ON DELETE CASCADE,
+    subject VARCHAR(200) NOT NULL,
+    campaign_type VARCHAR(50) DEFAULT 'colilla_gasto_comun', -- 'colilla_gasto_comun' | 'comunicado_urgente' | 'citacion_asamblea'
+    period VARCHAR(10),
+    total_recipients INTEGER DEFAULT 0,
+    delivered_count INTEGER DEFAULT 0,
+    opened_count INTEGER DEFAULT 0,
+    bounced_count INTEGER DEFAULT 0,
+    created_by_rut VARCHAR(20),
+    created_by_name VARCHAR(120),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 12. TABLA DE LOGS INDIVIDUALES DE CORREO POR UNIDAD (Tracking de apertura / lectura)
+CREATE TABLE IF NOT EXISTS public.email_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    dispatch_id UUID REFERENCES public.email_dispatches(id) ON DELETE CASCADE,
+    community_id VARCHAR(50) NOT NULL,
+    unit_number VARCHAR(30) NOT NULL,
+    recipient_name VARCHAR(120) NOT NULL,
+    recipient_email VARCHAR(120) NOT NULL,
+    status VARCHAR(30) DEFAULT 'entregado' CHECK (status IN ('enviado', 'entregado', 'abierto', 'rebotado')),
+    opened_at TIMESTAMP WITH TIME ZONE,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 13. HABILITAR SEGURIDAD ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.staff_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.communities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
@@ -193,6 +223,11 @@ ALTER TABLE public.unit_bills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.email_dispatches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Permitir todo en email_dispatches" ON public.email_dispatches FOR ALL USING (true);
+CREATE POLICY "Permitir todo en email_logs" ON public.email_logs FOR ALL USING (true);
 
 -- Políticas de lectura y escritura permisivas para el cliente Web/PWA anon
 -- (Controladas por la lógica de negocio y clave de administrador/asistente)

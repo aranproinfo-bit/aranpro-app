@@ -163,3 +163,116 @@ export const auditService = {
     }
   }
 };
+
+/**
+ * Servicio de Despacho Masivo de Correos con Seguimiento de Aperturas (Estilo EdiPro)
+ */
+export const emailDispatchService = {
+  // Guardar o sincronizar un nuevo despacho masivo
+  async recordDispatch({ communityId, period, subject, campaignType = 'colilla_gasto_comun', recipients = [], user }) {
+    const defaultRecipientsWithTracking = recipients.map(r => ({
+      id: `elog-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      unit_number: r.unitNumber,
+      recipient_name: r.owner,
+      recipient_email: r.email,
+      status: r.email ? 'entregado' : 'rebotado',
+      opened_at: null,
+      error_message: r.email ? null : 'Unidad no tiene correo electrónico configurado'
+    }));
+
+    const dispatchRecord = {
+      id: `disp-${Date.now()}`,
+      community_id: communityId,
+      period: period || 'Actual',
+      subject: subject || `Cobro de Gasto Común - Período ${period}`,
+      campaign_type: campaignType,
+      total_recipients: recipients.length,
+      delivered_count: defaultRecipientsWithTracking.filter(r => r.status === 'entregado').length,
+      opened_count: 0,
+      bounced_count: defaultRecipientsWithTracking.filter(r => r.status === 'rebotado').length,
+      created_by_rut: user?.rut || '16.012.871-2',
+      created_by_name: user?.name || 'John Andrés Arancibia',
+      created_at: new Date().toISOString(),
+      logs: defaultRecipientsWithTracking
+    };
+
+    // Intentar guardar en Supabase si la tabla existe
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('email_dispatches')
+          .insert([
+            {
+              community_id: communityId,
+              subject: dispatchRecord.subject,
+              campaign_type: campaignType,
+              period: period,
+              total_recipients: dispatchRecord.total_recipients,
+              delivered_count: dispatchRecord.delivered_count,
+              opened_count: 0,
+              bounced_count: dispatchRecord.bounced_count,
+              created_by_rut: dispatchRecord.created_by_rut,
+              created_by_name: dispatchRecord.created_by_name
+            }
+          ])
+          .select()
+          .single();
+
+        if (data && !error) {
+          dispatchRecord.id = data.id;
+          const logsPayload = defaultRecipientsWithTracking.map(log => ({
+            dispatch_id: data.id,
+            community_id: communityId,
+            unit_number: log.unit_number,
+            recipient_name: log.recipient_name,
+            recipient_email: log.recipient_email || 'sin-correo@comunidad.cl',
+            status: log.status,
+            error_message: log.error_message
+          }));
+          await supabase.from('email_logs').insert(logsPayload);
+        }
+      } catch (err) {
+        console.warn('Fallo guardado en Supabase email_dispatches, guardando local:', err);
+      }
+    }
+
+    // Respaldo en localStorage
+    try {
+      const storageKey = `condo_email_dispatches_${communityId}`;
+      const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      localStorage.setItem(storageKey, JSON.stringify([dispatchRecord, ...existing.slice(0, 19)]));
+    } catch (e) {
+      console.warn('Error guardando en localStorage:', e);
+    }
+
+    return dispatchRecord;
+  },
+
+  // Obtener historial de despachos
+  async getDispatches(communityId) {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('email_dispatches')
+          .select('*, email_logs(*)')
+          .eq('community_id', communityId)
+          .order('created_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          return data.map(d => ({
+            ...d,
+            logs: d.email_logs || []
+          }));
+        }
+      } catch (e) {
+        console.warn('Fallback a dispatches locales:', e);
+      }
+    }
+
+    const storageKey = `condo_email_dispatches_${communityId}`;
+    try {
+      return JSON.parse(localStorage.getItem(storageKey) || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+};
