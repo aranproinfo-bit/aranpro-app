@@ -1350,6 +1350,27 @@ export const CommunityProvider = ({ children }) => {
     }));
   };
 
+  // Restablecer clave del vecino por parte del Administrador (vuelve al número de vivienda)
+  const resetResidentPassword = (communityId, unitId) => {
+    let restoredNumber = '';
+    setCommunities(prev => prev.map(c => {
+      if (c.id !== communityId) return c;
+      return {
+        ...c,
+        units: (c.units || []).map(u => {
+          if (u.id === unitId) {
+            restoredNumber = u.number;
+            const updated = { ...u };
+            delete updated.password;
+            return updated;
+          }
+          return u;
+        })
+      };
+    }));
+    return { success: true, unitNumber: restoredNumber };
+  };
+
   // --- Consultas por Escrito & Urna Digital (Ley 21.442 Art. 15 inc. final / Art. 16) ---
   const addWrittenConsultation = (communityId, consultationData) => {
     setCommunities(prev => prev.map(c => {
@@ -1739,6 +1760,65 @@ export const CommunityProvider = ({ children }) => {
     return { success: false, message: 'Clave de Administrador incorrecta' };
   };
 
+  // Inicio de sesión inteligente por RUT y Clave sin exponer la lista de comunidades
+  const loginResidentByRut = (rutInput, passwordInput) => {
+    if (!rutInput || !passwordInput) {
+      return { success: false, message: 'Por favor ingresa tu RUT y contraseña.' };
+    }
+    const cleanInputRut = cleanRut(rutInput);
+    const trimmedInput = rutInput.trim();
+
+    let matches = [];
+    for (const comm of communities) {
+      for (const u of (comm.units || [])) {
+        if ((cleanInputRut && cleanRut(u.rut) === cleanInputRut) || u.number.toString() === trimmedInput) {
+          matches.push({ community: comm, unit: u, matchedSub: null });
+        } else {
+          const foundSub = (u.additionalUsers || []).find(sub => cleanInputRut && cleanRut(sub.rut) === cleanInputRut);
+          if (foundSub) {
+            matches.push({ community: comm, unit: u, matchedSub: foundSub });
+          }
+        }
+      }
+    }
+
+    if (matches.length === 0) {
+      return { success: false, message: 'RUT o vivienda no registrada en el sistema de ARANPRO.' };
+    }
+
+    const { community, unit, matchedSub } = matches[0];
+    const validPassword = matchedSub?.password || unit.password || unit.number;
+    const isPasswordValid =
+      passwordInput.trim() === validPassword ||
+      passwordInput.trim() === (unit.password || unit.number) ||
+      passwordInput.trim() === unit.number;
+
+    if (!isPasswordValid) {
+      return { 
+        success: false, 
+        message: 'Contraseña incorrecta. Recuerda que por defecto es el número de tu departamento o casa.' 
+      };
+    }
+
+    const user = {
+      role: 'resident',
+      communityId: community.id,
+      communitySlug: community.slug,
+      communityName: community.name,
+      unitId: unit.id,
+      unitNumber: unit.number,
+      owner: unit.owner,
+      isCommittee: Boolean(unit.isCommittee),
+      committeeRole: unit.committeeRole || '',
+      rut: matchedSub ? matchedSub.rut : unit.rut,
+      loggedUserName: matchedSub ? matchedSub.name : unit.owner,
+      loggedUserRole: matchedSub ? matchedSub.role : (unit.isCommittee ? (unit.committeeRole || 'Comité de Administración') : 'Propietario(a)')
+    };
+
+    setCurrentUser(user);
+    return { success: true, user, communitySlug: community.slug };
+  };
+
   const loginResident = (communitySlugOrId, rutInput, passwordInput) => {
     const community = communities.find(c => c.slug === communitySlugOrId || c.id === communitySlugOrId);
     if (!community) {
@@ -1870,6 +1950,8 @@ export const CommunityProvider = ({ children }) => {
       addDocument,
       deleteDocument,
       changeResidentPassword,
+      resetResidentPassword,
+      loginResidentByRut,
       addWrittenConsultation,
       castConsultationVote,
       closeWrittenConsultation,

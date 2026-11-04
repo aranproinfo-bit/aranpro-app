@@ -125,11 +125,14 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb }) => {
     issueMonthlyBilling, closeAndArchivePeriod, approvePayment,
     addAnnouncement, deleteAnnouncement, addDocument, deleteDocument,
     certificates, updateCertificateStatus,
-    companySettings, setCompanySettings, setActiveReceipt, logout
+    companySettings, setCompanySettings, setActiveReceipt, logout,
+    resetResidentPassword
   } = useCommunity();
 
   // Comunidad seleccionada para gestionar (por defecto la primera)
   const [selectedCommunityId, setSelectedCommunityId] = useState(communities[0]?.id || null);
+  const [resetPassModalUnit, setResetPassModalUnit] = useState(null);
+  const [resetPassToast, setResetPassToast] = useState('');
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'unidades' | 'gastos' | 'emision' | 'comite' | 'asambleas' | 'comunicados' | 'certificados' | 'ajustes'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -5357,6 +5360,18 @@ _Administración ARANPRO_`;
                                       >
                                         <Shield className="w-3.5 h-3.5 mr-2 text-[#0F3D2E]" />
                                         {unit.isCommittee ? 'Quitar Permiso Comité' : 'Habilitar como Comité'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setActiveDropdownUnitId(null);
+                                          setResetPassModalUnit(unit);
+                                        }}
+                                        className="w-full px-3 py-2 text-amber-800 hover:bg-amber-50 flex items-center font-semibold"
+                                        title="Restablecer clave del vecino a su número de vivienda"
+                                      >
+                                        <KeyRound className="w-3.5 h-3.5 mr-2 text-amber-600" />
+                                        Restablecer Clave (a N° {unit.number})
                                       </button>
                                       <button
                                         type="button"
@@ -18463,6 +18478,72 @@ _Administración ARANPRO_`;
         );
       })()}
 
+      {/* Modal de Confirmación para Restablecer Clave de Unidad */}
+      {resetPassModalUnit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 border border-slate-200 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+              <KeyRound className="w-6 h-6" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-black text-slate-900">
+                Restablecer Clave de Vecino
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                ¿Deseas restablecer la contraseña de acceso de la <strong>Unidad N° {resetPassModalUnit.number}</strong> ({resetPassModalUnit.owner})?
+              </p>
+              <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-left text-xs text-amber-900 space-y-1">
+                <span className="font-bold block text-[11px] uppercase tracking-wider text-amber-800">Nueva clave restaurada:</span>
+                <span className="font-mono text-base font-black bg-white px-2.5 py-1 rounded-lg border border-amber-300 inline-block text-amber-950">
+                  {resetPassModalUnit.number}
+                </span>
+                <p className="text-[11px] text-amber-800 mt-1">
+                  La contraseña volverá a ser el número de su vivienda. Una vez que ingrese a su portal, el copropietario podrá volver a cambiarla en "Mi Clave".
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => setResetPassModalUnit(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const res = resetResidentPassword(currentCommunity.id, resetPassModalUnit.id);
+                  if (res.success) {
+                    setResetPassToast(`✅ Clave de la Unidad N° ${resetPassModalUnit.number} restablecida exitosamente a: "${resetPassModalUnit.number}"`);
+                    setTimeout(() => setResetPassToast(''), 5000);
+                  }
+                  setResetPassModalUnit(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shadow-md transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>Confirmar y Restablecer</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {resetPassToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#0F3D2E] text-white px-5 py-3 rounded-2xl shadow-2xl border-2 border-[#D4B895] flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+          <KeyRound className="w-5 h-5 text-[#D4B895] shrink-0" />
+          <span className="text-xs font-bold">{resetPassToast}</span>
+          <button
+            onClick={() => setResetPassToast('')}
+            className="p-1 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

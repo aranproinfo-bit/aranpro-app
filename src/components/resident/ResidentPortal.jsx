@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) => {
-  const { currentUser, communities, getUnitFinancials, setActiveReceipt, reportPayment, addAnnouncement, calculateCommunityTotals, changeResidentPassword, logout, companySettings } = useCommunity();
+  const { currentUser, communities, getUnitFinancials, setActiveReceipt, reportPayment, addAnnouncement, calculateCommunityTotals, changeResidentPassword, logout, companySettings, toggleExpenseApproval } = useCommunity();
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'gastos' | 'mis-pagos' | 'comunicados' | 'cuenta-bancaria'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showCommitteeAnnForm, setShowCommitteeAnnForm] = useState(false);
@@ -928,13 +928,43 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                           {formatCLP(exp.amount)}
                         </td>
                         <td className="px-5 py-3.5 text-center">
-                          <button
-                            onClick={() => setActiveReceipt(exp)}
-                            className="inline-flex items-center px-3 py-1.5 bg-[#F5F4EF] hover:bg-[#F5F4EF] text-[#0A291F] font-semibold text-xs rounded-xl border border-[#D4B895] transition-colors"
-                          >
-                            <Eye className="w-3.5 h-3.5 mr-1" />
-                            Ver Respaldo
-                          </button>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => setActiveReceipt(exp)}
+                              className="inline-flex items-center px-2.5 py-1.5 bg-[#F5F4EF] hover:bg-[#eae7dd] text-[#0A291F] font-semibold text-xs rounded-xl border border-[#D4B895] transition-colors cursor-pointer"
+                              title="Inspeccionar factura o boleta digital"
+                            >
+                              <Eye className="w-3.5 h-3.5 mr-1" />
+                              Respaldo
+                            </button>
+
+                            {/* Control Exclusivo de V°B° para Miembros del Comité */}
+                            {unit.isCommittee ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleExpenseApproval(community.id, exp.id, {
+                                  approvedBy: `Comité (${unit.committeeRole || 'Miembro'} • Casa ${unit.number})`,
+                                  approvedAt: new Date().toISOString().split('T')[0]
+                                })}
+                                className={`px-2.5 py-1.5 text-xs font-bold rounded-xl border transition-all inline-flex items-center gap-1 cursor-pointer ${
+                                  exp.approvedByCommittee
+                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200'
+                                    : 'bg-white hover:bg-emerald-50 text-slate-600 border-slate-300 hover:text-emerald-800 hover:border-emerald-400'
+                                }`}
+                                title={exp.approvedByCommittee ? `Gasto auditado y aprobado por ${exp.approvedBy || 'el Comité'}` : 'Dar V°B° y aprobar gasto conforme a Ley 21.442'}
+                              >
+                                <ShieldCheck className={`w-3.5 h-3.5 ${exp.approvedByCommittee ? 'text-emerald-700' : 'text-slate-400'}`} />
+                                <span>${exp.approvedByCommittee ? '✓ V°B° Aprobado' : 'Dar V°B°'}</span>
+                              </button>
+                            ) : (
+                              exp.approvedByCommittee && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1" title="Gasto revisado y visado por el Comité">
+                                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                  <span>V°B° Comité</span>
+                                </span>
+                              )
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
