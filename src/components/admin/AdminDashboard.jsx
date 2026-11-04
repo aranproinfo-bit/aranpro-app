@@ -3796,9 +3796,47 @@ _Administración ARANPRO_`;
                       </span>
                     )}
 
+              
+                  </button>
+
+                  {/* 4. Registro de Amonestaciones & Multas */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('comunicados');
+                      setComunicadosSubTab('multas');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'comunicados' && comunicadosSubTab === 'multas'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Scale className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'comunicados' && comunicadosSubTab === 'multas' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">4. Multas & Sanciones</span>
+                    </div>
+                    {((currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0).length > 0) ? (
+                      <span className="text-[9.5px] px-1.5 py-0.2 rounded-full font-black shrink-0 bg-rose-100 text-rose-800">
+                        {(currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0).length}
+                      </span>
+                    ) : (
+                      <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                        activeTab === 'comunicados' && comunicadosSubTab === 'multas'
+                          ? 'bg-[#0F3D2E] text-white'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        0
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
               {/* SUB-ÍNDICES DE CONFIGURACIÓN & EMPRESA EN LA BARRA LATERAL */}
               {tab.id === 'ajustes' && (!sidebarCollapsed || isMobile) && (
-                <div className="ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1" style={{ display: activeTab === 'ajustes' ? 'block' : 'none' }}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'ajustes' ? 'block' : 'hidden'}`}>
                   {/* 1. Empresa */}
                   <button
                     type="button"
@@ -3858,7 +3896,7 @@ _Administración ARANPRO_`;
                   >
                     <div className="flex items-center space-x-1.5 min-w-0">
                       <HardHat className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'ajustes' && companySubTab === 'acreditacion' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">3. Acreditaciones & Títulos</span>
+                      <span className="truncate">3. Acreditaciones & Diplomas</span>
                     </div>
                   </button>
 
@@ -3923,43 +3961,6 @@ _Administración ARANPRO_`;
                       <BookOpen className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'ajustes' && companySubTab === 'sobre_app' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
                       <span className="truncate">6. Sobre la aplicación</span>
                     </div>
-                  </button>
-                </div>
-              )}
-                  </button>
-
-                  {/* 4. Registro de Amonestaciones & Multas */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveTab('comunicados');
-                      setComunicadosSubTab('multas');
-                      if (isMobile) setMobileSidebarOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                      activeTab === 'comunicados' && comunicadosSubTab === 'multas'
-                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
-                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-1.5 min-w-0">
-                      <Scale className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'comunicados' && comunicadosSubTab === 'multas' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">4. Multas & Sanciones</span>
-                    </div>
-                    {((currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0).length > 0) ? (
-                      <span className="text-[9.5px] px-1.5 py-0.2 rounded-full font-black shrink-0 bg-rose-100 text-rose-800">
-                        {(currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0).length}
-                      </span>
-                    ) : (
-                      <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
-                        activeTab === 'comunicados' && comunicadosSubTab === 'multas'
-                          ? 'bg-[#0F3D2E] text-white'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        0
-                      </span>
-                    )}
                   </button>
                 </div>
               )}
