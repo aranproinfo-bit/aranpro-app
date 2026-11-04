@@ -13,6 +13,66 @@ export const supabase = isSupabaseConfigured
  * Servicio de Autenticación de Administradores y Asistentes
  */
 export const staffAuthService = {
+  async getStaffUsers() {
+    if (!supabase) return { success: false, data: [] };
+    try {
+      const { data, error } = await supabase
+        .from('staff_users')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return { success: true, data: data || [] };
+    } catch (err) {
+      console.warn('Error fetching staff_users:', err);
+      return { success: false, error: err.message, data: [] };
+    }
+  },
+
+  async createStaffUser({ rut, nombre, email, telefono, password, role = 'asistente', permisos }) {
+    if (!supabase) return { success: false, error: 'Supabase no inicializado' };
+    try {
+      const { data, error } = await supabase
+        .from('staff_users')
+        .insert([
+          {
+            rut: rut.trim(),
+            nombre: nombre.trim(),
+            email: email ? email.trim() : null,
+            telefono: telefono ? telefono.trim() : null,
+            password_hash: password,
+            role: role,
+            permisos: permisos || {
+              editar_gastos: true,
+              aprobar_pagos: false,
+              responder_tickets: true,
+              emitir_colillas: false
+            },
+            activo: true
+          }
+        ])
+        .select()
+        .single();
+      if (error) throw error;
+      return { success: true, data };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  async deleteStaffUser(id) {
+    if (!supabase) return { success: false, error: 'Supabase no disponible' };
+    try {
+      const { error } = await supabase
+        .from('staff_users')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
   async loginStaff(rut, password) {
     if (!supabase) {
       return { success: false, error: 'Supabase no inicializado' };
@@ -76,14 +136,30 @@ export const auditService = {
         {
           community_id: communityId || null,
           action: action,
-          user_rut: user?.rut || 'DESCONOCIDO',
-          user_name: user?.nombre || 'Usuario Desconocido',
-          user_role: user?.role || 'asistente',
+          user_rut: user?.rut || '16.012.871-2',
+          user_name: user?.name || user?.nombre || 'John Andrés Arancibia',
+          user_role: user?.staffRole || user?.role || 'admin',
           details: details || {}
         }
       ]);
     } catch (e) {
       console.warn('Error registrando auditoría:', e);
+    }
+  },
+
+  async getRecentLogs(limit = 25) {
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.warn('Error fetching audit_logs:', err);
+      return [];
     }
   }
 };

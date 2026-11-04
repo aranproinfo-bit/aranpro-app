@@ -12,7 +12,7 @@ import {
   HardHat, BookOpen, FileCheck, Upload, RefreshCw, PenTool,
   HelpCircle, Settings, Smartphone, Layers, CheckSquare, MessageCircle,
   Paperclip, FileUp, QrCode, Presentation, Compass, ClipboardCheck,
-  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp
+  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert
 } from 'lucide-react';
 
 export const CompanySettingsAndBackupModule = ({
@@ -218,6 +218,121 @@ export const CompanySettingsAndBackupModule = ({
       { id: 'contable', name: 'Fondo de Reserva & Estado Contable (Ley 21.442)', status: 'Crítico', notes: 'La comunidad no mantiene el 5% obligatorio de fondo de reserva exigido por Art. 6° de la Ley N° 21.442. Urge regularización.' }
     ]
   });
+
+  // Estados de Asistentes & Auditoría Supabase (Ley 21.442)
+  const [assistantsList, setAssistantsList] = useState([]);
+  const [auditLogsList, setAuditLogsList] = useState([]);
+  const [isLoadingStaff, setIsLoadingStaff] = useState(false);
+  const [showAddAssistantModal, setShowAddAssistantModal] = useState(false);
+  const [assistantForm, setAssistantForm] = useState({
+    nombre: '',
+    rut: '',
+    email: '',
+    telefono: '',
+    password: '',
+    permisos: {
+      editar_gastos: true,
+      aprobar_pagos: false,
+      responder_tickets: true,
+      emitir_colillas: false
+    }
+  });
+  const [assistantFeedback, setAssistantFeedback] = useState('');
+
+  // Cargar lista de asistentes y logs de auditoría desde Supabase
+  const loadStaffAndLogs = async () => {
+    setIsLoadingStaff(true);
+    try {
+      const { staffAuthService, auditService } = await import('../../services/supabase');
+      const res = await staffAuthService.getStaffUsers();
+      if (res.success && res.data) {
+        setAssistantsList(res.data);
+      }
+      const logs = await auditService.getRecentLogs(30);
+      setAuditLogsList(logs);
+    } catch (e) {
+      console.warn('Error cargando equipo/auditoría:', e);
+    } finally {
+      setIsLoadingStaff(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubTab === 'equipo') {
+      loadStaffAndLogs();
+    }
+  }, [activeSubTab]);
+
+  const handleCreateAssistant = async (e) => {
+    e.preventDefault();
+    if (!assistantForm.nombre.trim() || !assistantForm.rut.trim() || !assistantForm.password.trim()) {
+      setAssistantFeedback('Por favor completa el nombre, RUT y contraseña del asistente.');
+      return;
+    }
+    setAssistantFeedback('Registrando asistente en Supabase...');
+    try {
+      const { staffAuthService, auditService } = await import('../../services/supabase');
+      const res = await staffAuthService.createStaffUser({
+        nombre: assistantForm.nombre,
+        rut: assistantForm.rut,
+        email: assistantForm.email,
+        telefono: assistantForm.telefono,
+        password: assistantForm.password,
+        role: 'asistente',
+        permisos: assistantForm.permisos
+      });
+      if (res.success) {
+        await auditService.logAction({
+          communityId: currentCommunity?.id,
+          action: 'REGISTRAR_ASISTENTE',
+          user: { name: empresaForm.adminName, rut: empresaForm.adminRut, role: 'superadmin' },
+          details: { asistente_nombre: assistantForm.nombre, asistente_rut: assistantForm.rut }
+        });
+        setAssistantFeedback('✅ Asistente registrado exitosamente en Supabase.');
+        setAssistantForm({
+          nombre: '',
+          rut: '',
+          email: '',
+          telefono: '',
+          password: '',
+          permisos: {
+            editar_gastos: true,
+            aprobar_pagos: false,
+            responder_tickets: true,
+            emitir_colillas: false
+          }
+        });
+        await loadStaffAndLogs();
+        setTimeout(() => {
+          setShowAddAssistantModal(false);
+          setAssistantFeedback('');
+        }, 1500);
+      } else {
+        setAssistantFeedback(`❌ Error: ${res.error || 'No se pudo registrar'}`);
+      }
+    } catch (err) {
+      setAssistantFeedback(`❌ Error: ${err.message}`);
+    }
+  };
+
+  const handleDeleteAssistant = async (id, nombre) => {
+    if (!window.confirm(`¿Estás seguro de revocar el acceso a ${nombre}? Ya no podrá ingresar a la plataforma.`)) return;
+    try {
+      const { staffAuthService, auditService } = await import('../../services/supabase');
+      const res = await staffAuthService.deleteStaffUser(id);
+      if (res.success) {
+        await auditService.logAction({
+          communityId: currentCommunity?.id,
+          action: 'ELIMINAR_ASISTENTE',
+          user: { name: empresaForm.adminName, rut: empresaForm.adminRut, role: 'superadmin' },
+          details: { asistente_eliminado: nombre }
+        });
+        await loadStaffAndLogs();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Estado del modal corporativo de confirmación (reemplazo de window.confirm)
   const [modalDialog, setModalDialog] = useState({
@@ -665,6 +780,7 @@ export const CompanySettingsAndBackupModule = ({
     { id: 'firma', label: 'Firma Digital', icon: PenTool, desc: 'Firma manuscrita en canvas y vista previa PDF' },
     { id: 'acreditacion', label: 'Acreditaciones & Diplomas', icon: HardHat, desc: 'Técnico en Construcción, RNAC Minvu y títulos' },
     { id: 'postulaciones', label: 'Postulaciones & Dossier', icon: Briefcase, desc: 'Carta de presentación, referencias y licitaciones' },
+    { id: 'equipo', label: 'Equipo & Asistentes', icon: Users, desc: 'Asistentes autorizados, permisos y auditoría Ley 21.442' },
     { id: 'respaldos', label: 'Respaldos & Seguridad', icon: Key, desc: 'Backup integral JSON, PIN maestro y restauración' },
     { id: 'sobre_app', label: 'Sobre la aplicación', icon: BookOpen, desc: 'Versión, quiénes somos, misión, visión y licencia' }
   ];
@@ -2442,6 +2558,414 @@ export const CompanySettingsAndBackupModule = ({
                         )}
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ==================== SUB-PESTAÑA: EQUIPO & ASISTENTES (LEY 21.442) ==================== */}
+          {activeSubTab === 'equipo' && (
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <span className="text-[10px] font-bold text-[#D4B895] uppercase tracking-wider block">
+                    Gestión de Equipo & Trazabilidad Legal
+                  </span>
+                  <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#0F3D2E]" />
+                    Equipo de Trabajo, Asistentes & Auditoría
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Conforme a la Ley N° 21.442, define asistentes autorizados con permisos limitados. Cada movimiento quedará auditado con el autor exacto.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={loadStaffAndLogs}
+                    className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Recargar datos desde Supabase"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingStaff ? 'animate-spin text-[#0F3D2E]' : ''}`} />
+                    <span>Sincronizar</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddAssistantModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer active:scale-95"
+                  >
+                    <UserPlus className="w-4 h-4 text-[#D4B895]" />
+                    <span>+ Registrar Nuevo Asistente</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 1. ADMINISTRADOR MAESTRO TITULAR */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-[#0F3D2E]/5 via-[#0F3D2E]/10 to-transparent border border-[#0F3D2E]/20">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-black text-lg shrink-0 shadow-md">
+                      JA
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-bold text-base text-slate-900">{empresaForm.adminName}</h4>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#0F3D2E] text-[#D4B895] border border-[#D4B895]/30 flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3 text-[#D4B895]" />
+                          ADMINISTRADOR TITULAR (SUPERADMIN)
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                          RNAC N° {empresaForm.rnacNumber}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1">
+                        RUT: <span className="font-mono font-bold text-slate-900">{empresaForm.adminRut}</span> • Email: <span className="text-slate-900">{empresaForm.email}</span>
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Firma oficial y representación legal acreditada ante Minvu y comunidades administradas.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="sm:text-right shrink-0">
+                    <span className="inline-block px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                      ● Acceso Total y Firma de Colillas
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. LISTA DE ASISTENTES DELEGADOS */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                    Asistentes Autorizados en Supabase ({assistantsList.filter(a => a.role !== 'superadmin').length})
+                  </h4>
+                </div>
+
+                {isLoadingStaff ? (
+                  <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200">
+                    <RefreshCw className="w-6 h-6 animate-spin text-[#0F3D2E] mx-auto mb-2" />
+                    <p className="text-xs text-slate-500 font-bold">Consultando equipo en Supabase...</p>
+                  </div>
+                ) : assistantsList.filter(a => a.role !== 'superadmin').length === 0 ? (
+                  <div className="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-center space-y-2">
+                    <Users className="w-8 h-8 text-slate-400 mx-auto" />
+                    <p className="text-xs font-bold text-slate-700">No hay asistentes registrados actualmente</p>
+                    <p className="text-[11px] text-slate-500 max-w-md mx-auto leading-relaxed">
+                      Cuando incorpores uno o dos asistentes a tu gestión, créales una cuenta aquí. Podrán apoyarte en registrar gastos o atender reclamos, pero cada acción quedará guardada indicando explícitamente que fue hecha por el asistente y no por ti como Administrador Titular.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {assistantsList.filter(a => a.role !== 'superadmin').map((asistente) => (
+                      <div key={asistente.id} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 font-bold flex items-center justify-center text-sm border border-blue-200">
+                              {asistente.nombre.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-sm text-slate-900">{asistente.nombre}</h5>
+                              <p className="text-[11px] font-mono text-slate-500">RUT: {asistente.rut}</p>
+                            </div>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            Asistente
+                          </span>
+                        </div>
+
+                        {/* Permisos */}
+                        <div className="bg-slate-50 p-2.5 rounded-xl space-y-1.5 text-[11px]">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Permisos Autorizados:</span>
+                          <div className="grid grid-cols-2 gap-1 text-slate-700">
+                            <span className="flex items-center gap-1">
+                              {asistente.permisos?.editar_gastos ? '✅' : '❌'} Registrar Gastos
+                            </span>
+                            <span className="flex items-center gap-1">
+                              {asistente.permisos?.responder_tickets ? '✅' : '❌'} Responder Tickets
+                            </span>
+                            <span className="flex items-center gap-1">
+                              {asistente.permisos?.aprobar_pagos ? '✅' : '❌'} Aprobar Pagos
+                            </span>
+                            <span className="flex items-center gap-1">
+                              {asistente.permisos?.emitir_colillas ? '✅' : '❌'} Emitir Colillas
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {asistente.email || 'Sin correo'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAssistant(asistente.id, asistente.nombre)}
+                            className="text-red-600 hover:text-red-700 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Revocar Acceso</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 3. REGISTRO DE AUDITORÍA Y TRAZABILIDAD (LOG INMUTABLE LEY 21.442) */}
+              <div className="space-y-3 pt-4 border-t border-slate-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                      Registro de Auditoría & Trazabilidad (Supabase)
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Historial inalterable de acciones que demuestra quién realizó cada modificación en el sistema.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                    {auditLogsList.length} registros
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                        <tr>
+                          <th className="px-4 py-3">Fecha y Hora</th>
+                          <th className="px-4 py-3">Acción</th>
+                          <th className="px-4 py-3">Usuario Responsable</th>
+                          <th className="px-4 py-3">Rol</th>
+                          <th className="px-4 py-3">Detalles</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {auditLogsList.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="px-4 py-6 text-center text-slate-400 text-xs">
+                              Aún no hay acciones registradas en el historial de auditoría de Supabase.
+                            </td>
+                          </tr>
+                        ) : (
+                          auditLogsList.map((log) => {
+                            const isSuper = log.user_role === 'superadmin' || log.user_role === 'admin';
+                            return (
+                              <tr key={log.id} className="hover:bg-slate-50/70">
+                                <td className="px-4 py-2.5 font-mono text-slate-500 whitespace-nowrap">
+                                  {new Date(log.created_at).toLocaleString('es-CL')}
+                                </td>
+                                <td className="px-4 py-2.5 font-bold text-slate-800 whitespace-nowrap">
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 font-mono text-[10px]">
+                                    {log.action}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2.5 font-medium text-slate-900">
+                                  {log.user_name} <span className="text-slate-400 font-mono text-[10px]">({log.user_rut})</span>
+                                </td>
+                                <td className="px-4 py-2.5 whitespace-nowrap">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                    isSuper 
+                                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+                                      : 'bg-blue-50 text-blue-800 border border-blue-200'
+                                  }`}>
+                                    {isSuper ? '👑 Administrador Titular' : '👤 Asistente'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2.5 text-slate-500 text-[11px] max-w-xs truncate">
+                                  {log.details ? JSON.stringify(log.details) : '—'}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* MODAL PARA AGREGAR ASISTENTE */}
+              {showAddAssistantModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+                  <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-[#0F3D2E] text-white flex items-center justify-center">
+                          <UserPlus className="w-4 h-4 text-[#D4B895]" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm text-slate-900">Registrar Asistente Autorizado</h4>
+                          <p className="text-[11px] text-slate-500">Se guardará en la tabla staff_users de Supabase</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setShowAddAssistantModal(false); setAssistantFeedback(''); }}
+                        className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleCreateAssistant} className="space-y-3.5">
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                          Nombre Completo del Asistente *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={assistantForm.nombre}
+                          onChange={(e) => setAssistantForm({ ...assistantForm, nombre: e.target.value })}
+                          placeholder="Ej: Camila Andrea Soto Valenzuela"
+                          className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            RUT del Asistente *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={assistantForm.rut}
+                            onChange={(e) => setAssistantForm({ ...assistantForm, rut: e.target.value })}
+                            placeholder="Ej: 18.234.567-8"
+                            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            Contraseña de Acceso *
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            value={assistantForm.password}
+                            onChange={(e) => setAssistantForm({ ...assistantForm, password: e.target.value })}
+                            placeholder="Clave inicial"
+                            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            Correo Electrónico (Opcional)
+                          </label>
+                          <input
+                            type="email"
+                            value={assistantForm.email}
+                            onChange={(e) => setAssistantForm({ ...assistantForm, email: e.target.value })}
+                            placeholder="asistente@aranpro.cl"
+                            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            Teléfono (Opcional)
+                          </label>
+                          <input
+                            type="tel"
+                            value={assistantForm.telefono}
+                            onChange={(e) => setAssistantForm({ ...assistantForm, telefono: e.target.value })}
+                            placeholder="+56 9 8765 4321"
+                            className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Permisos Granulares */}
+                      <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          Permisos Autorizados por el Administrador:
+                        </label>
+                        <div className="space-y-1.5 text-xs text-slate-700">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={assistantForm.permisos.editar_gastos}
+                              onChange={(e) => setAssistantForm({
+                                ...assistantForm,
+                                permisos: { ...assistantForm.permisos, editar_gastos: e.target.checked }
+                              })}
+                              className="rounded text-[#0F3D2E] focus:ring-[#0F3D2E]"
+                            />
+                            <span>Permitir registrar y editar gastos o facturas</span>
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={assistantForm.permisos.responder_tickets}
+                              onChange={(e) => setAssistantForm({
+                                ...assistantForm,
+                                permisos: { ...assistantForm.permisos, responder_tickets: e.target.checked }
+                              })}
+                              className="rounded text-[#0F3D2E] focus:ring-[#0F3D2E]"
+                            />
+                            <span>Permitir responder solicitudes y reclamos de vecinos</span>
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={assistantForm.permisos.aprobar_pagos}
+                              onChange={(e) => setAssistantForm({
+                                ...assistantForm,
+                                permisos: { ...assistantForm.permisos, aprobar_pagos: e.target.checked }
+                              })}
+                              className="rounded text-[#0F3D2E] focus:ring-[#0F3D2E]"
+                            />
+                            <span>Permitir aprobar comprobantes de pago de copropietarios</span>
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={assistantForm.permisos.emitir_colillas}
+                              onChange={(e) => setAssistantForm({
+                                ...assistantForm,
+                                permisos: { ...assistantForm.permisos, emitir_colillas: e.target.checked }
+                              })}
+                              className="rounded text-[#0F3D2E] focus:ring-[#0F3D2E]"
+                            />
+                            <span>Permitir emitir colillas y cierre de períodos</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {assistantFeedback && (
+                        <p className={`text-xs font-bold ${assistantFeedback.includes('✅') ? 'text-emerald-700' : 'text-red-600'}`}>
+                          {assistantFeedback}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => { setShowAddAssistantModal(false); setAssistantFeedback(''); }}
+                          className="px-4 py-2 border border-slate-200 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                        >
+                          Guardar Asistente en Supabase
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               )}

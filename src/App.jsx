@@ -91,27 +91,31 @@ function MainApp() {
   };
 
   // Manejar login de administrador
-  const handleAdminSubmit = (e) => {
+  const handleAdminSubmit = async (e) => {
     e.preventDefault();
     setAdminLoginError('');
-    const res = loginAdmin(adminRutInput, adminPasswordInput);
-    if (res.success) {
-      try {
-        const cleanUrl = window.location.pathname + (window.location.hash || '');
-        window.history.replaceState({}, document.title, cleanUrl);
-      } catch (e) { console.error(e); }
-      setAdminRutInput('');
-      setAdminPasswordInput('');
-      // Si el administrador tiene solo 1 comunidad, ingresa directo
-      if (communities.length === 1) {
-        setSelectedAdminCommunityId(communities[0].id);
-        setCurrentView('admin');
+    try {
+      const res = await loginAdmin(adminRutInput, adminPasswordInput);
+      if (res.success) {
+        try {
+          const cleanUrl = window.location.pathname + (window.location.hash || '');
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (e) { console.error(e); }
+        setAdminRutInput('');
+        setAdminPasswordInput('');
+        // Si el administrador tiene solo 1 comunidad, ingresa directo
+        if (communities.length === 1) {
+          setSelectedAdminCommunityId(communities[0].id);
+          setCurrentView('admin');
+        } else {
+          // Si tiene múltiples comunidades, muestra selector inicial "¿En qué comunidad deseas trabajar hoy?"
+          setCurrentView('admin-select-community');
+        }
       } else {
-        // Si tiene múltiples comunidades, muestra selector inicial "¿En qué comunidad deseas trabajar hoy?"
-        setCurrentView('admin-select-community');
+        setAdminLoginError(res.message || 'RUT o contraseña de Administrador incorrectos.');
       }
-    } else {
-      setAdminLoginError(res.message || 'RUT o contraseña de Administrador incorrectos.');
+    } catch (err) {
+      setAdminLoginError('Error de autenticación. Intenta nuevamente.');
     }
   };
 

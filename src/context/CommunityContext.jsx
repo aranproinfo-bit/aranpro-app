@@ -1751,7 +1751,7 @@ export const CommunityProvider = ({ children }) => {
   };
 
   // --- Auth / Sesiones ---
-  const loginAdmin = (rutOrPin, passwordInput) => {
+  const loginAdmin = async (rutOrPin, passwordInput) => {
     // Modo 1: Soporte con 1 parámetro (PIN directo para retrocompatibilidad)
     if (passwordInput === undefined) {
       const pin = rutOrPin;
@@ -1759,7 +1759,8 @@ export const CommunityProvider = ({ children }) => {
         const user = {
           role: 'admin',
           name: companySettings.administratorName || 'John Andrés Arancibia Maureira',
-          rut: companySettings.adminRut || '16.012.871-2'
+          rut: companySettings.adminRut || '16.012.871-2',
+          permisos: { all: true }
         };
         setCurrentUser(user);
         return { success: true, user };
@@ -1768,6 +1769,28 @@ export const CommunityProvider = ({ children }) => {
     }
 
     // Modo 2: Autenticación SaaS profesional con RUT y Contraseña
+    // 2.1 Intentar autenticar contra Supabase en la nube (tabla staff_users)
+    try {
+      const { staffAuthService } = await import('../services/supabase');
+      const cloudRes = await staffAuthService.loginStaff(rutOrPin, passwordInput);
+      if (cloudRes.success && cloudRes.user) {
+        const staff = cloudRes.user;
+        const user = {
+          role: staff.role === 'superadmin' ? 'admin' : staff.role,
+          staffRole: staff.role, // 'superadmin' | 'admin' | 'asistente'
+          name: staff.nombre,
+          rut: staff.rut,
+          email: staff.email,
+          permisos: staff.permisos || {}
+        };
+        setCurrentUser(user);
+        return { success: true, user };
+      }
+    } catch (err) {
+      console.warn('Fallo consulta Supabase staff_users, recurriendo a verificación local:', err);
+    }
+
+    // 2.2 Verificación Local de Respaldo (Fallback seguro)
     const cleanInputRut = cleanRut(rutOrPin);
     const validRut = cleanRut(companySettings.adminRut || '16.012.871-2');
     const validCompanyRut = cleanRut(companySettings.companyRut || '76.999.888-8');
@@ -1787,8 +1810,10 @@ export const CommunityProvider = ({ children }) => {
     if (isRutMatch && isPasswordMatch) {
       const user = {
         role: 'admin',
+        staffRole: 'superadmin',
         name: companySettings.administratorName || 'John Andrés Arancibia Maureira',
-        rut: companySettings.adminRut || '16.012.871-2'
+        rut: companySettings.adminRut || '16.012.871-2',
+        permisos: { all: true }
       };
       setCurrentUser(user);
       return { success: true, user };
