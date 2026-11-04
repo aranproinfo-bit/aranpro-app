@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CommunityProvider, useCommunity } from './context/CommunityContext';
-import { PwaPrompt } from './components/layout/PwaPrompt';
+import { PwaPrompt, PwaInstallButton } from './components/layout/PwaPrompt';
 import { AranproLogo } from './components/common/MauranLogo';
 import { ResidentLogin } from './components/resident/ResidentLogin';
 import { ResidentPortal } from './components/resident/ResidentPortal';
@@ -17,7 +17,7 @@ import './App.css';
 const COMMERCIAL_WEB_URL = 'https://aranpro.cl';
 
 function MainApp() {
-  const { currentUser, communities, loginAdmin, companySettings } = useCommunity();
+  const { currentUser, communities, loginAdmin, companySettings, simulateResidentView, exitSimulation } = useCommunity();
   
   // Navigation states: 'portal-choice' | 'communities-selector' | 'resident-login' | 'resident' | 'admin-login' | 'admin'
   const [currentView, setCurrentView] = useState(() => {
@@ -88,6 +88,7 @@ function MainApp() {
           </div>
 
           <div className="flex items-center gap-2">
+            <PwaInstallButton variant="compact" />
             <button
               onClick={handleGoToCommercialWeb}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-100 transition-all cursor-pointer"
@@ -270,7 +271,18 @@ function MainApp() {
         {/* PANTALLA 4: PORTAL DE RESIDENTE / COPROPIETARIO */}
         {currentView === 'resident' && (
           <ResidentPortal
-            onBack={() => setCurrentView('portal-choice')}
+            onBack={() => {
+              if (currentUser?.isSimulatedByAdmin) {
+                exitSimulation();
+                setCurrentView('admin');
+              } else {
+                setCurrentView('portal-choice');
+              }
+            }}
+            onBackToAdmin={() => {
+              exitSimulation();
+              setCurrentView('admin');
+            }}
             onOpenCertificates={() => setShowCertModal(true)}
           />
         )}
@@ -281,7 +293,8 @@ function MainApp() {
             onBackToWeb={handleGoToCommercialWeb}
             onSelectCommunityView={(slug) => {
               setSelectedCommunitySlug(slug);
-              setCurrentView('resident-login');
+              simulateResidentView(slug);
+              setCurrentView('resident');
             }}
           />
         )}

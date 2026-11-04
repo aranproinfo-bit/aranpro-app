@@ -11,6 +11,7 @@ import { CommitteeMeetingsAndLogModule } from './CommitteeMeetingsAndLogModule';
 import { OfficialCertificatesModule } from './OfficialCertificatesModule';
 import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
+import { PwaInstallButton } from '../layout/PwaPrompt';
 import { 
   Building2, Plus, Trash2, Edit3, ExternalLink, Users, 
   DollarSign, FileText, CheckCircle2, AlertCircle, Copy, 
@@ -4017,6 +4018,7 @@ _Administración ARANPRO_`;
         </div>
 
         <div className="flex items-center space-x-1.5 shrink-0">
+          <PwaInstallButton variant="compact" label="Instalar" />
           <button
             onClick={() => setShowCommitteeReportModal(true)}
             className="px-2.5 py-1.5 bg-[#D4B895] text-[#0F3D2E] text-[11px] font-black rounded-lg flex items-center"
@@ -4095,6 +4097,7 @@ _Administración ARANPRO_`;
 
           {/* Derecha: Botón Panel Administrador / Sitio Web / Salir */}
           <div className="flex items-center space-x-2 shrink-0">
+            <PwaInstallButton variant="compact" label="Instalar App" />
             {onBackToWeb && (
               <button
                 onClick={onBackToWeb}

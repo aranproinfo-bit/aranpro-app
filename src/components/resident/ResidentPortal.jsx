@@ -4,6 +4,7 @@ import { formatCLP, formatDate, getMonthName } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
 import { AranproLogo } from '../common/MauranLogo';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
+import { PwaInstallButton } from '../layout/PwaPrompt';
 import { 
   Building2, Home, User, CheckCircle2, AlertCircle, Eye, 
   Download, ArrowUpRight, DollarSign, FileText, Send, 
@@ -12,7 +13,7 @@ import {
   FileCheck
 } from 'lucide-react';
 
-export const ResidentPortal = ({ onBack, onOpenCertificates }) => {
+export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) => {
   const { currentUser, communities, getUnitFinancials, setActiveReceipt, reportPayment, addAnnouncement, calculateCommunityTotals, changeResidentPassword, logout, companySettings } = useCommunity();
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'gastos' | 'mis-pagos' | 'comunicados' | 'cuenta-bancaria'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -45,11 +46,12 @@ export const ResidentPortal = ({ onBack, onOpenCertificates }) => {
     );
   }
 
-  const community = communities.find(c => c.id === currentUser.communityId);
+  const community = communities.find(c => c.id === currentUser.communityId || c.slug === currentUser.communitySlug) || communities[0];
   if (!community) return null;
 
-  const unit = community.units.find(u => u.id === currentUser.unitId || u.number === currentUser.unitNumber);
-  if (!unit) return null;
+  const unit = (community.units && community.units.find(u => u.id === currentUser.unitId || u.number === currentUser.unitNumber)) 
+    || community.units?.[0] 
+    || { id: 'sim-unit', number: '1', owner: 'Copropietario Ejemplo', aliquota: 1, debt: 0, paymentHistory: [] };
 
   // Cálculos de la comunidad
   const commTotals = calculateCommunityTotals(community);
@@ -264,7 +266,32 @@ export const ResidentPortal = ({ onBack, onOpenCertificates }) => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-100/60 flex flex-col lg:flex-row pb-20 lg:pb-0">
+    <div className="min-h-screen bg-slate-100/60 flex flex-col">
+      {/* BANNER MODO SIMULACIÓN PARA ADMINISTRADOR */}
+      {currentUser?.isSimulatedByAdmin && (
+        <div className="bg-[#0F3D2E] text-white px-4 py-2.5 border-b-2 border-[#D4B895] shadow-md sticky top-0 z-50 flex items-center justify-between gap-3">
+          <div className="flex items-center space-x-2.5 min-w-0">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#D4B895] text-[#0A291F] uppercase tracking-wider shrink-0 shadow-xs">
+              Modo Simulación
+            </span>
+            <div className="text-xs text-white truncate">
+              Estás viendo la app como vecino de <strong className="text-[#D4B895]">{community.name}</strong> • Casa N° {unit.number} ({unit.owner})
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              if (onBackToAdmin) onBackToAdmin();
+              else onBack();
+            }}
+            className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-[#0F3D2E] font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+            title="Regresar inmediatamente al panel de administración"
+          >
+            <span>⬅️ Volver a Administración</span>
+          </button>
+        </div>
+      )}
+
+      <div className="flex-1 flex flex-col lg:flex-row pb-20 lg:pb-0">
       
       {/* Barra Superior Compacta en Celular (< lg) */}
       <div className="lg:hidden sticky top-0 z-30 bg-[#0F3D2E] text-white px-4 py-2.5 border-b border-[#D4B895]/30 flex items-center justify-between shadow-sm">
@@ -285,13 +312,16 @@ export const ResidentPortal = ({ onBack, onOpenCertificates }) => {
           </div>
         </div>
 
-        <button
-          onClick={() => { setPasswordSaved(false); setNewPasswordInput(''); setShowPasswordModal(true); }}
-          className="px-2.5 py-1.5 bg-white/10 text-[#D4B895] rounded-lg text-[11px] font-bold flex items-center shrink-0"
-        >
-          <KeyRound className="w-3.5 h-3.5 mr-1" />
-          Clave
-        </button>
+        <div className="flex items-center space-x-1.5 shrink-0">
+          <PwaInstallButton variant="compact" label="Instalar" />
+          <button
+            onClick={() => { setPasswordSaved(false); setNewPasswordInput(''); setShowPasswordModal(true); }}
+            className="px-2.5 py-1.5 bg-white/10 text-[#D4B895] rounded-lg text-[11px] font-bold flex items-center shrink-0"
+          >
+            <KeyRound className="w-3.5 h-3.5 mr-1" />
+            Clave
+          </button>
+        </div>
       </div>
 
       {/* Drawer Lateral en Celular (< lg) */}
@@ -334,6 +364,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates }) => {
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
+            <PwaInstallButton variant="compact" label="Instalar App" />
             <button
               onClick={onBack}
               className="px-3 py-1.5 text-xs font-bold text-[#4A4F4F] hover:text-[#0F3D2E] hover:bg-[#F5F4EF] rounded-xl transition-colors flex items-center"
@@ -1686,6 +1717,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates }) => {
         community={community}
       />
 
+      </div>
     </div>
   );
 };

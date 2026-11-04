@@ -1796,6 +1796,36 @@ export const CommunityProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
+  // Simulación directa del portal de vecino desde el panel de administración (sin requerir clave de residente)
+  const simulateResidentView = (communitySlugOrId, unitId = null) => {
+    const community = communities.find(c => c.slug === communitySlugOrId || c.id === communitySlugOrId);
+    if (!community) return null;
+    const unit = (unitId ? community.units?.find(u => u.id === unitId) : null) || community.units?.[0] || {
+      id: 'unit-sim-1',
+      number: '1',
+      owner: 'Copropietario Ejemplo',
+      rut: '11.111.111-1'
+    };
+    const user = {
+      role: 'resident',
+      communityId: community.id,
+      communitySlug: community.slug,
+      unitId: unit.id,
+      unitNumber: unit.number,
+      rut: unit.rut || '11.111.111-1',
+      name: unit.owner || `Casa ${unit.number}`,
+      isSimulatedByAdmin: true
+    };
+    setCurrentUser(user);
+    return user;
+  };
+
+  const exitSimulation = () => {
+    const adminUser = { role: 'admin', name: 'Administrador General' };
+    setCurrentUser(adminUser);
+    return adminUser;
+  };
+
   return (
     <CommunityContext.Provider value={{
       communities,
@@ -1867,7 +1897,9 @@ export const CommunityProvider = ({ children }) => {
       setCompanySettings,
       loginAdmin,
       loginResident,
-      logout
+      logout,
+      simulateResidentView,
+      exitSimulation
     }}>
       {children}
     </CommunityContext.Provider>
