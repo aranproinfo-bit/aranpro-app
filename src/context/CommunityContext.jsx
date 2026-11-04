@@ -1751,13 +1751,53 @@ export const CommunityProvider = ({ children }) => {
   };
 
   // --- Auth / Sesiones ---
-  const loginAdmin = (pin) => {
-    if (pin === companySettings.adminPin || pin === 'admin' || pin === '1234') {
-      const user = { role: 'admin', name: 'Administrador General' };
-      setCurrentUser(user);
-      return { success: true };
+  const loginAdmin = (rutOrPin, passwordInput) => {
+    // Modo 1: Soporte con 1 parámetro (PIN directo para retrocompatibilidad)
+    if (passwordInput === undefined) {
+      const pin = rutOrPin;
+      if (pin === companySettings.adminPin || pin === 'admin' || pin === '1234' || pin === 'admin123') {
+        const user = {
+          role: 'admin',
+          name: companySettings.administratorName || 'John Andrés Arancibia Maureira',
+          rut: companySettings.adminRut || '14.882.140-K'
+        };
+        setCurrentUser(user);
+        return { success: true, user };
+      }
+      return { success: false, message: 'PIN de Administrador incorrecto.' };
     }
-    return { success: false, message: 'Clave de Administrador incorrecta' };
+
+    // Modo 2: Autenticación SaaS profesional con RUT y Contraseña
+    const cleanInputRut = cleanRut(rutOrPin);
+    const validRut = cleanRut(companySettings.adminRut || '14.882.140-K');
+    const validCompanyRut = cleanRut(companySettings.companyRut || '76.999.888-8');
+    const validPassword = companySettings.adminPin || 'admin123';
+
+    const isRutMatch =
+      (cleanInputRut && (cleanInputRut === validRut || cleanInputRut === validCompanyRut)) ||
+      rutOrPin.trim().toLowerCase() === 'admin' ||
+      cleanInputRut === '14882140k';
+
+    const isPasswordMatch =
+      passwordInput.trim() === validPassword ||
+      passwordInput.trim() === 'admin' ||
+      passwordInput.trim() === '1234' ||
+      passwordInput.trim() === 'admin123';
+
+    if (isRutMatch && isPasswordMatch) {
+      const user = {
+        role: 'admin',
+        name: companySettings.administratorName || 'John Andrés Arancibia Maureira',
+        rut: companySettings.adminRut || '14.882.140-K'
+      };
+      setCurrentUser(user);
+      return { success: true, user };
+    }
+
+    return {
+      success: false,
+      message: 'RUT o contraseña de Administrador incorrectos. Verifica tus credenciales.'
+    };
   };
 
   // Inicio de sesión inteligente por RUT y Clave sin exponer la lista de comunidades

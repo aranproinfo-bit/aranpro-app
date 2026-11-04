@@ -111,7 +111,7 @@ const groupExpensesByCategory = (expensesList) => {
   });
 };
 
-export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb }) => {
+export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialCommunityId, onSwitchCommunityWorkspace }) => {
   const { 
     communities, addCommunity, updateCommunity, deleteCommunity, 
     getUnitFinancials, addUnit, updateUnit, deleteUnit, toggleUnitPaid,
@@ -129,10 +129,17 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb }) => {
     resetResidentPassword
   } = useCommunity();
 
-  // Comunidad seleccionada para gestionar (por defecto la primera)
-  const [selectedCommunityId, setSelectedCommunityId] = useState(communities[0]?.id || null);
+  // Comunidad seleccionada para gestionar (por defecto la inicial o la primera)
+  const [selectedCommunityId, setSelectedCommunityId] = useState(initialCommunityId || communities[0]?.id || null);
+  const [pendingCommunitySwitch, setPendingCommunitySwitch] = useState(null);
   const [resetPassModalUnit, setResetPassModalUnit] = useState(null);
   const [resetPassToast, setResetPassToast] = useState('');
+
+  useEffect(() => {
+    if (initialCommunityId) {
+      setSelectedCommunityId(initialCommunityId);
+    }
+  }, [initialCommunityId]);
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'unidades' | 'gastos' | 'emision' | 'comite' | 'asambleas' | 'comunicados' | 'certificados' | 'ajustes'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -2899,7 +2906,12 @@ _Administración ARANPRO_`;
           <div className="space-y-1.5">
             <select
               value={selectedCommunityId || ''}
-              onChange={(e) => setSelectedCommunityId(e.target.value)}
+              onChange={(e) => {
+                const newId = e.target.value;
+                if (newId !== selectedCommunityId) {
+                  setPendingCommunitySwitch(newId);
+                }
+              }}
               className="w-full bg-[#0A291F] text-white text-xs font-bold px-2.5 py-2 rounded-xl border border-[#D4B895]/40 focus:outline-hidden focus:ring-2 focus:ring-[#D4B895]"
             >
               {communities.map((c) => (
@@ -18472,6 +18484,54 @@ _Administración ARANPRO_`;
                     Confirmar Cierre y Traspaso
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Modal de Advertencia al Cambiar de Comunidad (Verificación de Cambios sin Guardar) */}
+      {pendingCommunitySwitch && (() => {
+        const targetComm = communities.find(c => c.id === pendingCommunitySwitch);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 border border-slate-200 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-black text-slate-900">
+                  ¿Estás seguro de cambiar de comunidad?
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Estás trabajando en <strong>{currentCommunity?.name}</strong> y vas a pasar a gestionar <strong>{targetComm?.name}</strong>.
+                </p>
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-900 space-y-1">
+                  <span className="font-bold block text-[11px] uppercase tracking-wider text-amber-800">⚠️ Cambios sin guardar:</span>
+                  <p className="text-[11px] text-amber-900 leading-relaxed">
+                    Si tienes formularios abiertos, gastos en edición o registros sin guardar en esta comunidad, asegúrate de guardarlos antes de continuar para no perder tu trabajo.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setPendingCommunitySwitch(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancelar y quedarse
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCommunityId(pendingCommunitySwitch);
+                    setPendingCommunitySwitch(null);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-xs font-black shadow-md transition-colors cursor-pointer"
+                >
+                  Sí, Cambiar de Comunidad
+                </button>
               </div>
             </div>
           </div>
