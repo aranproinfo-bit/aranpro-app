@@ -14,6 +14,14 @@ export const UnitAccountStatementView = ({
   companySettings,
   currentUser
 }) => {
+  if (!community) {
+    return (
+      <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-xs">
+        Selecciona una comunidad para ver la cartola de cuenta corriente.
+      </div>
+    );
+  }
+
   const units = community?.units || [];
   const [selectedUnitId, setSelectedUnitId] = useState(() => {
     return initialUnitId || (units[0]?.id || '');

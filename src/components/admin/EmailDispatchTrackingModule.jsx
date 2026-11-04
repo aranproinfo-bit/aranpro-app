@@ -12,6 +12,14 @@ export const EmailDispatchTrackingModule = ({
   companySettings,
   currentUser
 }) => {
+  if (!community) {
+    return (
+      <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-xs">
+        Selecciona una comunidad para ver el centro de despacho de correos.
+      </div>
+    );
+  }
+
   const units = community?.units || [];
   const currentPeriod = community?.activePeriod || { month: 11, year: 2026 };
   const periodLabel = `${String(currentPeriod.month).padStart(2, '0')}/${currentPeriod.year}`;

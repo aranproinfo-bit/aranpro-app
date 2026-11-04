@@ -128,7 +128,7 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
     addAnnouncement, deleteAnnouncement, addDocument, deleteDocument,
     certificates, updateCertificateStatus,
     companySettings, setCompanySettings, setActiveReceipt, logout,
-    resetResidentPassword
+    resetResidentPassword, currentUser
   } = useCommunity();
 
   // Comunidad seleccionada para gestionar (por defecto la inicial o la primera)
@@ -4638,6 +4638,25 @@ _Administración ARANPRO_`;
                       </p>
                     </div>
                   </>
+                ) : unitsSubTab === 'cuenta_corriente' ? (
+                  <>
+                    <div className="p-2.5 bg-[#0F3D2E] text-[#D4B895] rounded-2xl shadow-xs shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2 flex-wrap">
+                        <h3 className="text-base font-black text-slate-900 tracking-tight whitespace-nowrap">
+                          Cartola y Cuenta Corriente Individual
+                        </h3>
+                        <span className="text-[9.5px] bg-[#0F3D2E]/10 text-[#0F3D2E] font-black px-2 py-0.5 rounded-full border border-[#0F3D2E]/20 uppercase">
+                          Ley N° 21.442 • Art. 6°
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Historial cronológico de cobros y abonos por copropietario con extracto oficial imprimible
+                      </p>
+                    </div>
+                  </>
                 ) : unitsSubTab === 'validar_pagos' ? (
                   <>
                     <div className="p-2.5 bg-gradient-to-br from-[#0F3D2E] to-[#14533d] text-white rounded-2xl shadow-xs shrink-0">
@@ -4766,6 +4785,17 @@ _Administración ARANPRO_`;
                     >
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
                       <span>Validar Pagos ({pendingPaymentsCount}) →</span>
+                    </button>
+                  </>
+                ) : unitsSubTab === 'cuenta_corriente' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setUnitsSubTab('nomina')}
+                      className="px-3 py-2 bg-[#F5F4EF] hover:bg-[#eae7dd] text-[#0F3D2E] border border-[#D4B895] font-black text-xs rounded-xl flex items-center shadow-2xs transition-all cursor-pointer"
+                    >
+                      <Home className="w-3.5 h-3.5 mr-1.5 text-[#0F3D2E]" />
+                      <span>← Volver a Nómina de Casas</span>
                     </button>
                   </>
                 ) : unitsSubTab === 'validar_pagos' ? (
