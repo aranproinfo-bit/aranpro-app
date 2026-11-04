@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { formatCLP, formatDate, formatRut, generateCommunityEmailProposal } from '../../utils/formatters';
 import { AranproLogo } from '../common/MauranLogo';
+import { resendMailService } from '../../services/resendService';
 import {
   Mail, Send, CheckCircle2, AlertTriangle, Clock, Eye,
   RefreshCw, MessageCircle, Copy, Check, Search, Filter,
@@ -128,61 +129,192 @@ export const EmailDispatchTrackingModule = ({
     setTimeout(() => setToastMessage(''), 3000);
   };
 
-  // Ejecutar despacho masivo simulado con barra de progreso
-  const handleStartBulkDispatch = () => {
+  // Generar HTML del correo formal para un vecino
+  const buildUnitEmailHtml = (unit) => {
+    const charge = formatCLP(unit.currentCharge || 45000);
+    const dueDate = `15 de ${currentPeriod.month === 11 ? 'Noviembre' : 'Diciembre'} de ${currentPeriod.year}`;
+    const portalUrl = `${window.location.origin}?c=${community.slug || 'los-cerezos'}`;
+    const replyEmail = community.bankInfo?.email || 'contacto@aranpro.cl';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Cobro de Gasto Común - ${community.name}</title>
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <!-- Cabecera -->
+          <tr>
+            <td style="background-color: #0F3D2E; padding: 24px; text-align: left; border-bottom: 3px solid #D4B895;">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <h1 style="color: #ffffff; margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.5px;">${community.name}</h1>
+                    <p style="color: #D4B895; margin: 4px 0 0 0; font-size: 12px; font-weight: 600;">Administración Certificada • Reg. RNAC Minvu N° 48.912</p>
+                  </td>
+                  <td align="right">
+                    <span style="background-color: rgba(212, 184, 149, 0.2); color: #D4B895; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 9999px; border: 1px solid rgba(212, 184, 149, 0.4);">
+                      Período ${periodLabel}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Contenido Principal -->
+          <tr>
+            <td style="padding: 28px 24px;">
+              <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6;">
+                Estimado(a) <strong>${unit.owner || 'Copropietario(a)'}</strong> (Casa / Dpto ${unit.unitNumber}):
+              </p>
+              <p style="margin: 0 0 20px 0; font-size: 13px; line-height: 1.6; color: #475569;">
+                Junto con saludarle, se informa la emisión formal de la liquidación de Gasto Común correspondiente al período <strong>${periodLabel}</strong> en conformidad con las disposiciones de la <strong>Ley de Copropiedad Inmobiliaria N° 21.442</strong>.
+              </p>
+
+              <!-- Tarjeta de Cobro -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8FAF8; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">Total a Pagar del Mes</div>
+                    <div style="font-size: 26px; font-weight: 900; color: #0F3D2E; margin: 6px 0 12px 0;">${charge}</div>
+                    <div style="border-top: 1px solid #cbd5e1; padding-top: 10px; font-size: 12px; color: #334155;">
+                      <strong>Fecha de Vencimiento:</strong> ${dueDate}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Botón CTA -->
+              <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 24px auto;">
+                <tr>
+                  <td align="center" style="border-radius: 10px; background-color: #0F3D2E;">
+                    <a href="${portalUrl}" target="_blank" style="font-size: 13px; font-weight: bold; color: #D4B895; text-decoration: none; padding: 12px 28px; display: inline-block;">
+                      Revisar Detalle y Pagar en Línea &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Datos de Transferencia -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 10px; border: 1px dashed #cbd5e1; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 14px 18px; font-size: 11px; color: #475569; line-height: 1.5;">
+                    <strong style="color: #0F3D2E; font-size: 12px; display: block; margin-bottom: 4px;">Datos para Transferencia Electrónica:</strong>
+                    Banco: <strong>${community.bankInfo?.bank || 'Banco Estado'}</strong> • Tipo: <strong>${community.bankInfo?.accountType || 'Cuenta Corriente'}</strong><br>
+                    N° Cuenta: <strong>${community.bankInfo?.accountNumber || 'Por regularizar'}</strong> • RUT: <strong>${community.bankInfo?.rut || '65.184.920-K'}</strong><br>
+                    Titular: <strong>${community.bankInfo?.holderName || 'Comunidad ' + community.name}</strong><br>
+                    Email comprobantes: <strong>${replyEmail}</strong>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin: 0;">
+                * Si ya realizó su transferencia bancaria, recuerde reportarla en el portal o enviando su comprobante a este correo para que su estado de cuenta se actualice oportunamente.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer Legal -->
+          <tr>
+            <td style="background-color: #f1f5f9; padding: 16px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 10px; color: #64748b;">
+              Administración de Condominios ARANPRO • John Andrés Arancibia Maureira<br>
+              Inscripción Registro Nacional de Administradores de Condominios (RNAC) MINVU N° 48.912<br>
+              Correo Oficial: ${officialSenderEmail}
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  };
+
+  // Ejecutar despacho masivo REAL con Resend API y barra de progreso
+  const handleStartBulkDispatch = async () => {
     setIsDispatching(true);
-    setDispatchProgress(10);
+    setDispatchProgress(15);
 
-    const interval = setInterval(() => {
-      setDispatchProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsDispatching(false);
-          setShowDispatchModal(false);
+    try {
+      // Filtrar destinatarios válidos
+      const validRecipients = trackingList.filter(t => t.email && t.email.includes('@'));
+      
+      // Preparar payload de correos individuales por vecino
+      const emailsPayload = validRecipients.map(u => ({
+        from: `Administración ${community.name} <${officialSenderEmail}>`,
+        to: [u.email],
+        reply_to: community.bankInfo?.email || 'contacto@aranpro.cl',
+        subject: `Cobro Gasto Común • ${community.name} • Período ${periodLabel}`,
+        html: buildUnitEmailHtml(u)
+      }));
 
-          // Actualizar toda la nómina a 'entregado' (salvo sin email)
-          const nowIso = new Date().toISOString();
-          setTrackingList(prevList => prevList.map(u => ({
-            ...u,
-            status: u.email ? 'entregado' : 'rebotado',
-            sentAt: nowIso,
-            openedAt: null,
-            openCount: 0
-          })));
+      setDispatchProgress(40);
 
-          // Registrar en auditoría Supabase
-          import('../../services/supabase').then(({ auditService, emailDispatchService }) => {
-            auditService.logAction({
-              communityId: community?.id,
-              action: 'DESPACHO_MASIVO_CORREOS',
-              user: currentUser,
-              details: {
-                period: periodLabel,
-                destinatarios: totalUnits,
-                entregados: totalUnits - bouncedUnits.length
-              }
-            });
+      let sendResult = { success: true };
+      if (emailsPayload.length > 0) {
+        // Enviar vía Resend Batch API
+        sendResult = await resendMailService.sendBatchEmails(emailsPayload);
+      }
 
-            emailDispatchService.recordDispatch({
-              communityId: community?.id,
-              period: periodLabel,
-              subject: `Cobro de Gasto Común - ${community?.name} • Período ${periodLabel}`,
-              recipients: units.map(u => ({
-                unitNumber: u.number,
-                owner: u.owner,
-                email: u.email || u.additionalUsers?.[0]?.email
-              })),
-              user: currentUser
-            });
-          }).catch(() => {});
+      setDispatchProgress(80);
 
-          setToastMessage(`🎉 ¡Despacho masivo completado con éxito! Se enviaron las colillas de ${periodLabel}.`);
-          setTimeout(() => setToastMessage(''), 4000);
-          return 100;
+      const nowIso = new Date().toISOString();
+      setTrackingList(prevList => prevList.map(u => ({
+        ...u,
+        status: (u.email && u.email.includes('@')) ? 'entregado' : 'rebotado',
+        sentAt: nowIso,
+        openedAt: null,
+        openCount: 0
+      })));
+
+      // Registrar en auditoría Supabase
+      const { auditService, emailDispatchService } = await import('../../services/supabase');
+      await auditService.logAction({
+        communityId: community?.id,
+        action: 'DESPACHO_MASIVO_CORREOS_REAL',
+        user: currentUser,
+        details: {
+          period: periodLabel,
+          destinatarios: totalUnits,
+          entregados: validRecipients.length,
+          sinCorreo: bouncedUnits.length,
+          remitente: officialSenderEmail,
+          resendStatus: sendResult.success ? 'ENVIADO_OK' : sendResult.error
         }
-        return prev + 20;
       });
-    }, 250);
+
+      await emailDispatchService.recordDispatch({
+        communityId: community?.id,
+        period: periodLabel,
+        subject: `Cobro de Gasto Común - ${community?.name} • Período ${periodLabel}`,
+        recipients: units.map(u => ({
+          unitNumber: u.number,
+          owner: u.owner,
+          email: u.email || u.additionalUsers?.[0]?.email
+        })),
+        user: currentUser
+      });
+
+      setDispatchProgress(100);
+      setTimeout(() => {
+        setIsDispatching(false);
+        setShowDispatchModal(false);
+        if (sendResult.success) {
+          setToastMessage(`🎉 ¡Despacho real completado con éxito vía Resend! Se enviaron ${validRecipients.length} colillas oficiales desde ${officialSenderEmail}.`);
+        } else {
+          setToastMessage(`⚠️ Despacho registrado, pero Resend reportó: ${sendResult.error}`);
+        }
+        setTimeout(() => setToastMessage(''), 5000);
+      }, 600);
+
+    } catch (err) {
+      console.error('Error en despacho masivo:', err);
+      setIsDispatching(false);
+      setShowDispatchModal(false);
+      setToastMessage(`⚠️ Error en despacho: ${err.message}`);
+      setTimeout(() => setToastMessage(''), 5000);
+    }
   };
 
   return (
