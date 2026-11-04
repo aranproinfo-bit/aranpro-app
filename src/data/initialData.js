@@ -958,7 +958,7 @@ export const initialCompanySettings = {
   provisionalName: 'ARANPRO • Gestión Integral',
   administratorName: 'John Andrés Arancibia Maureira',
   adminName: 'John Andrés Arancibia Maureira',
-  adminRut: '14.882.140-K',
+  adminRut: '16.012.871-2',
   adminRole: 'Representante Legal y Administrador Titular',
   companyRut: '76.999.888-1',
   rnacNumber: '48.912',

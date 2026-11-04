@@ -45,7 +45,7 @@ export const CompanySettingsAndBackupModule = ({
     website: companySettings?.website || 'https://aranpro.cl',
     // Representante Legal / Firmante
     adminName: companySettings?.adminName || 'John Andrés Arancibia Maureira',
-    adminRut: companySettings?.adminRut || '14.882.140-K',
+    adminRut: companySettings?.adminRut || '16.012.871-2',
     adminRole: companySettings?.adminRole || 'Administrador Titular & Representante Legal',
     rnacNumber: companySettings?.rnacNumber || '48.912',
     rnacCategory: companySettings?.rnacCategory || 'Persona Natural (Vigente)',

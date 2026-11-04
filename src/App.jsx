@@ -63,6 +63,14 @@ function MainApp() {
     const roleParam = urlParams.get('role');
 
     if (roleParam === 'admin') {
+      if (currentUser?.role === 'admin') {
+        // Ya autenticado: limpiar el parámetro ?role=admin de la URL para evitar parpadeos
+        try {
+          const cleanUrl = window.location.pathname + (window.location.hash || '');
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (e) { console.error(e); }
+        return;
+      }
       setCurrentView('admin-login');
       return;
     }
@@ -88,6 +96,10 @@ function MainApp() {
     setAdminLoginError('');
     const res = loginAdmin(adminRutInput, adminPasswordInput);
     if (res.success) {
+      try {
+        const cleanUrl = window.location.pathname + (window.location.hash || '');
+        window.history.replaceState({}, document.title, cleanUrl);
+      } catch (e) { console.error(e); }
       setAdminRutInput('');
       setAdminPasswordInput('');
       // Si el administrador tiene solo 1 comunidad, ingresa directo
@@ -314,7 +326,7 @@ function MainApp() {
                     <input
                       type="text"
                       required
-                      placeholder="Ej: 14.882.140-K"
+                      placeholder="Ej: 16.012.871-2"
                       value={adminRutInput}
                       onChange={(e) => setAdminRutInput(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E] focus:bg-white"
@@ -367,7 +379,7 @@ function MainApp() {
                   <button
                     type="button"
                     onClick={() => {
-                      setAdminRutInput(companySettings?.adminRut || '14.882.140-K');
+                      setAdminRutInput(companySettings?.adminRut || '16.012.871-2');
                       setAdminPasswordInput(companySettings?.adminPin || 'admin123');
                     }}
                     className="text-[#0F3D2E] font-bold hover:underline cursor-pointer"
@@ -376,7 +388,7 @@ function MainApp() {
                   </button>
                 </div>
                 <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-center text-[10px] text-slate-500 font-mono">
-                  RUT: {companySettings?.adminRut || '14.882.140-K'} • Clave: {companySettings?.adminPin || 'admin123'}
+                  RUT: {companySettings?.adminRut || '16.012.871-2'} • Clave: {companySettings?.adminPin || 'admin123'}
                 </div>
               </div>
             </div>
