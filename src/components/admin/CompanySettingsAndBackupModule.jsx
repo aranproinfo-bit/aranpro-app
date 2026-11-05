@@ -1272,7 +1272,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Menú de Navegación Lateral (Estilo ECP)
   const navSubItems = [
-    { id: 'empresa', label: 'Empresa', icon: Building2, desc: 'Datos de la empresa, RUT, representante y firma' },
+    { id: 'empresa', label: 'Empresa', icon: Building2, desc: 'Datos de la empresa, RUT y representante legal' },
     { id: 'firma', label: 'Firma Digital', icon: PenTool, desc: 'Firma manuscrita en canvas y vista previa PDF' },
     { id: 'acreditacion', label: 'Acreditaciones & Diplomas', icon: HardHat, desc: 'Técnico en Construcción, RNAC Minvu y títulos' },
     { id: 'postulaciones', label: 'Postulaciones & Dossier', icon: Briefcase, desc: 'Carta de presentación, referencias y licitaciones' },
@@ -1654,145 +1654,32 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               </div>
 
-              {/* 4. FIRMA DIGITAL (TIPO ECP SCREENSHOT 1) */}
-              <div className="pt-6 border-t border-slate-100 space-y-4">
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <PenTool className="w-4 h-4 text-[#0F3D2E]" />
-                    Firma digital
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Tu firma aparecerá al pie de cada presupuesto PDF junto a tu nombre y cargo. Dibújala directamente aquí o sube una foto de tu firma manuscrita.
-                  </p>
-                </div>
-
-                {/* FIRMA MANUSCRITA CONTROLES */}
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Color:</span>
-                    <div className="flex items-center gap-1.5">
-                      {[
-                        { color: '#0f172a', label: 'Negro' },
-                        { color: '#0f2b5c', label: 'Azul Marino' },
-                        { color: '#1d4ed8', label: 'Azul Rey' },
-                        { color: '#b91c1c', label: 'Rojo' },
-                        { color: '#6b21a8', label: 'Morado' },
-                        { color: '#0F3D2E', label: 'Verde ARANPRO' }
-                      ].map(c => (
-                        <button
-                          key={c.color}
-                          type="button"
-                          onClick={() => setPenColor(c.color)}
-                          className={`w-5 h-5 rounded-full border-2 transition-transform ${
-                            penColor === c.color ? 'scale-125 border-slate-900 shadow-xs ring-2 ring-slate-400/50' : 'border-white'
-                          }`}
-                          style={{ backgroundColor: c.color }}
-                          title={c.label}
-                        />
-                      ))}
-                    </div>
+              {/* ACCESO UNIFICADO A FIRMA DIGITAL Y TIMBRE OFICIAL */}
+              <div className="pt-6 border-t border-slate-100">
+                <div className="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] flex items-center gap-1.5">
+                      <PenTool className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                      Firma Digital Manuscrita & Timbre Oficial
+                    </span>
+                    <p className="text-xs text-slate-600">
+                      {companySettings?.signatureDataUrl
+                        ? 'Tu firma manuscrita está registrada y activa para emisión de colillas, actas y certificados.'
+                        : 'Aún no registras tu firma manuscrita oficial. Puedes dibujarla o subir tu archivo PNG.'}
+                    </p>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Grosor:</span>
-                    <div className="flex items-center gap-1">
-                      {[
-                        { w: 1.5, label: '—' },
-                        { w: 2.5, label: '——' },
-                        { w: 4.0, label: '———' }
-                      ].map(item => (
-                        <button
-                          key={item.w}
-                          type="button"
-                          onClick={() => setPenWidth(item.w)}
-                          className={`px-2.5 py-1 text-xs font-mono font-bold rounded-lg border transition-all ${
-                            penWidth === item.w ? 'bg-[#0F3D2E] text-white border-[#0F3D2E]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                          }`}
-                          title={`Grosor ${item.w}px`}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="cursor-pointer px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition-all flex items-center gap-1.5 shadow-xs">
-                      <Upload className="w-3.5 h-3.5 text-slate-500" />
-                      Subir firma
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleUploadSignatureFile}
-                        className="hidden"
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={clearSignatureCanvas}
-                      className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-bold text-rose-700 transition-all flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3 h-3 text-rose-500" />
-                      Limpiar
-                    </button>
-                  </div>
-                </div>
-
-                {/* CANVAS DE DIBUJO */}
-                <div className="space-y-1">
-                  <div className="border-2 border-slate-300 rounded-2xl bg-white p-2 flex items-center justify-center relative overflow-hidden shadow-inner">
-                    <canvas
-                      ref={canvasRef}
-                      width={640}
-                      height={200}
-                      onMouseDown={startDrawing}
-                      onMouseMove={draw}
-                      onMouseUp={stopDrawing}
-                      onMouseLeave={stopDrawing}
-                      onTouchStart={startDrawing}
-                      onTouchMove={draw}
-                      onTouchEnd={stopDrawing}
-                      className="w-full max-w-xl h-44 cursor-crosshair touch-none bg-transparent"
-                    />
-                    {!hasCanvasDrawn && !signatureImage && (
-                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-300 text-xs font-medium">
-                        ✍️ Dibuja tu firma en este recuadro...
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-400 text-center">
-                    Dibuja con el mouse o trackpad · También puedes subir una foto de tu firma
-                  </p>
-                </div>
-
-                {/* VISTA PREVIA EN PDF (IDÉNTICA A SCREENSHOT 1) */}
-                <div className="space-y-2 pt-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                    VISTA PREVIA EN PDF
-                  </span>
-                  <div className="p-6 bg-slate-50/70 border border-slate-200 rounded-2xl max-w-xl mx-auto shadow-xs">
-                    <div className="h-24 flex items-end justify-center mb-1 overflow-visible">
-                      {signatureImage ? (
-                        <img
-                          src={signatureImage}
-                          alt="Firma Manuscrita"
-                          className="h-16 max-h-20 w-auto max-w-[260px] object-contain mx-auto"
-                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                        />
-                      ) : (
-                        <span className="text-xs text-slate-300 italic">Espacio reservado para firma manuscrita</span>
-                      )}
-                    </div>
-                    <div className="border-t border-slate-400 pt-2 flex items-start justify-between text-xs">
-                      <div>
-                        <span className="text-[11px] font-bold text-slate-900 block">Nombre</span>
-                        <span className="text-[11px] text-slate-500 block">{empresaForm.provisionalName || empresaForm.brandName}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-[11px] text-slate-400 italic">Firma autorizada</span>
-                      </div>
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof setActiveSubTab === 'function') {
+                        setActiveSubTab('firma');
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
+                  >
+                    <PenTool className="w-3.5 h-3.5" />
+                    <span>Configurar Firma & Timbre</span>
+                  </button>
                 </div>
               </div>
 

@@ -368,29 +368,22 @@ export const CompanyEnterpriseHub = ({
       badge: `${officeWorkers.length}`
     },
     {
-      id: 'firma',
-      label: '4. Firma Digital & Timbre',
-      shortLabel: 'Firma Digital',
-      icon: PenTool,
-      badge: 'Oficial'
-    },
-    {
       id: 'empresa',
-      label: '5. Datos Empresa & RNAC',
+      label: '4. Datos Empresa, Firma & RNAC',
       shortLabel: 'Datos Empresa',
       icon: ShieldCheck,
       badge: 'MINVU'
     },
     {
       id: 'alianzas',
-      label: '6. Convenios & Proveedores',
+      label: '5. Convenios & Proveedores',
       shortLabel: 'Proveedores',
       icon: Handshake,
       badge: `${trustedProviders.length}`
     },
     {
       id: 'respaldos',
-      label: '7. Respaldos & Seguridad',
+      label: '6. Respaldos & Seguridad',
       shortLabel: 'Respaldos',
       icon: Database,
       badge: 'Backup'
@@ -411,7 +404,8 @@ export const CompanyEnterpriseHub = ({
 
   const EMPRESA_SUB_ITEMS = [
     { id: 'empresa', label: '1. Datos de Empresa & Rep. Legal', icon: Building2 },
-    { id: 'acreditacion', label: '2. Títulos, Diplomas & RNAC Minvu', icon: ShieldCheck },
+    { id: 'firma', label: '2. Firma Manuscrita & Timbre Oficial', icon: PenTool },
+    { id: 'acreditacion', label: '3. Títulos, Diplomas & RNAC Minvu', icon: ShieldCheck },
   ];
 
   const activeHubTabObj = hubNavTabs.find((t) => t.id === activeHubTab) || hubNavTabs[0];
@@ -1211,19 +1205,7 @@ export const CompanyEnterpriseHub = ({
             </div>
           )}
 
-          {/* ==================== MÓDULO 4: FIRMA DIGITAL & TIMBRE OFICIAL (ÚNICA SECCIÓN EXCLUSIVA) ==================== */}
-          {activeHubTab === 'firma' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <CompanySettingsAndBackupModule
-                currentCommunity={communities[0]}
-                activeSubTab="firma"
-                hideHeader={true}
-                hideNavBar={true}
-              />
-            </div>
-          )}
-
-          {/* ==================== MÓDULO 5: DATOS EMPRESA & RNAC MINVU ==================== */}
+          {/* ==================== MÓDULO 4: DATOS EMPRESA, FIRMA & RNAC MINVU ==================== */}
           {activeHubTab === 'empresa' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <CompanySettingsAndBackupModule
