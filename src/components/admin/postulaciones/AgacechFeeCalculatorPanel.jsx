@@ -236,7 +236,10 @@ export const AgacechFeeCalculatorPanel = ({
   return (
     <div className="space-y-6 animate-in fade-in">
       {/* CABECERA EXPLICATIVA DEL MODELO AGACECH */}
-      <div className="p-5 rounded-3xl bg-gradient-to-r from-[#0F3D2E] via-[#144D3A] to-[#0A291F] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-md">
+      <div
+        className="p-5 rounded-3xl bg-[#0F3D2E] bg-gradient-to-r from-[#0F3D2E] via-[#144D3A] to-[#0A291F] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-md"
+        style={{ backgroundColor: '#0F3D2E' }}
+      >
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-[#D4B895] text-[#0F3D2E] font-black text-[10px] uppercase tracking-wider">
@@ -622,7 +625,10 @@ export const AgacechFeeCalculatorPanel = ({
 
         {/* COLUMNA DERECHA: RESUMEN EJECUTIVO DEL CÁLCULO (5 COLS) */}
         <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-4">
-          <div className="bg-gradient-to-b from-[#0F3D2E] to-[#0A291F] text-white p-6 rounded-3xl shadow-xl border border-emerald-900/40 space-y-5">
+          <div
+            className="bg-[#0F3D2E] bg-gradient-to-b from-[#0F3D2E] to-[#0A291F] text-white p-6 rounded-3xl shadow-xl border border-emerald-900/40 space-y-5"
+            style={{ backgroundColor: '#0F3D2E' }}
+          >
             <div className="flex items-center justify-between border-b border-white/15 pb-3">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#D4B895] block">

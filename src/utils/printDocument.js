@@ -157,6 +157,8 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             /* Quitar contenedores y fondos de pantalla en la hoja física impresa */
             #printable-full-dossier,
             #printable-commercial-proposal,
+            #printable-cold-value-letter,
+            #printable-agacech-fee-sheet,
             #printable-app-brochure,
             #printable-technical-inspection,
             #printable-comparison-matrix {

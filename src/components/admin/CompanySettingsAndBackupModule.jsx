@@ -2570,7 +2570,10 @@ export const CompanySettingsAndBackupModule = ({
                   {/* TARJETAS DE EMISIÓN DE DOCUMENTOS */}
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     {/* 1. DOSSIER INTEGRAL COMPLETO (RECOMENDADO) */}
-                    <div className="bg-gradient-to-br from-[#0F3D2E] to-[#164D3A] text-white p-5 rounded-3xl shadow-lg border border-emerald-900/40 space-y-3 relative overflow-hidden flex flex-col justify-between">
+                    <div
+                      className="bg-[#0F3D2E] bg-gradient-to-br from-[#0F3D2E] to-[#164D3A] text-white p-5 rounded-3xl shadow-lg border border-emerald-900/40 space-y-3 relative overflow-hidden flex flex-col justify-between"
+                      style={{ backgroundColor: '#0F3D2E' }}
+                    >
                       <div className="space-y-2">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#D4B895] text-[#0F3D2E] uppercase tracking-wider">
                           ★ LICITACIÓN COMPLETA
@@ -4559,27 +4562,33 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* GANCHO DE ENTRADA / INVITACIÓN GRATUITA AL COMITÉ */}
-                  <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#0F3D2E] to-[#164D3A] text-white space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-black uppercase tracking-wider text-[#D4B895]">
+                  {/* GANCHO DE ENTRADA / INVITACIÓN GRATUITA AL COMITÉ (ALTO CONTRASTE EN PANTALLA Y PAPEL) */}
+                  <div
+                    className="p-3.5 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-1"
+                    style={{ backgroundColor: '#f0fdf4', borderColor: '#0F3D2E' }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-mono font-black uppercase tracking-wider text-[#0F3D2E]">
                         ★ BENEFICIO SIN COSTO NI COMPROMISO PARA SU COMITÉ DE ADMINISTRACIÓN
                       </span>
-                      <span className="text-[9.5px] font-bold bg-white/15 px-2 py-0.5 rounded text-emerald-100">
+                      <span
+                        className="text-[9.5px] font-bold px-2.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
+                        style={{ backgroundColor: '#0F3D2E', color: '#D4B895' }}
+                      >
                         100% Gratuito
                       </span>
                     </div>
-                    <p className="text-xs font-bold text-white leading-snug">
+                    <p className="text-xs font-black text-[#0F3D2E] leading-snug">
                       Invitación a una Visita de Diagnóstico Técnico-Constructivo Preventivo en Terreno
                     </p>
-                    <p className="text-[10.5px] text-emerald-100/95 leading-snug">
+                    <p className="text-[11px] text-slate-800 font-medium leading-relaxed">
                       Ponemos a disposición del Comité una visita técnica sin costo ni compromiso para realizar una inspección visual de sus instalaciones críticas (sala de bombas, tableros, cubiertas o puntos sensibles) y entregarles una segunda opinión técnica profesional o presentarles formalmente una propuesta a la medida de su comunidad.
                     </p>
                   </div>
                 </div>
 
                 {/* Firma Manuscrita Ejecutiva y Contacto Directo */}
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
+                <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
                   <div className="text-xs space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 w-full sm:w-auto">
                     <span className="text-[10px] font-black uppercase text-[#0F3D2E] block">
                       Canales Directos para el Comité:
@@ -4595,8 +4604,8 @@ export const CompanySettingsAndBackupModule = ({
                     </p>
                   </div>
 
-                  <div className="text-center space-y-1 min-w-[260px] mx-auto sm:mx-0">
-                    <div className="h-20 flex items-end justify-center pb-1 overflow-visible">
+                  <div className="text-center space-y-1 min-w-[260px] mx-auto sm:mx-0 pt-2">
+                    <div className="h-24 flex items-end justify-center pb-1 overflow-visible">
                       {signatureImage ? (
                         <img
                           src={signatureImage}
