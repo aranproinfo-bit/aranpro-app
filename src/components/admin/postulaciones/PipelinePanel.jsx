@@ -28,7 +28,34 @@ const emptyForm = {
   feeOffered: '', notes: '', lostReason: ''
 };
 
-export const PipelinePanel = ({ items, onChange, onPrepareDossier, showConfirm }) => {
+export const PipelinePanel = ({
+  items: rawItems,
+  pipeline,
+  onChange,
+  setPipeline,
+  onPrepareDossier,
+  showConfirm
+}) => {
+  const updateItems = onChange || setPipeline || (() => {});
+  const items = useMemo(() => {
+    const list = Array.isArray(rawItems) ? rawItems : Array.isArray(pipeline) ? pipeline : [];
+    return list.map((it) => {
+      const stageMap = {
+        dossier_enviado: 'dossier',
+        adjudicada: 'ganada',
+        no_adjudicada: 'perdida'
+      };
+      return {
+        ...it,
+        condo: it.condo || it.condoName || 'Comunidad en Evaluación',
+        units: it.units ?? it.unitsCount ?? '',
+        stage: stageMap[it.stage] || (STAGES.some((s) => s.id === it.stage) ? it.stage : 'prospecto'),
+        feeOffered: it.feeOffered || (it.monthlyFeeCLP ? `$${Number(it.monthlyFeeCLP).toLocaleString('es-CL')} / mes` : ''),
+        notes: it.notes || it.competitionNotes || ''
+      };
+    });
+  }, [rawItems, pipeline]);
+
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -68,18 +95,20 @@ export const PipelinePanel = ({ items, onChange, onPrepareDossier, showConfirm }
     if (!form.condo.trim()) return;
     const now = new Date().toISOString();
     if (editingId) {
-      onChange(
+      updateItems(
         items.map((i) => {
           if (i.id !== editingId) return i;
           const history = [...(i.history || [])];
           if (i.stage !== form.stage) history.push(stamp(`Etapa: ${STAGES.find((s) => s.id === form.stage)?.label}`));
-          return { ...i, ...form, history, updatedAt: now };
+          return { ...i, ...form, condoName: form.condo, unitsCount: form.units, history, updatedAt: now };
         })
       );
     } else {
-      onChange([
+      updateItems([
         {
           ...form,
+          condoName: form.condo,
+          unitsCount: form.units,
           id: `post-${Date.now()}`,
           createdAt: now,
           updatedAt: now,
@@ -95,7 +124,7 @@ export const PipelinePanel = ({ items, onChange, onPrepareDossier, showConfirm }
 
   const moveTo = (id, stage) => {
     const label = STAGES.find((s) => s.id === stage)?.label;
-    onChange(
+    updateItems(
       items.map((i) => {
         if (i.id !== id) return i;
         const patch = { stage, updatedAt: new Date().toISOString(), history: [...(i.history || []), stamp(`Etapa: ${label}`)] };
@@ -112,7 +141,7 @@ export const PipelinePanel = ({ items, onChange, onPrepareDossier, showConfirm }
       type: 'danger',
       confirmText: 'Sí, eliminar',
       cancelText: 'Conservar',
-      onConfirm: () => onChange(items.filter((i) => i.id !== item.id))
+      onConfirm: () => updateItems(items.filter((i) => i.id !== item.id))
     });
   };
 

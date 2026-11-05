@@ -526,23 +526,44 @@ export const CompanySettingsAndBackupModule = ({
   // Auditoría en tiempo real del nivel de preparación para licitaciones (Score 0-100)
   const readinessReport = useMemo(() => {
     return computeReadiness({
-      empresaForm,
-      signatureImage,
+      documents: accreditationDocs,
       academicRecords,
-      accreditationDocs,
-      committeeReferences,
+      references: committeeReferences,
+      hasSignature: Boolean(signatureImage),
+      empresaForm,
       adminPin,
-      proposalConfig
+      portfolio: portfolioStats
     });
   }, [
-    empresaForm,
-    signatureImage,
-    academicRecords,
     accreditationDocs,
+    academicRecords,
     committeeReferences,
+    signatureImage,
+    empresaForm,
     adminPin,
-    proposalConfig
+    portfolioStats
   ]);
+
+  const packageFilesCount = useMemo(() => {
+    return (
+      accreditationDocs.filter(d => d.includeInDossier !== false && hasFile(d)).length +
+      academicRecords.filter(r => r.includeInProposal !== false && hasFile(r)).length
+    );
+  }, [accreditationDocs, academicRecords]);
+
+  // Navegación desde el botón "Resolver" del Semáforo de Preparación
+  const handleReadinessAction = (actionKey) => {
+    if (actionKey === 'documents') {
+      setActiveSubTab('acreditacion');
+    } else if (actionKey === 'signature') {
+      setActiveSubTab('firma');
+    } else if (actionKey === 'company') {
+      setActiveSubTab('empresa');
+    } else if (actionKey === 'references') {
+      setActiveSubTab('postulaciones');
+      setPostulacionSection('material');
+    }
+  };
 
   // Descargar todos los respaldos digitales adjuntos numerados para carpeta de licitación
   const handleDownloadPackage = () => {
@@ -588,25 +609,28 @@ export const CompanySettingsAndBackupModule = ({
 
   // Cargar datos desde una tarjeta del CRM Pipeline hacia el generador de Dossier y Carta
   const handlePrepareDossierFromPipeline = (item) => {
+    const targetName = item.condo || item.condoName || '';
+    const targetUnitsVal = item.units || item.unitsCount || '60';
+    const rawFee = String(item.monthlyFeeCLP || item.feeOffered || '480000').replace(/[^0-9]/g, '') || '480000';
     setProposalConfig(prev => ({
       ...prev,
-      targetCondo: item.condoName || prev.targetCondo,
+      targetCondo: targetName || prev.targetCondo,
       targetCity: item.city || prev.targetCity,
       targetRecipient: item.contactName
         ? `${item.contactName}${item.contactRole ? ` — ${item.contactRole}` : ''}`
         : 'Señores Miembros del Comité de Administración',
       leaveRecipientBlank: false,
-      targetUnits: String(item.unitsCount || prev.targetUnits || '60'),
-      proposedMonthlyFee: String(item.monthlyFeeCLP || prev.proposedMonthlyFee || '480000')
+      targetUnits: String(targetUnitsVal),
+      proposedMonthlyFee: rawFee
     }));
     setInspectionForm(prev => ({
       ...prev,
-      targetCondo: item.condoName || prev.targetCondo
+      targetCondo: targetName || prev.targetCondo
     }));
     setPostulacionSection('material');
     showAlert(
       '✓ Dossier Configurado para Comunidad',
-      `Se cargaron los datos de "${item.condoName}" en la Carta de Presentación, Propuesta Económica y Dossier Integral.`,
+      `Se cargaron los datos de "${targetName}" en la Carta de Presentación, Propuesta Económica y Dossier Integral.`,
       'success'
     );
   };
@@ -2075,7 +2099,7 @@ export const CompanySettingsAndBackupModule = ({
                 >
                   <span className="text-[10px] font-bold uppercase text-[#D4B895] block">Índice Preparación</span>
                   <span className="text-xl font-black text-white">{readinessReport.score}/100</span>
-                  <span className="text-[9px] text-emerald-100 block">{readinessReport.statusLabel}</span>
+                  <span className="text-[9px] text-emerald-100 block">{readinessReport.level?.label || 'Auditado'}</span>
                 </div>
                 <div
                   onClick={() => setPostulacionSection('pipeline')}
@@ -2083,7 +2107,7 @@ export const CompanySettingsAndBackupModule = ({
                 >
                   <span className="text-[10px] font-bold uppercase text-slate-400 block">En Licitación</span>
                   <span className="text-xl font-black text-[#0F3D2E]">
-                    {postulationPipeline.filter(p => !['adjudicada', 'no_adjudicada'].includes(p.stage)).length} Condominios
+                    {postulationPipeline.filter(p => !['ganada', 'perdida', 'adjudicada', 'no_adjudicada'].includes(p.stage)).length} Condominios
                   </span>
                   <span className="text-[9px] text-slate-500 block">CRM de seguimiento</span>
                 </div>
@@ -2142,12 +2166,9 @@ export const CompanySettingsAndBackupModule = ({
                 <div className="animate-in fade-in">
                   <ReadinessPanel
                     readiness={readinessReport}
-                    onNavigateSubTab={(sub, sec) => {
-                      setActiveSubTab(sub);
-                      if (sec) setPostulacionSection(sec);
-                    }}
-                    onOpenDossierPreview={() => setPreviewDossierModal(true)}
+                    onAction={handleReadinessAction}
                     onDownloadPackage={handleDownloadPackage}
+                    packageCount={packageFilesCount}
                   />
                 </div>
               )}
@@ -2156,11 +2177,9 @@ export const CompanySettingsAndBackupModule = ({
               {postulacionSection === 'pipeline' && (
                 <div className="animate-in fade-in">
                   <PipelinePanel
-                    pipeline={postulationPipeline}
-                    setPipeline={setPostulationPipeline}
+                    items={postulationPipeline}
+                    onChange={setPostulationPipeline}
                     onPrepareDossier={handlePrepareDossierFromPipeline}
-                    empresaForm={empresaForm}
-                    showAlert={showAlert}
                     showConfirm={showConfirm}
                   />
                 </div>
