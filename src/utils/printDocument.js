@@ -22,7 +22,7 @@ export const sanitizeFileName = (name) => {
  * 4. El formato sea formal, estructurado y de alta calidad legal/notarial
  * 5. Soporte documentos de 1 sola página o múltiples páginas según corresponda
  */
-export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Oficial_ARANPRO', options = {}) => {
+export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Oficial_ARANPRO', options = {}, _retryCount = 0) => {
   const sanitizedTitle = sanitizeFileName(documentTitle);
   
   let contentHtml = '';
@@ -32,8 +32,15 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
     const el = document.getElementById(elementOrId);
     if (el) {
       contentHtml = el.innerHTML;
+    } else if (_retryCount < 10) {
+      // Si el modal que contiene el elemento se acaba de abrir en React, esperar a que se monte en el DOM
+      setTimeout(() => {
+        printDocumentDirectly(elementOrId, documentTitle, options, _retryCount + 1);
+      }, 60);
+      return;
     } else {
-      contentHtml = elementOrId;
+      console.warn(`[printDocument] Elemento #${elementOrId} no encontrado en el DOM.`);
+      return;
     }
   } else if (elementOrId && elementOrId.innerHTML) {
     contentHtml = elementOrId.innerHTML;
@@ -124,19 +131,23 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             .bg-slate-50 { background-color: #f8fafc !important; }
             .bg-slate-100 { background-color: #f1f5f9 !important; }
 
-            /* Estructura de páginas del Dossier: altura mínima de una hoja Carta; si el contenido
-               excede una hoja fluye a la siguiente (antes se recortaba con overflow:hidden). */
+            /* Estructura de páginas del Dossier: exactamente 1 hoja Carta por cada .dossier-page */
             .dossier-page {
               box-sizing: border-box !important;
               width: 100% !important;
-              min-height: 254mm !important;
+              height: 256mm !important;
+              max-height: 256mm !important;
               display: flex !important;
               flex-direction: column !important;
               justify-content: space-between !important;
               page-break-after: always !important;
               break-after: page !important;
-              padding: 2mm 0 !important;
-              overflow: visible !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              padding: 14px 18px !important;
+              border: 1px solid #cbd5e1 !important;
+              border-radius: 12px !important;
+              overflow: hidden !important;
             }
             .dossier-page:last-child {
               page-break-after: avoid !important;

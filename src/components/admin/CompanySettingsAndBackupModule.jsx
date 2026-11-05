@@ -7,6 +7,7 @@ import { AranproLogo } from '../common/MauranLogo';
 import { DocumentLibraryPanel } from './postulaciones/DocumentLibraryPanel';
 import { ReadinessPanel } from './postulaciones/ReadinessPanel';
 import { PipelinePanel } from './postulaciones/PipelinePanel';
+import { AgacechFeeCalculatorPanel } from './postulaciones/AgacechFeeCalculatorPanel';
 import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import {
@@ -17,7 +18,7 @@ import {
   HardHat, BookOpen, FileCheck, Upload, RefreshCw, PenTool,
   HelpCircle, Settings, Smartphone, Layers, CheckSquare, MessageCircle,
   Paperclip, FileUp, QrCode, Presentation, Compass, ClipboardCheck,
-  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert, Kanban
+  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert, Kanban, Calculator
 } from 'lucide-react';
 
 export const CompanySettingsAndBackupModule = ({
@@ -895,6 +896,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Imprimir Carta de Postulación en PDF Carta
   const handlePrintProposal = () => {
+    if (!previewProposalModal) setPreviewProposalModal(true);
     const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
     const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Carta_Presentacion_${targetClean}_${dateClean}`;
@@ -907,6 +909,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Imprimir Dossier Integral de Licitación (Carta + Ficha Técnica Constructiva + Diplomas + Cartas Recomendación)
   const handlePrintDossier = () => {
+    if (!previewDossierModal) setPreviewDossierModal(true);
     const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
     const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Dossier_Integral_Licitacion_${targetClean}_${dateClean}`;
@@ -919,6 +922,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Imprimir Brochure Ejecutivo de la App & Portal Web (PDF Carta)
   const handlePrintBrochure = () => {
+    if (!previewBrochureModal) setPreviewBrochureModal(true);
     const targetClean = (proposalConfig.targetCondo || currentCommunity?.name || 'Condominios').replace(/[^a-zA-Z0-9]/g, '_');
     const dateClean = new Date().toISOString().slice(0, 10).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Brochure_App_Copropietarios_${targetClean}_${dateClean}`;
@@ -931,6 +935,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Imprimir Informe de Diagnóstico Técnico Inicial Gratuito
   const handlePrintInspectionReport = () => {
+    if (!previewInspectionModal) setPreviewInspectionModal(true);
     const targetClean = (inspectionForm.targetCondo || proposalConfig.targetCondo || 'Condominio').replace(/[^a-zA-Z0-9]/g, '_');
     const dateClean = (inspectionForm.date || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Informe_Diagnostico_Tecnico_${targetClean}_${dateClean}`;
@@ -943,6 +948,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Imprimir Cuadro Comparativo (Tradicional vs. ARANPRO)
   const handlePrintComparisonMatrix = () => {
+    if (!previewComparisonModal) setPreviewComparisonModal(true);
     const targetClean = (proposalConfig.targetCondo || currentCommunity?.name || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
     const dateClean = new Date().toISOString().slice(0, 10).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Matriz_Comparativa_Gestion_${targetClean}_${dateClean}`;
@@ -2130,16 +2136,17 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               </div>
 
-              {/* SELECTOR DE HERRAMIENTAS DE CAPTACIÓN & MATERIAL DE APOYO (7 MÓDULOS) */}
+              {/* SELECTOR DE HERRAMIENTAS DE CAPTACIÓN & MATERIAL DE APOYO (8 MÓDULOS) */}
               <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
                 {[
                   { id: 'preparacion', label: `1. Checklist & Semáforo (${readinessReport.score}%)`, icon: ClipboardCheck },
                   { id: 'pipeline', label: `2. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
-                  { id: 'material', label: '3. Dossier, Propuesta & Cartas', icon: FileText },
-                  { id: 'inspeccion', label: '4. Inspección Técnica Inicial', icon: HardHat },
-                  { id: 'comparativa', label: '5. Cuadro Comparativo', icon: Scale },
-                  { id: 'pitch', label: '6. Libreto Pitch (10 Min)', icon: Presentation },
-                  { id: 'demo', label: '7. Demo en Vivo & QR', icon: QrCode }
+                  { id: 'calculadora', label: '3. Calculadora Piso Honorarios (AGACECH)', icon: Calculator },
+                  { id: 'material', label: '4. Dossier, Propuesta & Cartas', icon: FileText },
+                  { id: 'inspeccion', label: '5. Inspección Técnica Inicial', icon: HardHat },
+                  { id: 'comparativa', label: '6. Cuadro Comparativo', icon: Scale },
+                  { id: 'pitch', label: '7. Libreto Pitch (10 Min)', icon: Presentation },
+                  { id: 'demo', label: '8. Demo en Vivo & QR', icon: QrCode }
                 ].map((tab) => {
                   const IconC = tab.icon;
                   const isAct = postulacionSection === tab.id;
@@ -2161,7 +2168,7 @@ export const CompanySettingsAndBackupModule = ({
                 })}
               </div>
 
-              {/* SECCIÓN 1 (NUEVA): CHECKLIST & SEMÁFORO DE PREPARACIÓN */}
+              {/* SECCIÓN 1: CHECKLIST & SEMÁFORO DE PREPARACIÓN */}
               {postulacionSection === 'preparacion' && (
                 <div className="animate-in fade-in">
                   <ReadinessPanel
@@ -2173,7 +2180,7 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               )}
 
-              {/* SECCIÓN 2 (NUEVA): CRM & PIPELINE DE POSTULACIONES */}
+              {/* SECCIÓN 2: CRM & PIPELINE DE POSTULACIONES */}
               {postulacionSection === 'pipeline' && (
                 <div className="animate-in fade-in">
                   <PipelinePanel
@@ -2181,6 +2188,19 @@ export const CompanySettingsAndBackupModule = ({
                     onChange={setPostulationPipeline}
                     onPrepareDossier={handlePrepareDossierFromPipeline}
                     showConfirm={showConfirm}
+                  />
+                </div>
+              )}
+
+              {/* SECCIÓN 3 (NUEVA): CALCULADORA DE PISO DE HONORARIOS MODELO AGACECH */}
+              {postulacionSection === 'calculadora' && (
+                <div className="animate-in fade-in">
+                  <AgacechFeeCalculatorPanel
+                    proposalConfig={proposalConfig}
+                    setProposalConfig={setProposalConfig}
+                    empresaForm={empresaForm}
+                    onApplyToDossier={() => setPostulacionSection('material')}
+                    showAlert={showAlert}
                   />
                 </div>
               )}
@@ -4417,8 +4437,8 @@ export const CompanySettingsAndBackupModule = ({
                           <span className="text-[9px] text-slate-400 font-mono">Auditoría Constructiva & Administración Ley N° 21.442</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[10px] font-mono font-bold text-[#D4B895] bg-[#0F3D2E] px-2.5 py-0.5 rounded">
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] font-mono font-bold text-[#D4B895] bg-[#0F3D2E] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
                           SECCIÓN TÉCNICA • PÁG. 2 DE 3
                         </span>
                       </div>
@@ -4550,81 +4570,80 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* ==================== PÁGINA 3: SECCIONES 2 & 3 - ACREDITACIONES, REFERENCIAS & FIRMA ==================== */}
-                <div className="dossier-page page-3 bg-white p-8 md:p-10 border border-slate-300 rounded-2xl shadow-xs">
-                  <div className="space-y-3.5">
+                <div className="dossier-page page-3 bg-white p-6 md:p-7 border border-slate-300 rounded-2xl shadow-xs">
+                  <div className="space-y-2.5">
                     {/* Membrete de Continuidad ARANPRO */}
-                    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
+                    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
                       <div className="flex items-center space-x-2.5">
-                        <AranproLogo className="h-8 w-auto" />
+                        <AranproLogo className="h-7 w-auto" />
                         <div>
                           <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">{empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}</span>
                           <span className="text-[9px] text-slate-400 font-mono">Acreditación Técnica, Referencias Notariales y Firma Oficial</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[10px] font-mono font-bold text-[#D4B895] bg-[#0F3D2E] px-2.5 py-0.5 rounded">
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] font-mono font-bold text-[#D4B895] bg-[#0F3D2E] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
                           ACREDITACIÓN & FIRMA • PÁG. 3 DE 3
                         </span>
                       </div>
                     </div>
 
                     {/* SECCIÓN 2: TÍTULOS, DIPLOMAS E ÍNDICE DE ACREDITACIONES LEGALES */}
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-[#0F3D2E] text-[#D4B895] rounded-lg font-black text-xs flex items-center justify-center shrink-0">
+                        <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[11px] flex items-center justify-center shrink-0">
                           2
                         </div>
                         <div>
-                          <h2 className="font-black text-xs uppercase text-[#0F3D2E] tracking-tight">
+                          <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
                             Anexo de Títulos Profesionales, Diplomas & Acreditaciones Legales
                           </h2>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-[9.5px] text-slate-500 leading-tight">
                             Respaldos formales acreditados del Administrador Titular ({empresaForm.adminName})
                           </p>
                         </div>
                       </div>
 
-                      <div className="space-y-1.5 text-xs">
+                      <div className="space-y-1 text-xs">
                         {academicRecords.filter(r => r.includeInProposal !== false).map(item => (
-                          <div key={item.id} className="p-2.5 rounded-xl border border-slate-300 bg-slate-50/80 space-y-1 text-xs">
-                            <div className="flex items-center justify-between">
-                              <span className="font-black text-slate-900 text-xs">{item.title}</span>
-                              <span className="px-2 py-0.5 rounded text-[9.5px] font-bold bg-[#0F3D2E] text-[#D4B895]">
+                          <div key={item.id} className="p-2 rounded-lg border border-slate-300 bg-slate-50/80 space-y-0.5 text-xs">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-black text-slate-900 text-[11px] leading-tight">{item.title}</span>
+                              <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
                                 {item.status}
                               </span>
                             </div>
-                            <p className="text-slate-500 text-[10px]">
-                              Institución: <strong>{item.institution}</strong> • Periodo: <strong>{item.year}</strong> • Tipo: <strong>{item.category}</strong>
-                            </p>
-                            <p className="text-slate-700 bg-white p-1.5 rounded border border-slate-200 text-[10px] leading-relaxed">
+                            <div className="flex flex-wrap items-center justify-between gap-x-2 text-[9.5px] text-slate-500">
+                              <span>Institución: <strong className="text-slate-700">{item.institution}</strong> • Periodo: <strong className="text-slate-700">{item.year}</strong></span>
+                              <span className="text-[8.5px] text-emerald-800 font-mono font-bold">
+                                ✓ Folio: {item.fileName || 'Diploma_Acreditado.pdf'}
+                              </span>
+                            </div>
+                            <p className="text-slate-700 bg-white px-2 py-1 rounded border border-slate-200 text-[9.5px] leading-snug">
                               <strong>Aporte Técnico:</strong> {item.relevance}
                             </p>
-                            <div className="text-[9px] text-emerald-800 font-mono font-bold flex items-center gap-1">
-                              <span>✓ Documento Acreditado en Plataforma ARANPRO</span>
-                              <span>• Folio Archivo: {item.fileName || 'Diploma_Acreditado.pdf'}</span>
-                            </div>
                           </div>
                         ))}
                       </div>
 
                       {/* Índice de Documentos Legales e Institucionales Acreditados */}
                       {accreditationDocs.filter(d => d.includeInDossier !== false).length > 0 && (
-                        <div className="pt-1 space-y-1">
-                          <span className="text-[10px] font-black uppercase text-[#0F3D2E] block">
+                        <div className="pt-0.5 space-y-1">
+                          <span className="text-[9.5px] font-black uppercase text-[#0F3D2E] block">
                             Certificados Legales, Tributarios e Institucionales en Carpeta:
                           </span>
-                          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                          <div className="grid grid-cols-2 gap-1 text-[9.5px]">
                             {accreditationDocs.filter(d => d.includeInDossier !== false).map((doc, idx) => (
-                              <div key={doc.id} className="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-start justify-between gap-2">
-                                <div>
-                                  <strong className="text-slate-900 block leading-tight">
+                              <div key={doc.id} className="px-2 py-1 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-between gap-1.5">
+                                <div className="min-w-0">
+                                  <strong className="text-slate-900 block leading-tight truncate">
                                     Anexo {idx + 1}: {doc.name}
                                   </strong>
-                                  <span className="text-[9px] text-slate-500">
+                                  <span className="text-[8.5px] text-slate-500 block truncate">
                                     {doc.issuer || 'Institución Oficial'} {doc.folio ? `• Folio ${doc.folio}` : ''}
                                   </span>
                                 </div>
-                                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[8.5px] shrink-0">
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[8px] shrink-0 whitespace-nowrap">
                                   ✓ Vigente
                                 </span>
                               </div>
@@ -4635,30 +4654,30 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
 
                     {/* SECCIÓN 3: REFERENCIAS DE COMITÉS */}
-                    <div className="space-y-1.5 pt-1">
+                    <div className="space-y-1 pt-0.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-[#0F3D2E] text-[#D4B895] rounded-lg font-black text-xs flex items-center justify-center shrink-0">
+                        <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[11px] flex items-center justify-center shrink-0">
                           3
                         </div>
                         <div>
-                          <h2 className="font-black text-xs uppercase text-[#0F3D2E] tracking-tight">
+                          <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
                             Referencias Comprobables de Comités de Administración
                           </h2>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-[9.5px] text-slate-500 leading-tight">
                             Testimonios directos de dirigentes comunitarios que avalan nuestra gestión
                           </p>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
                         {committeeReferences.map(ref => (
-                          <div key={ref.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <span className="font-black text-slate-900 text-[11px]">{ref.contactName}</span>
-                              <span className="text-[9.5px] font-bold text-[#0F3D2E]">{ref.role} • {ref.communityName}</span>
+                          <div key={ref.id} className="p-2 rounded-lg bg-slate-50 border border-slate-200 space-y-0.5">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="font-black text-slate-900 text-[10.5px]">{ref.contactName}</span>
+                              <span className="text-[9px] font-bold text-[#0F3D2E] text-right">{ref.role} • {ref.communityName}</span>
                             </div>
-                            <p className="text-slate-500 text-[9px] font-mono">Fono Contacto: {ref.phone}</p>
-                            <blockquote className="text-slate-700 italic bg-white p-2 rounded border border-slate-200 text-[9.5px] leading-relaxed">
+                            <p className="text-slate-500 text-[8.5px] font-mono">Fono Contacto: {ref.phone}</p>
+                            <blockquote className="text-slate-700 italic bg-white px-2 py-1 rounded border border-slate-200 text-[9px] leading-snug">
                               "{ref.quote}"
                             </blockquote>
                           </div>
@@ -4667,29 +4686,26 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
 
                     {/* SECCIÓN DE FIRMA DIGITAL OFICIAL */}
-                    <div className="pt-2 text-center space-y-1 max-w-sm mx-auto">
-                      <div className="h-14 flex items-center justify-center">
+                    <div className="pt-1 text-center space-y-0.5 max-w-sm mx-auto">
+                      <div className="h-11 flex items-center justify-center">
                         {signatureImage ? (
-                          <img src={signatureImage} alt="Firma Administrador" className="max-h-12 object-contain mx-auto" />
+                          <img src={signatureImage} alt="Firma Administrador" className="max-h-10 object-contain mx-auto" />
                         ) : (
-                          <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
+                          <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
                         )}
                       </div>
-                      <div className="border-t border-slate-400 pt-1.5">
-                        <p className="font-black text-xs text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                        <p className="text-[9.5px] text-slate-500 font-mono">RUT: {empresaForm.adminRut}</p>
-                        <p className="text-[9.5px] text-[#0F3D2E] font-bold">
-                          {empresaForm.adminRole} (RNAC Minvu N° {empresaForm.rnacNumber})
-                        </p>
-                        <p className="text-[9px] text-slate-500 font-medium">
-                          Técnico en Construcción • Construcción Civil
+                      <div className="border-t border-slate-400 pt-1">
+                        <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
+                        <p className="text-[9px] text-slate-500 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
+                        <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
+                          {empresaForm.adminRole} • Técnico en Construcción & Construcción Civil
                         </p>
                       </div>
                     </div>
                   </div>
 
                   {/* Pie de Página Institucional Página 3 */}
-                  <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-500 font-mono">
+                  <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-500 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Página 3 de 3 • Acreditaciones, Referencias y Firma Oficial</div>
                     <div>Fono Directo: {empresaForm.phone}</div>
