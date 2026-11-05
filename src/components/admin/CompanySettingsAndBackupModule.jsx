@@ -110,7 +110,9 @@ const autoTrimSignatureDataUrl = (dataUrl) => {
 export const CompanySettingsAndBackupModule = ({
   currentCommunity,
   activeSubTab: externalActiveSubTab,
-  setActiveSubTab: externalSetActiveSubTab
+  setActiveSubTab: externalSetActiveSubTab,
+  hideHeader = false,
+  hideNavBar = false
 }) => {
   const {
     communities = [],
@@ -1276,40 +1278,42 @@ export const CompanySettingsAndBackupModule = ({
 
   return (
     <div className="w-full space-y-6">
-      {/* 1. CABECERA CORPORATIVA ARANPRO */}
-      <div className="bg-gradient-to-r from-[#0F3D2E] via-[#144D3A] to-[#0A291F] text-white p-6 md:p-8 rounded-3xl shadow-lg border border-emerald-900/40 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#D4B895]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#D4B895]/20 text-[#D4B895] border border-[#D4B895]/30">
-                <Settings className="w-3.5 h-3.5 text-[#D4B895]" />
-                CENTRO DE CONFIGURACIÓN & EMPRESA • LEY 21.442
-              </span>
-              <span className="text-xs text-emerald-200/80 font-medium">
-                {empresaForm.provisionalName}
-              </span>
+      {/* 1. CABECERA CORPORATIVA ARANPRO (OCULTABLE SI SE RENDERIZA DESDE UN MÓDULO PADRE) */}
+      {!hideHeader && (
+        <div className="bg-gradient-to-r from-[#0F3D2E] via-[#144D3A] to-[#0A291F] text-white p-6 md:p-8 rounded-3xl shadow-lg border border-emerald-900/40 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#D4B895]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#D4B895]/20 text-[#D4B895] border border-[#D4B895]/30">
+                  <Settings className="w-3.5 h-3.5 text-[#D4B895]" />
+                  CENTRO DE CONFIGURACIÓN & EMPRESA • LEY 21.442
+                </span>
+                <span className="text-xs text-emerald-200/80 font-medium">
+                  {empresaForm.provisionalName}
+                </span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
+                Configuración Corporativa & Licitaciones
+              </h2>
+              <p className="text-xs md:text-sm text-emerald-100/90 max-w-2xl leading-relaxed">
+                Gestión centralizada de datos de la empresa, firma digital manuscrita, acreditaciones técnicas en construcción,
+                generación de cartas de postulación a nuevos condominios y respaldos de seguridad.
+              </p>
             </div>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
-              Configuración Corporativa & Licitaciones
-            </h2>
-            <p className="text-xs md:text-sm text-emerald-100/90 max-w-2xl leading-relaxed">
-              Gestión centralizada de datos de la empresa, firma digital manuscrita, acreditaciones técnicas en construcción,
-              generación de cartas de postulación a nuevos condominios y respaldos de seguridad.
-            </p>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleSaveAllSettings}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#D4B895] to-[#C2A37D] text-[#0F3D2E] font-bold text-sm shadow-md hover:brightness-105 active:scale-95 transition-all"
-            >
-              <Check className="w-4 h-4 text-[#0F3D2E]" />
-              Guardar Cambios
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={handleSaveAllSettings}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#D4B895] to-[#C2A37D] text-[#0F3D2E] font-bold text-sm shadow-md hover:brightness-105 active:scale-95 transition-all"
+              >
+                <Check className="w-4 h-4 text-[#0F3D2E]" />
+                Guardar Cambios
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {saveFeedback && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold text-xs flex items-center gap-2 animate-in fade-in">
@@ -1318,29 +1322,31 @@ export const CompanySettingsAndBackupModule = ({
         </div>
       )}
 
-      {/* 2. SUB-MENÚ HORIZONTAL DE ACCESO RÁPIDO Y NAVEGACIÓN EN EL MÓDULO */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          {navSubItems.map((item) => {
-            const IconComp = item.icon;
-            const isActive = activeSubTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveSubTab(item.id)}
-                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-[#0F3D2E] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-50'
-                }`}
-              >
-                <IconComp className={`w-4 h-4 ${isActive ? 'text-[#D4B895]' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
+      {/* 2. SUB-MENÚ HORIZONTAL DE ACCESO RÁPIDO Y NAVEGACIÓN EN EL MÓDULO (OCULTABLE PARA NO DUPLICAR LA BARRA LATERAL) */}
+      {!hideNavBar && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            {navSubItems.map((item) => {
+              const IconComp = item.icon;
+              const isActive = activeSubTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSubTab(item.id)}
+                  className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-[#0F3D2E] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-50'
+                  }`}
+                >
+                  <IconComp className={`w-4 h-4 ${isActive ? 'text-[#D4B895]' : 'text-slate-400'}`} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 3. PANEL DE CONTENIDO EN ANCHO COMPLETO (100% FULL WIDTH) */}
       <div className="w-full bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-xs space-y-6">
