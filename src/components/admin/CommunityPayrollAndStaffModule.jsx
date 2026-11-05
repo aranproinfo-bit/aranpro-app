@@ -12,7 +12,7 @@ import {
 } from '../../utils/chileanPayrollCalculations';
 import { formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo, AranproOfficialSeal, useAranproPdfStyle } from '../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal, useAranproPdfStyle, AranproPdfStyleSelector } from '../common/MauranLogo';
 import {
   Users, UserPlus, FileText, Printer, CheckCircle2, AlertCircle,
   Building2, ShieldCheck, DollarSign, Calendar, Clock, Download,
@@ -441,6 +441,83 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
       </div>
     </div>
   );
+
+  // Helper para generar pie de página institucional estándar ARANPRO en PDFs
+  const renderAranproPdfFooter = (pageNumber, totalPages, documentTitle) => {
+    const website = companySettings?.website || 'https://aranpro.cl';
+    const phone = companySettings?.phone || '+56 9 5811 8504';
+    return (
+      <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-500 font-mono mt-auto">
+        <div>ARANPRO Gestión Integral • {website}</div>
+        <div className="font-bold text-[#0F3D2E]">
+          Página {pageNumber} de {totalPages} • {documentTitle}
+        </div>
+        <div>Fono Directo: {phone}</div>
+      </div>
+    );
+  };
+
+  // Helper para membrete de continuidad en páginas 2+
+  const renderContinuityHeader = (docTypeBadge, titleText, folioText) => (
+    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
+      <div className="flex items-center space-x-2.5">
+        <AranproLogo className="h-8 w-auto shrink-0" />
+        <div className="space-y-0.5">
+          <div className="text-xs font-black text-[#0F3D2E] tracking-tight">
+            {companySettings?.brandName || 'ARANPRO'} • {companySettings?.subtitle || 'Gestión Integral'}
+          </div>
+          <div className="text-[8.5px] text-slate-500 font-mono">
+            RUT: {companySettings?.companyRut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+          </div>
+        </div>
+      </div>
+      <div className="text-right">
+        <span className="text-[8.5px] font-black uppercase text-[#0F3D2E] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+          {docTypeBadge} • Continuación
+        </span>
+        <div className="text-[10px] font-bold text-slate-800">{titleText}</div>
+        <div className="text-[8.5px] text-slate-500 font-mono">Folio: {folioText}</div>
+      </div>
+    </div>
+  );
+
+  // Helper para firma del administrador con firma manuscrita digital subida + timbre oficial ARANPRO
+  const renderAdminSignatureBlock = (sublabel = 'POR LA ADMINISTRACIÓN DELEGADA (LEY N° 21.442)') => {
+    const adminSignature = companySettings?.signatureDataUrl || companySettings?.signature || companySettings?.digitalSignature || '';
+    const adminScale = Number(companySettings?.signatureScale) || 1.35;
+    return (
+      <div className="space-y-1 relative text-center min-w-[240px]">
+        <div className="h-16 flex items-end justify-center mb-1 relative overflow-visible">
+          {adminSignature ? (
+            <img
+              src={adminSignature}
+              alt="Firma Administrador"
+              className="h-14 max-h-16 w-auto max-w-[220px] object-contain mx-auto"
+              style={{ transform: `scale(${adminScale})`, transformOrigin: 'bottom center' }}
+            />
+          ) : (
+            <div className="h-12 flex items-center justify-center">
+              <span className="text-[11px] text-slate-400 italic">Firma Administrador Registrada</span>
+            </div>
+          )}
+          <div className="absolute right-0 bottom-0 pointer-events-none">
+            <AranproOfficialSeal size={55} showVerificationText={false} />
+          </div>
+        </div>
+        <div className="border-t-[1.5px] border-slate-800 pt-1.5">
+          <strong className="block text-slate-900 font-black text-xs leading-tight">
+            {companySettings?.adminName || 'John Andrés Arancibia Maureira'}
+          </strong>
+          <p className="text-[9.5px] text-slate-600 font-mono">
+            RUT: {companySettings?.adminRut || '16.012.871-2'} • RNAC Minvu N° {companySettings?.rnacNumber || '48.912'}
+          </p>
+          <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">
+            {sublabel}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -1589,6 +1666,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <AranproPdfStyleSelector />
                   <button
                     type="button"
                     onClick={() =>
@@ -1614,12 +1692,15 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               {/* CONTENEDOR IMPRIMIBLE FORMAL DE LA LIQUIDACIÓN DE SUELDO CON ESTÁNDAR ARANPRO */}
-              <div
-                id="printable-community-payroll-slip"
-                className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5"
-              >
-                {/* Cabecera Oficial ARANPRO */}
-                {renderAranproPdfHeader('DIRECCIÓN DEL TRABAJO (DT)', 'LIQUIDACIÓN DE REMUNERACIONES', `LIQ-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
+              <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
+                <div id="printable-community-payroll-slip" className="print-area">
+                  <div
+                    className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px]"
+                    data-pdf-style={pdfStyle}
+                  >
+                    <div className="space-y-4">
+                      {/* Cabecera Oficial ARANPRO */}
+                      {renderAranproPdfHeader('DIRECCIÓN DEL TRABAJO (DT)', 'LIQUIDACIÓN DE REMUNERACIONES', `LIQ-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
 
                 {/* Datos del Empleador y Periodo */}
                 <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px]">
@@ -1818,61 +1899,37 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     Total Costo Comunidad: {formatCLP(slip.totalCommunityCost)}
                   </span>
                 </div>
+              </div>
 
-                {/* Firmas Legales */}
-                <div className="pt-6 grid grid-cols-2 gap-12 text-center text-xs">
-                  <div className="space-y-1">
+              {/* Firmas Legales y Pie Institucional anclados al fondo */}
+              <div className="mt-auto space-y-4 pt-6">
+                <div className="grid grid-cols-2 gap-12 text-center text-xs">
+                  <div className="space-y-1 text-center">
                     <div className="h-16 flex items-end justify-center mb-1">
                       {/* Espacio para firma manuscrita del trabajador */}
                     </div>
-                    <div className="border-t border-slate-800 pt-1.5">
-                      <strong className="block text-slate-900 font-black">{selectedWorkerForSlip.name}</strong>
-                      <span className="text-slate-600 font-mono">RUT: {selectedWorkerForSlip.rut}</span>
-                      <span className="text-[10px] text-slate-500 block font-bold">FIRMA DEL TRABAJADOR</span>
-                      <p className="text-[9px] text-slate-400 mt-1 italic leading-tight">
+                    <div className="border-t-[1.5px] border-slate-800 pt-1.5">
+                      <strong className="block text-slate-900 font-black text-xs leading-tight">{selectedWorkerForSlip.name}</strong>
+                      <p className="text-[9.5px] text-slate-600 font-mono">RUT: {selectedWorkerForSlip.rut}</p>
+                      <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">FIRMA DEL TRABAJADOR</p>
+                      <p className="text-[8.5px] text-slate-400 mt-0.5 italic leading-tight">
                         "Recibí conforme el líquido indicado en esta liquidación, sin tener cargo ni reclamo alguno que formular respecto de las remuneraciones del periodo."
                       </p>
                     </div>
                   </div>
 
-                  <div className="space-y-1 relative">
-                    <div className="h-16 flex items-end justify-center mb-1 relative">
-                      {companySettings?.signatureDataUrl ? (
-                        <img
-                          src={companySettings.signatureDataUrl}
-                          alt="Firma Administrador"
-                          className="h-14 max-h-16 w-auto object-contain mx-auto"
-                        />
-                      ) : (
-                        <span className="text-[11px] text-slate-300 italic">Firma Administrador ARANPRO</span>
-                      )}
-                      <div className="absolute right-0 bottom-0 pointer-events-none">
-                        <AranproOfficialSeal size={55} showVerificationText={false} />
-                      </div>
-                    </div>
-                    <div className="border-t border-slate-800 pt-1.5">
-                      <strong className="block text-slate-900 font-black">
-                        {companySettings?.adminName || 'John Andrés Arancibia Maureira'}
-                      </strong>
-                      <span className="text-slate-600 font-bold block">
-                        Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})
-                      </span>
-                      <span className="text-[10px] text-slate-500 block">
-                        EN REPRESENTACIÓN DE LA COMUNIDAD (ART. 20 LEY 21.442)
-                      </span>
-                    </div>
-                  </div>
+                  {renderAdminSignatureBlock('EN REPRESENTACIÓN DE LA COMUNIDAD (ART. 20 LEY 21.442)')}
                 </div>
 
-                <div className="pt-2 text-center text-[9px] text-slate-400 border-t border-slate-100 flex justify-between items-center">
-                  <span>Documento emitido conforme al Código del Trabajo y la Ley N° 21.442 • Sistema ARANPRO</span>
-                  <span className="font-mono">Fecha Emisión: {new Date().toLocaleDateString('es-CL')}</span>
-                </div>
+                {renderAranproPdfFooter(1, 1, 'Liquidación Individual de Remuneraciones DT')}
               </div>
             </div>
           </div>
-        );
-      })()}
+        </div>
+      </div>
+    </div>
+  );
+})()}
 
       {/* ==================== MODAL 3: VISOR E IMPRESIÓN DE PLANILLA MENSUAL DE REMUNERACIONES (LIBRO DE SUELDOS) ==================== */}
       {showMonthlySheetModal && (
@@ -1890,6 +1947,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               <div className="flex items-center gap-2">
+                <AranproPdfStyleSelector />
                 <button
                   type="button"
                   onClick={() =>
@@ -1915,11 +1973,14 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             </div>
 
             {/* CONTENEDOR IMPRIMIBLE DE LA PLANILLA GENERAL */}
-            <div
-              id="printable-community-monthly-payroll-sheet"
-              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5"
-            >
-              {renderAranproPdfHeader('LIBRO DE REMUNERACIONES', 'PLANILLA GENERAL DE SUELDOS & LEYES SOCIALES', `REM-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
+            <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
+              <div id="printable-community-monthly-payroll-sheet" className="print-area">
+                <div
+                  className="dossier-page bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[980px]"
+                  data-pdf-style={pdfStyle}
+                >
+                  <div className="space-y-4">
+                    {renderAranproPdfHeader('LIBRO DE REMUNERACIONES', 'PLANILLA GENERAL DE SUELDOS & LEYES SOCIALES', `REM-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
 
               <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
                 <div>
@@ -2004,41 +2065,33 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   <strong className="text-sm font-black text-slate-900 font-mono">{formatCLP(payrollConsolidated.totalCommunityCost)}</strong>
                 </div>
               </div>
+            </div>
 
-              {/* Firmas de Respaldo */}
-              <div className="pt-8 grid grid-cols-2 gap-12 text-center text-xs">
-                <div className="space-y-1">
-                  <div className="h-14 flex items-end justify-center mb-1">
-                    {companySettings?.signatureDataUrl && (
-                      <img
-                        src={companySettings.signatureDataUrl}
-                        alt="Firma Administrador"
-                        className="h-12 w-auto object-contain mx-auto"
-                      />
-                    )}
-                  </div>
-                  <div className="border-t border-slate-800 pt-1.5">
-                    <strong className="block text-slate-900">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
-                    <span className="text-slate-600 block text-[10px]">Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})</span>
-                    <span className="text-[10px] text-slate-400 block">ARANPRO GESTIÓN INTEGRAL</span>
-                  </div>
-                </div>
+            {/* Firmas de Respaldo y Pie Institucional anclados al fondo */}
+            <div className="mt-auto space-y-4 pt-6">
+              <div className="grid grid-cols-2 gap-12 text-center text-xs">
+                {renderAdminSignatureBlock('ADMINISTRACIÓN TITULAR • LIBRO DE SUELDOS (LEY 21.442)')}
 
-                <div className="space-y-1">
-                  <div className="h-14 flex items-end justify-center mb-1">
+                <div className="space-y-1 text-center">
+                  <div className="h-16 flex items-end justify-center mb-1">
                     {/* Espacio para visación del Comité */}
                   </div>
-                  <div className="border-t border-slate-800 pt-1.5">
-                    <strong className="block text-slate-900">Comité de Administración</strong>
-                    <span className="text-slate-600 block text-[10px]">{currentCommunity.name}</span>
-                    <span className="text-[10px] text-slate-400 block">VISACIÓN Y REVISIÓN CONFORME (ART. 17 LEY 21.442)</span>
+                  <div className="border-t-[1.5px] border-slate-800 pt-1.5">
+                    <strong className="block text-slate-900 font-black text-xs leading-tight">Comité de Administración</strong>
+                    <p className="text-[9.5px] text-slate-600 font-mono">{currentCommunity.name}</p>
+                    <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">VISACIÓN Y REVISIÓN CONFORME (ART. 17 LEY 21.442)</p>
                   </div>
                 </div>
               </div>
+
+              {renderAranproPdfFooter(1, 1, 'Libro General de Remuneraciones & Leyes Sociales')}
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
       {/* ==================== MODAL 4: VISOR E IMPRESIÓN DE PLANILLA PREVIRED ==================== */}
       {showPreviredSheetModal && (
@@ -2056,6 +2109,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               <div className="flex items-center gap-2">
+                <AranproPdfStyleSelector />
                 <button
                   type="button"
                   onClick={() =>
@@ -2081,11 +2135,14 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             </div>
 
             {/* CONTENEDOR IMPRIMIBLE PREVIRED */}
-            <div
-              id="printable-community-previred-sheet"
-              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5"
-            >
-              {renderAranproPdfHeader('PLANILLA PREVISIONAL', 'INFORME DE COTIZACIONES LEYES SOCIALES PREVIRED', `PREV-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
+            <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
+              <div id="printable-community-previred-sheet" className="print-area">
+                <div
+                  className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[880px]"
+                  data-pdf-style={pdfStyle}
+                >
+                  <div className="space-y-4">
+                    {renderAranproPdfHeader('PLANILLA PREVISIONAL', 'INFORME DE COTIZACIONES LEYES SOCIALES PREVIRED', `PREV-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
 
               <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
@@ -2176,21 +2233,33 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   <span className="text-xs text-slate-500 font-mono block">{currentCommunity.bankInfo?.bank} • {currentCommunity.bankInfo?.accountNumber}</span>
                 </div>
               </div>
+            </div>
 
-              {/* Firma */}
-              <div className="pt-6 flex justify-between items-end text-xs">
-                <div>
-                  <span className="text-slate-500 block text-[10px]">Elaborado por Administración ARANPRO</span>
-                  <strong className="text-slate-900 font-bold">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
-                </div>
-                <div className="text-right">
-                  <AranproOfficialSeal size={50} showVerificationText={false} />
+            {/* Firmas y Pie Institucional anclados al fondo */}
+            <div className="mt-auto space-y-4 pt-6">
+              <div className="grid grid-cols-2 gap-12 text-center text-xs">
+                {renderAdminSignatureBlock('DECLARACIÓN Y PAGO PREVIRED (LEY 21.442)')}
+
+                <div className="space-y-1 text-center">
+                  <div className="h-16 flex items-end justify-center mb-1">
+                    {/* Espacio visación */}
+                  </div>
+                  <div className="border-t-[1.5px] border-slate-800 pt-1.5">
+                    <strong className="block text-slate-900 font-black text-xs leading-tight">Comité de Administración / Tesorería</strong>
+                    <p className="text-[9.5px] text-slate-600 font-mono">{currentCommunity.name}</p>
+                    <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">APROBACIÓN DE TRANSFERENCIA PREVIRED</p>
+                  </div>
                 </div>
               </div>
+
+              {renderAranproPdfFooter(1, 1, 'Planilla de Cotizaciones Previsionales Previred')}
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
       {/* ==================== MODAL 5: VISOR E IMPRESIÓN DE NÓMINA OFICIAL DE PERSONAL ==================== */}
       {showRosterModal && (
@@ -2208,6 +2277,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               <div className="flex items-center gap-2">
+                <AranproPdfStyleSelector />
                 <button
                   type="button"
                   onClick={() =>
@@ -2233,72 +2303,87 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             </div>
 
             {/* CONTENEDOR IMPRIMIBLE NÓMINA */}
-            <div
-              id="printable-community-staff-roster"
-              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5"
-            >
-              {renderAranproPdfHeader('REGISTRO OFICIAL', 'NÓMINA DE TRABAJADORES DEL CONDOMINIO', `NOM-${new Date().getFullYear()}`)}
+            <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
+              <div id="printable-community-staff-roster" className="print-area">
+                <div
+                  className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[880px]"
+                  data-pdf-style={pdfStyle}
+                >
+                  <div className="space-y-4">
+                    {renderAranproPdfHeader('REGISTRO OFICIAL', 'NÓMINA DE TRABAJADORES DEL CONDOMINIO', `NOM-${new Date().getFullYear()}`)}
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
-                <div>
-                  <strong className="block text-slate-900">{currentCommunity.name}</strong>
-                  <span className="text-slate-600 block text-[11px]">RUT Patronal: {currentCommunity.bankInfo?.rut || '65.184.920-K'} • {currentCommunity.address}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-emerald-800 font-black block text-sm">{staff.length} Trabajadores Registrados</span>
-                  <span className="text-slate-500 block text-[10px]">Actualizado al {new Date().toLocaleDateString('es-CL')}</span>
-                </div>
-              </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                      <div>
+                        <strong className="block text-slate-900 font-bold">{currentCommunity.name}</strong>
+                        <span className="text-slate-600 block text-[11px]">RUT Patronal: {currentCommunity.bankInfo?.rut || '65.184.920-K'} • {currentCommunity.address}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-emerald-800 font-black block text-sm">{staff.length} Trabajadores Registrados</span>
+                        <span className="text-slate-500 block text-[10px]">Actualizado al {new Date().toLocaleDateString('es-CL')}</span>
+                      </div>
+                    </div>
 
-              <div className="border border-slate-300 rounded-xl overflow-hidden">
-                <table className="w-full text-[11px] text-left">
-                  <thead className="bg-[#0F3D2E] text-white font-bold uppercase text-[9px]">
-                    <tr>
-                      <th className="p-2">N°</th>
-                      <th className="p-2">Nombre Completo</th>
-                      <th className="p-2">RUT</th>
-                      <th className="p-2">Cargo / Turno</th>
-                      <th className="p-2">Jornada</th>
-                      <th className="p-2">Contrato</th>
-                      <th className="p-2">Sueldo Base</th>
-                      <th className="p-2">Previsión</th>
-                      <th className="p-2">Contacto</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {staff.map((w, idx) => (
-                      <tr key={w.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                        <td className="p-2 text-center font-bold">{idx + 1}</td>
-                        <td className="p-2 font-bold text-slate-900">{w.name}</td>
-                        <td className="p-2 font-mono text-slate-700">{w.rut}</td>
-                        <td className="p-2 text-slate-700">
-                          {w.role}
-                          <span className="block text-[9px] text-slate-400">{w.shift}</span>
-                        </td>
-                        <td className="p-2 text-slate-700">{w.weeklyHours || 44} hrs</td>
-                        <td className="p-2 text-slate-700">{w.contractType}</td>
-                        <td className="p-2 font-mono font-bold text-slate-900">{formatCLP(w.baseSalary)}</td>
-                        <td className="p-2 text-slate-600">
-                          {w.afpName}
-                          <span className="block text-[9px] text-slate-400">{w.healthName?.split('(')[0] || 'Fonasa'}</span>
-                        </td>
-                        <td className="p-2 text-[10px] text-slate-600">
-                          {w.phone || '-'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    <div className="border border-slate-300 rounded-xl overflow-hidden">
+                      <table className="w-full text-[11px] text-left">
+                        <thead className="bg-[#0F3D2E] text-white font-bold uppercase text-[9px]">
+                          <tr>
+                            <th className="p-2">N°</th>
+                            <th className="p-2">Nombre Completo</th>
+                            <th className="p-2">RUT</th>
+                            <th className="p-2">Cargo / Turno</th>
+                            <th className="p-2">Jornada</th>
+                            <th className="p-2">Contrato</th>
+                            <th className="p-2 text-right">Sueldo Base</th>
+                            <th className="p-2">Previsión</th>
+                            <th className="p-2">Contacto</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {staff.map((w, idx) => (
+                            <tr key={w.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                              <td className="p-2 text-center font-bold">{idx + 1}</td>
+                              <td className="p-2 font-bold text-slate-900">{w.name}</td>
+                              <td className="p-2 font-mono text-slate-700">{w.rut}</td>
+                              <td className="p-2 text-slate-700">
+                                {w.role}
+                                <span className="block text-[9px] text-slate-400">{w.shift}</span>
+                              </td>
+                              <td className="p-2 text-slate-700">{w.weeklyHours || 44} hrs</td>
+                              <td className="p-2 text-slate-700">{w.contractType}</td>
+                              <td className="p-2 font-mono font-bold text-slate-900 text-right">{formatCLP(w.baseSalary)}</td>
+                              <td className="p-2 text-slate-600">
+                                {w.afpName}
+                                <span className="block text-[9px] text-slate-400">{w.healthName?.split('(')[0] || 'Fonasa'}</span>
+                              </td>
+                              <td className="p-2 text-[10px] text-slate-600 font-mono">
+                                {w.phone || '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
 
-              <div className="pt-6 grid grid-cols-2 gap-12 text-center text-xs">
-                <div className="border-t border-slate-800 pt-2">
-                  <strong className="block text-slate-900">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
-                  <span className="text-slate-600 block text-[10px]">Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})</span>
-                </div>
-                <div className="border-t border-slate-800 pt-2">
-                  <strong className="block text-slate-900">Comité de Administración</strong>
-                  <span className="text-slate-600 block text-[10px]">{currentCommunity.name}</span>
+                  {/* Firmas y Pie Institucional anclados al fondo */}
+                  <div className="mt-auto space-y-4 pt-6">
+                    <div className="grid grid-cols-2 gap-12 text-center text-xs">
+                      {renderAdminSignatureBlock('ADMINISTRADOR TITULAR • LEY N° 21.442')}
+
+                      <div className="space-y-1 text-center">
+                        <div className="h-16 flex items-end justify-center mb-1">
+                          {/* Espacio visación Comité */}
+                        </div>
+                        <div className="border-t-[1.5px] border-slate-800 pt-1.5">
+                          <strong className="block text-slate-900 font-black text-xs leading-tight">Comité de Administración</strong>
+                          <p className="text-[9.5px] text-slate-600 font-mono">{currentCommunity.name}</p>
+                          <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">REGISTRO Y VISACIÓN DE DOTACIÓN LABORAL</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {renderAranproPdfFooter(1, 1, 'Nómina Oficial de Trabajadores del Condominio')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2322,6 +2407,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               <div className="flex items-center gap-2">
+                <AranproPdfStyleSelector />
                 <button
                   type="button"
                   onClick={() =>
@@ -2346,161 +2432,160 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
             </div>
 
-            {/* DOCUMENTO EXHAUSTIVO Y PROFUNDO DEL CONTRATO DE TRABAJO */}
-            <div
-              id="printable-community-labor-contract"
-              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5 leading-relaxed"
-            >
-              {renderAranproPdfHeader('INSTRUMENTO LABORAL', 'CONTRATO INDIVIDUAL DE TRABAJO DE COPROPIEDAD', `CONTR-${selectedWorkerForContract.id}`)}
+            {/* DOCUMENTO EXHAUSTIVO Y PROFUNDO DEL CONTRATO DE TRABAJO (2 PÁGINAS EDITORIALES) */}
+            <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
+              <div id="printable-community-labor-contract" className="space-y-6 print-area">
+                {/* ==================== PÁGINA 1: COMPARECENCIA Y CLÁUSULAS 1 A 3 ==================== */}
+                <div
+                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  data-pdf-style={pdfStyle}
+                >
+                  <div className="space-y-3.5">
+                    {renderAranproPdfHeader('INSTRUMENTO LABORAL', 'CONTRATO INDIVIDUAL DE TRABAJO DE COPROPIEDAD', `CONTR-${selectedWorkerForContract.id}`)}
 
-              <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
-                <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
-                  CONTRATO INDIVIDUAL DE TRABAJO
-                </h2>
-                <p className="text-[10px] text-slate-600 font-bold">
-                  PERSONAL DE CONDOMINIO • LEY N° 21.442 Y CÓDIGO DEL TRABAJO DE LA REPÚBLICA DE CHILE
-                </p>
-              </div>
+                    <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
+                      <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
+                        CONTRATO INDIVIDUAL DE TRABAJO
+                      </h2>
+                      <p className="text-[10px] text-slate-600 font-bold">
+                        PERSONAL DE CONDOMINIO • LEY N° 21.442 Y CÓDIGO DEL TRABAJO DE LA REPÚBLICA DE CHILE
+                      </p>
+                    </div>
 
-              <p className="text-justify text-xs">
-                En la ciudad de <strong>{currentCommunity.city || 'La Serena'}</strong>, República de Chile, a {selectedWorkerForContract.startDate}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, Rol Único Tributario (RUT) N° <strong>{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>, cédula nacional de identidad N° <strong>{companySettings?.adminRut || '16.012.871-2'}</strong>, con inscripción vigente en el Registro Nacional de Administradores de Condominios del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '48.912'}</strong>), ambos domiciliados para estos efectos en <strong>{currentCommunity.address}</strong>, en adelante denominada indistintamente como "la Comunidad" o "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForContract.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForContract.rut}</strong>, de nacionalidad chilena, fecha de nacimiento registrada, domiciliado(a) en <strong>{selectedWorkerForContract.address || 'domicilio acreditado'}</strong>, en adelante "el Trabajador", se ha convenido celebrar el siguiente Contrato Individual de Trabajo:
-              </p>
+                    <p className="text-justify text-xs leading-relaxed">
+                      En la ciudad de <strong>{currentCommunity.city || 'La Serena'}</strong>, República de Chile, a {selectedWorkerForContract.startDate}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, Rol Único Tributario (RUT) N° <strong>{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>, cédula nacional de identidad N° <strong>{companySettings?.adminRut || '16.012.871-2'}</strong>, con inscripción vigente en el Registro Nacional de Administradores de Condominios del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '48.912'}</strong>), ambos domiciliados para estos efectos en <strong>{currentCommunity.address}</strong>, en adelante denominada indistintamente como "la Comunidad" o "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForContract.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForContract.rut}</strong>, de nacionalidad chilena, fecha de nacimiento registrada, domiciliado(a) en <strong>{selectedWorkerForContract.address || 'domicilio acreditado'}</strong>, en adelante "el Trabajador", se ha convenido celebrar el siguiente Contrato Individual de Trabajo:
+                    </p>
 
-              <div className="space-y-3 text-justify text-xs">
-                <div>
-                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                    PRIMERO: LUGAR DE PRESTACIÓN DE LOS SERVICIOS
-                  </h4>
-                  <p>
-                    El Trabajador prestará sus servicios en las dependencias, áreas comunes, accesos vehiculares y peatonales, caseta de control y perímetro de la Comunidad <strong>{currentCommunity.name}</strong>, ubicada en <strong>{currentCommunity.address}</strong>, comuna de {currentCommunity.city || 'La Serena'}.
-                  </p>
-                </div>
+                    <div className="space-y-3 text-justify text-xs leading-relaxed">
+                      <div>
+                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                          PRIMERO: LUGAR DE PRESTACIÓN DE LOS SERVICIOS
+                        </h4>
+                        <p>
+                          El Trabajador prestará sus servicios en las dependencias, áreas comunes, accesos vehiculares y peatonales, caseta de control y perímetro de la Comunidad <strong>{currentCommunity.name}</strong>, ubicada en <strong>{currentCommunity.address}</strong>, comuna de {currentCommunity.city || 'La Serena'}.
+                        </p>
+                      </div>
 
-                <div>
-                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                    SEGUNDO: DESCRIPTOR EXHAUSTIVO DEL CARGO Y FUNCIONES ESPECÍFICAS
-                  </h4>
-                  <p>
-                    El Trabajador es contratado para desempeñar las funciones de <strong>{selectedWorkerForContract.role}</strong>. En el cumplimiento de sus labores, y de conformidad con el Artículo 18 y siguientes de la Ley N° 21.442 de Copropiedad Inmobiliaria, sus obligaciones específicas comprenden:
-                  </p>
-                  <ul className="list-disc pl-5 mt-1 space-y-1 text-slate-700">
-                    <li><strong>Control de Accesos Peatonal y Vehicular:</strong> Registrar rigurosamente en el Libro de Control a toda persona, visita o vehículo que ingrese al condominio, verificando autorización previa de la unidad correspondiente.</li>
-                    <li><strong>Recepción y Custodia de Encomiendas:</strong> Recibir, catalogar y custodiar paquetes, compras electrónicas y correspondencia en la caseta de conserjería, exigiendo firma y verificación al momento de la entrega al residente.</li>
-                    <li><strong>Libro de Novedades de Conserjería:</strong> Llevar de forma prolija, veraz y cronológica el Libro de Novedades físico y digital del condominio, asentando en cada turno los incidentes, rondas, reclamos y estados de los equipos comunitarios.</li>
-                    <li><strong>Inspección y Rondas Preventivas:</strong> Efectuar rondas periódicas de vigilancia en áreas comunes, revisando el normal funcionamiento de bombas de agua potable, salas de calderas, portones eléctricos, iluminación común y vías de evacuación.</li>
-                    <li><strong>Custodia de Llaves Maestras:</strong> Mantener estricto control y resguardo de las llaves de salas técnicas y recintos comunitarios, prohibiéndose su entrega a terceros sin autorización de la Administración.</li>
-                    <li><strong>Activación de Protocolos de Emergencia:</strong> Activar de inmediato los planes de contingencia ante incendios, sismos, fugas de gas, inundaciones o hechos delictuales, coordinando con Bomberos, Carabineros y SAMU.</li>
-                  </ul>
-                </div>
+                      <div>
+                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                          SEGUNDO: DESCRIPTOR EXHAUSTIVO DEL CARGO Y FUNCIONES ESPECÍFICAS
+                        </h4>
+                        <p>
+                          El Trabajador es contratado para desempeñar las funciones de <strong>{selectedWorkerForContract.role}</strong>. En el cumplimiento de sus labores, y de conformidad con el Artículo 18 y siguientes de la Ley N° 21.442 de Copropiedad Inmobiliaria, sus obligaciones específicas comprenden:
+                        </p>
+                        <ul className="list-disc pl-5 mt-1 space-y-1 text-slate-700">
+                          <li><strong>Control de Accesos Peatonal y Vehicular:</strong> Registrar rigurosamente en el Libro de Control a toda persona, visita o vehículo que ingrese al condominio, verificando autorización previa de la unidad correspondiente.</li>
+                          <li><strong>Recepción y Custodia de Encomiendas:</strong> Recibir, catalogar y custodiar paquetes, compras electrónicas y correspondencia en la caseta de conserjería, exigiendo firma y verificación al momento de la entrega al residente.</li>
+                          <li><strong>Libro de Novedades de Conserjería:</strong> Llevar de forma prolija, veraz y cronológica el Libro de Novedades físico y digital del condominio, asentando en cada turno los incidentes, rondas, reclamos y estados de los equipos comunitarios.</li>
+                          <li><strong>Inspección y Rondas Preventivas:</strong> Efectuar rondas periódicas de vigilancia en áreas comunes, revisando el normal funcionamiento de bombas de agua potable, salas de calderas, portones eléctricos, iluminación común y vías de evacuación.</li>
+                          <li><strong>Custodia de Llaves Maestras:</strong> Mantener estricto control y resguardo de las llaves de salas técnicas y recintos comunitarios, prohibiéndose su entrega a terceros sin autorización de la Administración.</li>
+                          <li><strong>Activación de Protocolos de Emergencia:</strong> Activar de inmediato los planes de contingencia ante incendios, sismos, fugas de gas, inundaciones o hechos delictuales, coordinando con Bomberos, Carabineros y SAMU.</li>
+                        </ul>
+                      </div>
 
-                <div>
-                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                    TERCERO: JORNADA DE TRABAJO Y SISTEMA DE TURNOS
-                  </h4>
-                  <p>
-                    La jornada ordinaria de trabajo será de <strong>{selectedWorkerForContract.weeklyHours || 44} horas semanales</strong>, distribuidas en turnos conforme al <strong>{selectedWorkerForContract.shift}</strong>. En razón de la naturaleza de los servicios de conserjería y vigilancia en copropiedades (Art. 38 N° 2 del Código del Trabajo), la jornada podrá incluir domingos y días festivos, otorgándose en tal caso los descansos compensatorios legales pertinentes.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                    CUARTO: REMUNERACIONES Y BENEFICIOS
-                  </h4>
-                  <p>
-                    El Empleador pagará al Trabajador las siguientes remuneraciones mensuales:
-                  </p>
-                  <ul className="list-disc pl-5 mt-1 space-y-0.5 text-slate-700">
-                    <li><strong>Sueldo Base:</strong> La suma de <strong>{formatCLP(selectedWorkerForContract.baseSalary)}</strong> ({numberToSpanishWords(selectedWorkerForContract.baseSalary)}) mensuales.</li>
-                    <li><strong>Gratificación Legal:</strong> Conforme al Artículo 50 del Código del Trabajo, la Comunidad pagará mensualmente el 25% de lo devengado por concepto de remuneraciones mensuales, con el tope legal de 4.75 ingresos mínimos mensuales al año.</li>
-                    {selectedWorkerForContract.contractualNightBonus > 0 && (
-                      <li><strong>Bono Turno Nocturno:</strong> Asignación imponible de {formatCLP(selectedWorkerForContract.contractualNightBonus)} por concepto de turnos de noche.</li>
-                    )}
-                    {selectedWorkerForContract.contractualResponsibilityBonus > 0 && (
-                      <li><strong>Bono de Responsabilidad:</strong> Asignación imponible de {formatCLP(selectedWorkerForContract.contractualResponsibilityBonus)} por custodia y supervisión de accesos.</li>
-                    )}
-                    <li><strong>Asignación de Colación:</strong> La suma de {formatCLP(selectedWorkerForContract.allowanceColacion)} mensual, de carácter no imponible.</li>
-                    <li><strong>Asignación de Movilización:</strong> La suma de {formatCLP(selectedWorkerForContract.allowanceMovilizacion)} mensual, de carácter no imponible.</li>
-                  </ul>
-                  <p className="mt-1">
-                    Las remuneraciones se pagarán el último día hábil de cada mes calendario mediante transferencia electrónica bancaria a la cuenta <strong>{selectedWorkerForContract.accountType} N° {selectedWorkerForContract.accountNumber || 'registrada'}</strong> del <strong>{selectedWorkerForContract.bankName}</strong>.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                    QUINTO: PREVISIÓN SOCIAL Y SALUD
-                  </h4>
-                  <p>
-                    El Trabajador declara que para los efectos previsionales de pensiones se encuentra afiliado a <strong>{selectedWorkerForContract.afpName}</strong>, y para los efectos de salud a <strong>{selectedWorkerForContract.healthName}</strong>, facultando a la Comunidad para retener y enterar las cotizaciones en las instituciones respectivas y en Previred. Asimismo, la Comunidad cotiza el Seguro de Invalidez y Sobrevivencia (SIS), Seguro de Cesantía (AFC) y la Ley N° 16.744 sobre Accidentes del Trabajo en la <strong>{selectedWorkerForContract.mutualEntity}</strong>.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                    SEXTO: OBLIGACIONES ESPECIALES, PROHIBICIONES Y CONFIDENCIALIDAD
-                  </h4>
-                  <p>
-                    El Trabajador se compromete a guardar el más estricto secreto y confidencialidad respecto de los datos personales, rutinas, ausencias y bienes de los copropietarios y residentes del condominio (Ley N° 19.628). Se prohíbe expresamente al Trabajador: a) Abandonar la caseta o puesto de conserjería sin reemplazo autorizado; b) Permitir el ingreso de personas ajenas o amistades al interior de la caseta; c) Presentarse a trabajar bajo los efectos del alcohol o estupefacientes; d) Manipular llaves de paso o tableros sin orden técnica.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                    SÉPTIMO: REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS)
-                  </h4>
-                  <p>
-                    El Trabajador declara haber recibido en este acto un ejemplar íntegro del Reglamento Interno de Orden, Higiene y Seguridad (RIOHS) de la Comunidad, obligándose a acatar sus normas, el uso permanente de sus Elementos de Protección Personal (EPP) y la normativa sobre prevención del acoso laboral y sexual (Ley Karin N° 21.643).
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                    OCTAVO: VIGENCIA DEL CONTRATO Y EJEMPLARES
-                  </h4>
-                  <p>
-                    El presente contrato rige a contar del día <strong>{selectedWorkerForContract.startDate}</strong> y tendrá una duración de carácter <strong>{selectedWorkerForContract.contractType}</strong>. Se firma en dos ejemplares de idéntico tenor y fecha, quedando uno en poder del Trabajador y el otro en custodia de la Administración de la Comunidad.
-                  </p>
-                </div>
-              </div>
-
-              {/* Firmas Notariales y Patronales */}
-              <div className="pt-10 grid grid-cols-2 gap-12 text-center text-xs">
-                <div className="space-y-1">
-                  <div className="h-16 flex items-end justify-center mb-1">
-                    {/* Espacio firma trabajador */}
-                  </div>
-                  <div className="border-t border-slate-900 pt-2">
-                    <strong className="block text-slate-900 font-black">{selectedWorkerForContract.name}</strong>
-                    <span className="block font-mono text-slate-700">RUT: {selectedWorkerForContract.rut}</span>
-                    <span className="text-[10px] text-slate-500 block font-bold">EL TRABAJADOR</span>
-                  </div>
-                </div>
-
-                <div className="space-y-1 relative">
-                  <div className="h-16 flex items-end justify-center mb-1 relative">
-                    {companySettings?.signatureDataUrl ? (
-                      <img
-                        src={companySettings.signatureDataUrl}
-                        alt="Firma Administrador"
-                        className="h-14 max-h-16 w-auto object-contain mx-auto"
-                      />
-                    ) : (
-                      <span className="text-[11px] text-slate-300 italic">Firma Administrador</span>
-                    )}
-                    <div className="absolute right-0 bottom-0 pointer-events-none">
-                      <AranproOfficialSeal size={55} showVerificationText={false} />
+                      <div>
+                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                          TERCERO: JORNADA DE TRABAJO Y SISTEMA DE TURNOS
+                        </h4>
+                        <p>
+                          La jornada ordinaria de trabajo será de <strong>{selectedWorkerForContract.weeklyHours || 44} horas semanales</strong>, distribuidas en turnos conforme al <strong>{selectedWorkerForContract.shift}</strong>. En razón de la naturaleza de los servicios de conserjería y vigilancia en copropiedades (Art. 38 N° 2 del Código del Trabajo), la jornada podrá incluir domingos y días festivos, otorgándose en tal caso los descansos compensatorios legales pertinentes.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="border-t border-slate-900 pt-2">
-                    <strong className="block text-slate-900 font-black">
-                      {companySettings?.adminName || 'John Andrés Arancibia Maureira'}
-                    </strong>
-                    <span className="block text-slate-700 font-bold text-[10px]">
-                      Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})
-                    </span>
-                    <span className="text-[10px] text-slate-500 block">
-                      POR LA COMUNIDAD EMPLEADORA (ART. 20 LEY 21.442)
-                    </span>
+
+                  {renderAranproPdfFooter(1, 2, 'Contrato Individual de Trabajo DT')}
+                </div>
+
+                {/* ==================== PÁGINA 2: CLÁUSULAS 4 A 8 Y FIRMAS LEGALES ==================== */}
+                <div
+                  className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  data-pdf-style={pdfStyle}
+                >
+                  <div className="space-y-3.5">
+                    {renderContinuityHeader('INSTRUMENTO LABORAL', `CONTRATO INDIVIDUAL DE TRABAJO • ${selectedWorkerForContract.name}`, `CONTR-${selectedWorkerForContract.id}`)}
+
+                    <div className="space-y-3 text-justify text-xs leading-relaxed">
+                      <div>
+                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                          CUARTO: REMUNERACIONES Y BENEFICIOS
+                        </h4>
+                        <p>
+                          El Empleador pagará al Trabajador las siguientes remuneraciones mensuales:
+                        </p>
+                        <ul className="list-disc pl-5 mt-1 space-y-0.5 text-slate-700">
+                          <li><strong>Sueldo Base:</strong> La suma de <strong>{formatCLP(selectedWorkerForContract.baseSalary)}</strong> ({numberToSpanishWords(selectedWorkerForContract.baseSalary)}) mensuales.</li>
+                          <li><strong>Gratificación Legal:</strong> Conforme al Artículo 50 del Código del Trabajo, la Comunidad pagará mensualmente el 25% de lo devengado por concepto de remuneraciones mensuales, con el tope legal de 4.75 ingresos mínimos mensuales al año.</li>
+                          {selectedWorkerForContract.contractualNightBonus > 0 && (
+                            <li><strong>Bono Turno Nocturno:</strong> Asignación imponible de {formatCLP(selectedWorkerForContract.contractualNightBonus)} por concepto de turnos de noche.</li>
+                          )}
+                          {selectedWorkerForContract.contractualResponsibilityBonus > 0 && (
+                            <li><strong>Bono de Responsabilidad:</strong> Asignación imponible de {formatCLP(selectedWorkerForContract.contractualResponsibilityBonus)} por custodia y supervisión de accesos.</li>
+                          )}
+                          <li><strong>Asignación de Colación:</strong> La suma de {formatCLP(selectedWorkerForContract.allowanceColacion)} mensual, de carácter no imponible.</li>
+                          <li><strong>Asignación de Movilización:</strong> La suma de {formatCLP(selectedWorkerForContract.allowanceMovilizacion)} mensual, de carácter no imponible.</li>
+                        </ul>
+                        <p className="mt-1">
+                          Las remuneraciones se pagarán el último día hábil de cada mes calendario mediante transferencia electrónica bancaria a la cuenta <strong>{selectedWorkerForContract.accountType} N° {selectedWorkerForContract.accountNumber || 'registrada'}</strong> del <strong>{selectedWorkerForContract.bankName}</strong>.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                          QUINTO: PREVISIÓN SOCIAL Y SALUD
+                        </h4>
+                        <p>
+                          El Trabajador declara que para los efectos previsionales de pensiones se encuentra afiliado a <strong>{selectedWorkerForContract.afpName}</strong>, y para los efectos de salud a <strong>{selectedWorkerForContract.healthName}</strong>, facultando a la Comunidad para retener y enterar las cotizaciones en las instituciones respectivas y en Previred. Asimismo, la Comunidad cotiza el Seguro de Invalidez y Sobrevivencia (SIS), Seguro de Cesantía (AFC) y la Ley N° 16.744 sobre Accidentes del Trabajo en la <strong>{selectedWorkerForContract.mutualEntity}</strong>.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                          SEXTO: OBLIGACIONES ESPECIALES, PROHIBICIONES Y CONFIDENCIALIDAD
+                        </h4>
+                        <p>
+                          El Trabajador se compromete a guardar el más estricto secreto y confidencialidad respecto de los datos personales, rutinas, ausencias y bienes de los copropietarios y residentes del condominio (Ley N° 19.628). Se prohíbe expresamente al Trabajador: a) Abandonar la caseta o puesto de conserjería sin reemplazo autorizado; b) Permitir el ingreso de personas ajenas o amistades al interior de la caseta; c) Presentarse a trabajar bajo los efectos del alcohol o estupefacientes; d) Manipular llaves de paso o tableros sin orden técnica.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                          SÉPTIMO: REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS)
+                        </h4>
+                        <p>
+                          El Trabajador declara haber recibido en este acto un ejemplar íntegro del Reglamento Interno de Orden, Higiene y Seguridad (RIOHS) de la Comunidad, obligándose a acatar sus normas, el uso permanente de sus Elementos de Protección Personal (EPP) y la normativa sobre prevención del acoso laboral y sexual (Ley Karin N° 21.643).
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                          OCTAVO: VIGENCIA DEL CONTRATO Y EJEMPLARES
+                        </h4>
+                        <p>
+                          El presente contrato rige a contar del día <strong>{selectedWorkerForContract.startDate}</strong> y tendrá una duración de carácter <strong>{selectedWorkerForContract.contractType}</strong>. Se firma en dos ejemplares de idéntico tenor y fecha, quedando uno en poder del Trabajador y el otro en custodia de la Administración de la Comunidad.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Firmas Notariales y Patronales ancladas al fondo */}
+                  <div className="mt-auto space-y-4 pt-6">
+                    <div className="grid grid-cols-2 gap-12 text-center text-xs">
+                      <div className="space-y-1 text-center">
+                        <div className="h-16 flex items-end justify-center mb-1">
+                          {/* Espacio firma trabajador */}
+                        </div>
+                        <div className="border-t-[1.5px] border-slate-900 pt-1.5">
+                          <strong className="block text-slate-900 font-black text-xs leading-tight">{selectedWorkerForContract.name}</strong>
+                          <p className="block font-mono text-[9.5px] text-slate-700">RUT: {selectedWorkerForContract.rut}</p>
+                          <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">EL TRABAJADOR</p>
+                        </div>
+                      </div>
+
+                      {renderAdminSignatureBlock('POR LA COMUNIDAD EMPLEADORA (ART. 20 LEY 21.442)')}
+                    </div>
+
+                    {renderAranproPdfFooter(2, 2, 'Contrato Individual de Trabajo DT')}
                   </div>
                 </div>
               </div>
@@ -2525,6 +2610,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               <div className="flex items-center gap-2">
+                <AranproPdfStyleSelector />
                 <button
                   type="button"
                   onClick={() =>
@@ -2549,89 +2635,131 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
             </div>
 
-            {/* DOCUMENTO RIOHS IMPRIMIBLE */}
-            <div
-              id="printable-community-riohs-document"
-              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5 leading-relaxed"
-            >
-              {renderAranproPdfHeader('NORMATIVA LABORAL', 'REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS)', 'RIOHS-2026')}
+            {/* DOCUMENTO RIOHS IMPRIMIBLE (2 PÁGINAS EDITORIALES) */}
+            <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
+              <div id="printable-community-riohs-document" className="space-y-6 print-area">
+                {/* ==================== PÁGINA 1: DISPOSICIONES, JORNADA Y OBLIGACIONES ==================== */}
+                <div
+                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  data-pdf-style={pdfStyle}
+                >
+                  <div className="space-y-4">
+                    {renderAranproPdfHeader('NORMATIVA LABORAL', 'REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS)', 'RIOHS-2026')}
 
-              <div className="text-center space-y-1 border-b border-slate-200 pb-3">
-                <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
-                  REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD
-                </h2>
-                <p className="text-[11px] text-slate-600 font-bold">
-                  COMUNIDAD {currentCommunity.name.toUpperCase()} • LEY N° 16.744, LEY N° 21.442 Y LEY KARIN N° 21.643
-                </p>
-              </div>
+                    <div className="text-center space-y-1 border-b border-slate-200 pb-3">
+                      <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
+                        REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD
+                      </h2>
+                      <p className="text-[11px] text-slate-600 font-bold">
+                        COMUNIDAD {currentCommunity.name.toUpperCase()} • LEY N° 16.744, LEY N° 21.442 Y LEY KARIN N° 21.643
+                      </p>
+                    </div>
 
-              <div className="space-y-4 text-justify text-xs">
-                <div>
-                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                    TÍTULO I: DISPOSICIONES GENERALES Y OBJETIVOS
-                  </h4>
-                  <p className="mt-1">
-                    El presente Reglamento Interno regula las condiciones, requisitos, derechos, deberes y normas de higiene y seguridad laboral que rigen para todos los trabajadores dependientes de la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, en conformidad a lo dispuesto en el Libro I, Título III del Código del Trabajo, en la Ley N° 16.744 sobre Accidentes del Trabajo y Enfermedades Profesionales, y en la Ley N° 21.442 de Copropiedad Inmobiliaria.
-                  </p>
-                </div>
+                    <div className="space-y-4 text-justify text-xs leading-relaxed">
+                      <div>
+                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                          TÍTULO I: DISPOSICIONES GENERALES, ÁMBITO DE APLICACIÓN Y OBJETIVOS
+                        </h4>
+                        <p className="mt-1">
+                          El presente Reglamento Interno regula las condiciones, requisitos, derechos, deberes y normas de higiene y seguridad laboral que rigen para todos los trabajadores dependientes de la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, en conformidad a lo dispuesto en el Libro I, Título III del Código del Trabajo, en la Ley N° 16.744 sobre Accidentes del Trabajo y Enfermedades Profesionales, y en la Ley N° 21.442 de Copropiedad Inmobiliaria. Su cumplimiento es estrictamente obligatorio para la totalidad de la dotación y personal de reemplazo.
+                        </p>
+                      </div>
 
-                <div>
-                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                    TÍTULO II: DE LA JORNADA DE TRABAJO Y SISTEMA DE ASISTENCIA
-                  </h4>
-                  <p className="mt-1">
-                    El personal cumplirá la jornada pactada en sus contratos individuales de trabajo. El control diario de asistencia, horas de entrada, salida y tiempo de colación se registrará obligatoriamente a través del Libro de Asistencia foliado o sistema electrónico validado por la Dirección del Trabajo (DT). Ningún trabajador podrá abandonar su puesto de trabajo antes de la llegada de su relevo formal.
-                  </p>
-                </div>
+                      <div>
+                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                          TÍTULO II: DE LA JORNADA DE TRABAJO, REGISTRO DE ASISTENCIA Y SISTEMA DE TURNOS
+                        </h4>
+                        <p className="mt-1">
+                          El personal cumplirá la jornada pactada en sus contratos individuales de trabajo. El control diario de asistencia, horas de entrada, salida y tiempo de colación se registrará obligatoriamente a través del Libro de Asistencia foliado o sistema electrónico validado por la Dirección del Trabajo (DT). Ningún trabajador podrá hacer abandono de su puesto antes de la llegada de su relevo formal y debida entrega de novedades asentadas en el Libro de Conserjería.
+                        </p>
+                      </div>
 
-                <div>
-                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                    TÍTULO III: OBLIGACIONES ESPECIALES DEL PERSONAL DE CONSERJERÍA Y ASEO
-                  </h4>
-                  <p className="mt-1">
-                    Son obligaciones primordiales:
-                  </p>
-                  <ul className="list-disc pl-5 mt-1 space-y-1 text-slate-700">
-                    <li>Mantener una actitud de respeto, probidad y cortesía permanente hacia los copropietarios, residentes, visitas y miembros del Comité de Administración.</li>
-                    <li>Operar el sistema de citofonía, cámaras de seguridad (CCTV) y portones con el máximo celo profesional.</li>
-                    <li>Efectuar la custodia de llaves de áreas comunes y llevar el registro de entrega y devolución.</li>
-                    <li>Utilizar en todo momento los Elementos de Protección Personal (EPP) entregados por la Administración (calzado de seguridad, guantes de nitrilo, chaleco reflectante en turnos nocturnos).</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                    TÍTULO IV: PROTOCOLO DE PREVENCIÓN DEL ACOSO LABORAL, SEXUAL Y VIOLENCIA EN EL TRABAJO (LEY KARIN N° 21.643)
-                  </h4>
-                  <p className="mt-1">
-                    La Comunidad prohíbe terminantemente toda manifestación de acoso laboral, acoso sexual o violencia física o psicológica en el trabajo, sea por parte de copropietarios, jefaturas, pares o terceros. La Administración garantiza canales confidenciales para la recepción de denuncias, medidas de resguardo inmediatas y derivación a la Dirección del Trabajo y Mutualidad.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                    TÍTULO V: NORMAS DE SEGURIDAD EN INSTALACIONES CRÍTICAS
-                  </h4>
-                  <p className="mt-1">
-                    Se prohíbe el ingreso de residentes a salas de bombas de impulsión de agua, calderas, tableros eléctricos y fosas sépticas. El personal de conserjería velará por el cierre con llave de estos recintos y reportará cualquier anomalía de presión o filtración de manera inmediata al Administrador Titular.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-8 grid grid-cols-2 gap-12 text-center text-xs">
-                <div className="space-y-1">
-                  <div className="border-t border-slate-800 pt-2">
-                    <strong className="block text-slate-900">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
-                    <span className="text-slate-600 block text-[10px]">Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})</span>
-                    <span className="text-slate-500 text-[10px]">POR LA COMUNIDAD EMPLEADORA</span>
+                      <div>
+                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                          TÍTULO III: OBLIGACIONES PRIMORDIALES DEL PERSONAL DE CONSERJERÍA, RONDAS Y ASEO
+                        </h4>
+                        <p className="mt-1">
+                          Son obligaciones fundamentales del personal de copropiedad:
+                        </p>
+                        <ul className="list-disc pl-5 mt-1 space-y-1 text-slate-700">
+                          <li>Mantener un trato de máximo respeto, probidad, prudencia y cortesía hacia copropietarios, arrendatarios, visitas y Comité de Administración.</li>
+                          <li>Controlar e individualizar en los registros de acceso a todo peatón y vehículo ajeno al condominio, verificando autorización previa.</li>
+                          <li>Operar con celo y diligencia los sistemas de citofonía, circuito cerrado de televisión (CCTV), portones automáticos y barreras de acceso.</li>
+                          <li>Custodiar las llaves de salas técnicas y recintos comunitarios, prohibiéndose su entrega sin autorización expresa de la Administración.</li>
+                          <li>Utilizar en forma permanente los Elementos de Protección Personal (EPP) suministrados por el Empleador durante toda la jornada.</li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
+
+                  {renderAranproPdfFooter(1, 2, 'Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)')}
                 </div>
 
-                <div className="space-y-1">
-                  <div className="border-t border-slate-800 pt-2">
-                    <strong className="block text-slate-900">Comité de Administración</strong>
-                    <span className="text-slate-600 block text-[10px]">{currentCommunity.name}</span>
-                    <span className="text-slate-500 text-[10px]">LEY N° 21.442 DE COPROPIEDAD</span>
+                {/* ==================== PÁGINA 2: LEY KARIN, SEGURIDAD, EPP, SANCIONES Y FIRMAS ==================== */}
+                <div
+                  className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  data-pdf-style={pdfStyle}
+                >
+                  <div className="space-y-4">
+                    {renderContinuityHeader('NORMATIVA LABORAL', `REGLAMENTO INTERNO RIOHS • ${currentCommunity.name}`, 'RIOHS-2026')}
+
+                    <div className="space-y-4 text-justify text-xs leading-relaxed">
+                      <div>
+                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                          TÍTULO IV: PROTOCOLO OBLIGATORIO DE PREVENCIÓN DEL ACOSO LABORAL, SEXUAL Y VIOLENCIA EN EL TRABAJO (LEY KARIN N° 21.643)
+                        </h4>
+                        <p className="mt-1">
+                          La Comunidad y la Administración prohíben terminantemente cualquier conducta constitutiva de acoso laboral, acoso sexual o violencia física o psicológica en el trabajo, sea por parte de copropietarios, miembros del Comité, superiores jerárquicos o terceros. Se establecen canales formales y confidenciales para la recepción inmediata de denuncias ante la Administración Titular, adoptándose medidas cautelares de resguardo y derivación a la Dirección del Trabajo y Mutualidad respectiva en los plazos legales.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                          TÍTULO V: NORMAS DE SEGURIDAD EN INSTALACIONES CRÍTICAS COMUNITARIAS
+                        </h4>
+                        <p className="mt-1">
+                          Se prohíbe terminantemente el ingreso de personas no autorizadas o residentes a salas de bombas de impulsión de agua potable, calderas, generadores de emergencia, tableros eléctricos de fuerza y fosas de recirculación. El personal de conserjería mantendrá cerrado con candado o llave dichos recintos y reportará cualquier fuga de agua, olor a gas, sobrecalentamiento o caída de fase de manera urgente a la Administración.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                          TÍTULO VI: ELEMENTOS DE PROTECCIÓN PERSONAL (EPP), ACCIDENTES DEL TRABAJO Y MUTUALIDAD
+                        </h4>
+                        <p className="mt-1">
+                          La Comunidad proporcionará oportunamente al personal el calzado de seguridad dieléctrico, guantes de nitrilo, chalecos reflectantes de alta visibilidad para turnos nocturnos y protectores auditivos. En caso de siniestro laboral o de trayecto, se aplicará de inmediato el protocolo de derivación a la Mutualidad adherida (Mutual de Seguridad / ACHS / IST) y notificación a la Dirección del Trabajo.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                          TÍTULO VII: SANCIONES, PROCEDIMIENTO DE RECLAMOS, VIGENCIA Y EJEMPLARES
+                        </h4>
+                        <p className="mt-1">
+                          Las infracciones a este reglamento serán sancionadas conforme al Código del Trabajo mediante amonestación verbal, censura por escrito con copia a la Inspección del Trabajo, y multas proporcionales a beneficio de fondos de bienestar. El presente instrumento comenzará a regir formalmente transcurridos 30 días desde su notificación y entrega de copias a los trabajadores y al Comité de Administración.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Firmas y Pie Institucional anclados al fondo */}
+                  <div className="mt-auto space-y-4 pt-6">
+                    <div className="grid grid-cols-2 gap-12 text-center text-xs">
+                      {renderAdminSignatureBlock('POR LA ADMINISTRACIÓN DELEGADA (LEY N° 21.442)')}
+
+                      <div className="space-y-1 text-center">
+                        <div className="h-16 flex items-end justify-center mb-1">
+                          {/* Espacio visación Comité */}
+                        </div>
+                        <div className="border-t-[1.5px] border-slate-900 pt-1.5">
+                          <strong className="block text-slate-900 font-black text-xs leading-tight">Comité de Administración</strong>
+                          <p className="text-[9.5px] text-slate-600 font-mono">{currentCommunity.name}</p>
+                          <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">LEY N° 21.442 DE COPROPIEDAD INMOBILIARIA</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {renderAranproPdfFooter(2, 2, 'Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)')}
                   </div>
                 </div>
               </div>

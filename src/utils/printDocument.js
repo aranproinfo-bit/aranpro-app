@@ -127,7 +127,12 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
   }
 
   const activePdfStyle = getActivePdfStyle(options, targetEl);
-  const hasDossierPages = contentHtml.includes('dossier-page');
+  let hasDossierPages = contentHtml.includes('dossier-page') || Boolean(targetEl?.classList?.contains('dossier-page'));
+
+  if (targetEl?.classList?.contains('dossier-page') && !contentHtml.includes('dossier-page')) {
+    contentHtml = `<div class="${targetEl.className}">${contentHtml}</div>`;
+    hasDossierPages = true;
+  }
 
   // Convertir rutas relativas de imágenes a absolutas para que carguen instantáneamente en el iframe
   const origin = window.location.origin || '';
@@ -315,7 +320,13 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             #proxy-legal-template-doc,
             #complaints-official-book-printable,
             #single-warning-letter-printable,
-            #maintenance-official-log-printable {
+            #maintenance-official-log-printable,
+            #printable-community-payroll-slip,
+            #printable-community-monthly-payroll-sheet,
+            #printable-community-previred-sheet,
+            #printable-community-staff-roster,
+            #printable-community-labor-contract,
+            #printable-community-riohs-document {
               border: none !important;
               border-radius: 0 !important;
               padding: 0 !important;
@@ -404,7 +415,11 @@ export const downloadHtmlDocument = (elementOrId, fileName = 'documento.html') =
     .replace(/src="brand\//g, `src="${origin}/brand/`);
 
   const activePdfStyle = getActivePdfStyle({}, targetEl);
-  const hasDossierPages = contentHtml.includes('dossier-page');
+  let hasDossierPages = contentHtml.includes('dossier-page') || Boolean(targetEl?.classList?.contains('dossier-page'));
+  if (targetEl?.classList?.contains('dossier-page') && !contentHtml.includes('dossier-page')) {
+    contentHtml = `<div class="${targetEl.className}">${contentHtml}</div>`;
+    hasDossierPages = true;
+  }
   const visualStyleCss = buildPdfVisualStyleCss(activePdfStyle, hasDossierPages);
 
   const existingStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))

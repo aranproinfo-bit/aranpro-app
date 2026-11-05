@@ -82,7 +82,13 @@
 #proxy-legal-template-doc,
 #complaints-official-book-printable,
 #single-warning-letter-printable,
-#maintenance-official-log-printable {
+#maintenance-official-log-printable,
+#printable-community-payroll-slip,
+#printable-community-monthly-payroll-sheet,
+#printable-community-previred-sheet,
+#printable-community-staff-roster,
+#printable-community-labor-contract,
+#printable-community-riohs-document {
   border-top: none !important;
   border-right: none !important;
   border-bottom: none !important;
