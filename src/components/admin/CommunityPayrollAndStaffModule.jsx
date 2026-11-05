@@ -482,26 +482,26 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
   );
 
   // Helper para firma del administrador con firma manuscrita digital subida + timbre oficial ARANPRO
-  const renderAdminSignatureBlock = (sublabel = 'POR LA ADMINISTRACIÓN DELEGADA (LEY N° 21.442)') => {
+  const renderAdminSignatureBlock = (sublabel = 'POR LA ADMINISTRACIÓN DELEGADA (LEY N° 21.442)', compact = false) => {
     const adminSignature = companySettings?.signatureDataUrl || companySettings?.signature || companySettings?.digitalSignature || '';
     const adminScale = Number(companySettings?.signatureScale) || 1.35;
     return (
       <div className="space-y-1 relative text-center min-w-[240px]">
-        <div className="h-16 flex items-end justify-center mb-1 relative overflow-visible">
+        <div className={`${compact ? 'h-11' : 'h-16'} flex items-end justify-center mb-1 relative overflow-visible`}>
           {adminSignature ? (
             <img
               src={adminSignature}
               alt="Firma Administrador"
-              className="h-14 max-h-16 w-auto max-w-[220px] object-contain mx-auto"
+              className={`${compact ? 'h-10 max-h-12' : 'h-14 max-h-16'} w-auto max-w-[220px] object-contain mx-auto`}
               style={{ transform: `scale(${adminScale})`, transformOrigin: 'bottom center' }}
             />
           ) : (
-            <div className="h-12 flex items-center justify-center">
+            <div className={`${compact ? 'h-9' : 'h-12'} flex items-center justify-center`}>
               <span className="text-[11px] text-slate-400 italic">Firma Administrador Registrada</span>
             </div>
           )}
           <div className="absolute right-0 bottom-0 pointer-events-none">
-            <AranproOfficialSeal size={55} showVerificationText={false} />
+            <AranproOfficialSeal size={compact ? 44 : 55} showVerificationText={false} />
           </div>
         </div>
         <div className="border-t-[1.5px] border-slate-800 pt-1.5">
@@ -1673,7 +1673,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       printDocumentDirectly(
                         'printable-community-payroll-slip',
                         `ARANPRO_Liquidacion_${selectedWorkerForSlip.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
-                        { pdfStyle }
+                        { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
                       )
                     }
                     className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -1695,129 +1695,129 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
                 <div id="printable-community-payroll-slip" className="print-area">
                   <div
-                    className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px]"
+                    className="dossier-page bg-white p-5 md:p-6 pl-7 md:pl-9 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px]"
                     data-pdf-style={pdfStyle}
                   >
-                    <div className="space-y-4">
+                    <div className="space-y-2.5">
                       {/* Cabecera Oficial ARANPRO */}
                       {renderAranproPdfHeader('DIRECCIÓN DEL TRABAJO (DT)', 'LIQUIDACIÓN DE REMUNERACIONES', `LIQ-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
 
                 {/* Datos del Empleador y Periodo */}
-                <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px]">
+                <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[10.5px]">
                   <div>
-                    <span className="text-slate-500 block uppercase text-[10px] font-bold">Empleador (Comunidad):</span>
+                    <span className="text-slate-500 block uppercase text-[9.5px] font-bold">Empleador (Comunidad):</span>
                     <strong className="text-slate-900 font-bold block">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</strong>
                     <span className="text-slate-600 block">RUT Patronal: <strong className="font-mono">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong></span>
                     <span className="text-slate-600 block">Dirección: {currentCommunity.address || 'Camino San Ramón 4500, La Serena'}</span>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-slate-500 block uppercase text-[10px] font-bold">Periodo de Liquidación:</span>
-                    <strong className="text-sm font-black text-slate-900 block">{periodLongName}</strong>
+                    <span className="text-slate-500 block uppercase text-[9.5px] font-bold">Periodo de Liquidación:</span>
+                    <strong className="text-xs font-black text-slate-900 block">{periodLongName}</strong>
                     <span className="text-slate-700 block font-bold">Días Trabajados: {slip.daysWorked} Días</span>
-                    <span className="text-slate-500 block text-[10px]">Giro: Comunidad de Copropietarios (Ley 21.442)</span>
+                    <span className="text-slate-500 block text-[9.5px]">Giro: Comunidad de Copropietarios (Ley 21.442)</span>
                   </div>
                 </div>
 
                 {/* Ficha del Trabajador */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 bg-white rounded-xl border border-slate-200 text-[11px]">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-2.5 bg-white rounded-xl border border-slate-200 text-[10.5px]">
                   <div>
-                    <span className="text-slate-500 block">Nombre Trabajador:</span>
+                    <span className="text-slate-500 block text-[9.5px]">Nombre Trabajador:</span>
                     <strong className="text-slate-900 font-bold block">{selectedWorkerForSlip.name}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">RUT:</span>
+                    <span className="text-slate-500 block text-[9.5px]">RUT:</span>
                     <strong className="font-mono text-slate-900 block">{selectedWorkerForSlip.rut}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Cargo:</span>
+                    <span className="text-slate-500 block text-[9.5px]">Cargo:</span>
                     <strong className="text-slate-900 block">{selectedWorkerForSlip.role}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Fecha Ingreso:</span>
+                    <span className="text-slate-500 block text-[9.5px]">Fecha Ingreso:</span>
                     <strong className="font-mono text-slate-900 block">{selectedWorkerForSlip.startDate}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">AFP:</span>
+                    <span className="text-slate-500 block text-[9.5px]">AFP:</span>
                     <strong className="text-slate-900 block">{selectedWorkerForSlip.afpName} ({slip.afpRate}%)</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Salud:</span>
+                    <span className="text-slate-500 block text-[9.5px]">Salud:</span>
                     <strong className="text-slate-900 block">{selectedWorkerForSlip.healthName}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Jornada Semanal:</span>
+                    <span className="text-slate-500 block text-[9.5px]">Jornada Semanal:</span>
                     <strong className="text-slate-900 block">{selectedWorkerForSlip.weeklyHours || 44} Horas</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Tipo Contrato:</span>
+                    <span className="text-slate-500 block text-[9.5px]">Tipo Contrato:</span>
                     <strong className="text-slate-900 block">{selectedWorkerForSlip.contractType}</strong>
                   </div>
                 </div>
 
                 {/* Detalle de Haberes vs Descuentos */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   {/* HABERES */}
                   <div className="border border-slate-300 rounded-xl overflow-hidden">
-                    <div className="bg-[#0F3D2E] text-white px-3 py-2 font-black uppercase text-[11px] flex justify-between">
+                    <div className="bg-[#0F3D2E] text-white px-2.5 py-1.5 font-black uppercase text-[10px] flex justify-between">
                       <span>1. Haberes (Imponibles y No Imponibles)</span>
                       <span>Monto (CLP)</span>
                     </div>
-                    <table className="w-full text-[11px]">
+                    <table className="w-full text-[10px]">
                       <tbody className="divide-y divide-slate-100">
                         <tr>
-                          <td className="p-2 text-slate-700">Sueldo Base Mensual ({slip.daysWorked} Días)</td>
-                          <td className="p-2 text-right font-mono font-bold">{formatCLP(slip.proratedBase)}</td>
+                          <td className="p-1.5 text-slate-700">Sueldo Base Mensual ({slip.daysWorked} Días)</td>
+                          <td className="p-1.5 text-right font-mono font-bold">{formatCLP(slip.proratedBase)}</td>
                         </tr>
                         {slip.gratification > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-700">Gratificación Legal Art. 50 (25% Tope)</td>
-                            <td className="p-2 text-right font-mono font-bold">{formatCLP(slip.gratification)}</td>
+                            <td className="p-1.5 text-slate-700">Gratificación Legal Art. 50 (25% Tope)</td>
+                            <td className="p-1.5 text-right font-mono font-bold">{formatCLP(slip.gratification)}</td>
                           </tr>
                         )}
                         {slip.overtimeAmount > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-700">Horas Extraordinarias al 50% ({slip.overtimeHours} hrs)</td>
-                            <td className="p-2 text-right font-mono font-bold">{formatCLP(slip.overtimeAmount)}</td>
+                            <td className="p-1.5 text-slate-700">Horas Extraordinarias al 50% ({slip.overtimeHours} hrs)</td>
+                            <td className="p-1.5 text-right font-mono font-bold">{formatCLP(slip.overtimeAmount)}</td>
                           </tr>
                         )}
                         {slip.contractualNightBonus > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-700">Bono Turno Nocturno</td>
-                            <td className="p-2 text-right font-mono font-bold">{formatCLP(slip.contractualNightBonus)}</td>
+                            <td className="p-1.5 text-slate-700">Bono Turno Nocturno</td>
+                            <td className="p-1.5 text-right font-mono font-bold">{formatCLP(slip.contractualNightBonus)}</td>
                           </tr>
                         )}
                         {slip.contractualResponsibilityBonus > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-700">Bono de Responsabilidad</td>
-                            <td className="p-2 text-right font-mono font-bold">{formatCLP(slip.contractualResponsibilityBonus)}</td>
+                            <td className="p-1.5 text-slate-700">Bono de Responsabilidad</td>
+                            <td className="p-1.5 text-right font-mono font-bold">{formatCLP(slip.contractualResponsibilityBonus)}</td>
                           </tr>
                         )}
                         {slip.extraTaxableBonus > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-700">Otros Bonos Imponibles</td>
-                            <td className="p-2 text-right font-mono font-bold">{formatCLP(slip.extraTaxableBonus)}</td>
+                            <td className="p-1.5 text-slate-700">Otros Bonos Imponibles</td>
+                            <td className="p-1.5 text-right font-mono font-bold">{formatCLP(slip.extraTaxableBonus)}</td>
                           </tr>
                         )}
                         <tr className="bg-slate-50 font-black text-slate-900">
-                          <td className="p-2 uppercase text-[10px]">Total Imponible:</td>
-                          <td className="p-2 text-right font-mono">{formatCLP(slip.totalTaxable)}</td>
+                          <td className="p-1.5 uppercase text-[9.5px]">Total Imponible:</td>
+                          <td className="p-1.5 text-right font-mono">{formatCLP(slip.totalTaxable)}</td>
                         </tr>
                         {slip.colacion > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-600">Asignación de Colación (No Imponible)</td>
-                            <td className="p-2 text-right font-mono">{formatCLP(slip.colacion)}</td>
+                            <td className="p-1.5 text-slate-600">Asignación de Colación (No Imponible)</td>
+                            <td className="p-1.5 text-right font-mono">{formatCLP(slip.colacion)}</td>
                           </tr>
                         )}
                         {slip.movilizacion > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-600">Asignación de Movilización (No Imponible)</td>
-                            <td className="p-2 text-right font-mono">{formatCLP(slip.movilizacion)}</td>
+                            <td className="p-1.5 text-slate-600">Asignación de Movilización (No Imponible)</td>
+                            <td className="p-1.5 text-right font-mono">{formatCLP(slip.movilizacion)}</td>
                           </tr>
                         )}
                         <tr className="bg-slate-100 font-black text-slate-900 border-t border-slate-300">
-                          <td className="p-2.5 uppercase">TOTAL HABERES BRUTOS:</td>
-                          <td className="p-2.5 text-right font-mono text-xs">{formatCLP(slip.totalGross)}</td>
+                          <td className="p-2 uppercase text-[10.5px]">TOTAL HABERES BRUTOS:</td>
+                          <td className="p-2 text-right font-mono text-[11px]">{formatCLP(slip.totalGross)}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1825,45 +1825,45 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
                   {/* DESCUENTOS */}
                   <div className="border border-slate-300 rounded-xl overflow-hidden">
-                    <div className="bg-[#0F3D2E] text-white px-3 py-2 font-black uppercase text-[11px] flex justify-between">
+                    <div className="bg-[#0F3D2E] text-white px-2.5 py-1.5 font-black uppercase text-[10px] flex justify-between">
                       <span>2. Descuentos Legales y Varios</span>
                       <span>Monto (CLP)</span>
                     </div>
-                    <table className="w-full text-[11px]">
+                    <table className="w-full text-[10px]">
                       <tbody className="divide-y divide-slate-100">
                         <tr>
-                          <td className="p-2 text-slate-700">Cotización Previsional AFP ({slip.afpRate}%)</td>
-                          <td className="p-2 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.afpAmount)}</td>
+                          <td className="p-1.5 text-slate-700">Cotización Previsional AFP ({slip.afpRate}%)</td>
+                          <td className="p-1.5 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.afpAmount)}</td>
                         </tr>
                         <tr>
-                          <td className="p-2 text-slate-700">Cotización Salud ({slip.healthRate}%)</td>
-                          <td className="p-2 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.healthAmount)}</td>
+                          <td className="p-1.5 text-slate-700">Cotización Salud ({slip.healthRate}%)</td>
+                          <td className="p-1.5 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.healthAmount)}</td>
                         </tr>
                         {slip.afcWorkerAmount > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-700">Seguro de Cesantía AFC Trabajador (0.6%)</td>
-                            <td className="p-2 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.afcWorkerAmount)}</td>
+                            <td className="p-1.5 text-slate-700">Seguro de Cesantía AFC Trabajador (0.6%)</td>
+                            <td className="p-1.5 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.afcWorkerAmount)}</td>
                           </tr>
                         )}
                         <tr className="bg-slate-50 font-black text-slate-900">
-                          <td className="p-2 uppercase text-[10px]">Total Leyes Sociales:</td>
-                          <td className="p-2 text-right font-mono text-rose-800">-{formatCLP(slip.totalPrevisionalDiscounts)}</td>
+                          <td className="p-1.5 uppercase text-[9.5px]">Total Leyes Sociales:</td>
+                          <td className="p-1.5 text-right font-mono text-rose-800">-{formatCLP(slip.totalPrevisionalDiscounts)}</td>
                         </tr>
                         {slip.advances > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-700">Anticipo de Sueldo / Quincena</td>
-                            <td className="p-2 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.advances)}</td>
+                            <td className="p-1.5 text-slate-700">Anticipo de Sueldo / Quincena</td>
+                            <td className="p-1.5 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.advances)}</td>
                           </tr>
                         )}
                         {slip.otherDiscounts > 0 && (
                           <tr>
-                            <td className="p-2 text-slate-700">Otros Descuentos Autorizados</td>
-                            <td className="p-2 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.otherDiscounts)}</td>
+                            <td className="p-1.5 text-slate-700">Otros Descuentos Autorizados</td>
+                            <td className="p-1.5 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.otherDiscounts)}</td>
                           </tr>
                         )}
                         <tr className="bg-slate-100 font-black text-slate-900 border-t border-slate-300">
-                          <td className="p-2.5 uppercase">TOTAL DESCUENTOS:</td>
-                          <td className="p-2.5 text-right font-mono text-xs text-rose-800">-{formatCLP(slip.totalDiscounts)}</td>
+                          <td className="p-2 uppercase text-[10.5px]">TOTAL DESCUENTOS:</td>
+                          <td className="p-2 text-right font-mono text-[11px] text-rose-800">-{formatCLP(slip.totalDiscounts)}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1871,27 +1871,27 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
 
                 {/* Recuadro Destacado: Líquido a Pagar en Palabras */}
-                <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-[#0F3D2E] flex flex-col md:flex-row items-center justify-between gap-3">
+                <div className="p-2.5 bg-emerald-50 rounded-xl border-2 border-[#0F3D2E] flex flex-col md:flex-row items-center justify-between gap-2">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] block">
+                    <span className="text-[9.5px] font-black uppercase tracking-wider text-[#0F3D2E] block">
                       ALCANCE LÍQUIDO A PAGAR (NETO):
                     </span>
-                    <strong className="text-xl font-black text-[#0F3D2E] font-mono block">
+                    <strong className="text-lg font-black text-[#0F3D2E] font-mono block">
                       {formatCLP(slip.netSalary)}
                     </strong>
-                    <span className="text-[11px] text-emerald-900 font-bold block">
+                    <span className="text-[10px] text-emerald-900 font-bold block">
                       SON: {slip.netSalaryInWords}
                     </span>
                   </div>
 
-                  <div className="text-right text-[11px] text-slate-600">
+                  <div className="text-right text-[10px] text-slate-600">
                     <span className="block font-bold text-slate-800">Medio de Pago: Transferencia Electrónica</span>
                     <strong className="block text-slate-900 font-mono">{selectedWorkerForSlip.bankName} • {selectedWorkerForSlip.accountNumber || 'Cuenta Registrada'}</strong>
                   </div>
                 </div>
 
                 {/* Aportes Patronales (Costo Empleador - No descontables al trabajador) */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[10px] flex items-center justify-between gap-3">
+                <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-[9.5px] flex items-center justify-between gap-2">
                   <span className="font-bold text-slate-700">
                     Aportes Patronales Empleador (Costo Comunidad): SIS 1.49% ({formatCLP(slip.employerSisAmount)}) • AFC Empleador 2.4% ({formatCLP(slip.employerAfcAmount)}) • Mutual 0.93% ({formatCLP(slip.employerMutualAmount)})
                   </span>
@@ -1902,23 +1902,23 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               {/* Firmas Legales y Pie Institucional anclados al fondo */}
-              <div className="mt-auto space-y-4 pt-6">
-                <div className="grid grid-cols-2 gap-12 text-center text-xs">
+              <div className="mt-auto space-y-2 pt-2">
+                <div className="grid grid-cols-2 gap-8 text-center text-xs">
                   <div className="space-y-1 text-center">
-                    <div className="h-16 flex items-end justify-center mb-1">
+                    <div className="h-11 flex items-end justify-center mb-1">
                       {/* Espacio para firma manuscrita del trabajador */}
                     </div>
-                    <div className="border-t-[1.5px] border-slate-800 pt-1.5">
+                    <div className="border-t-[1.5px] border-slate-800 pt-1">
                       <strong className="block text-slate-900 font-black text-xs leading-tight">{selectedWorkerForSlip.name}</strong>
                       <p className="text-[9.5px] text-slate-600 font-mono">RUT: {selectedWorkerForSlip.rut}</p>
                       <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">FIRMA DEL TRABAJADOR</p>
-                      <p className="text-[8.5px] text-slate-400 mt-0.5 italic leading-tight">
+                      <p className="text-[8px] text-slate-400 mt-0.5 italic leading-tight">
                         "Recibí conforme el líquido indicado en esta liquidación, sin tener cargo ni reclamo alguno que formular respecto de las remuneraciones del periodo."
                       </p>
                     </div>
                   </div>
 
-                  {renderAdminSignatureBlock('EN REPRESENTACIÓN DE LA COMUNIDAD (ART. 20 LEY 21.442)')}
+                  {renderAdminSignatureBlock('EN REPRESENTACIÓN DE LA COMUNIDAD (ART. 20 LEY 21.442)', true)}
                 </div>
 
                 {renderAranproPdfFooter(1, 1, 'Liquidación Individual de Remuneraciones DT')}
@@ -1954,7 +1954,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     printDocumentDirectly(
                       'printable-community-monthly-payroll-sheet',
                       `ARANPRO_Planilla_Remuneraciones_${currentCommunity.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
-                      { pdfStyle }
+                      { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -1976,7 +1976,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
               <div id="printable-community-monthly-payroll-sheet" className="print-area">
                 <div
-                  className="dossier-page bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[980px]"
+                  className="dossier-page bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[980px]"
                   data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">
@@ -2116,7 +2116,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     printDocumentDirectly(
                       'printable-community-previred-sheet',
                       `ARANPRO_Previred_${currentCommunity.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
-                      { pdfStyle }
+                      { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -2138,7 +2138,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
               <div id="printable-community-previred-sheet" className="print-area">
                 <div
-                  className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[880px]"
+                  className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[880px]"
                   data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">
@@ -2284,7 +2284,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     printDocumentDirectly(
                       'printable-community-staff-roster',
                       `ARANPRO_Nomina_Personal_${currentCommunity.name.replace(/\s+/g, '_')}`,
-                      { pdfStyle }
+                      { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -2306,7 +2306,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
               <div id="printable-community-staff-roster" className="print-area">
                 <div
-                  className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[880px]"
+                  className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[880px]"
                   data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">
@@ -2414,7 +2414,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     printDocumentDirectly(
                       'printable-community-labor-contract',
                       `ARANPRO_Contrato_Trabajo_${selectedWorkerForContract.name.replace(/\s+/g, '_')}`,
-                      { pdfStyle }
+                      { pdfStyle, fitPage: false, margin: '4mm 6mm 4mm 6mm' }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -2437,7 +2437,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div id="printable-community-labor-contract" className="space-y-6 print-area">
                 {/* ==================== PÁGINA 1: COMPARECENCIA Y CLÁUSULAS 1 A 3 ==================== */}
                 <div
-                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
                   data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-3.5">
@@ -2499,7 +2499,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
                 {/* ==================== PÁGINA 2: CLÁUSULAS 4 A 8 Y FIRMAS LEGALES ==================== */}
                 <div
-                  className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
                   data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-3.5">
@@ -2617,7 +2617,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     printDocumentDirectly(
                       'printable-community-riohs-document',
                       `ARANPRO_RIOHS_${currentCommunity.name.replace(/\s+/g, '_')}`,
-                      { pdfStyle }
+                      { pdfStyle, fitPage: false, margin: '4mm 6mm 4mm 6mm' }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -2640,7 +2640,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div id="printable-community-riohs-document" className="space-y-6 print-area">
                 {/* ==================== PÁGINA 1: DISPOSICIONES, JORNADA Y OBLIGACIONES ==================== */}
                 <div
-                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
                   data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">
@@ -2697,7 +2697,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
                 {/* ==================== PÁGINA 2: LEY KARIN, SEGURIDAD, EPP, SANCIONES Y FIRMAS ==================== */}
                 <div
-                  className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1020px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
                   data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">

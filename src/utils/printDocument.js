@@ -167,13 +167,17 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
 
     const fitPageStyle = options.fitPage
       ? `
-      .print-wrapper {
+      .print-wrapper, .dossier-page {
         page-break-after: avoid !important;
         page-break-inside: avoid !important;
+        break-after: avoid !important;
+        break-inside: avoid !important;
+        max-height: 252mm !important;
+        overflow: hidden !important;
       }
       @page {
         size: ${options.pageSize || 'letter portrait'};
-        margin: ${options.margin || '5mm 6mm 5mm 6mm'};
+        margin: ${options.margin || '4mm 6mm 4mm 6mm'};
       }
     `
       : '';
@@ -270,8 +274,9 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
               z-index: 1;
               box-sizing: border-box !important;
               width: 100% !important;
-              height: 256mm !important;
-              max-height: 256mm !important;
+              min-height: 0 !important;
+              height: 250mm !important;
+              max-height: 252mm !important;
               display: flex !important;
               flex-direction: column !important;
               justify-content: space-between !important;
@@ -279,15 +284,22 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
               break-after: page !important;
               page-break-inside: avoid !important;
               break-inside: avoid !important;
-              padding: 10px 8px 10px 18px !important;
+              padding: 5mm 4mm 4mm 16mm !important;
+              margin: 0 !important;
               border: none !important;
               border-radius: 0 !important;
               overflow: hidden !important;
               background-color: transparent !important;
             }
+            .dossier-page:only-child,
             .dossier-page:last-child {
               page-break-after: avoid !important;
               break-after: avoid !important;
+            }
+            .space-y-4 > :not([hidden]) ~ :not([hidden]),
+            .space-y-5 > :not([hidden]) ~ :not([hidden]),
+            .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+              margin-top: 0 !important;
             }
 
             /* Quitar contenedores cerrados de TODOS los 32 documentos imprimibles del sistema */
