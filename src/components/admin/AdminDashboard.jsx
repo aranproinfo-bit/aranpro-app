@@ -11,6 +11,7 @@ import { CommitteeMeetingsAndLogModule } from './CommitteeMeetingsAndLogModule';
 import { OfficialCertificatesModule } from './OfficialCertificatesModule';
 import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule';
 import { CommunitySettingsAndLegalTab } from './CommunitySettingsAndLegalTab';
+import { CommunityPayrollAndStaffModule } from './CommunityPayrollAndStaffModule';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { UnitAccountStatementView } from './UnitAccountStatementView';
 import { EmailDispatchTrackingModule } from './EmailDispatchTrackingModule';
@@ -383,6 +384,7 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
 
   // --- Estados para Directorio de Proveedores y Contratistas ---
   const [expensesSubTab, setExpensesSubTab] = useState('gastos'); // 'gastos' | 'proveedores' | 'historico' | 'presupuesto' | 'mantenciones'
+  const [remuneracionesSubTab, setRemuneracionesSubTab] = useState('nomina'); // 'nomina' | 'liquidaciones' | 'previred' | 'gastos_comunes' | 'contratos'
   const [asambleasSubTab, setAsambleasSubTab] = useState('asamblea'); // 'asamblea' | 'consultas' | 'actas' | 'poderes'
   const [comunicadosSubTab, setComunicadosSubTab] = useState('mural'); // 'mural' | 'reclamos'
   const [comiteSubTab, setComiteSubTab] = useState('reuniones'); // 'reuniones' | 'novedades' | 'tareas' | 'directorio'
@@ -2876,6 +2878,7 @@ _Administración ARANPRO_`;
     { id: 'resumen', label: 'Dashboard Financiero', shortLabel: 'Dashboard', icon: BarChart3, badge: null },
     { id: 'unidades', label: 'Unidades (Casas)', shortLabel: 'Unidades', icon: Home, badge: pendingPaymentsCount > 0 ? `${pendingPaymentsCount} por validar` : currentCommunity?.units?.length || 0, alertBadge: pendingPaymentsCount > 0 },
     { id: 'gastos', label: 'Gastos & Respaldos', shortLabel: 'Gastos', icon: FileText, badge: currentCommunity?.expenses?.length || 0, alertBadge: urgentMaintCount > 0 },
+    { id: 'remuneraciones', label: 'RR.HH. & Remuneraciones', shortLabel: 'Remuneraciones', icon: Users, badge: (currentCommunity?.staff?.length || 0) > 0 ? `${currentCommunity.staff.length} Pers.` : 'Personal' },
     { id: 'emision', label: 'Cierre y Cobro del Mes', shortLabel: 'Cierre Mes', icon: RefreshCw, badge: preClosingAudit?.hasCriticalBlock ? 'Alerta' : currentCommunity?.activePeriod?.status || 'Activo', alertBadge: preClosingAudit?.hasCriticalBlock },
     { id: 'comite', label: 'Comité de Administración', shortLabel: 'Comité', icon: ClipboardList, badge: pendingCommitteeTasksCount > 0 ? `${pendingCommitteeTasksCount} pendientes` : 'Art. 17°', alertBadge: pendingCommitteeTasksCount > 0 },
     { id: 'asambleas', label: 'Asambleas & Quórum', shortLabel: 'Asambleas', icon: Users, badge: 'Ley 21.442' },
@@ -3024,6 +3027,9 @@ _Administración ARANPRO_`;
                   setActiveTab(tab.id);
                   if (tab.id === 'gastos' && !expensesSubTab) {
                     setExpensesSubTab('gastos');
+                  }
+                  if (tab.id === 'remuneraciones' && !remuneracionesSubTab) {
+                    setRemuneracionesSubTab('nomina');
                   }
                   if (tab.id === 'unidades' && !unitsSubTab) {
                     setUnitsSubTab('nomina');
@@ -3338,6 +3344,146 @@ _Administración ARANPRO_`;
                         : urgentMaintCount > 0 ? 'bg-rose-500 text-white font-black animate-pulse' : 'bg-emerald-100 text-emerald-800'
                     }`}>
                       {currentCommunity?.preventiveMaintenances?.length || 5}
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* SUB-ÍNDICES DE RR.HH. & REMUNERACIONES EN LA BARRA LATERAL */}
+              {tab.id === 'remuneraciones' && (!sidebarCollapsed || isMobile) && (
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'remuneraciones' ? 'block' : 'hidden'}`}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('nomina');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'nomina'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Users className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'nomina' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">1. Nómina Personal</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'nomina'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {currentCommunity?.staff?.length || 0}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('liquidaciones');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'liquidaciones'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <FileSpreadsheet className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'liquidaciones' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">2. Liquidaciones DT</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'liquidaciones'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      Mes
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('previred');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'previred'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Landmark className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'previred' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">3. Planilla Previred</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'previred'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      Día 13
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('gastos_comunes');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <DollarSign className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">4. Traspaso a Gastos</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      1-Clic
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('contratos');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'contratos'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <FileText className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'contratos' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">5. Contratos DT</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'contratos'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      Leyes
                     </span>
                   </button>
                 </div>
@@ -11018,6 +11164,15 @@ _Administración ARANPRO_`;
             </div>
             )}
           </div>
+        )}
+
+        {/* PESTAÑA: RR.HH. & REMUNERACIONES DEL CONDOMINIO (LEY 21.442 / DT) */}
+        {activeTab === 'remuneraciones' && currentCommunity && (
+          <CommunityPayrollAndStaffModule
+            currentCommunity={currentCommunity}
+            activeSubTab={remuneracionesSubTab}
+            onSubTabChange={setRemuneracionesSubTab}
+          />
         )}
 
         {/* PESTAÑA: COMITÉ DE ADMINISTRACIÓN - LIBRO DE REUNIONES, NOVEDADES & TAREAS (LEY 21.442) */}

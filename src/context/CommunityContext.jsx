@@ -29,6 +29,8 @@ export const CommunityProvider = ({ children }) => {
             periodHistory: initialMatch?.periodHistory || [],
             announcements: initialMatch?.announcements || [],
             documents: initialMatch?.documents || [],
+            staff: (Array.isArray(c.staff) && c.staff.length > 0) ? c.staff : (initialMatch?.staff || []),
+            payrollHistory: (Array.isArray(c.payrollHistory) && c.payrollHistory.length > 0) ? c.payrollHistory : (initialMatch?.payrollHistory || []),
             ...c,
             units: (c.units || []).map(u => {
               const initUnit = initialMatch?.units?.find(iu => iu.number === u.number || iu.id === u.id);
