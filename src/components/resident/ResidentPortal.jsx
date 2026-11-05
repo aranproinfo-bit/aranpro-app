@@ -11,7 +11,7 @@ import {
   Download, ArrowUpRight, DollarSign, FileText, Send, 
   CreditCard, Copy, Check, ShieldCheck, ChevronDown, ChevronUp, LogOut,
   Megaphone, FolderOpen, KeyRound, Printer, Menu, X, Globe, Shield, Plus,
-  FileCheck
+  FileCheck, HelpCircle, MessageCircle, Clock, CheckCheck, Sparkles
 } from 'lucide-react';
 
 export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) => {
@@ -29,6 +29,8 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [activePaymentReceipt, setActivePaymentReceipt] = useState(null);
   const [copiedBank, setCopiedBank] = useState(false);
+  const [copiedItem, setCopiedItem] = useState(''); // 'account' | 'rut' | 'email' | 'amount'
+  const [showHowIsCalculated, setShowHowIsCalculated] = useState(false);
 
   // Formulario para informar pago
   const [paymentForm, setPaymentForm] = useState({
@@ -77,10 +79,18 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
   const unitPayments = (community.paymentReports || []).filter(p => p.unitNumber === unit.number);
 
   const handleCopyBankInfo = () => {
-    const text = `Datos de Transferencia Condominio:\nBanco: ${community.bankInfo?.bank}\nTipo: ${community.bankInfo?.accountType}\nN° Cuenta: ${community.bankInfo?.accountNumber}\nTitular: ${community.bankInfo?.holderName}\nRUT: ${community.bankInfo?.rut}\nCorreo: ${community.bankInfo?.email}`;
+    const text = `Datos de Transferencia ${community.name}:\nBanco: ${community.bankInfo?.bank || 'Banco Estado'}\nTipo: ${community.bankInfo?.accountType || 'Cuenta Corriente'}\nN° Cuenta: ${community.bankInfo?.accountNumber || ''}\nTitular: ${community.bankInfo?.holderName || community.name}\nRUT: ${community.bankInfo?.rut || ''}\nEmail: ${community.bankInfo?.email || 'contacto@aranpro.cl'}\nMonto exacto: ${formatCLP(totalToPay > 0 ? totalToPay : currentCharge)}\nAsunto obligatorio: Casa ${unit.number}`;
     navigator.clipboard.writeText(text);
     setCopiedBank(true);
-    setTimeout(() => setCopiedBank(false), 2500);
+    setCopiedItem('all');
+    setTimeout(() => { setCopiedBank(false); setCopiedItem(''); }, 2500);
+  };
+
+  const handleCopySingleField = (text, fieldKey) => {
+    if (!text) return;
+    navigator.clipboard.writeText(String(text).trim());
+    setCopiedItem(fieldKey);
+    setTimeout(() => setCopiedItem(''), 2000);
   };
 
   const handlePaymentSubmit = (e) => {
@@ -674,6 +684,263 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                   </button>
                 </div>
 
+              </div>
+
+              {/* 1.1 BARRA VISUAL DE ESTADO: EL CAMINO DE TU GASTO COMÚN */}
+              <div className="mt-5 p-4 bg-white/90 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black uppercase text-[#0F3D2E] tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[#D4B895]" />
+                    El Camino de tu Gasto Común ({getMonthName(community.activePeriod.month)} {community.activePeriod.year})
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-semibold">Paso a paso en tiempo real</span>
+                </div>
+
+                {(() => {
+                  const hasReported = unitPayments.length > 0;
+                  const hasApproved = unitPayments.some(p => p.status === 'aprobado') || isUpToDate;
+                  const hasPendingApproval = unitPayments.some(p => p.status === 'pendiente') && !hasApproved;
+
+                  const steps = [
+                    {
+                      label: '1. Colilla Emitida',
+                      desc: `Por Administración • ${formatCLP(fin.totalBilledThisPeriod)}`,
+                      completed: true,
+                      current: !hasReported && !hasApproved
+                    },
+                    {
+                      label: '2. Transferencia Informada',
+                      desc: hasReported ? `${unitPayments[0]?.transferNumber ? `N° ${unitPayments[0].transferNumber}` : 'Comprobante recibido'}` : 'Pendiente de pago',
+                      completed: hasReported || hasApproved,
+                      current: hasPendingApproval
+                    },
+                    {
+                      label: '3. Validado por Administración',
+                      desc: hasApproved ? 'Conciliado con éxito' : (hasPendingApproval ? 'En revisión bancaria' : 'En espera'),
+                      completed: hasApproved,
+                      current: false
+                    },
+                    {
+                      label: '4. Recibo Oficial Emitido',
+                      desc: hasApproved ? 'Foliado y descargable' : 'Al validar pago',
+                      completed: hasApproved,
+                      current: false
+                    }
+                  ];
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
+                      {steps.map((st, sIdx) => (
+                        <div
+                          key={sIdx}
+                          className={`p-2.5 rounded-xl border text-xs transition-all ${
+                            st.completed
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                              : st.current
+                              ? 'bg-amber-50 border-amber-300 text-amber-900 ring-1 ring-amber-300'
+                              : 'bg-slate-50 border-slate-200 text-slate-400'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-[11px]">{st.label}</span>
+                            {st.completed ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            ) : st.current ? (
+                              <Clock className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
+                            ) : (
+                              <div className="w-3.5 h-3.5 rounded-full border border-slate-300" />
+                            )}
+                          </div>
+                          <p className="text-[10px] leading-tight opacity-90">{st.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* 1.2 WIDGET INTELIGENTE DE TRANSFERENCIA RÁPIDA (1-TAP COPY) */}
+              <div className="mt-4 p-4 bg-gradient-to-br from-emerald-50/80 to-[#F5F4EF] rounded-2xl border border-emerald-200/90 shadow-2xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200/60 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center shrink-0">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-[#0F3D2E]">
+                        Transferencia Rápida en 1 Toque (Listo para tu App de Banco)
+                      </h4>
+                      <p className="text-[11px] text-slate-600">
+                        Toca cualquier dato para copiarlo al instante a tu celular o computador:
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyBankInfo}
+                    className="px-3 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-[11px] font-black rounded-xl flex items-center gap-1.5 shadow-2xs cursor-pointer transition-transform active:scale-95 shrink-0"
+                  >
+                    {copiedItem === 'all' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5 text-[#D4B895]" />}
+                    <span>{copiedItem === 'all' ? '¡Todo Copiado!' : 'Copiar Todos los Datos'}</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  {/* N° Cuenta */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopySingleField(community.bankInfo?.accountNumber, 'account')}
+                    className="p-2.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-400 text-left transition-colors cursor-pointer group shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
+                      <span>N° CUENTA</span>
+                      {copiedItem === 'account' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-700" />}
+                    </div>
+                    <span className="font-mono font-black text-slate-900 block truncate text-xs">
+                      {community.bankInfo?.accountNumber || 'Por configurar'}
+                    </span>
+                    <span className="text-[9px] text-emerald-700 font-semibold">
+                      {copiedItem === 'account' ? '✓ Copiado' : `${community.bankInfo?.bank || 'Banco Estado'}`}
+                    </span>
+                  </button>
+
+                  {/* RUT */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopySingleField(community.bankInfo?.rut, 'rut')}
+                    className="p-2.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-400 text-left transition-colors cursor-pointer group shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
+                      <span>RUT TITULAR</span>
+                      {copiedItem === 'rut' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-700" />}
+                    </div>
+                    <span className="font-mono font-black text-slate-900 block truncate text-xs">
+                      {community.bankInfo?.rut || '65.184.920-K'}
+                    </span>
+                    <span className="text-[9px] text-emerald-700 font-semibold">
+                      {copiedItem === 'rut' ? '✓ Copiado' : 'RUT Comunidad'}
+                    </span>
+                  </button>
+
+                  {/* Email */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopySingleField(community.bankInfo?.email || 'contacto@aranpro.cl', 'email')}
+                    className="p-2.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-400 text-left transition-colors cursor-pointer group shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
+                      <span>EMAIL COMPROBANTES</span>
+                      {copiedItem === 'email' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-700" />}
+                    </div>
+                    <span className="font-mono font-black text-slate-900 block truncate text-xs">
+                      {community.bankInfo?.email || 'contacto@aranpro.cl'}
+                    </span>
+                    <span className="text-[9px] text-emerald-700 font-semibold">
+                      {copiedItem === 'email' ? '✓ Copiado' : 'Destino oficial'}
+                    </span>
+                  </button>
+
+                  {/* Monto Exacto */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopySingleField(totalToPay > 0 ? totalToPay : currentCharge, 'amount')}
+                    className="p-2.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-400 text-left transition-colors cursor-pointer group shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
+                      <span>MONTO EXACTO</span>
+                      {copiedItem === 'amount' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-700" />}
+                    </div>
+                    <span className="font-mono font-black text-emerald-800 block truncate text-xs">
+                      {formatCLP(totalToPay > 0 ? totalToPay : currentCharge)}
+                    </span>
+                    <span className="text-[9px] text-emerald-700 font-semibold">
+                      {copiedItem === 'amount' ? '✓ Copiado' : `Asunto: Casa ${unit.number}`}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 1.3 EXPLICACIÓN SENCILLA PARA PRINCIPIANTES */}
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowHowIsCalculated(!showHowIsCalculated)}
+                  className="text-xs font-bold text-[#0F3D2E] hover:text-[#0A291F] flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-white/60 transition-colors cursor-pointer"
+                >
+                  <HelpCircle className="w-4 h-4 text-[#D4B895]" />
+                  <span>¿Cómo se calculó exactamente mi cobro de este mes?</span>
+                  {showHowIsCalculated ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {showHowIsCalculated && (
+                  <div className="mt-2 p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs text-xs space-y-2 animate-in fade-in">
+                    <p className="text-slate-700 leading-relaxed">
+                      El cobro de tu vivienda corresponde al prorrateo de los gastos comunes operacionales de la comunidad durante el período <strong>{getMonthName(community.activePeriod.month)} {community.activePeriod.year}</strong> según la <strong>Ley N° 21.442</strong>:
+                    </p>
+                    <ul className="space-y-1.5 text-slate-600 list-disc list-inside bg-slate-50 p-3 rounded-xl">
+                      <li>
+                        <strong>Gasto Base Común:</strong> {formatCLP(currentCharge)} (calculado según tu alícuota de copropiedad sobre las facturas de mantención, luz y servicios).
+                      </li>
+                      <li>
+                        <strong>Fondo de Reserva:</strong> {community.reserveFundPercentage}% obligatorio por Ley para imprevistos o emergencias de la comunidad.
+                      </li>
+                      {previousDebt > 0 && (
+                        <li className="text-rose-700 font-semibold">
+                          <strong>Saldo Anterior Pendiente:</strong> {formatCLP(previousDebt)} de períodos anteriores.
+                        </li>
+                      )}
+                      {extraCharge > 0 && (
+                        <li className="text-amber-800 font-semibold">
+                          <strong>Cobro Individual / Multa:</strong> {formatCLP(extraCharge)}.
+                        </li>
+                      )}
+                      {paidSoFar > 0 && (
+                        <li className="text-emerald-700 font-semibold">
+                          <strong>Abonos Realizados:</strong> Ya se han registrado {formatCLP(paidSoFar)} descontados de tu total.
+                        </li>
+                      )}
+                    </ul>
+                    <p className="text-[11px] text-slate-500 italic">
+                      Todos los comprobantes y facturas que respaldan este cálculo están disponibles para tu libre revisión en el botón <strong>"Ver Rendición de Gastos"</strong>.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* 1.4 CONTACTO RÁPIDO DIRECTO CON LA ADMINISTRACIÓN (WHATSAPP) */}
+              <div className="mt-4 p-3.5 bg-white/90 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <MessageCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-900">¿Tienes alguna duda sobre tu cobro o tu casa?</h5>
+                    <p className="text-[11px] text-slate-500">Estamos disponibles para ayudarte directamente por WhatsApp o correo oficial.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`https://wa.me/56987654321?text=${encodeURIComponent(
+                      `Hola Administración ARANPRO, soy ${unit.owner} de la Casa ${unit.number} de ${community.name}. Tengo una consulta sobre mi cobro de gasto común del mes.`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-2xs flex items-center gap-1.5 transition-colors"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>WhatsApp Administración</span>
+                  </a>
+                  <a
+                    href={`mailto:${community.email || community.bankInfo?.email || 'contacto@aranpro.cl'}?subject=${encodeURIComponent(
+                      `Consulta Gasto Común - Casa ${unit.number} • ${community.name}`
+                    )}`}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+                  >
+                    Email Oficial
+                  </a>
+                </div>
               </div>
 
               {/* Desglose separado: Gasto del Mes | Saldo Anterior | Cuota Deuda Repactada | Pagado / Saldo */}
