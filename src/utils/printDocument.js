@@ -124,21 +124,21 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             .bg-slate-50 { background-color: #f8fafc !important; }
             .bg-slate-100 { background-color: #f1f5f9 !important; }
 
-            /* Estructura estricta para páginas del Dossier de 3 páginas */
+            /* Estructura de páginas del Dossier: altura mínima de una hoja Carta; si el contenido
+               excede una hoja fluye a la siguiente (antes se recortaba con overflow:hidden). */
             .dossier-page {
               box-sizing: border-box !important;
               width: 100% !important;
               min-height: 254mm !important;
-              max-height: 254mm !important;
               display: flex !important;
               flex-direction: column !important;
               justify-content: space-between !important;
               page-break-after: always !important;
               break-after: page !important;
               padding: 2mm 0 !important;
-              overflow: hidden !important;
+              overflow: visible !important;
             }
-            .dossier-page.page-3 {
+            .dossier-page:last-child {
               page-break-after: avoid !important;
               break-after: avoid !important;
             }

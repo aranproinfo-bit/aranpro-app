@@ -184,17 +184,25 @@ export const CommunityProvider = ({ children }) => {
   // 5. Modal de visualización de respaldo / boleta
   const [activeReceipt, setActiveReceipt] = useState(null);
 
-  // Persistir cambios
+  // Persistir cambios (con protección: si localStorage llena su cuota, la app NO debe caerse)
+  const safeSetItem = (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (err) {
+      console.error(`[Persistencia] No se pudo guardar "${key}" en localStorage (¿cuota llena?):`, err);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem('condo_communities', JSON.stringify(communities));
+    safeSetItem('condo_communities', JSON.stringify(communities));
   }, [communities]);
 
   useEffect(() => {
-    localStorage.setItem('condo_company_settings', JSON.stringify(companySettings));
+    safeSetItem('condo_company_settings', JSON.stringify(companySettings));
   }, [companySettings]);
 
   useEffect(() => {
-    localStorage.setItem('condo_certificates', JSON.stringify(certificates));
+    safeSetItem('condo_certificates', JSON.stringify(certificates));
   }, [certificates]);
 
   useEffect(() => {

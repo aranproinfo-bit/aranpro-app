@@ -4,6 +4,11 @@ import { formatDate, formatRut, formatCLP, validateRut } from '../../utils/forma
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { AranproLogo } from '../common/MauranLogo';
+import { DocumentLibraryPanel } from './postulaciones/DocumentLibraryPanel';
+import { ReadinessPanel } from './postulaciones/ReadinessPanel';
+import { PipelinePanel } from './postulaciones/PipelinePanel';
+import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
+import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import {
   Building2, UserCheck, ShieldCheck, Award, FileText, CheckCircle2,
   AlertTriangle, Printer, Download, Share2, Search, Filter, Plus,
@@ -12,7 +17,7 @@ import {
   HardHat, BookOpen, FileCheck, Upload, RefreshCw, PenTool,
   HelpCircle, Settings, Smartphone, Layers, CheckSquare, MessageCircle,
   Paperclip, FileUp, QrCode, Presentation, Compass, ClipboardCheck,
-  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert
+  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert, Kanban
 } from 'lucide-react';
 
 export const CompanySettingsAndBackupModule = ({
@@ -124,12 +129,56 @@ export const CompanySettingsAndBackupModule = ({
     }
   ]);
 
-  // Lista de Documentos de Acreditación
+  // Lista Formal de Documentos de Acreditación Legal, Tributaria e Institucional (Ley 21.442)
   const [accreditationDocs, setAccreditationDocs] = useState(companySettings?.accreditationFiles || [
-    { id: 'acc-1', name: 'Certificado de Inscripción RNAC Minvu (Folio 48.912)', category: 'Minvu Ley 21.442', status: 'Vigente ★★★', date: '2025-01-15' },
-    { id: 'acc-2', name: 'Certificado de Título Técnico en Construcción', category: 'Título Profesional', status: 'Acreditado', date: '2018-12-20' },
-    { id: 'acc-3', name: 'Certificado de Alumno Regular - Construcción Civil', category: 'Formación Superior', status: 'Activo 2026', date: '2026-03-10' },
-    { id: 'acc-4', name: 'Certificado de Antecedentes para Fines Especiales', category: 'Registro Civil', status: 'Intachable', date: '2026-01-05' }
+    {
+      id: 'acc-1',
+      name: 'Certificado de Inscripción Vigente RNAC Minvu (Folio 48.912)',
+      category: 'rnac',
+      issuer: 'Ministerio de Vivienda y Urbanismo (Minvu)',
+      folio: '48.912',
+      issueDate: '2026-02-15',
+      expiryDate: '2027-02-15',
+      status: 'Vigente ★★★',
+      notes: 'Habilitación legal obligatoria Art. 82° Ley 21.442 a título oneroso sin sanciones registradas.',
+      includeInDossier: true
+    },
+    {
+      id: 'acc-2',
+      name: 'Certificado de Antecedentes para Fines Especiales',
+      category: 'identidad',
+      issuer: 'Servicio de Registro Civil e Identificación',
+      folio: 'RC-2026-8841',
+      issueDate: new Date(Date.now() - 15 * 86400000).toISOString().slice(0, 10),
+      expiryDate: new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10),
+      status: 'Intachable',
+      notes: 'Sin anotaciones en el Registro General de Condenas (exigencia Art. 84° Ley 21.442).',
+      includeInDossier: true
+    },
+    {
+      id: 'acc-3',
+      name: 'Carpeta Tributaria Electrónica / Inicio de Actividades SII',
+      category: 'tributario',
+      issuer: 'Servicio de Impuestos Internos (SII)',
+      folio: 'SII-76999888',
+      issueDate: '2026-01-20',
+      expiryDate: '2026-12-31',
+      status: 'Habilitado',
+      notes: 'Giro de administración de bienes raíces y condominios habilitado para facturación o boleta de honorarios.',
+      includeInDossier: true
+    },
+    {
+      id: 'acc-4',
+      name: 'Contrato Tipo de Prestación de Servicios de Administración (Ley 21.442)',
+      category: 'otros',
+      issuer: 'Departamento Legal ARANPRO',
+      folio: 'MOD-2026-V2',
+      issueDate: '2026-01-10',
+      expiryDate: '',
+      status: 'Vigente',
+      notes: 'Incluye cláusulas de SLA, visitas técnicas semanales, rendición mensual documentada (Art. 20°) y salida transparente.',
+      includeInDossier: true
+    }
   ]);
 
   // Solicitud de Cartas de Referencia a Miembros de Comités Actuales
@@ -140,6 +189,7 @@ export const CompanySettingsAndBackupModule = ({
       contactName: 'Carlos Morales Rojas',
       role: 'Presidente del Comité',
       phone: '+56988776655',
+      confirmed: true,
       status: 'Recomendación Favorable Otorgada',
       quote: 'Excelente gestión técnica y contable. ARANPRO resolvió en menos de 2 meses problemas históricos de bombas hidroneumáticas y morosidad que la administración anterior no pudo solucionar.'
     },
@@ -149,8 +199,47 @@ export const CompanySettingsAndBackupModule = ({
       contactName: 'Marcela Castillo Gómez',
       role: 'Tesorera del Comité',
       phone: '+56977665544',
+      confirmed: true,
       status: 'Recomendación Favorable Otorgada',
       quote: 'La plataforma digital ha traído una transparencia total. Cada factura y boleta del mes está visible en línea para los copropietarios.'
+    }
+  ]);
+
+  // Pipeline CRM de Postulaciones y Licitaciones Activas
+  const [postulationPipeline, setPostulationPipeline] = useState(companySettings?.postulationPipeline || [
+    {
+      id: 'post-demo-1',
+      condoName: 'Condominio Mirador de San Joaquín',
+      city: 'La Serena, Coquimbo',
+      unitsCount: 64,
+      contactName: 'Roberto Valdés (Presidente Comité)',
+      contactRole: 'Presidente del Comité',
+      contactPhone: '+56991234567',
+      contactEmail: 'comite.miradorsanjoaquin@gmail.com',
+      stage: 'dossier_enviado',
+      monthlyFeeCLP: 520000,
+      nextAction: 'Llamar para confirmar fecha de presentación ante el Comité',
+      nextActionDate: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
+      competitionNotes: 'Buscan administrador con conocimiento técnico por filtraciones en sala de bombas.',
+      createdAt: '2026-02-20',
+      updatedAt: '2026-03-01'
+    },
+    {
+      id: 'post-demo-2',
+      condoName: 'Edificio Costa Peñuelas II',
+      city: 'Coquimbo',
+      unitsCount: 92,
+      contactName: 'Claudia Pizarro (Secretaria Comité)',
+      contactRole: 'Secretaria del Comité',
+      contactPhone: '+56987654321',
+      contactEmail: 'directiva.costapenuelas@gmail.com',
+      stage: 'presentacion',
+      monthlyFeeCLP: 690000,
+      nextAction: 'Realizar inspección técnica gratuita de entrada previa a asamblea',
+      nextActionDate: new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10),
+      competitionNotes: 'Comité muy interesado en la App móvil con auditoría bancaria en 1 clic.',
+      createdAt: '2026-02-25',
+      updatedAt: '2026-03-02'
     }
   ]);
 
@@ -166,6 +255,21 @@ export const CompanySettingsAndBackupModule = ({
   const [showUploadDiplomaModal, setShowUploadDiplomaModal] = useState(false);
   const [editingDiplomaId, setEditingDiplomaId] = useState(null);
   const [activeDiplomaPreview, setActiveDiplomaPreview] = useState(null);
+
+  // Modal para CRUD de Referencias de Comités
+  const [showRefModal, setShowRefModal] = useState(false);
+  const [editingRefId, setEditingRefId] = useState(null);
+  const [refForm, setRefForm] = useState({
+    communityName: '',
+    contactName: '',
+    role: 'Presidente(a) del Comité',
+    phone: '',
+    quote: '',
+    confirmed: true
+  });
+
+  // Partida personalizada para Inspección Técnica
+  const [newInspectionItemName, setNewInspectionItemName] = useState('');
 
   const initialNewDiplomaState = {
     title: '',
@@ -183,17 +287,24 @@ export const CompanySettingsAndBackupModule = ({
 
   const [newDiplomaForm, setNewDiplomaForm] = useState(initialNewDiplomaState);
 
-  // Configuración de Destinatario y Condominio a Postular (Carta de Presentación & Dossier)
+  // Configuración de Destinatario, Condominio y Propuesta Económica (Carta de Presentación & Dossier)
   const [proposalConfig, setProposalConfig] = useState({
     targetCondo: companySettings?.lastProposalConfig?.targetCondo || '',
     targetRecipient: companySettings?.lastProposalConfig?.targetRecipient || 'Señores Miembros del Comité de Administración',
     targetCity: companySettings?.lastProposalConfig?.targetCity || 'La Serena, Región de Coquimbo',
     proposalDate: companySettings?.lastProposalConfig?.proposalDate || new Date().toISOString().split('T')[0],
-    leaveRecipientBlank: companySettings?.lastProposalConfig?.leaveRecipientBlank || false
+    leaveRecipientBlank: companySettings?.lastProposalConfig?.leaveRecipientBlank || false,
+    // Propuesta Económica y Alcance del Servicio
+    targetUnits: companySettings?.lastProposalConfig?.targetUnits || '60',
+    proposedMonthlyFee: companySettings?.lastProposalConfig?.proposedMonthlyFee || '480000',
+    taxModality: companySettings?.lastProposalConfig?.taxModality || 'Factura Exenta / Boleta de Honorarios Profesional',
+    contractDuration: companySettings?.lastProposalConfig?.contractDuration || '12 meses renovables (con evaluación de conformidad a los 90 días)',
+    includeEconomicInDossier: companySettings?.lastProposalConfig?.includeEconomicInDossier !== false,
+    visitFrequency: companySettings?.lastProposalConfig?.visitFrequency || '2 visitas técnicas presenciales por semana + atención de emergencias 24/7'
   });
 
-  // Sección activa dentro de Postulaciones ('material' | 'inspeccion' | 'comparativa' | 'pitch' | 'demo')
-  const [postulacionSection, setPostulacionSection] = useState('material');
+  // Sección activa dentro de Postulaciones ('preparacion' | 'pipeline' | 'material' | 'inspeccion' | 'comparativa' | 'pitch' | 'demo')
+  const [postulacionSection, setPostulacionSection] = useState('preparacion');
 
   // Modales de Material de Apoyo, Ventas y Licitación
   const [previewBrochureModal, setPreviewBrochureModal] = useState(false);
@@ -214,8 +325,8 @@ export const CompanySettingsAndBackupModule = ({
       { id: 'bombas', name: 'Sala de Bombas & Sistema Hidroneumático', status: 'Requiere Mantención', notes: 'Bombas operativas con fuga leve en sello mecánico de Bomba 2. Manómetro principal descalibrado; requiere regulación de presostato.' },
       { id: 'cubiertas', name: 'Cubiertas, Techumbres & Bajadas de Agua', status: 'Crítico', notes: 'Membrana asfáltica con fisuras en sector poniente; canaletas con acumulación de sedimentos. Riesgo de filtración en temporada de lluvias.' },
       { id: 'electricidad', name: 'Tableros Eléctricos & Grupo Electrógeno', status: 'Bueno', notes: 'Tablero general rotulado según norma SEC. Generador de emergencia operativo con transferencia automática probada.' },
-      { id: 'incendios', name: 'Red Húmeda, Red Seca & Extintores', status: 'Requiere Mantención', notes: 'Extintores con certificación vencida en pisos 3 y 4. Mangueras de red húmeda operativas con presión adecuada.' },
-      { id: 'contable', name: 'Fondo de Reserva & Estado Contable (Ley 21.442)', status: 'Crítico', notes: 'La comunidad no mantiene el 5% obligatorio de fondo de reserva exigido por Art. 6° de la Ley N° 21.442. Urge regularización.' }
+      { id: 'incendios', name: 'Red Húmeda, Red Seca & Seguro Colectivo (Art. 43°)', status: 'Requiere Mantención', notes: 'Extintores con certificación vencida en pisos 3 y 4. Mangueras de red húmeda operativas con presión adecuada.' },
+      { id: 'contable', name: 'Fondo de Reserva Legal & Estado Contable (Art. 39° Ley 21.442)', status: 'Crítico', notes: 'La comunidad requiere regularizar la tasa mínima del 5% de recargo para el Fondo de Reserva exigida por el Art. 39° de la Ley N° 21.442.' }
     ]
   });
 
@@ -390,6 +501,216 @@ export const CompanySettingsAndBackupModule = ({
     return { totalComms, totalUnits, totalIssuedCerts, yearsExp };
   }, [communities, certificates, empresaForm.startYear]);
 
+  // Hidratar archivos pesados desde IndexedDB (fileVault) al montar el módulo
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [hydratedAcad, hydratedDocs] = await Promise.all([
+          hydrateFiles(academicRecords),
+          hydrateFiles(accreditationDocs)
+        ]);
+        if (mounted) {
+          setAcademicRecords(hydratedAcad);
+          setAccreditationDocs(hydratedDocs);
+        }
+      } catch (err) {
+        console.warn('[fileVault] Error hidratando respaldos digitales:', err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Auditoría en tiempo real del nivel de preparación para licitaciones (Score 0-100)
+  const readinessReport = useMemo(() => {
+    return computeReadiness({
+      empresaForm,
+      signatureImage,
+      academicRecords,
+      accreditationDocs,
+      committeeReferences,
+      adminPin,
+      proposalConfig
+    });
+  }, [
+    empresaForm,
+    signatureImage,
+    academicRecords,
+    accreditationDocs,
+    committeeReferences,
+    adminPin,
+    proposalConfig
+  ]);
+
+  // Descargar todos los respaldos digitales adjuntos numerados para carpeta de licitación
+  const handleDownloadPackage = () => {
+    const docsWithFiles = [
+      ...accreditationDocs.filter(d => d.includeInDossier !== false && d.fileData).map(d => ({
+        title: d.name,
+        fileName: d.fileName,
+        fileData: d.fileData
+      })),
+      ...academicRecords.filter(r => r.includeInProposal !== false && r.fileData).map(r => ({
+        title: r.title,
+        fileName: r.fileName,
+        fileData: r.fileData
+      }))
+    ];
+
+    if (docsWithFiles.length === 0) {
+      showAlert(
+        'Sin archivos binarios adjuntos aún',
+        'Aún no has subido archivos PDF o imagen en "3. Acreditaciones & Diplomas". Puedes abrir el Dossier Integral para imprimir los certificados digitales generados por el sistema, o subir tus PDFs originales.',
+        'info'
+      );
+      setPreviewDossierModal(true);
+      return;
+    }
+
+    docsWithFiles.forEach((doc, idx) => {
+      const prefix = String(idx + 1).padStart(2, '0');
+      const cleanTitle = (doc.title || 'Respaldo').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 45);
+      const extMatch = (doc.fileName || '').match(/\.[a-zA-Z0-9]+$/);
+      const ext = extMatch ? extMatch[0] : '.pdf';
+      setTimeout(() => {
+        downloadDataUrl(doc.fileData, `${prefix}_ARANPRO_${cleanTitle}${ext}`);
+      }, idx * 250);
+    });
+
+    showAlert(
+      '✓ Descargando Anexos Numerados',
+      `Se están descargando ${docsWithFiles.length} archivo(s) de respaldo numerados correlativamente para tu carpeta de licitación.`,
+      'success'
+    );
+  };
+
+  // Cargar datos desde una tarjeta del CRM Pipeline hacia el generador de Dossier y Carta
+  const handlePrepareDossierFromPipeline = (item) => {
+    setProposalConfig(prev => ({
+      ...prev,
+      targetCondo: item.condoName || prev.targetCondo,
+      targetCity: item.city || prev.targetCity,
+      targetRecipient: item.contactName
+        ? `${item.contactName}${item.contactRole ? ` — ${item.contactRole}` : ''}`
+        : 'Señores Miembros del Comité de Administración',
+      leaveRecipientBlank: false,
+      targetUnits: String(item.unitsCount || prev.targetUnits || '60'),
+      proposedMonthlyFee: String(item.monthlyFeeCLP || prev.proposedMonthlyFee || '480000')
+    }));
+    setInspectionForm(prev => ({
+      ...prev,
+      targetCondo: item.condoName || prev.targetCondo
+    }));
+    setPostulacionSection('material');
+    showAlert(
+      '✓ Dossier Configurado para Comunidad',
+      `Se cargaron los datos de "${item.condoName}" en la Carta de Presentación, Propuesta Económica y Dossier Integral.`,
+      'success'
+    );
+  };
+
+  // CRUD de Referencias Comprobables de Comités
+  const handleOpenAddRef = () => {
+    setEditingRefId(null);
+    setRefForm({
+      communityName: currentCommunity?.name || 'Condominio Los Cerezos',
+      contactName: '',
+      role: 'Presidente(a) del Comité',
+      phone: '+569',
+      quote: '',
+      confirmed: true
+    });
+    setShowRefModal(true);
+  };
+
+  const handleOpenEditRef = (ref) => {
+    setEditingRefId(ref.id);
+    setRefForm({
+      communityName: ref.communityName || '',
+      contactName: ref.contactName || '',
+      role: ref.role || 'Presidente(a) del Comité',
+      phone: ref.phone || '',
+      quote: ref.quote || '',
+      confirmed: ref.confirmed !== false
+    });
+    setShowRefModal(true);
+  };
+
+  const handleSaveRef = (e) => {
+    if (e) e.preventDefault();
+    if (!refForm.contactName.trim() || !refForm.communityName.trim()) {
+      showAlert('Datos Incompletos', 'Ingresa el nombre del dirigente del Comité y el nombre de la comunidad.', 'warning');
+      return;
+    }
+    const payload = {
+      id: editingRefId || `ref-${Date.now()}`,
+      communityName: refForm.communityName.trim(),
+      contactName: refForm.contactName.trim(),
+      role: refForm.role.trim() || 'Miembro del Comité',
+      phone: refForm.phone.trim(),
+      confirmed: Boolean(refForm.confirmed),
+      status: refForm.confirmed ? 'Recomendación Favorable Otorgada' : 'En gestión de autorización',
+      quote: refForm.quote.trim() || 'Gestión transparente, responsable y con sólido dominio técnico en terreno.'
+    };
+
+    if (editingRefId) {
+      setCommitteeReferences(prev => prev.map(r => r.id === editingRefId ? payload : r));
+    } else {
+      setCommitteeReferences(prev => [payload, ...prev]);
+    }
+    setShowRefModal(false);
+    setEditingRefId(null);
+  };
+
+  const handleDeleteRef = (ref) => {
+    showConfirm({
+      title: '¿Eliminar referencia del Comité?',
+      message: `Se quitará la referencia de ${ref.contactName} (${ref.communityName}) del Dossier.`,
+      type: 'danger',
+      confirmText: 'Eliminar',
+      onConfirm: () => {
+        setCommitteeReferences(prev => prev.filter(r => r.id !== ref.id));
+      }
+    });
+  };
+
+  const handleToggleConfirmRef = (id) => {
+    setCommitteeReferences(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const nextConf = r.confirmed === false;
+      return {
+        ...r,
+        confirmed: nextConf,
+        status: nextConf ? 'Recomendación Favorable Otorgada' : 'Pendiente de confirmación'
+      };
+    }));
+  };
+
+  // Agregar o quitar partida de inspección técnica
+  const handleAddInspectionItem = () => {
+    if (!newInspectionItemName.trim()) return;
+    const newItem = {
+      id: `insp-${Date.now()}`,
+      name: newInspectionItemName.trim(),
+      status: 'Requiere Mantención',
+      notes: 'Observación técnica levantada en terreno durante inspección preventiva.'
+    };
+    setInspectionForm(prev => ({
+      ...prev,
+      items: [...prev.items, newItem]
+    }));
+    setNewInspectionItemName('');
+  };
+
+  const handleRemoveInspectionItem = (id) => {
+    setInspectionForm(prev => ({
+      ...prev,
+      items: prev.items.filter(it => it.id !== id)
+    }));
+  };
+
   // --- LÓGICA DEL CANVAS DE DIBUJO DE FIRMA DIGITAL ---
   const startDrawing = (e) => {
     const canvas = canvasRef.current;
@@ -476,9 +797,20 @@ export const CompanySettingsAndBackupModule = ({
     reader.readAsDataURL(file);
   };
 
-  // Guardar configuración completa en context / localStorage
-  const handleSaveAllSettings = (e) => {
+  // Guardar configuración completa en context / localStorage + IndexedDB Vault para archivos pesados
+  const handleSaveAllSettings = async (e) => {
     if (e) e.preventDefault();
+
+    let lightAcademic = academicRecords;
+    let lightAccreditation = accreditationDocs;
+    try {
+      [lightAcademic, lightAccreditation] = await Promise.all([
+        stripAndStoreFiles(academicRecords, 'acad'),
+        stripAndStoreFiles(accreditationDocs, 'doc')
+      ]);
+    } catch (err) {
+      console.warn('[fileVault] Fallback guardando en memoria local:', err);
+    }
 
     const updatedSettings = {
       ...companySettings,
@@ -505,9 +837,10 @@ export const CompanySettingsAndBackupModule = ({
         startYear: empresaForm.startYear,
         presentationText: empresaForm.presentationText
       },
-      academicBackground: academicRecords,
-      accreditationFiles: accreditationDocs,
+      academicBackground: lightAcademic,
+      accreditationFiles: lightAccreditation,
       committeeReferenceRequests: committeeReferences,
+      postulationPipeline: postulationPipeline,
       lastProposalConfig: proposalConfig
     };
 
@@ -1480,184 +1813,208 @@ export const CompanySettingsAndBackupModule = ({
 
           {/* ==================== SUB-PESTAÑA 3: ACREDITACIONES & PERFIL TÉCNICO ==================== */}
           {activeSubTab === 'acreditacion' && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <span className="text-[10px] font-bold text-[#D4B895] uppercase tracking-wider block">
-                    Ventaja Competitiva Diferencial
+                    Repositorio Oficial de Licitación • Ley N° 21.442
                   </span>
                   <h3 className="text-lg font-black text-slate-900">
-                    Diplomas, Títulos & Respaldo Técnico en Construcción
+                    3. Biblioteca Documental, Acreditaciones Legales & Diplomas Técnicos
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Custodia y respaldo digital de títulos profesionales, certificaciones Minvu y cursos para certificar tu experiencia y adjuntarlos a licitaciones.
+                    Ordena formalmente tu carpeta legal (RNAC Minvu, Antecedentes, SII, Seguros, Contratos) y tus títulos de construcción con control de vigencia y custodia en bóveda local.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingDiplomaId(null);
-                    setNewDiplomaForm(initialNewDiplomaState);
-                    setShowUploadDiplomaModal(true);
-                  }}
-                  className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#0F3D2E] to-[#165540] hover:brightness-110 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 shrink-0 self-start sm:self-auto"
-                >
-                  <Plus className="w-4 h-4 text-[#D4B895]" />
-                  Subir Diploma o Curso
-                </button>
-              </div>
-
-              {/* BANNER INFORMATIVO DE VALOR CONSTRUCTIVO */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-amber-50/30 border border-emerald-200/80 flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-[#0F3D2E] text-[#D4B895] shrink-0 mt-0.5">
-                  <HardHat className="w-4 h-4" />
-                </div>
-                <div className="space-y-1 text-xs">
-                  <h4 className="font-bold text-slate-900">
-                    Ventaja Técnica Exclusiva: Formación Constructiva al Servicio del Condominio
-                  </h4>
-                  <p className="text-slate-600 leading-relaxed">
-                    Ser <strong>Técnico en Construcción</strong> y encontrarse cursando estudios superiores de <strong>Construcción Civil</strong> es un activo de incalculable valor para una comunidad:
-                    permite auditar con autoridad salas de bombas, cubiertas, filtraciones y fiscalizar a contratistas externos evitando sobrecostos y presupuestos inflados.
-                  </p>
+                <div className="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveSubTab('postulaciones');
+                      setPostulacionSection('preparacion');
+                    }}
+                    className="px-3.5 py-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition-all flex items-center gap-1.5"
+                  >
+                    <ClipboardCheck className="w-4 h-4 text-[#0F3D2E]" />
+                    <span>Score Licitación: {readinessReport.score}/100</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingDiplomaId(null);
+                      setNewDiplomaForm(initialNewDiplomaState);
+                      setShowUploadDiplomaModal(true);
+                    }}
+                    className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#0F3D2E] to-[#165540] hover:brightness-110 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4 text-[#D4B895]" />
+                    Subir Diploma o Curso
+                  </button>
                 </div>
               </div>
 
-              {/* LISTADO DE DIPLOMAS, TÍTULOS Y CURSOS */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                    Títulos y Certificaciones Custodiadas ({academicRecords.length})
-                  </h4>
-                  <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                    Respaldos Digitales Activos
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4">
-                  {academicRecords.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#D4B895] transition-all space-y-3 shadow-xs"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-black text-sm text-slate-900">{item.title}</span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              item.status.includes('Titulado')
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : item.status.includes('curso')
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-purple-100 text-purple-800'
-                            }`}>
-                              {item.status}
-                            </span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                              {item.category || 'Acreditación Técnica'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 font-medium">
-                            {item.institution} • {item.year}
-                          </p>
-                        </div>
-
-                        {/* ACCIONES DEL DIPLOMA */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => setActiveDiplomaPreview(item)}
-                            className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1"
-                            title="Ver documento o constancia digital"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-slate-600" />
-                            <span>Ver</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadDiplomaFile(item)}
-                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all flex items-center gap-1"
-                            title="Descargar archivo original"
-                          >
-                            <Download className="w-3.5 h-3.5 text-emerald-700" />
-                            <span>Descargar</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleEditDiploma(item)}
-                            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
-                            title="Editar información"
-                          >
-                            <PenTool className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteDiploma(item)}
-                            className="p-1.5 rounded-xl text-rose-400 hover:text-rose-700 hover:bg-rose-50 transition-all"
-                            title="Eliminar diploma"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* APORTE TÉCNICO A LA ADMINISTRACIÓN */}
-                      <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200/80 leading-relaxed">
-                        <strong className="text-[#0F3D2E]">Aporte Práctico a la Gestión:</strong> {item.relevance}
-                      </p>
-
-                      {/* ARCHIVO ADJUNTO & TOGGLE PARA LICITACIÓN */}
-                      <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-100">
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
-                          <Paperclip className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          <span>{item.fileName || 'Documento_Respaldado.pdf'}</span>
-                          <span className="text-slate-400">({item.fileSize || 'Digital'})</span>
-                          {item.fileData && (
-                            <span className="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded text-[9.5px]">
-                              ✓ Archivo Cargado
-                            </span>
-                          )}
-                        </div>
-
-                        {/* TOGGLE INCLUIR EN LICITACIONES */}
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={item.includeInProposal !== false}
-                            onChange={() => handleToggleIncludeInProposal(item.id)}
-                            className="w-4 h-4 rounded text-[#0F3D2E] focus:ring-[#0F3D2E] border-slate-300"
-                          />
-                          <span className={`text-xs font-bold ${item.includeInProposal !== false ? 'text-[#0F3D2E]' : 'text-slate-400'}`}>
-                            {item.includeInProposal !== false ? '✓ Adjuntar a Dossier de Licitación' : 'Omitir en Dossier'}
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {/* SECCIÓN A: BIBLIOTECA DOCUMENTAL FORMAL (RNAC, REGISTRO CIVIL, SII, SEGUROS, CONTRATOS) */}
+              <div className="bg-slate-50/70 p-5 rounded-3xl border border-slate-200/90">
+                <DocumentLibraryPanel
+                  documents={accreditationDocs}
+                  setDocuments={setAccreditationDocs}
+                  showAlert={showAlert}
+                  showConfirm={showConfirm}
+                />
               </div>
 
-              {/* DOCUMENTOS Y RESPALDOS LEGALES DE ACREDITACIÓN */}
-              <div className="pt-6 border-t border-slate-100 space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <FileCheck className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                  Acreditaciones Institucionales y Antecedentes Legales
-                </h4>
+              {/* SECCIÓN B: TÍTULOS PROFESIONALES, DIPLOMAS Y FORMACIÓN CONSTRUCTIVA */}
+              <div className="pt-4 border-t border-slate-200 space-y-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-amber-50/30 border border-emerald-200/80 flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-[#0F3D2E] text-[#D4B895] shrink-0 mt-0.5">
+                    <HardHat className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <h4 className="font-bold text-slate-900">
+                      Ventaja Técnica Exclusiva: Formación Constructiva al Servicio del Condominio
+                    </h4>
+                    <p className="text-slate-600 leading-relaxed">
+                      Ser <strong>Técnico en Construcción</strong> y encontrarse cursando estudios superiores de <strong>Construcción Civil</strong> es un activo de incalculable valor para una comunidad:
+                      permite auditar con autoridad salas de bombas, cubiertas, filtraciones y fiscalizar a contratistas externos evitando sobrecostos y presupuestos inflados.
+                    </p>
+                  </div>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {accreditationDocs.map(doc => (
-                    <div key={doc.id} className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <span className="text-[10px] font-bold uppercase text-slate-400 block">{doc.category}</span>
-                        <h5 className="font-bold text-xs text-slate-900">{doc.name}</h5>
-                        <p className="text-[10px] text-slate-500">Expedido: {formatDate(doc.date)}</p>
-                      </div>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 whitespace-nowrap">
-                        {doc.status}
+                {/* LISTADO DE DIPLOMAS, TÍTULOS Y CURSOS */}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-[#0F3D2E]" />
+                      Títulos Profesionales, Diplomas y Cursos Técnicos ({academicRecords.length})
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                        {academicRecords.filter(r => hasFile(r)).length} con PDF/Imagen original • {academicRecords.filter(r => r.includeInProposal !== false).length} en Dossier
                       </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingDiplomaId(null);
+                          setNewDiplomaForm(initialNewDiplomaState);
+                          setShowUploadDiplomaModal(true);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-[11px] transition-all flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
+                        Agregar Título/Curso
+                      </button>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {academicRecords.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#D4B895] transition-all space-y-3 shadow-xs"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-black text-sm text-slate-900">{item.title}</span>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                item.status.includes('Titulado')
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : item.status.includes('curso')
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-purple-100 text-purple-800'
+                              }`}>
+                                {item.status}
+                              </span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                                {item.category || 'Acreditación Técnica'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 font-medium">
+                              {item.institution} • {item.year}
+                            </p>
+                          </div>
+
+                          {/* ACCIONES DEL DIPLOMA */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setActiveDiplomaPreview(item)}
+                              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1"
+                              title="Ver documento o constancia digital"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-slate-600" />
+                              <span>Ver</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadDiplomaFile(item)}
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all flex items-center gap-1"
+                              title="Descargar archivo original"
+                            >
+                              <Download className="w-3.5 h-3.5 text-emerald-700" />
+                              <span>Descargar</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleEditDiploma(item)}
+                              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
+                              title="Editar o adjuntar PDF"
+                            >
+                              <PenTool className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteDiploma(item)}
+                              className="p-1.5 rounded-xl text-rose-400 hover:text-rose-700 hover:bg-rose-50 transition-all"
+                              title="Eliminar diploma"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* APORTE TÉCNICO A LA ADMINISTRACIÓN */}
+                        <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200/80 leading-relaxed">
+                          <strong className="text-[#0F3D2E]">Aporte Práctico a la Gestión:</strong> {item.relevance}
+                        </p>
+
+                        {/* ARCHIVO ADJUNTO & TOGGLE PARA LICITACIÓN */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-100">
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-mono">
+                            <Paperclip className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                            <span>{item.fileName || 'Documento_Respaldado.pdf'}</span>
+                            <span className="text-slate-400">({item.fileSize || 'Digital'})</span>
+                            {hasFile(item) ? (
+                              <span className="text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full text-[9.5px] font-sans">
+                                ✓ Archivo PDF/Imagen en Bóveda
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleEditDiploma(item)}
+                                className="text-amber-700 hover:underline font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full text-[9.5px] font-sans"
+                              >
+                                + Subir PDF escaneado original
+                              </button>
+                            )}
+                          </div>
+
+                          {/* TOGGLE INCLUIR EN LICITACIONES */}
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={item.includeInProposal !== false}
+                              onChange={() => handleToggleIncludeInProposal(item.id)}
+                              className="w-4 h-4 rounded text-[#0F3D2E] focus:ring-[#0F3D2E] border-slate-300"
+                            />
+                            <span className={`text-xs font-bold ${item.includeInProposal !== false ? 'text-[#0F3D2E]' : 'text-slate-400'}`}>
+                              {item.includeInProposal !== false ? '✓ Adjuntar a Dossier de Licitación' : 'Omitir en Dossier'}
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -1668,7 +2025,7 @@ export const CompanySettingsAndBackupModule = ({
                   className="px-6 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-md transition-all flex items-center gap-2"
                 >
                   <Check className="w-4 h-4 text-[#D4B895]" />
-                  Guardar Perfil y Diplomas
+                  Guardar Biblioteca Documental y Diplomas
                 </button>
               </div>
             </div>
@@ -1677,182 +2034,88 @@ export const CompanySettingsAndBackupModule = ({
           {/* ==================== SUB-PESTAÑA 4: POSTULACIONES & DOSSIER DE LICITACIÓN ==================== */}
           {activeSubTab === 'postulaciones' && (
             <div className="space-y-6">
-              <div className="border-b border-slate-100 pb-4">
-                <span className="text-[10px] font-bold text-[#D4B895] uppercase tracking-wider block">
-                  Crecimiento & Nuevos Contratos
-                </span>
-                <h3 className="text-lg font-black text-slate-900">
-                  Dossier de Postulación & Licitaciones de Condominios
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Genera cartas de presentación formal, propuestas comerciales y dossier con estadísticas reales y diplomas
-                  rescatados del software para postular a la administración de nuevos condominios y edificios.
-                </p>
+              <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[10px] font-bold text-[#D4B895] uppercase tracking-wider block">
+                    Centro Comercial & Licitaciones • Carta Fuerte ARANPRO
+                  </span>
+                  <h3 className="text-lg font-black text-slate-900">
+                    4. Postulaciones, Auditoría de Preparación, CRM & Dossier Ejecutivo
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Verifica que cumples el 100% de los requisitos legales y técnicos, haz seguimiento a tus postulaciones en curso y genera propuestas económicas y técnicas listas para adjudicar.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDossierModal(true)}
+                    className="px-4 py-2.5 rounded-2xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+                  >
+                    <Eye className="w-4 h-4 text-[#D4B895]" />
+                    Ver Dossier Maestro
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveAllSettings}
+                    className="px-3.5 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E] border border-emerald-200 font-bold text-xs transition-all flex items-center gap-1"
+                  >
+                    <Check className="w-4 h-4 text-emerald-700" />
+                    Guardar
+                  </button>
+                </div>
               </div>
 
-              {/* RESUMEN DE EXPERIENCIA RESCATADA DEL SOFTWARE */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* RESUMEN DE EXPERIENCIA Y PREPARACIÓN EN CIFRAS */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div
+                  onClick={() => setPostulacionSection('preparacion')}
+                  className="bg-gradient-to-br from-[#0F3D2E] to-[#165540] text-white p-3.5 rounded-2xl border border-emerald-900/40 text-center cursor-pointer hover:brightness-110 transition-all"
+                >
+                  <span className="text-[10px] font-bold uppercase text-[#D4B895] block">Índice Preparación</span>
+                  <span className="text-xl font-black text-white">{readinessReport.score}/100</span>
+                  <span className="text-[9px] text-emerald-100 block">{readinessReport.statusLabel}</span>
+                </div>
+                <div
+                  onClick={() => setPostulacionSection('pipeline')}
+                  className="bg-slate-50 hover:bg-slate-100 p-3.5 rounded-2xl border border-slate-200 text-center cursor-pointer transition-all"
+                >
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">En Licitación</span>
+                  <span className="text-xl font-black text-[#0F3D2E]">
+                    {postulationPipeline.filter(p => !['adjudicada', 'no_adjudicada'].includes(p.stage)).length} Condominios
+                  </span>
+                  <span className="text-[9px] text-slate-500 block">CRM de seguimiento</span>
+                </div>
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
                   <span className="text-[10px] font-bold uppercase text-slate-400 block">Trayectoria</span>
-                  <span className="text-xl font-black text-[#0F3D2E]">{portfolioStats.yearsExp} Años</span>
+                  <span className="text-xl font-black text-slate-900">{portfolioStats.yearsExp} Años</span>
                   <span className="text-[9px] text-slate-500 block">Desde {empresaForm.startYear}</span>
                 </div>
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Comunidades</span>
-                  <span className="text-xl font-black text-slate-900">{portfolioStats.totalComms} Activa(s)</span>
-                  <span className="text-[9px] text-slate-500 block">Bajo custodia integral</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Unidades Activas</span>
+                  <span className="text-xl font-black text-slate-900">{portfolioStats.totalUnits} Deptos/Casas</span>
+                  <span className="text-[9px] text-slate-500 block">En {portfolioStats.totalComms} comunidad(es)</span>
                 </div>
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Unidades Gestionadas</span>
-                  <span className="text-xl font-black text-slate-900">{portfolioStats.totalUnits} Casas/Deptos</span>
-                  <span className="text-[9px] text-slate-500 block">En nómina central</span>
-                </div>
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Fe Pública</span>
-                  <span className="text-xl font-black text-[#0F3D2E]">{portfolioStats.totalIssuedCerts} Certs</span>
-                  <span className="text-[9px] text-slate-500 block">Emitidos formalmente</span>
+                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center col-span-2 md:col-span-1">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Respaldos en Dossier</span>
+                  <span className="text-xl font-black text-[#0F3D2E]">
+                    {accreditationDocs.filter(d => d.includeInDossier !== false).length + academicRecords.filter(r => r.includeInProposal !== false).length} Docs
+                  </span>
+                  <span className="text-[9px] text-slate-500 block">Legales + Títulos</span>
                 </div>
               </div>
 
-              {/* CONFIGURACIÓN Y PERSONALIZACIÓN DE DESTINATARIO DE LA CARTA / DOSSIER */}
-              <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-800 border border-amber-200">
-                      <PenTool className="w-4 h-4 text-[#0F3D2E]" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                        Personalización de la Carta & Destinatario a Postular
-                      </h4>
-                      <p className="text-[11px] text-slate-500">
-                        Ingresa los datos del condominio y a quién se dirige la carta (comité, presidente, directiva) o déjalo en blanco.
-                      </p>
-                    </div>
-                  </div>
-                  {proposalConfig.targetCondo || (!proposalConfig.leaveRecipientBlank && proposalConfig.targetRecipient) ? (
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
-                      ✓ Carta Personalizada
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 self-start sm:self-auto">
-                      Carta Abierta / En Blanco
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Campo 1: Condominio a Postular */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Condominio o Edificio al que Postulas
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ej: Condominio Mirador de San Joaquín (o dejar vacío)"
-                      value={proposalConfig.targetCondo}
-                      onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                    />
-                    <p className="text-[10.5px] text-slate-400">
-                      Se incorporará automáticamente en el membrete y en el texto formal de presentación.
-                    </p>
-                  </div>
-
-                  {/* Campo 2: Ciudad / Comuna */}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Ciudad / Comuna de la Postulación
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ej: La Serena, Coquimbo, Ovalle"
-                      value={proposalConfig.targetCity}
-                      onChange={(e) => setProposalConfig({ ...proposalConfig, targetCity: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                    />
-                    <p className="text-[10.5px] text-slate-400">
-                      Aparece junto a la fecha oficial de la propuesta.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Campo 3: A quién se dirige la carta (Destinatario) */}
-                <div className="space-y-2 pt-1 border-t border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      A la atención de / Destinatario de la Carta:
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setProposalConfig({ ...proposalConfig, targetRecipient: '', leaveRecipientBlank: true })}
-                      className="text-[11px] font-bold text-rose-600 hover:underline"
-                    >
-                      Limpiar / Dejar en blanco
-                    </button>
-                  </div>
-
-                  <input
-                    type="text"
-                    placeholder="Escribe el destinatario o selecciona una opción rápida abajo..."
-                    value={proposalConfig.leaveRecipientBlank ? '' : proposalConfig.targetRecipient}
-                    disabled={proposalConfig.leaveRecipientBlank}
-                    onChange={(e) => setProposalConfig({ ...proposalConfig, targetRecipient: e.target.value, leaveRecipientBlank: false })}
-                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#0F3D2E] transition-all ${
-                      proposalConfig.leaveRecipientBlank
-                        ? 'bg-slate-100 text-slate-400 border-dashed border-slate-300'
-                        : 'bg-slate-50 text-slate-800 border-slate-200'
-                    }`}
-                  />
-
-                  {/* Botones Presets Rápidos */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 mr-1">Opciones Rápidas:</span>
-                    {[
-                      { label: 'Comité de Administración', value: 'Señores Miembros del Comité de Administración' },
-                      { label: 'Presidente(a) del Comité', value: 'Señor(a) Presidente(a) del Comité de Administración' },
-                      { label: 'Directiva del Condominio', value: 'Señores Miembros de la Directiva del Condominio' },
-                      { label: 'Asamblea de Copropietarios', value: 'Asamblea de Copropietarios & Comité de Administración' },
-                      { label: 'Comisión de Licitación', value: 'Señores Integrantes de la Comisión de Licitación' },
-                      { label: 'Dejar en Blanco (Completar a mano)', value: '', isBlank: true }
-                    ].map((preset) => {
-                      const isSelected = preset.isBlank
-                        ? proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient
-                        : !proposalConfig.leaveRecipientBlank && proposalConfig.targetRecipient === preset.value;
-
-                      return (
-                        <button
-                          key={preset.label}
-                          type="button"
-                          onClick={() => {
-                            if (preset.isBlank) {
-                              setProposalConfig({ ...proposalConfig, targetRecipient: '', leaveRecipientBlank: true });
-                            } else {
-                              setProposalConfig({ ...proposalConfig, targetRecipient: preset.value, leaveRecipientBlank: false });
-                            }
-                          }}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-                            isSelected
-                              ? 'bg-[#0F3D2E] text-white border-[#0F3D2E] shadow-xs'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          {preset.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* SELECTOR DE HERRAMIENTAS DE CAPTACIÓN & MATERIAL DE APOYO */}
-              <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
+              {/* SELECTOR DE HERRAMIENTAS DE CAPTACIÓN & MATERIAL DE APOYO (7 MÓDULOS) */}
+              <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
                 {[
-                  { id: 'material', label: '1. Dossier & Cartas', icon: FileText, desc: 'Propuesta y Brochure' },
-                  { id: 'inspeccion', label: '2. Inspección Técnica Inicial', icon: HardHat, desc: 'Diagnóstico gratuito' },
-                  { id: 'comparativa', label: '3. Cuadro Comparativo', icon: Scale, desc: 'Tradicional vs ARANPRO' },
-                  { id: 'pitch', label: '4. Libreto de Pitch (10 Min)', icon: Presentation, desc: 'Guion para asambleas' },
-                  { id: 'demo', label: '5. Demo en Vivo & QR', icon: QrCode, desc: 'Prueba interactiva comité' }
+                  { id: 'preparacion', label: `1. Checklist & Semáforo (${readinessReport.score}%)`, icon: ClipboardCheck },
+                  { id: 'pipeline', label: `2. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
+                  { id: 'material', label: '3. Dossier, Propuesta & Cartas', icon: FileText },
+                  { id: 'inspeccion', label: '4. Inspección Técnica Inicial', icon: HardHat },
+                  { id: 'comparativa', label: '5. Cuadro Comparativo', icon: Scale },
+                  { id: 'pitch', label: '6. Libreto Pitch (10 Min)', icon: Presentation },
+                  { id: 'demo', label: '7. Demo en Vivo & QR', icon: QrCode }
                 ].map((tab) => {
                   const IconC = tab.icon;
                   const isAct = postulacionSection === tab.id;
@@ -1861,22 +2124,274 @@ export const CompanySettingsAndBackupModule = ({
                       key={tab.id}
                       type="button"
                       onClick={() => setPostulacionSection(tab.id)}
-                      className={`flex-1 min-w-[155px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${
+                      className={`flex-1 min-w-[140px] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${
                         isAct
                           ? 'bg-[#0F3D2E] text-white shadow-sm'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                       }`}
                     >
-                      <IconC className={`w-3.5 h-3.5 ${isAct ? 'text-[#D4B895]' : 'text-slate-400'}`} />
-                      <span>{tab.label}</span>
+                      <IconC className={`w-3.5 h-3.5 shrink-0 ${isAct ? 'text-[#D4B895]' : 'text-slate-400'}`} />
+                      <span className="truncate">{tab.label}</span>
                     </button>
                   );
                 })}
               </div>
 
-              {/* SECCIÓN 1: DOSSIER, CARTAS Y BROCHURE COMERCIAL */}
+              {/* SECCIÓN 1 (NUEVA): CHECKLIST & SEMÁFORO DE PREPARACIÓN */}
+              {postulacionSection === 'preparacion' && (
+                <div className="animate-in fade-in">
+                  <ReadinessPanel
+                    readiness={readinessReport}
+                    onNavigateSubTab={(sub, sec) => {
+                      setActiveSubTab(sub);
+                      if (sec) setPostulacionSection(sec);
+                    }}
+                    onOpenDossierPreview={() => setPreviewDossierModal(true)}
+                    onDownloadPackage={handleDownloadPackage}
+                  />
+                </div>
+              )}
+
+              {/* SECCIÓN 2 (NUEVA): CRM & PIPELINE DE POSTULACIONES */}
+              {postulacionSection === 'pipeline' && (
+                <div className="animate-in fade-in">
+                  <PipelinePanel
+                    pipeline={postulationPipeline}
+                    setPipeline={setPostulationPipeline}
+                    onPrepareDossier={handlePrepareDossierFromPipeline}
+                    empresaForm={empresaForm}
+                    showAlert={showAlert}
+                    showConfirm={showConfirm}
+                  />
+                </div>
+              )}
+
+              {/* SECCIÓN 3: DOSSIER, PROPUESTA ECONÓMICA, CARTAS Y REFERENCIAS */}
               {postulacionSection === 'material' && (
                 <div className="space-y-6 animate-in fade-in">
+                  {/* CONFIGURACIÓN DE DESTINATARIO Y PROPUESTA ECONÓMICA */}
+                  <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-800 border border-amber-200">
+                          <PenTool className="w-4 h-4 text-[#0F3D2E]" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                            Personalización de la Comunidad, Destinatario & Propuesta Económica
+                          </h4>
+                          <p className="text-[11px] text-slate-500">
+                            Configura los datos del condominio objetivo y la oferta de honorarios que se integrará en tu Carta y Dossier.
+                          </p>
+                        </div>
+                      </div>
+                      {proposalConfig.targetCondo || (!proposalConfig.leaveRecipientBlank && proposalConfig.targetRecipient) ? (
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
+                          ✓ Personalizado para {proposalConfig.targetCondo || 'Comité'}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 self-start sm:self-auto">
+                          Formato Abierto / Genérico
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Campo 1: Condominio a Postular */}
+                      <div className="space-y-1">
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          Condominio o Edificio Objetivo
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ej: Condominio Mirador de San Joaquín"
+                          value={proposalConfig.targetCondo}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
+                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                        />
+                      </div>
+
+                      {/* Campo 2: Ciudad / Comuna */}
+                      <div className="space-y-1">
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          Ciudad / Comuna
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ej: La Serena, Región de Coquimbo"
+                          value={proposalConfig.targetCity}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetCity: e.target.value })}
+                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                        />
+                      </div>
+
+                      {/* Campo 3: N° Unidades estimadas */}
+                      <div className="space-y-1">
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          N° de Unidades (Casas/Deptos)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="Ej: 64"
+                          value={proposalConfig.targetUnits}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetUnits: e.target.value })}
+                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Destinatario */}
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          A la atención de / Destinatario de la Propuesta:
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setProposalConfig({ ...proposalConfig, targetRecipient: '', leaveRecipientBlank: true })}
+                          className="text-[11px] font-bold text-rose-600 hover:underline"
+                        >
+                          Limpiar / Dejar en blanco
+                        </button>
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="Escribe el destinatario o selecciona una opción rápida abajo..."
+                        value={proposalConfig.leaveRecipientBlank ? '' : proposalConfig.targetRecipient}
+                        disabled={proposalConfig.leaveRecipientBlank}
+                        onChange={(e) => setProposalConfig({ ...proposalConfig, targetRecipient: e.target.value, leaveRecipientBlank: false })}
+                        className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#0F3D2E] transition-all ${
+                          proposalConfig.leaveRecipientBlank
+                            ? 'bg-slate-100 text-slate-400 border-dashed border-slate-300'
+                            : 'bg-slate-50 text-slate-800 border-slate-200'
+                        }`}
+                      />
+
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 mr-1">Opciones Rápidas:</span>
+                        {[
+                          { label: 'Comité de Administración', value: 'Señores Miembros del Comité de Administración' },
+                          { label: 'Presidente(a) del Comité', value: 'Señor(a) Presidente(a) del Comité de Administración' },
+                          { label: 'Directiva del Condominio', value: 'Señores Miembros de la Directiva del Condominio' },
+                          { label: 'Asamblea de Copropietarios', value: 'Asamblea de Copropietarios & Comité de Administración' },
+                          { label: 'Comisión de Licitación', value: 'Señores Integrantes de la Comisión de Licitación' },
+                          { label: 'Dejar en Blanco', value: '', isBlank: true }
+                        ].map((preset) => {
+                          const isSelected = preset.isBlank
+                            ? proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient
+                            : !proposalConfig.leaveRecipientBlank && proposalConfig.targetRecipient === preset.value;
+
+                          return (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => {
+                                if (preset.isBlank) {
+                                  setProposalConfig({ ...proposalConfig, targetRecipient: '', leaveRecipientBlank: true });
+                                } else {
+                                  setProposalConfig({ ...proposalConfig, targetRecipient: preset.value, leaveRecipientBlank: false });
+                                }
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                                isSelected
+                                  ? 'bg-[#0F3D2E] text-white border-[#0F3D2E] shadow-xs'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {preset.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* PROPUESTA ECONÓMICA Y ALCANCE DEL SERVICIO (NUEVO) */}
+                    <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-[#0F3D2E]" />
+                          <h5 className="text-xs font-black uppercase tracking-wider text-[#0F3D2E]">
+                            Propuesta Económica de Honorarios & Alcance Garantizado (SLA)
+                          </h5>
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={proposalConfig.includeEconomicInDossier !== false}
+                            onChange={(e) => setProposalConfig({ ...proposalConfig, includeEconomicInDossier: e.target.checked })}
+                            className="w-4 h-4 rounded text-[#0F3D2E] focus:ring-[#0F3D2E] border-slate-300"
+                          />
+                          <span className="text-xs font-bold text-[#0F3D2E]">
+                            Incluir oferta económica impresa en el Dossier
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold text-slate-600 uppercase">
+                            Honorario Mensual Propuesto (CLP)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="10000"
+                            value={proposalConfig.proposedMonthlyFee}
+                            onChange={(e) => setProposalConfig({ ...proposalConfig, proposedMonthlyFee: e.target.value })}
+                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-black text-[#0F3D2E]"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold text-slate-600 uppercase">
+                            Costo Promedio por Unidad
+                          </label>
+                          <div className="px-3 py-2 bg-white/80 border border-slate-200 rounded-xl text-xs font-black text-slate-800 flex items-center justify-between">
+                            <span>
+                              {formatCLP(
+                                Math.round(
+                                  (Number(proposalConfig.proposedMonthlyFee) || 0) /
+                                    Math.max(1, Number(proposalConfig.targetUnits) || 1)
+                                )
+                              )}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400">/ depto mes</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold text-slate-600 uppercase">
+                            Modalidad Tributaria
+                          </label>
+                          <select
+                            value={proposalConfig.taxModality}
+                            onChange={(e) => setProposalConfig({ ...proposalConfig, taxModality: e.target.value })}
+                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800"
+                          >
+                            <option value="Factura Exenta / Boleta de Honorarios Profesional">Factura Exenta / Boleta Honorarios</option>
+                            <option value="Factura Electrónica SII (+ IVA)">Factura Electrónica (+ IVA)</option>
+                            <option value="Valor Total Impuestos Incluidos">Valor Total Impuestos Incluidos</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-[10px] font-bold text-slate-600 uppercase">
+                            Presencia Técnica en Terreno
+                          </label>
+                          <input
+                            type="text"
+                            value={proposalConfig.visitFrequency}
+                            onChange={(e) => setProposalConfig({ ...proposalConfig, visitFrequency: e.target.value })}
+                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TARJETAS DE EMISIÓN DE DOCUMENTOS */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* 1. DOSSIER INTEGRAL COMPLETO (RECOMENDADO) */}
                     <div className="bg-gradient-to-br from-[#0F3D2E] to-[#164D3A] text-white p-5 rounded-3xl shadow-lg border border-emerald-900/40 space-y-3 relative overflow-hidden flex flex-col justify-between">
@@ -1888,7 +2403,7 @@ export const CompanySettingsAndBackupModule = ({
                           Dossier Integral de Postulación
                         </h4>
                         <p className="text-[11px] text-emerald-100/90 leading-relaxed">
-                          Compila en un PDF: Portada oficial, Carta de Presentación, Ficha Constructiva, Diplomas seleccionados ({academicRecords.filter(r => r.includeInProposal !== false).length}) y Referencias.
+                          Compila en un PDF: Portada oficial, Carta, Oferta Económica, Ficha Constructiva, Acreditaciones Legales ({accreditationDocs.filter(d => d.includeInDossier !== false).length}), Diplomas ({academicRecords.filter(r => r.includeInProposal !== false).length}) y Referencias.
                         </p>
                       </div>
 
@@ -1922,7 +2437,7 @@ export const CompanySettingsAndBackupModule = ({
                           Carta de Presentación Simple (1 Pág.)
                         </h4>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
-                          Carta formal tamaño Carta personalizada con membrete oficial, cita legal y firma manuscrita estampada.
+                          Carta ejecutiva tamaño Carta personalizada con membrete oficial, resumen de fortalezas y firma manuscrita estampada.
                         </p>
                       </div>
 
@@ -1946,7 +2461,7 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    {/* 3. BROCHURE COMERCIAL DE LA APP & WEB (NUEVO) */}
+                    {/* 3. BROCHURE COMERCIAL DE LA APP & WEB */}
                     <div className="bg-gradient-to-br from-amber-50 to-orange-50/40 p-5 rounded-3xl border border-amber-200/80 space-y-3 flex flex-col justify-between">
                       <div className="space-y-2">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-200 text-amber-900 uppercase">
@@ -1956,7 +2471,7 @@ export const CompanySettingsAndBackupModule = ({
                           Brochure de la App & Portal Web
                         </h4>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
-                          Ficha comercial ejecutiva ilustrada con capturas de pantalla para mostrar a los copropietarios cómo auditar facturas y pagar en línea.
+                          Ficha comercial ejecutiva para mostrar a los copropietarios cómo auditar facturas y pagar en línea.
                         </p>
                       </div>
 
@@ -1981,16 +2496,21 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* DIPLOMAS ADJUNTOS AL DOSSIER */}
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
-                    <div className="flex items-center justify-between">
+                  {/* SELECTOR RÁPIDO DE DOCUMENTOS Y DIPLOMAS ADJUNTOS AL DOSSIER */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                         <Award className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                        Diplomas y Cursos Marcados para el Dossier
+                        Anexos Técnicos y Legales Marcados para el Dossier
                       </h4>
-                      <span className="text-[11px] font-bold text-[#0F3D2E]">
-                        {academicRecords.filter(r => r.includeInProposal !== false).length} de {academicRecords.length} adjuntos
-                      </span>
+                      <button
+                        type="button"
+                        onClick={handleDownloadPackage}
+                        className="text-[11px] font-bold text-[#0F3D2E] hover:underline flex items-center gap-1"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Descargar todos los archivos adjuntos numerados
+                      </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {academicRecords.map(item => (
@@ -2005,46 +2525,112 @@ export const CompanySettingsAndBackupModule = ({
                           }`}
                         >
                           <span>{item.includeInProposal !== false ? '✓' : '+'}</span>
-                          <span>{item.title}</span>
+                          <span>🎓 {item.title}</span>
+                        </button>
+                      ))}
+                      {accreditationDocs.map(doc => (
+                        <button
+                          key={doc.id}
+                          type="button"
+                          onClick={() => {
+                            setAccreditationDocs(prev =>
+                              prev.map(d => d.id === doc.id ? { ...d, includeInDossier: d.includeInDossier === false } : d)
+                            );
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                            doc.includeInDossier !== false
+                              ? 'bg-amber-50 text-amber-900 border-amber-300 shadow-xs'
+                              : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
+                          }`}
+                        >
+                          <span>{doc.includeInDossier !== false ? '✓' : '+'}</span>
+                          <span>📄 {doc.name}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* SOLICITUD DE CARTAS DE RECOMENDACIÓN A COMITÉS ACTUALES */}
+                  {/* CRUD COMPLETO DE CARTAS DE RECOMENDACIÓN & REFERENCIAS DE COMITÉS */}
                   <div className="pt-2 border-t border-slate-100 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                        <MessageCircle className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                        Cartas de Recomendación & Testimonios de Comités Actuales
-                      </h4>
-                      <span className="text-[10px] font-bold text-slate-500">
-                        Incluidas en el Dossier Integral
-                      </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                          <MessageCircle className="w-4 h-4 text-[#0F3D2E]" />
+                          Referencias Comprobables & Cartas de Recomendación de Comités ({committeeReferences.length})
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          Registra presidentes o tesoreros de comunidades administradas para que el comité evaluador pueda llamarlos y verificar tu gestión.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleOpenAddRef}
+                        className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
+                        Agregar Referencia de Comité
+                      </button>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {committeeReferences.map(ref => (
-                        <div key={ref.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div>
-                              <div className="font-bold text-xs text-slate-900">
-                                {ref.contactName} • <span className="text-[#0F3D2E]">{ref.role}</span>
+                        <div key={ref.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 flex flex-col justify-between">
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <div className="font-black text-xs text-slate-900 flex items-center gap-1.5 flex-wrap">
+                                  <span>{ref.contactName}</span>
+                                  <span className="text-[#0F3D2E] font-bold">• {ref.role}</span>
+                                </div>
+                                <p className="text-[11px] text-slate-500 font-medium">
+                                  {ref.communityName} • Tel: <span className="font-mono">{ref.phone || 'S/N'}</span>
+                                </p>
                               </div>
-                              <p className="text-[10px] text-slate-500">{ref.communityName} • Tel: {ref.phone}</p>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleConfirmRef(ref.id)}
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
+                                  ref.confirmed !== false
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                                }`}
+                              >
+                                {ref.confirmed !== false ? '✓ Autorizada' : '⏳ Por confirmar'}
+                              </button>
                             </div>
+                            <blockquote className="text-xs text-slate-600 italic bg-white p-2.5 rounded-xl border border-slate-200">
+                              "{ref.quote}"
+                            </blockquote>
+                          </div>
+
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-200/70">
                             <button
                               type="button"
                               onClick={() => handleRequestReferenceWhatsApp(ref)}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl shadow-xs transition-all flex items-center gap-1.5 self-start sm:self-auto"
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl shadow-xs transition-all flex items-center gap-1.5"
                             >
                               <Send className="w-3 h-3" />
                               Pedir Carta por WhatsApp
                             </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditRef(ref)}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200/70 transition-all"
+                                title="Editar referencia"
+                              >
+                                <PenTool className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRef(ref)}
+                                className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-all"
+                                title="Eliminar referencia"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
-                          <blockquote className="text-xs text-slate-600 italic bg-white p-2.5 rounded-xl border border-slate-200">
-                            "{ref.quote}"
-                          </blockquote>
                         </div>
                       ))}
                     </div>
@@ -2052,7 +2638,7 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               )}
 
-              {/* SECCIÓN 2: INSPECCIÓN TÉCNICA INICIAL DE ENTRADA (CHECKLIST GRATUITO) */}
+              {/* SECCIÓN 4: INSPECCIÓN TÉCNICA INICIAL DE ENTRADA (CHECKLIST GRATUITO) */}
               {postulacionSection === 'inspeccion' && (
                 <div className="space-y-6 animate-in fade-in">
                   <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50/40 border border-emerald-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -2089,10 +2675,29 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
+                  {/* AGREGAR NUEVA PARTIDA PERSONALIZADA AL DIAGNÓSTICO */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                    <input
+                      type="text"
+                      value={newInspectionItemName}
+                      onChange={(e) => setNewInspectionItemName(e.target.value)}
+                      placeholder="Agregar otra instalación evaluada (ej: Ascensores, Portón Automático, Piscina, Citofonía)..."
+                      className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddInspectionItem}
+                      className="px-4 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
+                      Agregar Partida al Informe
+                    </button>
+                  </div>
+
                   {/* LISTADO DE PARTIDAS DE INSPECCIÓN TÉCNICA */}
                   <div className="space-y-3">
                     <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                      Partidas del Diagnóstico Técnico para {proposalConfig.targetCondo || 'el Condominio'}:
+                      Partidas del Diagnóstico Técnico para {proposalConfig.targetCondo || 'el Condominio'} ({inspectionForm.items.length}):
                     </h5>
 
                     <div className="space-y-3">
@@ -2132,6 +2737,16 @@ export const CompanySettingsAndBackupModule = ({
                                   </button>
                                 );
                               })}
+                              {inspectionForm.items.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveInspectionItem(item.id)}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                                  title="Quitar partida"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                             </div>
                           </div>
 
@@ -3718,6 +4333,49 @@ export const CompanySettingsAndBackupModule = ({
                         </div>
                       </div>
                     </div>
+
+                    {/* Propuesta Económica y Alcance del Servicio (Opcional) */}
+                    {proposalConfig.includeEconomicInDossier !== false && Number(proposalConfig.proposedMonthlyFee) > 0 && (
+                      <div className="p-3.5 rounded-xl bg-slate-50 border-2 border-[#0F3D2E]/20 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-1">
+                          <span className="font-black text-[#0F3D2E] uppercase text-[10.5px]">
+                            Resumen de Propuesta Económica & Alcance Garantizado (SLA)
+                          </span>
+                          <span className="font-mono font-bold text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                            {proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center py-1">
+                          <div className="bg-white p-2 rounded-lg border border-slate-200">
+                            <span className="text-[9px] text-slate-500 uppercase block font-bold">Honorario Mensual</span>
+                            <strong className="text-sm font-black text-[#0F3D2E]">
+                              {formatCLP(Number(proposalConfig.proposedMonthlyFee) || 0)} / mes
+                            </strong>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-200">
+                            <span className="text-[9px] text-slate-500 uppercase block font-bold">Equivalente por Unidad</span>
+                            <strong className="text-sm font-black text-slate-800">
+                              {formatCLP(
+                                Math.round(
+                                  (Number(proposalConfig.proposedMonthlyFee) || 0) /
+                                    Math.max(1, Number(proposalConfig.targetUnits) || 1)
+                                )
+                              )}{' '}
+                              / depto
+                            </strong>
+                          </div>
+                          <div className="bg-white p-2 rounded-lg border border-slate-200">
+                            <span className="text-[9px] text-slate-500 uppercase block font-bold">Unidades Consideradas</span>
+                            <strong className="text-sm font-black text-slate-800">
+                              {proposalConfig.targetUnits || '60'} Unidades
+                            </strong>
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-slate-600 leading-snug">
+                          <strong>Incluye sin costo adicional:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}, Suite Web & App Móvil ARANPRO 24/7 para todos los residentes, auditoría contable de traspaso inicial y diagnóstico constructivo preventivo.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Pie de Página Institucional Página 1 */}
@@ -3824,7 +4482,7 @@ export const CompanySettingsAndBackupModule = ({
                           <div>
                             <strong className="text-slate-900 block text-[11px]">Auditoría Contable de Traspaso & Conciliación Bancaria</strong>
                             <p className="text-slate-600 text-[10px] leading-relaxed mt-0.5">
-                              Recepción formal de cuentas bancarias, arqueo del Fondo de Reserva (mínimo 5% obligatorio Art. 6°), verificación de nómina de copropietarios y pólizas vigentes de seguro de incendio colectivo.
+                              Recepción formal de cuentas bancarias, arqueo del Fondo de Reserva Legal (Art. 39° Ley N° 21.442), verificación de nómina de copropietarios y pólizas vigentes de seguro colectivo contra incendio (Art. 43°).
                             </p>
                           </div>
                         </div>
@@ -3891,7 +4549,7 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    {/* SECCIÓN 2: TÍTULOS Y DIPLOMAS */}
+                    {/* SECCIÓN 2: TÍTULOS, DIPLOMAS E ÍNDICE DE ACREDITACIONES LEGALES */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 bg-[#0F3D2E] text-[#D4B895] rounded-lg font-black text-xs flex items-center justify-center shrink-0">
@@ -3899,7 +4557,7 @@ export const CompanySettingsAndBackupModule = ({
                         </div>
                         <div>
                           <h2 className="font-black text-xs uppercase text-[#0F3D2E] tracking-tight">
-                            Anexo de Títulos Profesionales, Diplomas & Certificaciones
+                            Anexo de Títulos Profesionales, Diplomas & Acreditaciones Legales
                           </h2>
                           <p className="text-[10px] text-slate-500">
                             Respaldos formales acreditados del Administrador Titular ({empresaForm.adminName})
@@ -3929,6 +4587,32 @@ export const CompanySettingsAndBackupModule = ({
                           </div>
                         ))}
                       </div>
+
+                      {/* Índice de Documentos Legales e Institucionales Acreditados */}
+                      {accreditationDocs.filter(d => d.includeInDossier !== false).length > 0 && (
+                        <div className="pt-1 space-y-1">
+                          <span className="text-[10px] font-black uppercase text-[#0F3D2E] block">
+                            Certificados Legales, Tributarios e Institucionales en Carpeta:
+                          </span>
+                          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                            {accreditationDocs.filter(d => d.includeInDossier !== false).map((doc, idx) => (
+                              <div key={doc.id} className="p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-start justify-between gap-2">
+                                <div>
+                                  <strong className="text-slate-900 block leading-tight">
+                                    Anexo {idx + 1}: {doc.name}
+                                  </strong>
+                                  <span className="text-[9px] text-slate-500">
+                                    {doc.issuer || 'Institución Oficial'} {doc.folio ? `• Folio ${doc.folio}` : ''}
+                                  </span>
+                                </div>
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[8.5px] shrink-0">
+                                  ✓ Vigente
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* SECCIÓN 3: REFERENCIAS DE COMITÉS */}
@@ -3994,6 +4678,119 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL PARA AGREGAR / EDITAR REFERENCIA DE COMITÉ ==================== */}
+      {showRefModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-black text-sm text-slate-900">
+                  {editingRefId ? 'Editar Referencia de Comité' : 'Nueva Referencia Comprobable de Comité'}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Testimonio y contacto verificable para incluir en tu Dossier de Postulación.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRefModal(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveRef} className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="block font-bold text-slate-700 uppercase">Nombre del Dirigente / Contacto *</label>
+                <input
+                  type="text"
+                  required
+                  value={refForm.contactName}
+                  onChange={(e) => setRefForm({ ...refForm, contactName: e.target.value })}
+                  placeholder="Ej: Carlos Morales Rojas"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block font-bold text-slate-700 uppercase">Cargo en el Comité</label>
+                  <input
+                    type="text"
+                    value={refForm.role}
+                    onChange={(e) => setRefForm({ ...refForm, role: e.target.value })}
+                    placeholder="Ej: Presidente del Comité"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block font-bold text-slate-700 uppercase">Teléfono / WhatsApp</label>
+                  <input
+                    type="text"
+                    value={refForm.phone}
+                    onChange={(e) => setRefForm({ ...refForm, phone: e.target.value })}
+                    placeholder="+56988776655"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block font-bold text-slate-700 uppercase">Condominio / Comunidad *</label>
+                <input
+                  type="text"
+                  required
+                  value={refForm.communityName}
+                  onChange={(e) => setRefForm({ ...refForm, communityName: e.target.value })}
+                  placeholder="Ej: Condominio Los Cerezos"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block font-bold text-slate-700 uppercase">Testimonio / Extracto de Recomendación</label>
+                <textarea
+                  rows={3}
+                  value={refForm.quote}
+                  onChange={(e) => setRefForm({ ...refForm, quote: e.target.value })}
+                  placeholder="Describe brevemente el resultado o conformidad del Comité..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={refForm.confirmed}
+                  onChange={(e) => setRefForm({ ...refForm, confirmed: e.target.checked })}
+                  className="w-4 h-4 rounded text-[#0F3D2E]"
+                />
+                <span className="font-bold text-[#0F3D2E]">
+                  Contacto autorizado para recibir llamadas de otros comités evaluadores
+                </span>
+              </label>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowRefModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold shadow-sm"
+                >
+                  Guardar Referencia
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
