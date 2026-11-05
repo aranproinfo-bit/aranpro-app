@@ -11,7 +11,7 @@ import {
   CheckCircle2, Phone, Mail, ExternalLink, LogOut, Sparkles, Printer,
   Trash2, Check, Key, PenTool, HardHat, Scale, Landmark, DollarSign,
   Menu, X, ChevronLeft, ChevronRight, Globe, Shield, Database, Calculator,
-  FolderOpen, Eye
+  FolderOpen, Eye, ClipboardCheck, Presentation, QrCode
 } from 'lucide-react';
 
 const DEFAULT_OFFICE_WORKERS = [
@@ -143,6 +143,7 @@ export const CompanyEnterpriseHub = ({
   // 'comunidades' | 'postulaciones' | 'rrhh_oficina' | 'firma' | 'empresa' | 'alianzas' | 'respaldos'
   const [activeHubTab, setActiveHubTab] = useState('comunidades');
   const [empresaSubSection, setEmpresaSubSection] = useState('empresa'); // 'empresa' | 'acreditacion'
+  const [postulacionSection, setPostulacionSection] = useState('preparacion'); // 'preparacion' | 'pipeline' | 'calculadora' | 'material' | 'inspeccion' | 'comparativa' | 'pitch' | 'demo'
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -396,6 +397,23 @@ export const CompanyEnterpriseHub = ({
     }
   ];
 
+  // Submenús dedicados para mantener limpia la pantalla principal
+  const POSTULACION_SUB_ITEMS = [
+    { id: 'preparacion', label: '1. Checklist & Semáforo', icon: ClipboardCheck },
+    { id: 'pipeline', label: '2. CRM Postulaciones', icon: Briefcase },
+    { id: 'calculadora', label: '3. Calculadora AGACECH', icon: Calculator },
+    { id: 'material', label: '4. Dossier, Propuestas & Cartas', icon: FileText },
+    { id: 'inspeccion', label: '5. Inspección Técnica Inicial', icon: HardHat },
+    { id: 'comparativa', label: '6. Cuadro Comparativo', icon: Scale },
+    { id: 'pitch', label: '7. Libreto Pitch (10 Min)', icon: Presentation },
+    { id: 'demo', label: '8. Demo en Vivo & QR', icon: QrCode },
+  ];
+
+  const EMPRESA_SUB_ITEMS = [
+    { id: 'empresa', label: '1. Datos de Empresa & Rep. Legal', icon: Building2 },
+    { id: 'acreditacion', label: '2. Títulos, Diplomas & RNAC Minvu', icon: ShieldCheck },
+  ];
+
   const activeHubTabObj = hubNavTabs.find((t) => t.id === activeHubTab) || hubNavTabs[0];
 
   // Barra lateral izquierda del Panel Empresa (colores invertidos: Dorado Ejecutivo + Verde Bosque)
@@ -489,48 +507,116 @@ export const CompanyEnterpriseHub = ({
           const IconComponent = tab.icon;
           const isActive = activeHubTab === tab.id;
           return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => {
-                setActiveHubTab(tab.id);
-                if (tab.id === 'empresa') {
-                  setEmpresaSubSection('empresa');
-                }
-                if (isMobile) setMobileSidebarOpen(false);
-              }}
-              title={sidebarCollapsed && !isMobile ? tab.label : undefined}
-              className={`w-full flex items-center ${
-                sidebarCollapsed && !isMobile ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2.5'
-              } rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-[#D4B895] text-[#0F3D2E] font-black shadow-sm'
-                  : 'text-white/85 hover:bg-white/10 hover:text-[#D4B895]'
-              }`}
-            >
-              <div className="flex items-center space-x-2.5 min-w-0">
-                <IconComponent
-                  className={`w-4 h-4 shrink-0 ${
-                    isActive ? 'text-[#0F3D2E]' : 'text-[#D4B895]'
-                  }`}
-                />
-                {(!sidebarCollapsed || isMobile) && (
-                  <span className="truncate">{tab.label}</span>
-                )}
-              </div>
+            <div key={tab.id} className="space-y-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveHubTab(tab.id);
+                  if (tab.id === 'empresa' && !empresaSubSection) {
+                    setEmpresaSubSection('empresa');
+                  }
+                  if (tab.id === 'postulaciones' && !postulacionSection) {
+                    setPostulacionSection('preparacion');
+                  }
+                  if (isMobile) setMobileSidebarOpen(false);
+                }}
+                title={sidebarCollapsed && !isMobile ? tab.label : undefined}
+                className={`w-full flex items-center ${
+                  sidebarCollapsed && !isMobile ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2.5'
+                } rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-[#D4B895] text-[#0F3D2E] font-black shadow-sm'
+                    : 'text-white/85 hover:bg-white/10 hover:text-[#D4B895]'
+                }`}
+              >
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <IconComponent
+                    className={`w-4 h-4 shrink-0 ${
+                      isActive ? 'text-[#0F3D2E]' : 'text-[#D4B895]'
+                    }`}
+                  />
+                  {(!sidebarCollapsed || isMobile) && (
+                    <span className="truncate">{tab.label}</span>
+                  )}
+                </div>
 
-              {(!sidebarCollapsed || isMobile) && tab.badge && (
-                <span
-                  className={`ml-2 px-2 py-0.5 text-[10px] font-black rounded-full shrink-0 ${
-                    isActive
-                      ? 'bg-[#0F3D2E] text-[#D4B895]'
-                      : 'bg-[#0A291F] text-[#D4B895] border border-[#D4B895]/30'
-                  }`}
-                >
-                  {tab.badge}
-                </span>
+                {(!sidebarCollapsed || isMobile) && tab.badge && (
+                  <span
+                    className={`ml-2 px-2 py-0.5 text-[10px] font-black rounded-full shrink-0 ${
+                      isActive
+                        ? 'bg-[#0F3D2E] text-[#D4B895]'
+                        : 'bg-[#0A291F] text-[#D4B895] border border-[#D4B895]/30'
+                    }`}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+
+              {/* Sub-menú para Postulaciones & CRM */}
+              {isActive && tab.id === 'postulaciones' && (!sidebarCollapsed || isMobile) && (
+                <div className="ml-3 pl-2.5 py-1 space-y-0.5 border-l-2 border-[#D4B895]/40 animate-in fade-in duration-150">
+                  {POSTULACION_SUB_ITEMS.map((sub) => {
+                    const SubIcon = sub.icon;
+                    const isSubActive = postulacionSection === sub.id;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          setPostulacionSection(sub.id);
+                          if (isMobile) setMobileSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-bold text-left transition-all cursor-pointer ${
+                          isSubActive
+                            ? 'bg-[#0A291F] text-[#D4B895] font-black shadow-2xs border border-[#D4B895]/40'
+                            : 'text-white/75 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <SubIcon
+                          className={`w-3.5 h-3.5 shrink-0 ${
+                            isSubActive ? 'text-[#D4B895]' : 'text-[#D4B895]/70'
+                          }`}
+                        />
+                        <span className="truncate">{sub.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-            </button>
+
+              {/* Sub-menú para Datos Empresa & RNAC */}
+              {isActive && tab.id === 'empresa' && (!sidebarCollapsed || isMobile) && (
+                <div className="ml-3 pl-2.5 py-1 space-y-0.5 border-l-2 border-[#D4B895]/40 animate-in fade-in duration-150">
+                  {EMPRESA_SUB_ITEMS.map((sub) => {
+                    const SubIcon = sub.icon;
+                    const isSubActive = empresaSubSection === sub.id;
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          setEmpresaSubSection(sub.id);
+                          if (isMobile) setMobileSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-bold text-left transition-all cursor-pointer ${
+                          isSubActive
+                            ? 'bg-[#0A291F] text-[#D4B895] font-black shadow-2xs border border-[#D4B895]/40'
+                            : 'text-white/75 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <SubIcon
+                          className={`w-3.5 h-3.5 shrink-0 ${
+                            isSubActive ? 'text-[#D4B895]' : 'text-[#D4B895]/70'
+                          }`}
+                        />
+                        <span className="truncate">{sub.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
@@ -843,14 +929,17 @@ export const CompanyEnterpriseHub = ({
             </div>
           )}
 
-          {/* ==================== MÓDULO 2: POSTULACIONES & CRM (SIN MENÚ HORIZONTAL DUPLICADO) ==================== */}
+          {/* ==================== MÓDULO 2: POSTULACIONES & CRM (DESDE SUBMENÚ LATERAL) ==================== */}
           {activeHubTab === 'postulaciones' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <CompanySettingsAndBackupModule
                 currentCommunity={communities[0]}
                 activeSubTab="postulaciones"
+                postulacionSection={postulacionSection}
+                setPostulacionSection={setPostulacionSection}
                 hideHeader={true}
                 hideNavBar={true}
+                hidePostulacionSubNav={true}
               />
             </div>
           )}
@@ -1137,34 +1226,6 @@ export const CompanyEnterpriseHub = ({
           {/* ==================== MÓDULO 5: DATOS EMPRESA & RNAC MINVU ==================== */}
           {activeHubTab === 'empresa' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              {/* Selector interno simple: Datos de Empresa vs. Acreditaciones MINVU */}
-              <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEmpresaSubSection('empresa')}
-                  className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                    empresaSubSection === 'empresa'
-                      ? 'bg-[#0F3D2E] text-white shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <Building2 className="w-4 h-4" />
-                  <span>1. Datos de la Empresa & Representante Legal</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEmpresaSubSection('acreditacion')}
-                  className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                    empresaSubSection === 'acreditacion'
-                      ? 'bg-[#0F3D2E] text-white shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <HardHat className="w-4 h-4" />
-                  <span>2. Acreditaciones, Títulos en Construcción & RNAC Minvu</span>
-                </button>
-              </div>
-
               <CompanySettingsAndBackupModule
                 currentCommunity={communities[0]}
                 activeSubTab={empresaSubSection}

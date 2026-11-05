@@ -112,7 +112,10 @@ export const CompanySettingsAndBackupModule = ({
   activeSubTab: externalActiveSubTab,
   setActiveSubTab: externalSetActiveSubTab,
   hideHeader = false,
-  hideNavBar = false
+  hideNavBar = false,
+  postulacionSection: externalPostulacionSection,
+  setPostulacionSection: externalSetPostulacionSection,
+  hidePostulacionSubNav = false
 }) => {
   const {
     communities = [],
@@ -395,8 +398,10 @@ export const CompanySettingsAndBackupModule = ({
     visitFrequency: companySettings?.lastProposalConfig?.visitFrequency || '2 visitas técnicas presenciales por semana + atención de emergencias 24/7'
   });
 
-  // Sección activa dentro de Postulaciones ('preparacion' | 'pipeline' | 'material' | 'inspeccion' | 'comparativa' | 'pitch' | 'demo')
-  const [postulacionSection, setPostulacionSection] = useState('preparacion');
+  // Sección activa dentro de Postulaciones ('preparacion' | 'pipeline' | 'calculadora' | 'material' | 'inspeccion' | 'comparativa' | 'pitch' | 'demo')
+  const [internalPostulacionSection, setInternalPostulacionSection] = useState('preparacion');
+  const postulacionSection = externalPostulacionSection || internalPostulacionSection;
+  const setPostulacionSection = externalSetPostulacionSection || setInternalPostulacionSection;
 
   // Modales de Material de Apoyo, Ventas y Licitación
   const [previewColdLetterModal, setPreviewColdLetterModal] = useState(false);
@@ -2281,36 +2286,38 @@ export const CompanySettingsAndBackupModule = ({
               </div>
 
               {/* SELECTOR DE HERRAMIENTAS DE CAPTACIÓN & MATERIAL DE APOYO (8 MÓDULOS) */}
-              <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
-                {[
-                  { id: 'preparacion', label: `1. Checklist & Semáforo (${readinessReport.score}%)`, icon: ClipboardCheck },
-                  { id: 'pipeline', label: `2. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
-                  { id: 'calculadora', label: '3. Calculadora Piso Honorarios (AGACECH)', icon: Calculator },
-                  { id: 'material', label: '4. Dossier, Propuesta & Cartas', icon: FileText },
-                  { id: 'inspeccion', label: '5. Inspección Técnica Inicial', icon: HardHat },
-                  { id: 'comparativa', label: '6. Cuadro Comparativo', icon: Scale },
-                  { id: 'pitch', label: '7. Libreto Pitch (10 Min)', icon: Presentation },
-                  { id: 'demo', label: '8. Demo en Vivo & QR', icon: QrCode }
-                ].map((tab) => {
-                  const IconC = tab.icon;
-                  const isAct = postulacionSection === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setPostulacionSection(tab.id)}
-                      className={`flex-1 min-w-[140px] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${
-                        isAct
-                          ? 'bg-[#0F3D2E] text-white shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
-                      }`}
-                    >
-                      <IconC className={`w-3.5 h-3.5 shrink-0 ${isAct ? 'text-[#D4B895]' : 'text-slate-400'}`} />
-                      <span className="truncate">{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {!hidePostulacionSubNav && (
+                <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
+                  {[
+                    { id: 'preparacion', label: `1. Checklist & Semáforo (${readinessReport.score}%)`, icon: ClipboardCheck },
+                    { id: 'pipeline', label: `2. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
+                    { id: 'calculadora', label: '3. Calculadora Piso Honorarios (AGACECH)', icon: Calculator },
+                    { id: 'material', label: '4. Dossier, Propuesta & Cartas', icon: FileText },
+                    { id: 'inspeccion', label: '5. Inspección Técnica Inicial', icon: HardHat },
+                    { id: 'comparativa', label: '6. Cuadro Comparativo', icon: Scale },
+                    { id: 'pitch', label: '7. Libreto Pitch (10 Min)', icon: Presentation },
+                    { id: 'demo', label: '8. Demo en Vivo & QR', icon: QrCode }
+                  ].map((tab) => {
+                    const IconC = tab.icon;
+                    const isAct = postulacionSection === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setPostulacionSection(tab.id)}
+                        className={`flex-1 min-w-[140px] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${
+                          isAct
+                            ? 'bg-[#0F3D2E] text-white shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                        }`}
+                      >
+                        <IconC className={`w-3.5 h-3.5 shrink-0 ${isAct ? 'text-[#D4B895]' : 'text-slate-400'}`} />
+                        <span className="truncate">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* SECCIÓN 1: CHECKLIST & SEMÁFORO DE PREPARACIÓN */}
               {postulacionSection === 'preparacion' && (
