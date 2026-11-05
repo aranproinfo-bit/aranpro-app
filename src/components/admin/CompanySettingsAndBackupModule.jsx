@@ -4451,10 +4451,10 @@ export const CompanySettingsAndBackupModule = ({
                       PRESENTACIÓN INSTITUCIONAL {new Date().getFullYear()}
                     </span>
                     <p className="text-[11px] font-bold text-slate-800">
-                      Carta de Valor & Credenciales Técnicas
+                      Carta de Presentación & Invitación Técnica
                     </p>
                     <p className="text-[10px] text-slate-500 font-semibold">
-                      Atención Exclusiva: Comité de Administración
+                      Especial para el Comité de Administración
                     </p>
                   </div>
                 </div>
@@ -4462,11 +4462,11 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Encabezado Protocolar */}
                 <div className="text-xs text-slate-700 space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                   <p>
-                    <strong>ATENCIÓN:</strong>{' '}
+                    <strong>Dirigido cordialmente a:</strong>{' '}
                     {proposalConfig.leaveRecipientBlank ? (
                       <span className="font-mono text-slate-400">__________________________________________________________________</span>
                     ) : (
-                      <strong className="text-slate-900">Señores Miembros del Comité de Administración (Presente)</strong>
+                      <strong className="text-slate-900">Señores Miembros del Comité de Administración</strong>
                     )}
                   </p>
                   {proposalConfig.targetCondo?.trim() ? (
@@ -4486,10 +4486,10 @@ export const CompanySettingsAndBackupModule = ({
                     </p>
                   )}
                   <p>
-                    <strong>DE:</strong> {empresaForm.adminName} — Administrador Acreditado RNAC Minvu N° {empresaForm.rnacNumber} (Técnico en Construcción & Construcción Civil)
+                    <strong>Presentado por:</strong> {empresaForm.adminName} — Administrador Acreditado RNAC Minvu N° {empresaForm.rnacNumber} (Técnico en Construcción & Construcción Civil)
                   </p>
                   <p>
-                    <strong>MATERIA:</strong> Presentación de Credenciales Profesionales, Gestión Transparente Ley N° 21.442 y Diagnóstico Técnico Preventivo Sin Costo
+                    <strong>Motivo de Invitación:</strong> Presentación de Credenciales Profesionales, Gestión Transparente Ley N° 21.442 e Invitación a Diagnóstico Técnico Preventivo Sin Costo
                   </p>
                 </div>
 
