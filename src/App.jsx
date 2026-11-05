@@ -122,7 +122,7 @@ function MainApp() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F4EF] text-[#0F3D2E]">
       {/* Barra superior de la App (solo visible cuando no se está en un portal autenticado) */}
-      {currentView !== 'admin' && currentView !== 'resident' && (
+      {currentView !== 'admin' && currentView !== 'admin-select-community' && currentView !== 'resident' && (
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AranproLogo variant="horizontal" size="sm" className="h-8 w-auto" />
@@ -397,6 +397,7 @@ function MainApp() {
         {/* PANTALLA CENTRAL DEL ADMINISTRADOR: PANEL DE EMPRESA ADMINISTRADORA, COMUNIDADES, METAS, POSTULACIONES, RR.HH. OFICINA & ALIANZAS */}
         {currentView === 'admin-select-community' && (
           <CompanyEnterpriseHub
+            onBackToWeb={handleGoToCommercialWeb}
             onSelectCommunityToManage={(communityId) => {
               setSelectedAdminCommunityId(communityId);
               setCurrentView('admin');
@@ -459,7 +460,7 @@ function MainApp() {
       </main>
 
       {/* Footer Público con Firma Oficial Red-Enlace */}
-      {currentView !== 'admin' && currentView !== 'resident' && (
+      {currentView !== 'admin' && currentView !== 'admin-select-community' && currentView !== 'resident' && (
         <footer className="py-4 border-t border-slate-200/80 bg-white/60 text-xs text-slate-500">
           <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <span>© {new Date().getFullYear()} ARANPRO • Suite de Gestión & Copropiedad</span>

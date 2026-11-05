@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule';
+import { PwaInstallButton } from '../layout/PwaPrompt';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import { formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
@@ -8,7 +9,8 @@ import {
   Building2, Briefcase, Users, Award, ShieldCheck, ArrowRight, Plus,
   TrendingUp, Target, GraduationCap, Handshake, Wrench, FileText,
   CheckCircle2, Phone, Mail, ExternalLink, LogOut, Sparkles, Printer,
-  Trash2, Check, Key, PenTool, HardHat, Scale, Landmark, DollarSign
+  Trash2, Check, Key, PenTool, HardHat, Scale, Landmark, DollarSign,
+  Menu, X, ChevronLeft, ChevronRight, Globe, Shield, Database, Calculator
 } from 'lucide-react';
 
 const DEFAULT_OFFICE_WORKERS = [
@@ -171,6 +173,7 @@ const DEFAULT_TRUSTED_PROVIDERS = [
 ];
 
 export const CompanyEnterpriseHub = ({
+  onBackToWeb,
   onSelectCommunityToManage,
   onSelectResidentPreview,
   onLogout
@@ -182,6 +185,8 @@ export const CompanyEnterpriseHub = ({
   // 'comunidades' | 'postulaciones' | 'rrhh_oficina' | 'alianzas' | 'config_empresa'
   const [activeHubTab, setActiveHubTab] = useState('comunidades');
   const [companySubSection, setCompanySubSection] = useState('empresa');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Meta mensual de honorarios del administrador (en UF y CLP)
   const [ufValue, setUfValue] = useState(() => Number(companySettings?.ufReferenceValue) || 38650);
@@ -421,126 +426,584 @@ export const CompanyEnterpriseHub = ({
     });
   };
 
-  return (
-    <div className="min-h-screen bg-[#F5F4EF] text-slate-900 pb-16">
-      {/* SUB-BARRA EJECUTIVA DEL PANEL DE EMPRESA ADMINISTRADORA */}
-      <div className="bg-[#0F3D2E] text-white border-b border-[#D4B895]/30 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-[#D4B895]/20 border border-[#D4B895]/50 flex items-center justify-center text-[#D4B895] shrink-0">
-                <Briefcase className="w-6 h-6" />
+  const hubNavTabs = [
+    {
+      id: 'comunidades',
+      label: '1. Mis Comunidades & Metas',
+      shortLabel: 'Comunidades & Metas',
+      icon: Building2,
+      badge: `${totalCommunities} Activas`
+    },
+    {
+      id: 'postulaciones',
+      label: '2. Postulaciones & CRM AGACECH',
+      shortLabel: 'Postulaciones & CRM',
+      icon: Target,
+      badge: `${pipelineCount} en CRM`
+    },
+    {
+      id: 'rrhh_oficina',
+      label: '3. Mi Oficina: RR.HH. & Previred',
+      shortLabel: 'Mi Oficina (RR.HH.)',
+      icon: Users,
+      badge: `${officeWorkers.length} Equipo`
+    },
+    {
+      id: 'alianzas',
+      label: '4. Convenios, Gremios & Proveedores',
+      shortLabel: 'Convenios & Red',
+      icon: Handshake,
+      badge: `${trustedProviders.length} Prov.`
+    },
+    {
+      id: 'config_empresa',
+      label: '5. Datos Empresa, Firma & RNAC',
+      shortLabel: 'Datos Empresa & RNAC',
+      icon: ShieldCheck,
+      badge: 'RNAC'
+    }
+  ];
+
+  const activeHubTabObj = hubNavTabs.find((t) => t.id === activeHubTab) || hubNavTabs[0];
+
+  const scrollToSection = (sectionId) => {
+    setTimeout(() => {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+  };
+
+  // BARRA LATERAL IZQUIERDA DEL PANEL DE EMPRESA ADMINISTRADORA (COLORES INVERTIDOS RESPECTO A LA COMUNIDAD)
+  // En Comunidad: Cabecera Verde Oscura + Cuerpo Blanco + Botón Activo Verde
+  // En Panel Empresa: Cabecera Dorada Ejecutiva (#D4B895) + Cuerpo Verde Corporativo (#0F3D2E) + Botón Activo Dorado (#D4B895)
+  const renderEnterpriseSidebar = (isMobile = false) => (
+    <div className="flex flex-col h-full bg-[#0F3D2E] text-white border-r border-[#D4B895]/35 shadow-xl">
+      {/* 1. Cabecera Superior Invertida en Dorado Ejecutivo (#D4B895) para distinguir que estamos en MODO EMPRESA */}
+      <div className="bg-gradient-to-br from-[#D4B895] via-[#dfc7a7] to-[#c7a67b] text-[#0F3D2E] p-3.5 border-b border-[#0F3D2E]/20 space-y-2.5">
+        <div className="flex items-center justify-between gap-2">
+          {(!sidebarCollapsed || isMobile) && (
+            <div className="flex items-center space-x-2 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center shrink-0 shadow-xs">
+                <Briefcase className="w-4 h-4" />
               </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#D4B895] text-[#0F3D2E]">
-                    Centro de Negocios & Backoffice del Administrador
-                  </span>
-                  <span className="text-[11px] font-mono text-[#D4B895]/90">
-                    {companySettings?.provisionalName || 'ARANPRO • Gestión Integral'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
-                  </span>
-                </div>
-                <h1 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
-                  Panel Central de Mi Empresa Administradora & Cartera de Comunidades
+              <div className="truncate">
+                <span className="text-[9px] font-black tracking-wider uppercase text-[#0F3D2E]/80 block leading-none">
+                  Panel Mi Empresa • Backoffice
+                </span>
+                <h1 className="text-xs font-black text-[#0F3D2E] truncate mt-0.5">
+                  {companySettings?.brandName || 'ARANPRO'} • Administradora
                 </h1>
               </div>
             </div>
+          )}
 
-            <div className="flex flex-wrap items-center gap-2">
+          {isMobile ? (
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(false)}
+              className="p-1.5 text-[#0F3D2E]/80 hover:text-[#0F3D2E] rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="p-1.5 text-[#0F3D2E] hover:bg-[#0F3D2E]/10 rounded-lg transition-colors mx-auto sm:mx-0 cursor-pointer"
+              title={sidebarCollapsed ? 'Expandir panel de empresa' : 'Contraer panel de empresa'}
+            >
+              {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
+          )}
+        </div>
+
+        {(!sidebarCollapsed || isMobile) && (
+          <div className="space-y-1.5 pt-0.5">
+            {/* Selector directo para saltar a trabajar en una comunidad */}
+            <div className="space-y-1">
+              <span className="text-[9px] font-black uppercase tracking-wider text-[#0F3D2E]/80 block">
+                Abrir Comunidad Activa ({communities.length}):
+              </span>
+              <select
+                value=""
+                onChange={(e) => {
+                  const commId = e.target.value;
+                  if (commId) {
+                    if (isMobile) setMobileSidebarOpen(false);
+                    onSelectCommunityToManage(commId);
+                  }
+                }}
+                className="w-full bg-[#0F3D2E] text-white text-xs font-bold px-2.5 py-2 rounded-xl border border-[#0F3D2E] focus:outline-hidden focus:ring-2 focus:ring-white cursor-pointer"
+              >
+                <option value="">🏢 Seleccionar Condominio para entrar...</option>
+                {communities.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    Ir a: {c.name} ({c.totalUnits} {c.type})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => setShowNewCommunityModal(true)}
-                className="px-3.5 py-2 rounded-xl bg-[#D4B895] hover:bg-[#c8a982] text-[#0F3D2E] font-black text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                onClick={() => {
+                  if (isMobile) setMobileSidebarOpen(false);
+                  setShowNewCommunityModal(true);
+                }}
+                className="flex-1 py-1.5 px-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-[11px] font-black rounded-xl flex items-center justify-center shadow-2xs transition-colors cursor-pointer"
               >
-                <Plus className="w-4 h-4" />
-                <span>Habilitar Nueva Comunidad</span>
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                Nueva Comunidad
               </button>
-              {onLogout && (
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  className="px-3 py-2 rounded-xl bg-white/10 hover:bg-rose-600/80 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-                  title="Cerrar sesión de Administrador"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Cerrar Sesión</span>
-                </button>
-              )}
+              <span
+                className="px-2 py-1.5 text-[10px] font-black bg-white/80 text-[#0F3D2E] border border-[#0F3D2E]/20 rounded-xl truncate"
+                title="Facturación actual vs Meta UF"
+              >
+                {currentMonthlyFeeUF}/{monthlyGoalUF} UF
+              </span>
             </div>
           </div>
+        )}
+      </div>
 
-          {/* PESTAÑAS DEL PANEL DE EMPRESA ADMINISTRADORA (SEPARADO DE LAS COMUNIDADES) */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/10">
-            {[
-              {
-                id: 'comunidades',
-                label: '1. Mis Comunidades & Metas',
-                icon: Building2,
-                badge: `${totalCommunities} Activas`
-              },
-              {
-                id: 'postulaciones',
-                label: '2. Postulaciones, CRM & Honorarios AGACECH',
-                icon: Target,
-                badge: `${pipelineCount} en CRM`
-              },
-              {
-                id: 'rrhh_oficina',
-                label: '3. Mi Oficina: Trabajadores & Imposiciones',
-                icon: Users,
-                badge: `${officeWorkers.length} Equipo`
-              },
-              {
-                id: 'alianzas',
-                label: '4. Convenios, Gremios & Proveedores',
-                icon: Handshake,
-                badge: 'Red ARANPRO'
-              },
-              {
-                id: 'config_empresa',
-                label: '5. Datos Empresa, Firma Digital & RNAC',
-                icon: ShieldCheck,
-                badge: 'Acreditado'
-              }
-            ].map((tab) => {
-              const IconComp = tab.icon;
-              const isActive = activeHubTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveHubTab(tab.id)}
-                  className={`px-3.5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
-                    isActive
-                      ? 'bg-white text-[#0F3D2E] shadow-md'
-                      : 'text-white/85 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <IconComp className={`w-4 h-4 ${isActive ? 'text-[#0F3D2E]' : 'text-[#D4B895]'}`} />
-                  <span>{tab.label}</span>
-                  {tab.badge && (
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        isActive ? 'bg-[#0F3D2E] text-[#D4B895]' : 'bg-white/15 text-[#D4B895]'
+      {/* 2. Navegación Vertical del Panel de Empresa (Fondo Verde Corporativo #0F3D2E + Botón Activo Dorado #D4B895) */}
+      <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-1">
+        {(!sidebarCollapsed || isMobile) && (
+          <span className="px-2 text-[9px] font-black uppercase tracking-widest text-[#D4B895]/80 block mb-1.5">
+            Menú Central de Mi Administradora
+          </span>
+        )}
+
+        {hubNavTabs.map((tab) => {
+          const IconComponent = tab.icon;
+          const isActive = activeHubTab === tab.id;
+          return (
+            <div key={tab.id} className="space-y-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveHubTab(tab.id);
+                  if (tab.id === 'postulaciones') {
+                    setCompanySubSection('postulaciones');
+                  } else if (tab.id === 'config_empresa' && companySubSection === 'postulaciones') {
+                    setCompanySubSection('empresa');
+                  }
+                  if (isMobile) setMobileSidebarOpen(false);
+                }}
+                title={sidebarCollapsed && !isMobile ? tab.label : undefined}
+                className={`w-full flex items-center ${
+                  sidebarCollapsed && !isMobile ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2.5'
+                } rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-[#D4B895] text-[#0F3D2E] font-black shadow-sm'
+                    : 'text-white/85 hover:bg-white/10 hover:text-[#D4B895]'
+                }`}
+              >
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <IconComponent
+                    className={`w-4 h-4 shrink-0 ${
+                      isActive ? 'text-[#0F3D2E]' : 'text-[#D4B895]'
+                    }`}
+                  />
+                  {(!sidebarCollapsed || isMobile) && (
+                    <span className="truncate">{tab.label}</span>
+                  )}
+                </div>
+
+                {(!sidebarCollapsed || isMobile) && tab.badge && (
+                  <span
+                    className={`ml-2 px-2 py-0.5 text-[10px] font-black rounded-full shrink-0 ${
+                      isActive
+                        ? 'bg-[#0F3D2E] text-[#D4B895]'
+                        : 'bg-[#0A291F] text-[#D4B895] border border-[#D4B895]/30'
+                    }`}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+
+              {/* SUB-ÍNDICES 1: MIS COMUNIDADES, METAS & CAPACITACIÓN */}
+              {tab.id === 'comunidades' && (!sidebarCollapsed || isMobile) && isActive && (
+                <div className="ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveHubTab('comunidades');
+                      scrollToSection('sec-comunidades-activas');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold text-white/90 hover:text-[#D4B895] hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    <span className="truncate">• Comunidades Activas</span>
+                    <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-[#0A291F] text-[#D4B895] font-bold">
+                      {totalCommunities}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveHubTab('comunidades');
+                      scrollToSection('sec-metas-honorarios');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold text-white/90 hover:text-[#D4B895] hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    <span className="truncate">• Meta de Honorarios (UF)</span>
+                    <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-[#0A291F] text-emerald-300 font-bold">
+                      {goalProgressPct}%
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveHubTab('comunidades');
+                      scrollToSection('sec-capacitacion-continua');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold text-white/90 hover:text-[#D4B895] hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    <span className="truncate">• Radar Capacitación</span>
+                    <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-[#0A291F] text-[#D4B895] font-bold">
+                      {trainingGoals.length}
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* SUB-ÍNDICES 2: POSTULACIONES, CRM & CARTA EN FRÍO */}
+              {tab.id === 'postulaciones' && (!sidebarCollapsed || isMobile) && isActive && (
+                <div className="ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveHubTab('postulaciones');
+                      setCompanySubSection('postulaciones');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold bg-white/15 text-[#D4B895] cursor-pointer"
+                  >
+                    <span className="truncate">• CRM, Piso AGACECH & Dossier</span>
+                    <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-[#D4B895] text-[#0F3D2E] font-black">
+                      PDF
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* SUB-ÍNDICES 3: MI OFICINA (TRABAJADORES & PREVIRED) */}
+              {tab.id === 'rrhh_oficina' && (!sidebarCollapsed || isMobile) && isActive && (
+                <div className="ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddWorkerModal(true);
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold text-white/90 hover:text-[#D4B895] hover:bg-white/10 cursor-pointer"
+                  >
+                    <span className="truncate">+ Agregar Trabajador Oficina</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      printDocumentDirectly(
+                        'printable-office-payroll-sheet',
+                        `ARANPRO_Nomina_RRHH_Oficina_${new Date().toISOString().slice(0, 7)}`,
+                        { pdfStyle }
+                      );
+                    }}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold text-[#D4B895] hover:bg-white/10 cursor-pointer"
+                  >
+                    <span className="truncate">🖨️ Emitir Planilla Previred PDF</span>
+                  </button>
+                </div>
+              )}
+
+              {/* SUB-ÍNDICES 5: DATOS EMPRESA, FIRMA DIGITAL, RNAC, EQUIPO & RESPALDOS */}
+              {tab.id === 'config_empresa' && (!sidebarCollapsed || isMobile) && isActive && (
+                <div className="ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1">
+                  {[
+                    { id: 'empresa', label: '1. Datos Empresa & Rep. Legal' },
+                    { id: 'firma', label: '2. Firma Digital & Timbre' },
+                    { id: 'acreditacion', label: '3. Credenciales RNAC Minvu' },
+                    { id: 'equipo', label: '4. Equipo & Colaboradores' },
+                    { id: 'respaldos', label: '5. Respaldos & Seguridad' }
+                  ].map((sub) => (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveHubTab('config_empresa');
+                        setCompanySubSection(sub.id);
+                        if (isMobile) setMobileSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        companySubSection === sub.id
+                          ? 'bg-white/15 text-[#D4B895] font-black border border-[#D4B895]/40'
+                          : 'text-white/75 hover:text-white hover:bg-white/10'
                       }`}
                     >
-                      {tab.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                      <span className="truncate">{sub.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 3. Acciones Rápidas de Mi Empresa Administradora (Cuadrícula 2x2 en el pie de la barra lateral) */}
+      <div className="p-2.5 bg-[#0A291F] border-t border-[#D4B895]/25 space-y-1.5">
+        {(!sidebarCollapsed || isMobile) ? (
+          <>
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[9px] font-black uppercase tracking-wider text-[#D4B895] truncate">
+                Atajos Rápidos • Mi Empresa
+              </span>
+              <span className="text-[9px] font-mono text-white/60">
+                RNAC {companySettings?.rnacNumber || '48.912'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveHubTab('postulaciones');
+                  setCompanySubSection('postulaciones');
+                  if (isMobile) setMobileSidebarOpen(false);
+                }}
+                className="px-2 py-2 text-[11px] font-black bg-[#D4B895] hover:bg-[#c8a982] text-[#0F3D2E] rounded-xl transition-colors flex items-center justify-center shadow-2xs cursor-pointer"
+                title="Ir a Dossier y Carta de Presentación en Frío"
+              >
+                <Printer className="w-3.5 h-3.5 mr-1.5 text-[#0F3D2E] shrink-0" />
+                <span className="truncate">Dossier / Carta</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveHubTab('rrhh_oficina');
+                  if (isMobile) setMobileSidebarOpen(false);
+                }}
+                className="px-2 py-2 text-[11px] font-bold bg-white/10 hover:bg-white/20 text-white border border-[#D4B895]/30 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                title="Gestionar trabajadores e imposiciones de mi oficina"
+              >
+                <Users className="w-3.5 h-3.5 mr-1.5 text-[#D4B895] shrink-0" />
+                <span className="truncate">RR.HH. Oficina</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveHubTab('config_empresa');
+                  setCompanySubSection('firma');
+                  if (isMobile) setMobileSidebarOpen(false);
+                }}
+                className="px-2 py-2 text-[11px] font-bold bg-white/10 hover:bg-white/20 text-white border border-white/15 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                title="Configurar Firma Digital y Sello ARANPRO"
+              >
+                <PenTool className="w-3.5 h-3.5 mr-1.5 text-[#D4B895] shrink-0" />
+                <span className="truncate">Firma & Sello</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveHubTab('alianzas');
+                  if (isMobile) setMobileSidebarOpen(false);
+                }}
+                className="px-2 py-2 text-[11px] font-bold bg-white/10 hover:bg-white/20 text-white border border-white/15 rounded-xl transition-colors flex items-center justify-center cursor-pointer"
+                title="Convenios AGACECH, Abogados y Proveedores"
+              >
+                <Handshake className="w-3.5 h-3.5 mr-1.5 text-[#D4B895] shrink-0" />
+                <span className="truncate">Proveedores</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center space-y-1.5">
+            <button
+              type="button"
+              onClick={() => setActiveHubTab('postulaciones')}
+              className="p-2 bg-[#D4B895] text-[#0F3D2E] rounded-xl hover:bg-[#c8a982]"
+              title="Postulaciones y Carta en Frío"
+            >
+              <Target className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveHubTab('rrhh_oficina')}
+              className="p-2 bg-white/10 text-[#D4B895] border border-[#D4B895]/30 rounded-xl hover:bg-white/20"
+              title="RR.HH. Mi Oficina"
+            >
+              <Users className="w-4 h-4" />
+            </button>
           </div>
+        )}
+      </div>
+
+      {/* Firma Oficial Red-Enlace Soluciones Digitales */}
+      {(!sidebarCollapsed || isMobile) && (
+        <div className="p-2 border-t border-white/10 text-center bg-[#082219]">
+          <a
+            href="https://redenlace.cl/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-[10.5px] text-white/60 hover:text-[#D4B895] font-medium transition-colors group cursor-pointer"
+            title="Visitar Red-Enlace Soluciones Digitales"
+          >
+            <img
+              src="/red-enlace-logo.png"
+              alt="Logo Red-Enlace"
+              width={14}
+              height={14}
+              className="h-3 w-auto opacity-80 group-hover:opacity-100 transition-opacity"
+            />
+            <span>Desarrollado por Red-Enlace</span>
+          </a>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col lg:flex-row pb-20 lg:pb-0">
+      {/* BARRA SUPERIOR COMPACTA SOLO PARA CELULAR / TABLET (< lg) */}
+      <div className="lg:hidden sticky top-0 z-30 bg-[#0A291F] text-white px-4 py-2.5 border-b border-[#D4B895]/40 flex items-center justify-between shadow-sm">
+        <div className="flex items-center space-x-2.5 min-w-0">
+          <button
+            type="button"
+            onClick={() => setMobileSidebarOpen(true)}
+            className="p-2 bg-[#D4B895] text-[#0F3D2E] rounded-xl flex items-center shrink-0 font-black"
+            aria-label="Abrir panel de empresa"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="truncate">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#D4B895] block leading-tight truncate">
+              Panel Mi Empresa Administradora
+            </span>
+            <span className="text-xs font-black text-white truncate block">
+              {activeHubTabObj.shortLabel}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-1.5 shrink-0">
+          <PwaInstallButton variant="compact" label="Instalar" />
+          <button
+            type="button"
+            onClick={() => setShowNewCommunityModal(true)}
+            className="px-2.5 py-1.5 bg-[#D4B895] text-[#0F3D2E] text-[11px] font-black rounded-lg flex items-center"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Comunidad
+          </button>
         </div>
       </div>
 
-      {/* CONTENIDO PRINCIPAL DEL HUB DE EMPRESA */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
+      {/* DRAWER LATERAL DESLIZABLE EN CELULAR / TABLET (< lg) */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          <div
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+          <div className="relative w-80 max-w-[85vw] h-full z-10 shadow-2xl">
+            {renderEnterpriseSidebar(true)}
+          </div>
+        </div>
+      )}
+
+      {/* PANEL LATERAL IZQUIERDO FIJO DESDE EL TOPE DE LA PÁGINA EN COMPUTADOR (lg+) */}
+      <aside
+        className={`hidden lg:block shrink-0 transition-all duration-200 ${
+          sidebarCollapsed ? 'w-16' : 'w-64 xl:w-72'
+        }`}
+      >
+        <div className="sticky top-0 h-screen">
+          {renderEnterpriseSidebar(false)}
+        </div>
+      </aside>
+
+      {/* COLUMNA DERECHA: BARRA SUPERIOR EJECUTIVA + ÁREA DE TRABAJO DE LA EMPRESA */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        {/* BARRA SUPERIOR EJECUTIVA INVERTIDA (OSCURA CON DETALLES DORADOS PARA DIFERENCIARLA DE LA BARRA BLANCA DE COMUNIDADES) */}
+        <header className="hidden lg:flex sticky top-0 z-30 bg-[#0A291F] text-white border-b border-[#D4B895]/35 px-6 h-16 items-center justify-between gap-4 shadow-sm">
+          {/* Izquierda: Indicador de Modo Empresa Administradora + Módulo Activo */}
+          <div className="flex items-center space-x-3 min-w-0">
+            <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-[#D4B895] text-[#0F3D2E] rounded-lg shrink-0 flex items-center gap-1.5 shadow-2xs">
+              <Briefcase className="w-3.5 h-3.5" />
+              Modo Empresa Administradora
+            </span>
+            <span className="text-white/30">•</span>
+            <span className="text-sm font-black text-white truncate">
+              {activeHubTabObj.label}
+            </span>
+            <span className="hidden xl:inline-block px-2 py-0.5 text-[10px] font-mono bg-white/10 text-[#D4B895] border border-[#D4B895]/30 rounded-md shrink-0">
+              RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+            </span>
+          </div>
+
+          {/* Centro: Logo Oficial ARANPRO en versión oscura */}
+          <div
+            onClick={onBackToWeb}
+            className="cursor-pointer shrink-0 hover:opacity-90 transition-opacity"
+            title="Ir al sitio web oficial aranpro.cl"
+          >
+            <AranproLogo variant="horizontal" size="sm" theme="dark" />
+          </div>
+
+          {/* Derecha: Acciones Globales del Administrador */}
+          <div className="flex items-center space-x-2 shrink-0">
+            <PwaInstallButton variant="compact" label="Instalar App" />
+            {onBackToWeb && (
+              <button
+                type="button"
+                onClick={onBackToWeb}
+                className="px-3 py-1.5 text-xs font-bold text-white/85 hover:text-[#D4B895] hover:bg-white/10 rounded-xl transition-colors flex items-center cursor-pointer"
+                title="Volver a la página web corporativa aranpro.cl"
+              >
+                <Globe className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
+                Web aranpro.cl
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowNewCommunityModal(true)}
+              className="px-3.5 py-1.5 bg-[#D4B895] hover:bg-[#c8a982] text-[#0F3D2E] text-xs font-black rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Nueva Comunidad</span>
+            </button>
+
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                className="p-2 text-white/70 hover:text-rose-300 hover:bg-rose-500/20 rounded-xl transition-colors cursor-pointer"
+                title="Cerrar sesión de Administrador"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* CONTENIDO PRINCIPAL DEL HUB DE EMPRESA */}
+        <div className="flex-1 px-3 sm:px-5 lg:px-7 py-6 space-y-8 min-w-0 max-w-7xl w-full mx-auto">
         {/* ==================== VISTA 1: MIS COMUNIDADES ACTIVAS, METAS & CAPACITACIÓN ==================== */}
         {activeHubTab === 'comunidades' && (
           <div className="space-y-8 animate-in fade-in duration-200">
             {/* SECCIÓN CENTRAL: ¿EN QUÉ COMUNIDAD DESEAS TRABAJAR HOY? */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+            <div id="sec-comunidades-activas" className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
               <div className="text-center space-y-2">
                 <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-[#0F3D2E] text-[#D4B895]">
                   <Building2 className="w-3.5 h-3.5" />
@@ -628,7 +1091,7 @@ export const CompanyEnterpriseHub = ({
 
             {/* SECCIÓN 2: TERMÓMETRO DE META DE HONORARIOS Y CRECIMIENTO COMERCIAL DEL ADMINISTRADOR */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-5">
+              <div id="sec-metas-honorarios" className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2.5">
                     <div className="w-10 h-10 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center shrink-0">
@@ -764,7 +1227,7 @@ export const CompanyEnterpriseHub = ({
               </div>
 
               {/* COLUMNA DERECHA: INCENTIVO DE CAPACITACIÓN CONTINUA DEL ADMINISTRADOR */}
-              <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
+              <div id="sec-capacitacion-continua" className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div className="flex items-center gap-2.5">
@@ -1277,6 +1740,7 @@ export const CompanyEnterpriseHub = ({
             />
           </div>
         )}
+        </div>
       </div>
 
       {/* MODAL RÁPIDO PARA HABILITAR UNA NUEVA COMUNIDAD DESDE EL PANEL DE EMPRESA */}
