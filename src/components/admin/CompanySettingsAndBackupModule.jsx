@@ -21,6 +21,92 @@ import {
   ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert, Kanban, Calculator
 } from 'lucide-react';
 
+// Recorta automáticamente márgenes blancos/transparentes alrededor de la firma manuscrita
+// y convierte el fondo blanco en transparente para que la firma abarque óptimamente su espacio en los PDFs.
+const autoTrimSignatureDataUrl = (dataUrl) => {
+  return new Promise((resolve) => {
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image')) {
+      resolve(dataUrl);
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const w = img.width;
+        const h = img.height;
+        if (!w || !h) {
+          resolve(dataUrl);
+          return;
+        }
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = w;
+        tempCanvas.height = h;
+        const ctx = tempCanvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const data = imgData.data;
+
+        let minX = w;
+        let minY = h;
+        let maxX = 0;
+        let maxY = 0;
+        let foundInk = false;
+
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const idx = (y * w + x) * 4;
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+            const a = data[idx + 3];
+
+            // Si es casi blanco, volverlo transparente para eliminar fondos de papel escaneado
+            if (a > 0 && r > 238 && g > 238 && b > 238) {
+              data[idx + 3] = 0;
+              continue;
+            }
+
+            // Si tiene tinta visible
+            if (data[idx + 3] > 25) {
+              foundInk = true;
+              if (x < minX) minX = x;
+              if (y < minY) minY = y;
+              if (x > maxX) maxX = x;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+
+        if (!foundInk || maxX <= minX || maxY <= minY) {
+          resolve(dataUrl);
+          return;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+
+        const pad = 6;
+        const cropX = Math.max(0, minX - pad);
+        const cropY = Math.max(0, minY - pad);
+        const cropW = Math.min(w - cropX, (maxX - minX) + pad * 2);
+        const cropH = Math.min(h - cropY, (maxY - minY) + pad * 2);
+
+        const outCanvas = document.createElement('canvas');
+        outCanvas.width = cropW;
+        outCanvas.height = cropH;
+        const outCtx = outCanvas.getContext('2d');
+        outCtx.drawImage(tempCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+        resolve(outCanvas.toDataURL('image/png'));
+      } catch (e) {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+};
+
 export const CompanySettingsAndBackupModule = ({
   currentCommunity,
   activeSubTab: externalActiveSubTab,
@@ -64,10 +150,12 @@ export const CompanySettingsAndBackupModule = ({
 
   // Estado para la Firma Digital Manuscrita (Canvas y Subida)
   const canvasRef = useRef(null);
+  const autoTrimmedRef = useRef(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [penColor, setPenColor] = useState('#0F3D2E'); // Default Verde Bosque ARANPRO
   const [penWidth, setPenWidth] = useState(2.5);
   const [signatureImage, setSignatureImage] = useState(companySettings?.signatureDataUrl || '');
+  const [signatureScale, setSignatureScale] = useState(Number(companySettings?.signatureScale) || 1.35);
   const [hasCanvasDrawn, setHasCanvasDrawn] = useState(false);
 
   // Estado para acordeón de "Sobre la aplicación" (Estilo ECP)
@@ -308,6 +396,7 @@ export const CompanySettingsAndBackupModule = ({
   const [postulacionSection, setPostulacionSection] = useState('preparacion');
 
   // Modales de Material de Apoyo, Ventas y Licitación
+  const [previewColdLetterModal, setPreviewColdLetterModal] = useState(false);
   const [previewBrochureModal, setPreviewBrochureModal] = useState(false);
   const [previewInspectionModal, setPreviewInspectionModal] = useState(false);
   const [previewComparisonModal, setPreviewComparisonModal] = useState(false);
@@ -768,21 +857,41 @@ export const CompanySettingsAndBackupModule = ({
     ctx.stroke();
   };
 
+  // Auto-recortar márgenes blancos/transparentes de la firma existente al cargar
+  useEffect(() => {
+    if (signatureImage && !autoTrimmedRef.current) {
+      autoTrimmedRef.current = true;
+      autoTrimSignatureDataUrl(signatureImage).then((trimmed) => {
+        if (trimmed && trimmed !== signatureImage) {
+          setSignatureImage(trimmed);
+          setCompanySettings(prev => ({
+            ...prev,
+            signatureDataUrl: trimmed,
+            signature: trimmed,
+            digitalSignature: trimmed
+          }));
+        }
+      });
+    }
+  }, [signatureImage, setCompanySettings]);
+
   const stopDrawing = () => {
     if (!isDrawing) return;
     setIsDrawing(false);
     const canvas = canvasRef.current;
     if (canvas) {
-      const dataUrl = canvas.toDataURL('image/png');
-      setSignatureImage(dataUrl);
-      setHasCanvasDrawn(true);
-      // Actualizar automáticamente en companySettings para sincronizar con todos los PDFs
-      setCompanySettings(prev => ({
-        ...prev,
-        signatureDataUrl: dataUrl,
-        signature: dataUrl,
-        digitalSignature: dataUrl
-      }));
+      const rawDataUrl = canvas.toDataURL('image/png');
+      autoTrimmedRef.current = true;
+      autoTrimSignatureDataUrl(rawDataUrl).then((dataUrl) => {
+        setSignatureImage(dataUrl);
+        setHasCanvasDrawn(true);
+        setCompanySettings(prev => ({
+          ...prev,
+          signatureDataUrl: dataUrl,
+          signature: dataUrl,
+          digitalSignature: dataUrl
+        }));
+      });
     }
   };
 
@@ -808,15 +917,17 @@ export const CompanySettingsAndBackupModule = ({
     reader.onload = (event) => {
       const result = event.target?.result;
       if (typeof result === 'string') {
-        setSignatureImage(result);
-        setHasCanvasDrawn(true);
-        // Actualizar automáticamente en companySettings para sincronizar con todos los PDFs
-        setCompanySettings(prev => ({
-          ...prev,
-          signatureDataUrl: result,
-          signature: result,
-          digitalSignature: result
-        }));
+        autoTrimmedRef.current = true;
+        autoTrimSignatureDataUrl(result).then((trimmed) => {
+          setSignatureImage(trimmed);
+          setHasCanvasDrawn(true);
+          setCompanySettings(prev => ({
+            ...prev,
+            signatureDataUrl: trimmed,
+            signature: trimmed,
+            digitalSignature: trimmed
+          }));
+        });
       }
     };
     reader.readAsDataURL(file);
@@ -857,6 +968,7 @@ export const CompanySettingsAndBackupModule = ({
       signatureDataUrl: signatureImage,
       signature: signatureImage,
       digitalSignature: signatureImage,
+      signatureScale: signatureScale,
       profileLicitacion: {
         specialty: empresaForm.specialty,
         startYear: empresaForm.startYear,
@@ -901,6 +1013,19 @@ export const CompanySettingsAndBackupModule = ({
     const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Carta_Presentacion_${targetClean}_${dateClean}`;
     printDocumentDirectly('printable-commercial-proposal', filename, {
+      pageSize: 'letter portrait',
+      fitPage: true,
+      margin: '6mm 8mm 6mm 8mm'
+    });
+  };
+
+  // Imprimir Carta de Valor & Prospección Rápida (Puerta en Frío / Conserjería)
+  const handlePrintColdLetter = () => {
+    if (!previewColdLetterModal) setPreviewColdLetterModal(true);
+    const targetClean = (proposalConfig.targetCondo || 'Comite_Administracion').replace(/[^a-zA-Z0-9]/g, '_');
+    const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
+    const filename = `ARANPRO_Carta_Valor_Comite_${targetClean}_${dateClean}`;
+    printDocumentDirectly('printable-cold-value-letter', filename, {
       pageSize: 'letter portrait',
       fitPage: true,
       margin: '6mm 8mm 6mm 8mm'
@@ -1634,12 +1759,13 @@ export const CompanySettingsAndBackupModule = ({
                     VISTA PREVIA EN PDF
                   </span>
                   <div className="p-6 bg-slate-50/70 border border-slate-200 rounded-2xl max-w-xl mx-auto shadow-xs">
-                    <div className="h-20 flex items-end justify-center mb-2">
+                    <div className="h-24 flex items-end justify-center mb-1 overflow-visible">
                       {signatureImage ? (
                         <img
                           src={signatureImage}
                           alt="Firma Manuscrita"
-                          className="max-h-20 max-w-xs object-contain"
+                          className="h-16 max-h-20 w-auto max-w-[260px] object-contain mx-auto"
+                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                         />
                       ) : (
                         <span className="text-xs text-slate-300 italic">Espacio reservado para firma manuscrita</span>
@@ -1684,11 +1810,11 @@ export const CompanySettingsAndBackupModule = ({
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Tu firma manuscrita aparecerá al pie de cada certificado notarial, colilla de gastos comunes y acta de asamblea.
-                  Dibújala directamente aquí con mouse o trackpad, o sube una imagen transparente.
+                  Al subir una imagen o dibujarla, el sistema recorta automáticamente los márgenes en blanco para que luzca con proporción ejecutiva óptima.
                 </p>
               </div>
 
-              {/* CONTROLES DE COLOR Y GROSOR */}
+              {/* CONTROLES DE COLOR, GROSOR Y ESCALA DE FIRMA EN PDF */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-slate-700">Color del Trazo:</span>
@@ -1713,19 +1839,29 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-slate-700">Grosor:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700">Tamaño en PDF:</span>
                   <div className="flex items-center gap-1">
-                    {[1.5, 2.5, 4.0].map(w => (
+                    {[
+                      { scale: 1.0, label: '100%' },
+                      { scale: 1.35, label: '135% (Ideal)' },
+                      { scale: 1.65, label: '165% (Grande)' },
+                      { scale: 1.95, label: '195% (Amplia)' }
+                    ].map(s => (
                       <button
-                        key={w}
+                        key={s.scale}
                         type="button"
-                        onClick={() => setPenWidth(w)}
+                        onClick={() => {
+                          setSignatureScale(s.scale);
+                          setCompanySettings(prev => ({ ...prev, signatureScale: s.scale }));
+                        }}
                         className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all ${
-                          penWidth === w ? 'bg-[#0F3D2E] text-white border-[#0F3D2E]' : 'bg-white text-slate-700 border-slate-200'
+                          Math.abs(signatureScale - s.scale) < 0.05
+                            ? 'bg-[#0F3D2E] text-white border-[#0F3D2E]'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
-                        {w === 1.5 ? 'Fino' : w === 2.5 ? 'Medio' : 'Grueso'}
+                        {s.label}
                       </button>
                     ))}
                   </div>
@@ -1734,7 +1870,7 @@ export const CompanySettingsAndBackupModule = ({
                 <div className="flex items-center gap-2">
                   <label className="cursor-pointer px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition-all flex items-center gap-1.5 shadow-xs">
                     <Upload className="w-3.5 h-3.5 text-slate-500" />
-                    Subir Firma (PNG)
+                    Subir Firma (PNG/JPG)
                     <input
                       type="file"
                       accept="image/*"
@@ -1782,15 +1918,16 @@ export const CompanySettingsAndBackupModule = ({
               {/* VISTA PREVIA EN PDF (ESTILO ECP) */}
               <div className="space-y-2 pt-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Vista Previa en Documentos Oficiales (PDF Carta)
+                  Vista Previa en Documentos Oficiales (PDF Carta • Escala {Math.round(signatureScale * 100)}%)
                 </span>
-                <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl max-w-md mx-auto text-center space-y-3">
-                  <div className="h-24 flex items-end justify-center">
+                <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl max-w-md mx-auto text-center space-y-2">
+                  <div className="h-24 flex items-end justify-center pb-1 overflow-visible">
                     {signatureImage ? (
                       <img
                         src={signatureImage}
                         alt="Firma Manuscrita"
-                        className="max-h-20 max-w-xs object-contain mx-auto"
+                        className="h-16 max-h-20 w-auto max-w-[260px] object-contain mx-auto"
+                        style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                       />
                     ) : (
                       <span className="text-xs text-slate-400 italic">Sin firma configurada</span>
@@ -2431,7 +2568,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* TARJETAS DE EMISIÓN DE DOCUMENTOS */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     {/* 1. DOSSIER INTEGRAL COMPLETO (RECOMENDADO) */}
                     <div className="bg-gradient-to-br from-[#0F3D2E] to-[#164D3A] text-white p-5 rounded-3xl shadow-lg border border-emerald-900/40 space-y-3 relative overflow-hidden flex flex-col justify-between">
                       <div className="space-y-2">
@@ -2466,21 +2603,55 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    {/* 2. CARTA SIMPLE DE 1 PÁGINA */}
-                    <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3 flex flex-col justify-between">
+                    {/* 2. CARTA DE VALOR & PROSPECCIÓN RÁPIDA (PUERTA EN FRÍO / CONSERJERÍA) */}
+                    <div className="bg-gradient-to-br from-emerald-50 via-teal-50/60 to-white p-5 rounded-3xl border-2 border-[#0F3D2E]/25 shadow-xs space-y-3 flex flex-col justify-between">
                       <div className="space-y-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-200 text-slate-700 uppercase">
-                          Presentación Breve
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#0F3D2E] text-[#D4B895] uppercase tracking-wider">
+                          ⚡ PUERTA EN FRÍO • CONSERJERÍA
                         </span>
                         <h4 className="text-base font-black text-slate-900">
-                          Carta de Presentación Simple (1 Pág.)
+                          Carta de Valor al Comité (Sin Conocer Estatus)
                         </h4>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
-                          Carta ejecutiva tamaño Carta personalizada con membrete oficial, resumen de fortalezas y firma manuscrita estampada.
+                          Ideal para dejar en conserjería cuando no conoces la realidad del condominio. Sin precios; presenta tu respaldo en Construcción, App 24/7 y ofrece un Diagnóstico Técnico Gratuito.
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 pt-2">
+                      <div className="flex flex-wrap items-center gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewColdLetterModal(true)}
+                          className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                          Ver Carta Valor
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePrintColdLetter}
+                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          Imprimir
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 3. CARTA SIMPLE DE POSTULACIÓN A LICITACIÓN (1 PÁGINA) */}
+                    <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-200 text-slate-700 uppercase">
+                          Postulación Formal
+                        </span>
+                        <h4 className="text-base font-black text-slate-900">
+                          Carta de Postulación a Licitación (1 Pág.)
+                        </h4>
+                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                          Carta ejecutiva tamaño Carta cuando la comunidad ya busca nueva administración, con membrete oficial y firma manuscrita.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 pt-2">
                         <button
                           type="button"
                           onClick={() => setPreviewProposalModal(true)}
@@ -2500,7 +2671,7 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    {/* 3. BROCHURE COMERCIAL DE LA APP & WEB */}
+                    {/* 4. BROCHURE COMERCIAL DE LA APP & WEB */}
                     <div className="bg-gradient-to-br from-amber-50 to-orange-50/40 p-5 rounded-3xl border border-amber-200/80 space-y-3 flex flex-col justify-between">
                       <div className="space-y-2">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-200 text-amber-900 uppercase">
@@ -2514,7 +2685,7 @@ export const CompanySettingsAndBackupModule = ({
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 pt-2">
+                      <div className="flex flex-wrap items-center gap-2 pt-2">
                         <button
                           type="button"
                           onClick={() => setPreviewBrochureModal(true)}
@@ -4137,19 +4308,24 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* Sección de Firma Manuscrita Estampada */}
-                <div className="pt-8 border-t border-slate-200 text-center space-y-2 max-w-sm mx-auto">
-                  <div className="h-20 flex items-center justify-center">
+                <div className="pt-6 border-t border-slate-200 text-center space-y-1.5 max-w-sm mx-auto">
+                  <div className="h-24 flex items-end justify-center pb-1 overflow-visible">
                     {signatureImage ? (
-                      <img src={signatureImage} alt="Firma Administrador" className="max-h-16 object-contain mx-auto" />
+                      <img
+                        src={signatureImage}
+                        alt="Firma Administrador"
+                        className="h-20 max-h-24 w-auto max-w-[280px] object-contain mx-auto"
+                        style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                      />
                     ) : (
                       <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
                     )}
                   </div>
-                  <div className="border-t border-slate-400 pt-2">
+                  <div className="border-t-2 border-slate-400 pt-2">
                     <p className="font-bold text-xs text-slate-900">{empresaForm.adminName}</p>
-                    <p className="text-[10px] text-slate-500 font-mono">RUT: {empresaForm.adminRut}</p>
+                    <p className="text-[10px] text-slate-500 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
                     <p className="text-[10px] text-[#0F3D2E] font-semibold">
-                      {empresaForm.adminRole} (RNAC Minvu N° {empresaForm.rnacNumber})
+                      {empresaForm.adminRole}
                     </p>
                     <p className="text-[9px] text-slate-500">
                       Técnico en Construcción • Construcción Civil
@@ -4161,6 +4337,294 @@ export const CompanySettingsAndBackupModule = ({
                 <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400 font-mono">
                   <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                   <div>Contacto Directo: {empresaForm.phone}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL: CARTA DE VALOR & PRESENTACIÓN ESPONTÁNEA AL COMITÉ (PUERTA EN FRÍO / CONSERJERÍA) ==================== */}
+      {previewColdLetterModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col relative">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200 mb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-bold text-base shadow-sm">
+                  ⚡
+                </span>
+                <div>
+                  <h4 className="text-base font-black text-slate-900">
+                    Carta de Valor & Presentación Espontánea al Comité (Puerta en Frío / Conserjería)
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    Ideal para entregar cuando aún no conoces la realidad del condominio ni si están en licitación
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrintColdLetter}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-md transition-all active:scale-95"
+                >
+                  <Printer className="w-4 h-4 text-[#D4B895]" />
+                  Imprimir / Descargar PDF (Carta)
+                </button>
+                <button
+                  onClick={() => setPreviewColdLetterModal(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* BARRA RÁPIDA: MODO ENTREGA MASIVA EN CONSERJERÍA O CON NOMBRE DEL EDIFICIO */}
+            <div className="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 flex flex-wrap items-center justify-between gap-3 text-xs mb-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-bold text-[#0F3D2E]">Modalidad de Entrega:</span>
+                <button
+                  type="button"
+                  onClick={() => setProposalConfig({ ...proposalConfig, targetCondo: '', leaveRecipientBlank: false, targetRecipient: 'Señores Miembros del Comité de Administración' })}
+                  className={`px-3 py-1 rounded-lg font-bold text-xs border transition-all ${
+                    !proposalConfig.targetCondo?.trim() && !proposalConfig.leaveRecipientBlank
+                      ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                  }`}
+                >
+                  🏢 Genérica para Conserjería (Impresión en Lote)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProposalConfig({ ...proposalConfig, leaveRecipientBlank: true, targetCondo: '' })}
+                  className={`px-3 py-1 rounded-lg font-bold text-xs border transition-all ${
+                    proposalConfig.leaveRecipientBlank
+                      ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                  }`}
+                >
+                  ✍️ Con Líneas para Escribir a Mano en Terreno
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-700">O Nombre del Edificio:</span>
+                <input
+                  type="text"
+                  placeholder="Opcional (ej: Edificio Costa Mar)"
+                  value={proposalConfig.targetCondo}
+                  onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value, leaveRecipientBlank: false })}
+                  className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs w-48 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+                />
+              </div>
+            </div>
+
+            {/* CONTENEDOR DE LA CARTA DE VALOR IMPRIMIBLE TAMAÑO CARTA */}
+            <div className="overflow-y-auto flex-1 pr-1">
+              <div
+                id="printable-cold-value-letter"
+                className="bg-white p-7 md:p-10 border border-slate-300 rounded-2xl shadow-xs max-w-3xl mx-auto space-y-4 text-slate-900"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {/* Membrete Corporativo Maestro ARANPRO */}
+                <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-3.5">
+                  <div className="flex items-center space-x-3.5">
+                    <AranproLogo className="h-11 w-auto" />
+                    <div className="space-y-0.5">
+                      <div className="text-sm font-black tracking-tight text-[#0F3D2E] uppercase">
+                        {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-mono">
+                        RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'La Serena, Chile'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right space-y-0.5 shrink-0">
+                    <span className="inline-block px-3 py-1 bg-[#0F3D2E] text-[#D4B895] text-[10px] font-mono font-bold rounded-md whitespace-nowrap">
+                      PRESENTACIÓN INSTITUCIONAL {new Date().getFullYear()}
+                    </span>
+                    <p className="text-[11px] font-bold text-slate-800">
+                      Carta de Valor & Credenciales Técnicas
+                    </p>
+                    <p className="text-[10px] text-slate-500 font-semibold">
+                      Atención Exclusiva: Comité de Administración
+                    </p>
+                  </div>
+                </div>
+
+                {/* Encabezado Protocolar */}
+                <div className="text-xs text-slate-700 space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  <p>
+                    <strong>ATENCIÓN:</strong>{' '}
+                    {proposalConfig.leaveRecipientBlank ? (
+                      <span className="font-mono text-slate-400">__________________________________________________________________</span>
+                    ) : (
+                      <strong className="text-slate-900">Señores Miembros del Comité de Administración (Presente)</strong>
+                    )}
+                  </p>
+                  {proposalConfig.targetCondo?.trim() ? (
+                    <p>
+                      <strong>Comunidad / Condominio:</strong>{' '}
+                      <strong className="text-[#0F3D2E] uppercase">{proposalConfig.targetCondo}</strong>
+                    </p>
+                  ) : proposalConfig.leaveRecipientBlank ? (
+                    <p>
+                      <strong>Comunidad / Condominio:</strong>{' '}
+                      <span className="font-mono text-slate-400">__________________________________________________________</span>
+                    </p>
+                  ) : (
+                    <p>
+                      <strong>Comunidad:</strong>{' '}
+                      <span className="font-semibold text-slate-800">Comunidad de Copropietarios • {empresaForm.city}</span>
+                    </p>
+                  )}
+                  <p>
+                    <strong>DE:</strong> {empresaForm.adminName} — Administrador Acreditado RNAC Minvu N° {empresaForm.rnacNumber} (Técnico en Construcción & Construcción Civil)
+                  </p>
+                  <p>
+                    <strong>MATERIA:</strong> Presentación de Credenciales Profesionales, Gestión Transparente Ley N° 21.442 y Diagnóstico Técnico Preventivo Sin Costo
+                  </p>
+                </div>
+
+                {/* Título de Alto Impacto */}
+                <div className="text-center py-1">
+                  <h1 className="text-base md:text-lg font-black text-[#0F3D2E] uppercase tracking-tight">
+                    Administración con Criterio Constructivo & Transparencia Digital 24/7
+                  </h1>
+                  <div className="w-20 h-1 bg-[#D4B895] mx-auto mt-1 rounded-full"></div>
+                </div>
+
+                {/* Cuerpo Consultivo (Sin asumir si están o no cambiando de administrador) */}
+                <div className="text-justify text-xs text-slate-800 leading-relaxed space-y-2.5">
+                  <p>
+                    <strong>Estimados integrantes del Comité de Administración:</strong>
+                  </p>
+                  <p>
+                    Junto con saludarles muy cordialmente y reconociendo la importante labor que desempeñan en representación de sus vecinos,
+                    hacemos entrega de nuestras credenciales profesionales a través de la presente carpeta ejecutiva. Sabemos que la tranquilidad financiera,
+                    el funcionamiento continuo de los equipos críticos y la plusvalía de{' '}
+                    {proposalConfig.targetCondo?.trim() ? <strong>{proposalConfig.targetCondo}</strong> : <strong>su condominio</strong>} dependen directamente de contar con una administración rigurosa, cercana y técnicamente competente.
+                  </p>
+                  <p>
+                    Ya sea que su comunidad se encuentre evaluando alternativas de gestión en el corto plazo o desee mantener en su registro a un
+                    <strong> Administrador Oficial acreditado ante el MINVU (RNAC N° {empresaForm.rnacNumber})</strong> para futuras decisiones, ponemos a disposición del Comité los <strong>3 pilares diferenciadores</strong> que distinguen a <strong>ARANPRO</strong> en la región:
+                  </p>
+
+                  {/* 3 Pilares de Valor Agregado */}
+                  <div className="grid grid-cols-1 gap-2 pt-0.5">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                      <span className="w-6 h-6 rounded-lg bg-[#0F3D2E] text-[#D4B895] font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        1
+                      </span>
+                      <div>
+                        <strong className="text-[#0F3D2E] block text-xs">
+                          Respaldo Real en Construcción (Freno a Presupuestos Inflados de Terceros)
+                        </strong>
+                        <p className="text-[11px] text-slate-600 leading-snug mt-0.5">
+                          A diferencia de las administraciones meramente administrativas, nuestro titular cuenta con formación de <strong>Técnico en Construcción y estudios en Construcción Civil</strong>. Inspeccionamos en terreno salas de bombas, calderas, ascensores, cubiertas y filtraciones, exigiendo cubicaciones reales y evitando sobrecostos de contratistas externos.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                      <span className="w-6 h-6 rounded-lg bg-[#0F3D2E] text-[#D4B895] font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        2
+                      </span>
+                      <div>
+                        <strong className="text-[#0F3D2E] block text-xs">
+                          Transparencia Contable Radical: Portal Web & App Móvil Propia 24/7
+                        </strong>
+                        <p className="text-[11px] text-slate-600 leading-snug mt-0.5">
+                          Eliminamos las planillas confusas. En nuestra plataforma digital cada copropietario y miembro del Comité puede auditar desde su celular, con un solo clic, las <strong>facturas originales, boletas y comprobantes de transferencia bancaria</strong> de cada egreso mensual.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                      <span className="w-6 h-6 rounded-lg bg-[#0F3D2E] text-[#D4B895] font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        3
+                      </span>
+                      <div>
+                        <strong className="text-[#0F3D2E] block text-xs">
+                          Blindaje Legal para el Comité bajo la Nueva Ley N° 21.442
+                        </strong>
+                        <p className="text-[11px] text-slate-600 leading-snug mt-0.5">
+                          Cumplimiento estricto del Registro Nacional de Administradores, asambleas híbridas con votación electrónica certificada (Art. 15°), Libro Oficial de Reclamos foliado (Art. 20°), convenios de pago y control riguroso de morosidad (Art. 36°).
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* GANCHO DE ENTRADA / INVITACIÓN GRATUITA AL COMITÉ */}
+                  <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#0F3D2E] to-[#164D3A] text-white space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-black uppercase tracking-wider text-[#D4B895]">
+                        ★ BENEFICIO SIN COSTO NI COMPROMISO PARA SU COMITÉ DE ADMINISTRACIÓN
+                      </span>
+                      <span className="text-[9.5px] font-bold bg-white/15 px-2 py-0.5 rounded text-emerald-100">
+                        100% Gratuito
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-white leading-snug">
+                      Invitación a una Visita de Diagnóstico Técnico-Constructivo Preventivo en Terreno
+                    </p>
+                    <p className="text-[10.5px] text-emerald-100/95 leading-snug">
+                      Ponemos a disposición del Comité una visita técnica sin costo ni compromiso para realizar una inspección visual de sus instalaciones críticas (sala de bombas, tableros, cubiertas o puntos sensibles) y entregarles una segunda opinión técnica profesional o presentarles formalmente una propuesta a la medida de su comunidad.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Firma Manuscrita Ejecutiva y Contacto Directo */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
+                  <div className="text-xs space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 w-full sm:w-auto">
+                    <span className="text-[10px] font-black uppercase text-[#0F3D2E] block">
+                      Canales Directos para el Comité:
+                    </span>
+                    <p className="text-[11px] text-slate-800">
+                      <strong>WhatsApp / Fono Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone}</span>
+                    </p>
+                    <p className="text-[11px] text-slate-800">
+                      <strong>Correo Oficial:</strong> <span className="font-mono">{empresaForm.email}</span>
+                    </p>
+                    <p className="text-[11px] text-slate-800">
+                      <strong>Portal & Demo en Vivo:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website}</span>
+                    </p>
+                  </div>
+
+                  <div className="text-center space-y-1 min-w-[260px] mx-auto sm:mx-0">
+                    <div className="h-20 flex items-end justify-center pb-1 overflow-visible">
+                      {signatureImage ? (
+                        <img
+                          src={signatureImage}
+                          alt="Firma Administrador"
+                          className="h-16 max-h-20 w-auto max-w-[260px] object-contain mx-auto"
+                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                        />
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
+                      )}
+                    </div>
+                    <div className="border-t-2 border-slate-400 pt-1.5">
+                      <p className="font-black text-xs text-slate-900 leading-tight">{empresaForm.adminName}</p>
+                      <p className="text-[9.5px] text-slate-500 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
+                      <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
+                        {empresaForm.adminRole}
+                      </p>
+                      <p className="text-[9px] text-slate-500 font-medium">
+                        Técnico en Construcción • Construcción Civil
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pie de Página */}
+                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
+                  <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
+                  <div>Presentación Oficial para Comités de Administración • Ley N° 21.442</div>
                 </div>
               </div>
             </div>
@@ -4686,15 +5150,20 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
 
                     {/* SECCIÓN DE FIRMA DIGITAL OFICIAL */}
-                    <div className="pt-1 text-center space-y-0.5 max-w-sm mx-auto">
-                      <div className="h-11 flex items-center justify-center">
+                    <div className="pt-2 text-center space-y-1 max-w-sm mx-auto">
+                      <div className="h-20 flex items-end justify-center pb-1 overflow-visible">
                         {signatureImage ? (
-                          <img src={signatureImage} alt="Firma Administrador" className="max-h-10 object-contain mx-auto" />
+                          <img
+                            src={signatureImage}
+                            alt="Firma Administrador"
+                            className="h-16 max-h-20 w-auto max-w-[260px] object-contain mx-auto"
+                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                          />
                         ) : (
                           <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
                         )}
                       </div>
-                      <div className="border-t border-slate-400 pt-1">
+                      <div className="border-t-2 border-slate-400 pt-1.5">
                         <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
                         <p className="text-[9px] text-slate-500 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
                         <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
@@ -5132,7 +5601,8 @@ export const CompanySettingsAndBackupModule = ({
                         <img 
                           src={signatureImage || companySettings?.signatureDataUrl} 
                           alt="Firma" 
-                          className="max-h-12 object-contain mb-1" 
+                          className="h-16 max-h-20 w-auto max-w-[240px] object-contain mb-1"
+                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom left' }}
                         />
                       )}
                       <p className="font-bold text-slate-700">Firma Autorizada ARANPRO</p>
@@ -5410,15 +5880,22 @@ export const CompanySettingsAndBackupModule = ({
                       El presente diagnóstico fue realizado sin costo para orientar al Comité de Administración en la priorización de obras preventivas y evitar emergencias de alto costo.
                     </p>
                   </div>
-                  <div className="text-center space-y-1">
-                    {signatureImage ? (
-                      <img src={signatureImage} alt="Firma" className="max-h-12 mx-auto" />
-                    ) : (
-                      <div className="h-10"></div>
-                    )}
-                    <div className="border-t border-slate-400 pt-1 text-[10px]">
+                  <div className="text-center space-y-1 min-w-[220px]">
+                    <div className="h-20 flex items-end justify-center pb-1 overflow-visible">
+                      {signatureImage ? (
+                        <img
+                          src={signatureImage}
+                          alt="Firma"
+                          className="h-16 max-h-20 w-auto max-w-[240px] object-contain mx-auto"
+                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                        />
+                      ) : (
+                        <div className="h-12"></div>
+                      )}
+                    </div>
+                    <div className="border-t-2 border-slate-400 pt-1 text-[10px]">
                       <p className="font-bold text-slate-900">{empresaForm.adminName}</p>
-                      <p className="text-slate-500">Técnico en Construcción</p>
+                      <p className="text-slate-500">Técnico en Construcción • RNAC N° {empresaForm.rnacNumber}</p>
                     </div>
                   </div>
                 </div>
@@ -5527,12 +6004,19 @@ export const CompanySettingsAndBackupModule = ({
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div>Contacto: {empresaForm.phone} • RNAC Minvu N° {empresaForm.rnacNumber}</div>
                   </div>
-                  <div className="text-right">
-                    {(signatureImage || companySettings?.signatureDataUrl) && (
-                      <img src={signatureImage || companySettings?.signatureDataUrl} alt="Firma" className="max-h-12 object-contain ml-auto" />
-                    )}
-                    <span className="text-[10px] font-bold text-slate-800 block">{empresaForm.adminName}</span>
-                    <span className="text-[9px] text-slate-400 font-mono">Firma Autorizada</span>
+                  <div className="text-center min-w-[200px]">
+                    <div className="h-16 flex items-end justify-center pb-1 overflow-visible">
+                      {(signatureImage || companySettings?.signatureDataUrl) && (
+                        <img
+                          src={signatureImage || companySettings?.signatureDataUrl}
+                          alt="Firma"
+                          className="h-14 max-h-16 w-auto max-w-[220px] object-contain mx-auto"
+                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                        />
+                      )}
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-800 block border-t border-slate-400 pt-1">{empresaForm.adminName}</span>
+                    <span className="text-[9px] text-slate-400 font-mono">Firma Autorizada • RNAC N° {empresaForm.rnacNumber}</span>
                   </div>
                 </div>
               </div>
