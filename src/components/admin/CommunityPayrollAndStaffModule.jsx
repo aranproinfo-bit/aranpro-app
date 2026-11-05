@@ -12,13 +12,13 @@ import {
 } from '../../utils/chileanPayrollCalculations';
 import { formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproOfficialSeal, useAranproPdfStyle } from '../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal, useAranproPdfStyle } from '../common/MauranLogo';
 import {
   Users, UserPlus, FileText, Printer, CheckCircle2, AlertCircle,
   Building2, ShieldCheck, DollarSign, Calendar, Clock, Download,
   ExternalLink, Copy, Check, ChevronRight, ArrowRight, Eye, Edit3,
   Trash2, Plus, Sparkles, AlertTriangle, Briefcase, FileSpreadsheet,
-  Award, Landmark, HelpCircle, X
+  Award, Landmark, HelpCircle, X, BookOpen, Shield, ScrollText
 } from 'lucide-react';
 
 export const CommunityPayrollAndStaffModule = ({
@@ -43,9 +43,12 @@ export const CommunityPayrollAndStaffModule = ({
   const [selectedMonth, setSelectedMonth] = useState(activeMonth);
   const [selectedYear, setSelectedYear] = useState(activeYear);
   const periodLabel = `${String(selectedMonth).padStart(2, '0')}/${selectedYear}`;
+  const periodLongName = `${[
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ][selectedMonth - 1]} ${selectedYear}`;
 
   // Inputs mensuales variables por trabajador (días, horas extras, bonos, anticipos)
-  // Almacenados en el estado de la comunidad o localmente
   const [monthlyInputs, setMonthlyInputs] = useState(() => {
     const map = {};
     staff.forEach((w) => {
@@ -61,7 +64,7 @@ export const CommunityPayrollAndStaffModule = ({
     return map;
   });
 
-  // Modal para agregar o editar trabajador
+  // Modales
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState(null);
   const [staffForm, setStaffForm] = useState({
@@ -98,9 +101,21 @@ export const CommunityPayrollAndStaffModule = ({
   const [selectedWorkerForSlip, setSelectedWorkerForSlip] = useState(null);
   const [showSlipModal, setShowSlipModal] = useState(false);
 
-  // Modal para Ver Contrato de Trabajo DT
+  // Modal para Ver / Imprimir Contrato de Trabajo DT
   const [selectedWorkerForContract, setSelectedWorkerForContract] = useState(null);
   const [showContractModal, setShowContractModal] = useState(false);
+
+  // Modal para Ver / Imprimir Planilla Mensual de Remuneraciones (Libro de Sueldos)
+  const [showMonthlySheetModal, setShowMonthlySheetModal] = useState(false);
+
+  // Modal para Ver / Imprimir Planilla Previred
+  const [showPreviredSheetModal, setShowPreviredSheetModal] = useState(false);
+
+  // Modal para Ver / Imprimir Nómina General de Personal
+  const [showRosterModal, setShowRosterModal] = useState(false);
+
+  // Modal para Ver / Imprimir Reglamento Interno (RIOHS)
+  const [showRiohsModal, setShowRiohsModal] = useState(false);
 
   // Toast / feedback de traspaso a Gastos Comunes
   const [expenseIntegrationToast, setExpenseIntegrationToast] = useState('');
@@ -162,7 +177,7 @@ export const CommunityPayrollAndStaffModule = ({
       return { worker: w, calc };
     });
 
-    // Total Leyes Sociales (Previred = Descuentos de trabajadores + Aportes patronales)
+    // Total Leyes Sociales (Previred = Descuentos trabajadores + Aportes patronales)
     const totalPreviredLeyesSociales = totalPrevisionalDiscounts + totalEmployerCosts;
 
     return {
@@ -392,6 +407,41 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
     setTimeout(() => setCopiedPrevired(false), 3000);
   };
 
+  // Helper para generar cabecera corporativa estándar ARANPRO en PDFs
+  const renderAranproPdfHeader = (docTypeBadge, titleText, folioText) => (
+    <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-3.5 border-b-2 border-[#0F3D2E] gap-3">
+      <div className="flex items-center space-x-3.5">
+        <AranproLogo className="h-11 w-auto shrink-0" />
+        <div className="space-y-0.5">
+          <div className="text-sm font-black text-[#0F3D2E] tracking-tight">
+            {companySettings?.brandName || 'ARANPRO'} • {companySettings?.subtitle || 'Gestión Integral'}
+          </div>
+          <div className="text-[10px] text-slate-600 font-bold tracking-wide">
+            ADMINISTRACIÓN PROFESIONAL DE CONDOMINIOS • LEY N° 21.442
+          </div>
+          <div className="text-[9px] text-slate-500">
+            RUT Empresa: <strong>{companySettings?.companyRut || '76.999.888-8'}</strong> • Reg. MINVU: <strong>RNAC N° {companySettings?.rnacNumber || '48.912'}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="text-right space-y-0.5 shrink-0">
+        <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200 inline-block">
+          {docTypeBadge}
+        </span>
+        <div className="text-xs font-black text-slate-900">
+          {titleText}
+        </div>
+        <div className="text-[10px] text-slate-600 font-mono">
+          {currentCommunity?.name} • Folio: {folioText}
+        </div>
+        <div className="text-[9px] text-slate-400">
+          Santiago / Región de Coquimbo • {periodLongName}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* 1. Cabecera Ejecutiva del Módulo de Remuneraciones */}
@@ -598,14 +648,25 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 Empleador: <strong className="text-slate-700">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</strong> • RUT Patronal: <strong className="text-slate-700">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleOpenCreateStaff}
-              className="py-2 px-3.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Contratar Nuevo Trabajador</span>
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowRosterModal(true)}
+                className="py-2 px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5 text-slate-600" />
+                <span>Imprimir Nómina Oficial</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenCreateStaff}
+                className="py-2 px-3.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Contratar Trabajador</span>
+              </button>
+            </div>
           </div>
 
           {staff.length === 0 ? (
@@ -749,7 +810,16 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMonthlySheetModal(true)}
+                  className="py-2 px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                >
+                  <Printer className="w-4 h-4 text-slate-600" />
+                  <span>Imprimir Planilla Contable del Mes</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleExportToCommunityExpenses}
@@ -917,14 +987,25 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleCopyPreviredSummary}
-                className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
-              >
-                {copiedPrevired ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-600" />}
-                <span>{copiedPrevired ? '¡Copiado al Portapapeles!' : 'Copiar Resumen Previred'}</span>
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowPreviredSheetModal(true)}
+                  className="py-2.5 px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                >
+                  <Printer className="w-4 h-4 text-slate-600" />
+                  <span>Imprimir Planilla Previred</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopyPreviredSummary}
+                  className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  {copiedPrevired ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-600" />}
+                  <span>{copiedPrevired ? '¡Copiado!' : 'Copiar Resumen'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Desglose de Leyes Sociales */}
@@ -1127,17 +1208,29 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
       {/* ==================== SUB-PESTAÑA 5: CONTRATOS & DOCUMENTOS LABORALES DT ==================== */}
       {currentSubTab === 'contratos' && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-4">
-            <div className="border-b border-slate-100 pb-4">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                Documentación Oficial Ley 21.442
-              </span>
-              <h3 className="text-base font-black text-slate-900 mt-1">
-                Contratos de Trabajo Tipo & Certificados Laborales
-              </h3>
-              <p className="text-xs text-slate-500">
-                Plantillas legales validadas bajo el Código del Trabajo y la Dirección del Trabajo (DT) para personal de edificios y condominios.
-              </p>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                  Documentación Oficial Ley 21.442 & Código del Trabajo
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-1">
+                  Contratos de Trabajo Tipo & Reglamento Interno (RIOHS)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Instrumentos jurídicos completos con descriptor profundo de cargos, sigilo, medidas de seguridad y normas de higiene laboral.
+                </p>
+              </div>
+
+              {/* Botón para abrir el RIOHS oficial */}
+              <button
+                type="button"
+                onClick={() => setShowRiohsModal(true)}
+                className="py-2.5 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-2 shadow-xs transition-all cursor-pointer shrink-0"
+              >
+                <ScrollText className="w-4 h-4" />
+                <span>Ver Reglamento Interno (RIOHS)</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1153,7 +1246,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
                     <p className="text-xs text-slate-600">{worker.role}</p>
                     <span className="text-[11px] text-slate-400 block font-mono">
-                      Ingreso: {worker.startDate}
+                      Ingreso: {worker.startDate} • {worker.weeklyHours || 44} hrs
                     </span>
                   </div>
 
@@ -1167,7 +1260,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       className="flex-1 py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
                     >
                       <FileText className="w-3.5 h-3.5" />
-                      <span>Ver Contrato DT</span>
+                      <span>Ver Contrato Detallado DT</span>
                     </button>
                   </div>
                 </div>
@@ -1177,7 +1270,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         </div>
       )}
 
-      {/* ==================== MODAL: CREAR / EDITAR FICHA DE TRABAJADOR ==================== */}
+      {/* ==================== MODAL 1: CREAR / EDITAR FICHA DE TRABAJADOR ==================== */}
       {showStaffModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -1200,7 +1293,6 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             </div>
 
             <form onSubmit={handleSaveStaffForm} className="space-y-4 text-xs">
-              {/* Sección 1: Datos Personales */}
               <div className="space-y-2">
                 <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
                   1. Datos Personales del Trabajador
@@ -1254,7 +1346,6 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
               </div>
 
-              {/* Sección 2: Cargo y Jornada */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
                   2. Cargo, Turno y Contrato (Ley 21.442)
@@ -1316,7 +1407,6 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
               </div>
 
-              {/* Sección 3: Remuneración y Asignaciones */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
                   3. Sueldo Base, Gratificación y Asignaciones
@@ -1400,7 +1490,6 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
               </div>
 
-              {/* Sección 4: Previsión y Banco */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
                   4. Previsión Chilena & Datos Bancarios
@@ -1480,7 +1569,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         </div>
       )}
 
-      {/* ==================== MODAL: VISOR E IMPRESIÓN DE LIQUIDACIÓN DE SUELDO DT ==================== */}
+      {/* ==================== MODAL 2: VISOR E IMPRESIÓN DE LIQUIDACIÓN DE SUELDO DT ==================== */}
       {showSlipModal && selectedWorkerForSlip && (() => {
         const inputs = getWorkerInputs(selectedWorkerForSlip.id);
         const slip = calculateMonthlyPayroll(selectedWorkerForSlip, inputs);
@@ -1505,7 +1594,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     onClick={() =>
                       printDocumentDirectly(
                         'printable-community-payroll-slip',
-                        `Liquidacion_${selectedWorkerForSlip.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
+                        `ARANPRO_Liquidacion_${selectedWorkerForSlip.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
                         { pdfStyle }
                       )
                     }
@@ -1524,59 +1613,43 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
               </div>
 
-              {/* CONTENEDOR IMPRIMIBLE FORMAL DE LA LIQUIDACIÓN DE SUELDO */}
+              {/* CONTENEDOR IMPRIMIBLE FORMAL DE LA LIQUIDACIÓN DE SUELDO CON ESTÁNDAR ARANPRO */}
               <div
                 id="printable-community-payroll-slip"
-                className="bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5 print-wrapper"
+                className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5"
               >
-                {/* Cabecera Documento */}
-                <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4">
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
-                      EMPLEADOR (COMUNIDAD DE COPROPIETARIOS - LEY N° 21.442)
-                    </span>
-                    <h2 className="text-base font-black text-slate-900">
-                      {currentCommunity.bankInfo?.holderName || currentCommunity.name}
-                    </h2>
-                    <p className="text-[11px] text-slate-600">
-                      RUT Patronal: <strong className="font-mono">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>
-                    </p>
-                    <p className="text-[11px] text-slate-600">
-                      Dirección: {currentCommunity.address || 'Camino San Ramón 4500, La Serena'}
-                    </p>
-                    <p className="text-[11px] text-slate-600">
-                      Giro: Comunidad de Copropietarios Inmobiliaria
-                    </p>
+                {/* Cabecera Oficial ARANPRO */}
+                {renderAranproPdfHeader('DIRECCIÓN DEL TRABAJO (DT)', 'LIQUIDACIÓN DE REMUNERACIONES', `LIQ-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
+
+                {/* Datos del Empleador y Periodo */}
+                <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px]">
+                  <div>
+                    <span className="text-slate-500 block uppercase text-[10px] font-bold">Empleador (Comunidad):</span>
+                    <strong className="text-slate-900 font-bold block">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</strong>
+                    <span className="text-slate-600 block">RUT Patronal: <strong className="font-mono">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong></span>
+                    <span className="text-slate-600 block">Dirección: {currentCommunity.address || 'Camino San Ramón 4500, La Serena'}</span>
                   </div>
 
-                  <div className="text-right space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 inline-block">
-                      DIRECCIÓN DEL TRABAJO (DT)
-                    </span>
-                    <h3 className="text-sm font-black text-slate-900">
-                      LIQUIDACIÓN DE REMUNERACIONES
-                    </h3>
-                    <p className="text-xs font-bold text-slate-700">
-                      PERIODO: {periodLabel}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-mono">
-                      DÍAS TRABAJADOS: {slip.daysWorked} DÍAS
-                    </p>
+                  <div className="text-right">
+                    <span className="text-slate-500 block uppercase text-[10px] font-bold">Periodo de Liquidación:</span>
+                    <strong className="text-sm font-black text-slate-900 block">{periodLongName}</strong>
+                    <span className="text-slate-700 block font-bold">Días Trabajados: {slip.daysWorked} Días</span>
+                    <span className="text-slate-500 block text-[10px]">Giro: Comunidad de Copropietarios (Ley 21.442)</span>
                   </div>
                 </div>
 
                 {/* Ficha del Trabajador */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px]">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 bg-white rounded-xl border border-slate-200 text-[11px]">
                   <div>
-                    <span className="text-slate-500 block">Trabajador:</span>
+                    <span className="text-slate-500 block">Nombre Trabajador:</span>
                     <strong className="text-slate-900 font-bold block">{selectedWorkerForSlip.name}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">RUT Trabajador:</span>
+                    <span className="text-slate-500 block">RUT:</span>
                     <strong className="font-mono text-slate-900 block">{selectedWorkerForSlip.rut}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Cargo / Función:</span>
+                    <span className="text-slate-500 block">Cargo:</span>
                     <strong className="text-slate-900 block">{selectedWorkerForSlip.role}</strong>
                   </div>
                   <div>
@@ -1605,8 +1678,9 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 <div className="grid grid-cols-2 gap-4">
                   {/* HABERES */}
                   <div className="border border-slate-300 rounded-xl overflow-hidden">
-                    <div className="bg-slate-100 px-3 py-2 border-b border-slate-300 font-black text-slate-900 uppercase text-[11px]">
-                      1. Haberes (Imponibles y No Imponibles)
+                    <div className="bg-[#0F3D2E] text-white px-3 py-2 font-black uppercase text-[11px] flex justify-between">
+                      <span>1. Haberes (Imponibles y No Imponibles)</span>
+                      <span>Monto (CLP)</span>
                     </div>
                     <table className="w-full text-[11px]">
                       <tbody className="divide-y divide-slate-100">
@@ -1660,8 +1734,8 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                             <td className="p-2 text-right font-mono">{formatCLP(slip.movilizacion)}</td>
                           </tr>
                         )}
-                        <tr className="bg-slate-100/80 font-black text-slate-900 border-t border-slate-300">
-                          <td className="p-2.5 uppercase">TOTAL HABERES:</td>
+                        <tr className="bg-slate-100 font-black text-slate-900 border-t border-slate-300">
+                          <td className="p-2.5 uppercase">TOTAL HABERES BRUTOS:</td>
                           <td className="p-2.5 text-right font-mono text-xs">{formatCLP(slip.totalGross)}</td>
                         </tr>
                       </tbody>
@@ -1670,8 +1744,9 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
                   {/* DESCUENTOS */}
                   <div className="border border-slate-300 rounded-xl overflow-hidden">
-                    <div className="bg-slate-100 px-3 py-2 border-b border-slate-300 font-black text-slate-900 uppercase text-[11px]">
-                      2. Descuentos Legales y Varios
+                    <div className="bg-[#0F3D2E] text-white px-3 py-2 font-black uppercase text-[11px] flex justify-between">
+                      <span>2. Descuentos Legales y Varios</span>
+                      <span>Monto (CLP)</span>
                     </div>
                     <table className="w-full text-[11px]">
                       <tbody className="divide-y divide-slate-100">
@@ -1705,7 +1780,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                             <td className="p-2 text-right font-mono font-bold text-rose-700">-{formatCLP(slip.otherDiscounts)}</td>
                           </tr>
                         )}
-                        <tr className="bg-slate-100/80 font-black text-slate-900 border-t border-slate-300">
+                        <tr className="bg-slate-100 font-black text-slate-900 border-t border-slate-300">
                           <td className="p-2.5 uppercase">TOTAL DESCUENTOS:</td>
                           <td className="p-2.5 text-right font-mono text-xs text-rose-800">-{formatCLP(slip.totalDiscounts)}</td>
                         </tr>
@@ -1715,22 +1790,22 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
 
                 {/* Recuadro Destacado: Líquido a Pagar en Palabras */}
-                <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-600 flex flex-col md:flex-row items-center justify-between gap-3">
+                <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-[#0F3D2E] flex flex-col md:flex-row items-center justify-between gap-3">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-900 block">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] block">
                       ALCANCE LÍQUIDO A PAGAR (NETO):
                     </span>
-                    <strong className="text-lg font-black text-emerald-900 font-mono block">
+                    <strong className="text-xl font-black text-[#0F3D2E] font-mono block">
                       {formatCLP(slip.netSalary)}
                     </strong>
-                    <span className="text-[11px] text-emerald-800 font-medium block">
+                    <span className="text-[11px] text-emerald-900 font-bold block">
                       SON: {slip.netSalaryInWords}
                     </span>
                   </div>
 
                   <div className="text-right text-[11px] text-slate-600">
-                    <span>Medio de Pago: Transferencia Electrónica</span>
-                    <strong className="block text-slate-900">{selectedWorkerForSlip.bankName} • {selectedWorkerForSlip.accountNumber || 'Cuenta Registrada'}</strong>
+                    <span className="block font-bold text-slate-800">Medio de Pago: Transferencia Electrónica</span>
+                    <strong className="block text-slate-900 font-mono">{selectedWorkerForSlip.bankName} • {selectedWorkerForSlip.accountNumber || 'Cuenta Registrada'}</strong>
                   </div>
                 </div>
 
@@ -1745,23 +1820,23 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
 
                 {/* Firmas Legales */}
-                <div className="pt-8 grid grid-cols-2 gap-12 text-center text-xs">
+                <div className="pt-6 grid grid-cols-2 gap-12 text-center text-xs">
                   <div className="space-y-1">
                     <div className="h-16 flex items-end justify-center mb-1">
                       {/* Espacio para firma manuscrita del trabajador */}
                     </div>
                     <div className="border-t border-slate-800 pt-1.5">
-                      <strong className="block text-slate-900">{selectedWorkerForSlip.name}</strong>
+                      <strong className="block text-slate-900 font-black">{selectedWorkerForSlip.name}</strong>
                       <span className="text-slate-600 font-mono">RUT: {selectedWorkerForSlip.rut}</span>
-                      <span className="text-[10px] text-slate-500 block">FIRMA DEL TRABAJADOR</span>
-                      <p className="text-[9px] text-slate-400 mt-1 italic">
+                      <span className="text-[10px] text-slate-500 block font-bold">FIRMA DEL TRABAJADOR</span>
+                      <p className="text-[9px] text-slate-400 mt-1 italic leading-tight">
                         "Recibí conforme el líquido indicado en esta liquidación, sin tener cargo ni reclamo alguno que formular respecto de las remuneraciones del periodo."
                       </p>
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <div className="h-16 flex items-end justify-center mb-1">
+                  <div className="space-y-1 relative">
+                    <div className="h-16 flex items-end justify-center mb-1 relative">
                       {companySettings?.signatureDataUrl ? (
                         <img
                           src={companySettings.signatureDataUrl}
@@ -1771,12 +1846,15 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       ) : (
                         <span className="text-[11px] text-slate-300 italic">Firma Administrador ARANPRO</span>
                       )}
+                      <div className="absolute right-0 bottom-0 pointer-events-none">
+                        <AranproOfficialSeal size={55} showVerificationText={false} />
+                      </div>
                     </div>
                     <div className="border-t border-slate-800 pt-1.5">
-                      <strong className="block text-slate-900">
+                      <strong className="block text-slate-900 font-black">
                         {companySettings?.adminName || 'John Andrés Arancibia Maureira'}
                       </strong>
-                      <span className="text-slate-600">
+                      <span className="text-slate-600 font-bold block">
                         Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})
                       </span>
                       <span className="text-[10px] text-slate-500 block">
@@ -1786,8 +1864,9 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   </div>
                 </div>
 
-                <div className="pt-2 text-center text-[9px] text-slate-400 border-t border-slate-100">
-                  Documento emitido conforme al Código del Trabajo y la Ley N° 21.442 de Copropiedad Inmobiliaria • Sistema ARANPRO SpA
+                <div className="pt-2 text-center text-[9px] text-slate-400 border-t border-slate-100 flex justify-between items-center">
+                  <span>Documento emitido conforme al Código del Trabajo y la Ley N° 21.442 • Sistema ARANPRO</span>
+                  <span className="font-mono">Fecha Emisión: {new Date().toLocaleDateString('es-CL')}</span>
                 </div>
               </div>
             </div>
@@ -1795,16 +1874,448 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         );
       })()}
 
-      {/* ==================== MODAL: VISOR DE CONTRATO DE TRABAJO TIPO DT ==================== */}
+      {/* ==================== MODAL 3: VISOR E IMPRESIÓN DE PLANILLA MENSUAL DE REMUNERACIONES (LIBRO DE SUELDOS) ==================== */}
+      {showMonthlySheetModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-5xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-5 h-5 text-[#0F3D2E]" />
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    Planilla General de Remuneraciones • Periodo {periodLabel}
+                  </h3>
+                  <span className="text-xs text-slate-500">{currentCommunity.name} • {payrollConsolidated.activeCount} Trabajadores</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    printDocumentDirectly(
+                      'printable-community-monthly-payroll-sheet',
+                      `ARANPRO_Planilla_Remuneraciones_${currentCommunity.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
+                      { pdfStyle }
+                    )
+                  }
+                  className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir Planilla Contable (PDF)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowMonthlySheetModal(false)}
+                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* CONTENEDOR IMPRIMIBLE DE LA PLANILLA GENERAL */}
+            <div
+              id="printable-community-monthly-payroll-sheet"
+              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5"
+            >
+              {renderAranproPdfHeader('LIBRO DE REMUNERACIONES', 'PLANILLA GENERAL DE SUELDOS & LEYES SOCIALES', `REM-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
+
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                <div>
+                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Comunidad Empleadora:</span>
+                  <strong className="text-sm font-black text-slate-900">{currentCommunity.name}</strong>
+                  <span className="text-slate-600 block text-[11px]">RUT: {currentCommunity.bankInfo?.rut || '65.184.920-K'} • {currentCommunity.address}</span>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Periodo Contable:</span>
+                  <strong className="text-sm font-black text-slate-900">{periodLongName}</strong>
+                  <span className="text-emerald-800 font-bold block text-[11px]">{payrollConsolidated.activeCount} Trabajadores en Nómina</span>
+                </div>
+              </div>
+
+              {/* Tabla Detallada */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11px] text-left border border-slate-200">
+                  <thead>
+                    <tr className="bg-[#0F3D2E] text-white font-bold uppercase text-[9px] tracking-wider">
+                      <th className="p-2 border-r border-emerald-900/40">N°</th>
+                      <th className="p-2 border-r border-emerald-900/40">Trabajador & RUT</th>
+                      <th className="p-2 border-r border-emerald-900/40">Cargo</th>
+                      <th className="p-2 text-center border-r border-emerald-900/40">Días</th>
+                      <th className="p-2 text-right border-r border-emerald-900/40">Sueldo Base</th>
+                      <th className="p-2 text-right border-r border-emerald-900/40">Gratif. Art 50</th>
+                      <th className="p-2 text-right border-r border-emerald-900/40">Total Imponible</th>
+                      <th className="p-2 text-right border-r border-emerald-900/40">No Imponible</th>
+                      <th className="p-2 text-right border-r border-emerald-900/40">Leyes Soc. Trab.</th>
+                      <th className="p-2 text-right border-r border-emerald-900/40">Anticipos</th>
+                      <th className="p-2 text-right border-r border-emerald-900/40 bg-emerald-950">Líquido a Pagar</th>
+                      <th className="p-2 text-right">Costo Comunidad</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {payrollConsolidated.slips.map(({ worker, calc }, idx) => (
+                      <tr key={worker.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                        <td className="p-2 border-r border-slate-200 font-bold text-center">{idx + 1}</td>
+                        <td className="p-2 border-r border-slate-200">
+                          <strong className="block text-slate-900">{worker.name}</strong>
+                          <span className="font-mono text-[10px] text-slate-500">{worker.rut}</span>
+                        </td>
+                        <td className="p-2 border-r border-slate-200 text-slate-700">{worker.role}</td>
+                        <td className="p-2 text-center border-r border-slate-200 font-bold">{calc.daysWorked}</td>
+                        <td className="p-2 text-right font-mono border-r border-slate-200">{formatCLP(calc.proratedBase)}</td>
+                        <td className="p-2 text-right font-mono border-r border-slate-200">{formatCLP(calc.gratification)}</td>
+                        <td className="p-2 text-right font-mono font-bold text-slate-900 border-r border-slate-200">{formatCLP(calc.totalTaxable)}</td>
+                        <td className="p-2 text-right font-mono border-r border-slate-200">{formatCLP(calc.totalNonTaxable)}</td>
+                        <td className="p-2 text-right font-mono text-rose-700 border-r border-slate-200">-{formatCLP(calc.totalPrevisionalDiscounts)}</td>
+                        <td className="p-2 text-right font-mono border-r border-slate-200">{calc.advances > 0 ? `-${formatCLP(calc.advances)}` : '$0'}</td>
+                        <td className="p-2 text-right font-mono font-black text-emerald-800 bg-emerald-50/70 border-r border-slate-200">{formatCLP(calc.netSalary)}</td>
+                        <td className="p-2 text-right font-mono font-bold text-slate-900">{formatCLP(calc.totalCommunityCost)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-400">
+                      <td colSpan={6} className="p-2.5 uppercase text-right">TOTALES PERIODO {periodLabel}:</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(payrollConsolidated.totalTaxable)}</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(payrollConsolidated.totalNonTaxable)}</td>
+                      <td className="p-2.5 text-right font-mono text-rose-700">-{formatCLP(payrollConsolidated.totalPrevisionalDiscounts)}</td>
+                      <td className="p-2.5 text-right font-mono">-{formatCLP(payrollConsolidated.totalAdvances)}</td>
+                      <td className="p-2.5 text-right font-mono text-emerald-800 text-xs bg-emerald-100">{formatCLP(payrollConsolidated.totalNet)}</td>
+                      <td className="p-2.5 text-right font-mono text-xs">{formatCLP(payrollConsolidated.totalCommunityCost)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Resumen de Egreso para Gastos Comunes */}
+              <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                <div>
+                  <span className="text-slate-500 block text-[10px]">1. Total Sueldos Líquidos Transferidos:</span>
+                  <strong className="text-sm font-black text-emerald-800 font-mono">{formatCLP(payrollConsolidated.totalNet)}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-500 block text-[10px]">2. Total Leyes Sociales (Previred):</span>
+                  <strong className="text-sm font-black text-[#0F3D2E] font-mono">{formatCLP(payrollConsolidated.totalPreviredLeyesSociales)}</strong>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-500 block text-[10px]">Total Costo Personal Condominio:</span>
+                  <strong className="text-sm font-black text-slate-900 font-mono">{formatCLP(payrollConsolidated.totalCommunityCost)}</strong>
+                </div>
+              </div>
+
+              {/* Firmas de Respaldo */}
+              <div className="pt-8 grid grid-cols-2 gap-12 text-center text-xs">
+                <div className="space-y-1">
+                  <div className="h-14 flex items-end justify-center mb-1">
+                    {companySettings?.signatureDataUrl && (
+                      <img
+                        src={companySettings.signatureDataUrl}
+                        alt="Firma Administrador"
+                        className="h-12 w-auto object-contain mx-auto"
+                      />
+                    )}
+                  </div>
+                  <div className="border-t border-slate-800 pt-1.5">
+                    <strong className="block text-slate-900">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
+                    <span className="text-slate-600 block text-[10px]">Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})</span>
+                    <span className="text-[10px] text-slate-400 block">ARANPRO GESTIÓN INTEGRAL</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="h-14 flex items-end justify-center mb-1">
+                    {/* Espacio para visación del Comité */}
+                  </div>
+                  <div className="border-t border-slate-800 pt-1.5">
+                    <strong className="block text-slate-900">Comité de Administración</strong>
+                    <span className="text-slate-600 block text-[10px]">{currentCommunity.name}</span>
+                    <span className="text-[10px] text-slate-400 block">VISACIÓN Y REVISIÓN CONFORME (ART. 17 LEY 21.442)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL 4: VISOR E IMPRESIÓN DE PLANILLA PREVIRED ==================== */}
+      {showPreviredSheetModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Landmark className="w-5 h-5 text-[#0F3D2E]" />
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    Planilla de Cotizaciones Previsionales Previred • Periodo {periodLabel}
+                  </h3>
+                  <span className="text-xs text-slate-500">{currentCommunity.name} • Vencimiento Electrónico Día 13</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    printDocumentDirectly(
+                      'printable-community-previred-sheet',
+                      `ARANPRO_Previred_${currentCommunity.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
+                      { pdfStyle }
+                    )
+                  }
+                  className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir Planilla Previred (PDF)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPreviredSheetModal(false)}
+                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* CONTENEDOR IMPRIMIBLE PREVIRED */}
+            <div
+              id="printable-community-previred-sheet"
+              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5"
+            >
+              {renderAranproPdfHeader('PLANILLA PREVISIONAL', 'INFORME DE COTIZACIONES LEYES SOCIALES PREVIRED', `PREV-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
+
+              <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-slate-500 block text-[10px] uppercase font-bold">RUT Patronal / Empresa Pagadora:</span>
+                  <strong className="text-sm font-black text-slate-900 font-mono">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>
+                  <span className="text-slate-600 block text-[11px]">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-500 block text-[10px] uppercase font-bold">Fecha Límite Declaración y Pago:</span>
+                  <strong className="text-sm font-black text-amber-800 block">Día 13 del Mes Siguiente</strong>
+                  <span className="text-slate-500 block text-[10px]">Vía Transferencia Electrónica www.previred.com</span>
+                </div>
+              </div>
+
+              {/* Nómina de Cotizantes */}
+              <div className="border border-slate-300 rounded-xl overflow-hidden">
+                <table className="w-full text-[11px] text-left">
+                  <thead className="bg-[#0F3D2E] text-white font-bold uppercase text-[9px]">
+                    <tr>
+                      <th className="p-2">Trabajador & RUT</th>
+                      <th className="p-2">Entidad AFP</th>
+                      <th className="p-2">Salud</th>
+                      <th className="p-2 text-right">Renta Imponible</th>
+                      <th className="p-2 text-right">Cotiz. AFP</th>
+                      <th className="p-2 text-right">Salud (7%)</th>
+                      <th className="p-2 text-right">AFC Trab.</th>
+                      <th className="p-2 text-right">AFC Emp.</th>
+                      <th className="p-2 text-right">SIS 1.49%</th>
+                      <th className="p-2 text-right">Mutual</th>
+                      <th className="p-2 text-right">Total Leyes</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {payrollConsolidated.slips.map(({ worker, calc }) => (
+                      <tr key={worker.id} className="hover:bg-slate-50">
+                        <td className="p-2 font-bold text-slate-900">
+                          {worker.name}
+                          <span className="block font-mono text-[9px] text-slate-500">{worker.rut}</span>
+                        </td>
+                        <td className="p-2 text-slate-700">{worker.afpName} ({calc.afpRate}%)</td>
+                        <td className="p-2 text-slate-700">{worker.healthName?.split('(')[0] || 'Fonasa'}</td>
+                        <td className="p-2 text-right font-mono">{formatCLP(calc.totalTaxable)}</td>
+                        <td className="p-2 text-right font-mono">{formatCLP(calc.afpAmount)}</td>
+                        <td className="p-2 text-right font-mono">{formatCLP(calc.healthAmount)}</td>
+                        <td className="p-2 text-right font-mono">{formatCLP(calc.afcWorkerAmount)}</td>
+                        <td className="p-2 text-right font-mono">{formatCLP(calc.employerAfcAmount)}</td>
+                        <td className="p-2 text-right font-mono">{formatCLP(calc.employerSisAmount)}</td>
+                        <td className="p-2 text-right font-mono">{formatCLP(calc.employerMutualAmount)}</td>
+                        <td className="p-2 text-right font-mono font-black text-emerald-800">
+                          {formatCLP(calc.totalPrevisionalDiscounts + calc.totalEmployerCosts)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-400">
+                      <td colSpan={3} className="p-2.5 uppercase">TOTALES CONSOLIDADOS PREVIRED:</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(payrollConsolidated.totalTaxable)}</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(payrollConsolidated.totalPrevisionalDiscounts - Math.round(payrollConsolidated.totalTaxable * 0.076))}</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(Math.round(payrollConsolidated.totalTaxable * 0.07))}</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(Math.round(payrollConsolidated.totalTaxable * 0.006))}</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(payrollConsolidated.totalEmployerAfc)}</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(payrollConsolidated.totalEmployerSis)}</td>
+                      <td className="p-2.5 text-right font-mono">{formatCLP(payrollConsolidated.totalEmployerMutual)}</td>
+                      <td className="p-2.5 text-right font-mono text-emerald-900 text-xs bg-emerald-100">
+                        {formatCLP(payrollConsolidated.totalPreviredLeyesSociales)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Recuadro de Total a Pagar */}
+              <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-[#0F3D2E] flex justify-between items-center">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] block">
+                    TOTAL GENERAL A TRANSFERIR EN PREVIRED:
+                  </span>
+                  <strong className="text-xl font-black text-[#0F3D2E] font-mono block">
+                    {formatCLP(payrollConsolidated.totalPreviredLeyesSociales)}
+                  </strong>
+                  <span className="text-xs text-emerald-800 font-bold block">
+                    SON: {numberToSpanishWords(payrollConsolidated.totalPreviredLeyesSociales)}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-slate-700 block">Cuenta de Cargo: Cuenta Corriente Comunidad</span>
+                  <span className="text-xs text-slate-500 font-mono block">{currentCommunity.bankInfo?.bank} • {currentCommunity.bankInfo?.accountNumber}</span>
+                </div>
+              </div>
+
+              {/* Firma */}
+              <div className="pt-6 flex justify-between items-end text-xs">
+                <div>
+                  <span className="text-slate-500 block text-[10px]">Elaborado por Administración ARANPRO</span>
+                  <strong className="text-slate-900 font-bold">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
+                </div>
+                <div className="text-right">
+                  <AranproOfficialSeal size={50} showVerificationText={false} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL 5: VISOR E IMPRESIÓN DE NÓMINA OFICIAL DE PERSONAL ==================== */}
+      {showRosterModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#0F3D2E]" />
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    Nómina Oficial de Trabajadores • {currentCommunity.name}
+                  </h3>
+                  <span className="text-xs text-slate-500">Registro General del Personal del Condominio (Ley 21.442)</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    printDocumentDirectly(
+                      'printable-community-staff-roster',
+                      `ARANPRO_Nomina_Personal_${currentCommunity.name.replace(/\s+/g, '_')}`,
+                      { pdfStyle }
+                    )
+                  }
+                  className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir Nómina (PDF)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRosterModal(false)}
+                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* CONTENEDOR IMPRIMIBLE NÓMINA */}
+            <div
+              id="printable-community-staff-roster"
+              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5"
+            >
+              {renderAranproPdfHeader('REGISTRO OFICIAL', 'NÓMINA DE TRABAJADORES DEL CONDOMINIO', `NOM-${new Date().getFullYear()}`)}
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                <div>
+                  <strong className="block text-slate-900">{currentCommunity.name}</strong>
+                  <span className="text-slate-600 block text-[11px]">RUT Patronal: {currentCommunity.bankInfo?.rut || '65.184.920-K'} • {currentCommunity.address}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-emerald-800 font-black block text-sm">{staff.length} Trabajadores Registrados</span>
+                  <span className="text-slate-500 block text-[10px]">Actualizado al {new Date().toLocaleDateString('es-CL')}</span>
+                </div>
+              </div>
+
+              <div className="border border-slate-300 rounded-xl overflow-hidden">
+                <table className="w-full text-[11px] text-left">
+                  <thead className="bg-[#0F3D2E] text-white font-bold uppercase text-[9px]">
+                    <tr>
+                      <th className="p-2">N°</th>
+                      <th className="p-2">Nombre Completo</th>
+                      <th className="p-2">RUT</th>
+                      <th className="p-2">Cargo / Turno</th>
+                      <th className="p-2">Jornada</th>
+                      <th className="p-2">Contrato</th>
+                      <th className="p-2">Sueldo Base</th>
+                      <th className="p-2">Previsión</th>
+                      <th className="p-2">Contacto</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {staff.map((w, idx) => (
+                      <tr key={w.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                        <td className="p-2 text-center font-bold">{idx + 1}</td>
+                        <td className="p-2 font-bold text-slate-900">{w.name}</td>
+                        <td className="p-2 font-mono text-slate-700">{w.rut}</td>
+                        <td className="p-2 text-slate-700">
+                          {w.role}
+                          <span className="block text-[9px] text-slate-400">{w.shift}</span>
+                        </td>
+                        <td className="p-2 text-slate-700">{w.weeklyHours || 44} hrs</td>
+                        <td className="p-2 text-slate-700">{w.contractType}</td>
+                        <td className="p-2 font-mono font-bold text-slate-900">{formatCLP(w.baseSalary)}</td>
+                        <td className="p-2 text-slate-600">
+                          {w.afpName}
+                          <span className="block text-[9px] text-slate-400">{w.healthName?.split('(')[0] || 'Fonasa'}</span>
+                        </td>
+                        <td className="p-2 text-[10px] text-slate-600">
+                          {w.phone || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pt-6 grid grid-cols-2 gap-12 text-center text-xs">
+                <div className="border-t border-slate-800 pt-2">
+                  <strong className="block text-slate-900">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
+                  <span className="text-slate-600 block text-[10px]">Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})</span>
+                </div>
+                <div className="border-t border-slate-800 pt-2">
+                  <strong className="block text-slate-900">Comité de Administración</strong>
+                  <span className="text-slate-600 block text-[10px]">{currentCommunity.name}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL 6: VISOR E IMPRESIÓN DE CONTRATO INDIVIDUAL DE TRABAJO DT PROFUNDO ==================== */}
       {showContractModal && selectedWorkerForContract && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#0F3D2E]" />
                 <div>
                   <h3 className="text-base font-black text-slate-900">
-                    Contrato Individual de Trabajo • Dirección del Trabajo
+                    Contrato Individual de Trabajo • Dirección del Trabajo (DT)
                   </h3>
                   <span className="text-xs text-slate-500">{selectedWorkerForContract.name} • {selectedWorkerForContract.role}</span>
                 </div>
@@ -1816,14 +2327,14 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   onClick={() =>
                     printDocumentDirectly(
                       'printable-community-labor-contract',
-                      `Contrato_Trabajo_${selectedWorkerForContract.name.replace(/\s+/g, '_')}`,
+                      `ARANPRO_Contrato_Trabajo_${selectedWorkerForContract.name.replace(/\s+/g, '_')}`,
                       { pdfStyle }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>Imprimir Contrato</span>
+                  <span>Imprimir Contrato Completo (PDF)</span>
                 </button>
                 <button
                   type="button"
@@ -1835,60 +2346,292 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
             </div>
 
-            {/* DOCUMENTO DEL CONTRATO */}
+            {/* DOCUMENTO EXHAUSTIVO Y PROFUNDO DEL CONTRATO DE TRABAJO */}
             <div
               id="printable-community-labor-contract"
-              className="bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-4 font-serif leading-relaxed print-wrapper"
+              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5 leading-relaxed"
             >
-              <div className="text-center space-y-1 border-b border-slate-300 pb-3">
+              {renderAranproPdfHeader('INSTRUMENTO LABORAL', 'CONTRATO INDIVIDUAL DE TRABAJO DE COPROPIEDAD', `CONTR-${selectedWorkerForContract.id}`)}
+
+              <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
                 <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
                   CONTRATO INDIVIDUAL DE TRABAJO
                 </h2>
-                <p className="text-[11px] text-slate-600">
-                  PERSONAL DE CONDOMINIO • LEY N° 21.442 Y CÓDIGO DEL TRABAJO
+                <p className="text-[10px] text-slate-600 font-bold">
+                  PERSONAL DE CONDOMINIO • LEY N° 21.442 Y CÓDIGO DEL TRABAJO DE LA REPÚBLICA DE CHILE
                 </p>
               </div>
 
-              <p className="text-justify">
-                En la ciudad de <strong>{currentCommunity.city || 'La Serena'}</strong>, República de Chile, a {selectedWorkerForContract.startDate}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, RUT N° <strong>{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>, representada por su Administrador Titular don <strong>{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>, RUT N° <strong>{companySettings?.adminRut || '16.012.871-2'}</strong>, domiciliados en <strong>{currentCommunity.address}</strong>, en adelante "el Empleador"; y don(ña) <strong>{selectedWorkerForContract.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForContract.rut}</strong>, de nacionalidad chilena, domiciliado(a) en <strong>{selectedWorkerForContract.address || 'domicilio registrado'}</strong>, en adelante "el Trabajador", se ha convenido el siguiente contrato de trabajo:
+              <p className="text-justify text-xs">
+                En la ciudad de <strong>{currentCommunity.city || 'La Serena'}</strong>, República de Chile, a {selectedWorkerForContract.startDate}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, Rol Único Tributario (RUT) N° <strong>{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>, cédula nacional de identidad N° <strong>{companySettings?.adminRut || '16.012.871-2'}</strong>, con inscripción vigente en el Registro Nacional de Administradores de Condominios del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '48.912'}</strong>), ambos domiciliados para estos efectos en <strong>{currentCommunity.address}</strong>, en adelante denominada indistintamente como "la Comunidad" o "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForContract.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForContract.rut}</strong>, de nacionalidad chilena, fecha de nacimiento registrada, domiciliado(a) en <strong>{selectedWorkerForContract.address || 'domicilio acreditado'}</strong>, en adelante "el Trabajador", se ha convenido celebrar el siguiente Contrato Individual de Trabajo:
               </p>
 
-              <div className="space-y-2 text-justify">
-                <p>
-                  <strong>PRIMERO (Funciones):</strong> El Trabajador se compromete a desempeñar las funciones de <strong>{selectedWorkerForContract.role}</strong> para la Comunidad, realizando labores de control de acceso de visitas, recepción de encomiendas, fiscalización del buen uso de bienes comunes, custodia de llaves maestras y rondas de vigilancia preventiva en conformidad con la Ley N° 21.442 de Copropiedad Inmobiliaria.
-                </p>
-
-                <p>
-                  <strong>SEGUNDO (Jornada de Trabajo):</strong> La jornada ordinaria de trabajo será de <strong>{selectedWorkerForContract.weeklyHours || 44} horas semanales</strong>, distribuidas según el turno <strong>{selectedWorkerForContract.shift}</strong> establecido por la Administración.
-                </p>
-
-                <p>
-                  <strong>TERCERO (Remuneración):</strong> El Empleador pagará al Trabajador un Sueldo Base mensual de <strong>{formatCLP(selectedWorkerForContract.baseSalary)}</strong> ({numberToSpanishWords(selectedWorkerForContract.baseSalary)}). Asimismo, se conviene el pago de gratificación legal mensual conforme al Artículo 50 del Código del Trabajo, con tope de 4.75 ingresos mínimos mensuales al año, además de una asignación de colación de {formatCLP(selectedWorkerForContract.allowanceColacion)} y asignación de movilización de {formatCLP(selectedWorkerForContract.allowanceMovilizacion)}.
-                </p>
-
-                <p>
-                  <strong>CUARTO (Previsión):</strong> El Trabajador declara encontrarse afiliado a <strong>{selectedWorkerForContract.afpName}</strong> para efectos previsionales de pensiones, y a <strong>{selectedWorkerForContract.healthName}</strong> para prestaciones de salud.
-                </p>
-
-                <p>
-                  <strong>QUINTO (Plazo y Vigencia):</strong> El presente contrato rige a contar del día <strong>{selectedWorkerForContract.startDate}</strong> y tendrá una duración de carácter <strong>{selectedWorkerForContract.contractType}</strong>.
-                </p>
-              </div>
-
-              <div className="pt-10 grid grid-cols-2 gap-12 text-center text-xs">
+              <div className="space-y-3 text-justify text-xs">
                 <div>
-                  <div className="border-t border-slate-800 pt-2">
-                    <strong>{selectedWorkerForContract.name}</strong>
-                    <span className="block font-mono">RUT: {selectedWorkerForContract.rut}</span>
-                    <span className="text-[10px] text-slate-500 block">EL TRABAJADOR</span>
-                  </div>
+                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                    PRIMERO: LUGAR DE PRESTACIÓN DE LOS SERVICIOS
+                  </h4>
+                  <p>
+                    El Trabajador prestará sus servicios en las dependencias, áreas comunes, accesos vehiculares y peatonales, caseta de control y perímetro de la Comunidad <strong>{currentCommunity.name}</strong>, ubicada en <strong>{currentCommunity.address}</strong>, comuna de {currentCommunity.city || 'La Serena'}.
+                  </p>
                 </div>
 
                 <div>
+                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                    SEGUNDO: DESCRIPTOR EXHAUSTIVO DEL CARGO Y FUNCIONES ESPECÍFICAS
+                  </h4>
+                  <p>
+                    El Trabajador es contratado para desempeñar las funciones de <strong>{selectedWorkerForContract.role}</strong>. En el cumplimiento de sus labores, y de conformidad con el Artículo 18 y siguientes de la Ley N° 21.442 de Copropiedad Inmobiliaria, sus obligaciones específicas comprenden:
+                  </p>
+                  <ul className="list-disc pl-5 mt-1 space-y-1 text-slate-700">
+                    <li><strong>Control de Accesos Peatonal y Vehicular:</strong> Registrar rigurosamente en el Libro de Control a toda persona, visita o vehículo que ingrese al condominio, verificando autorización previa de la unidad correspondiente.</li>
+                    <li><strong>Recepción y Custodia de Encomiendas:</strong> Recibir, catalogar y custodiar paquetes, compras electrónicas y correspondencia en la caseta de conserjería, exigiendo firma y verificación al momento de la entrega al residente.</li>
+                    <li><strong>Libro de Novedades de Conserjería:</strong> Llevar de forma prolija, veraz y cronológica el Libro de Novedades físico y digital del condominio, asentando en cada turno los incidentes, rondas, reclamos y estados de los equipos comunitarios.</li>
+                    <li><strong>Inspección y Rondas Preventivas:</strong> Efectuar rondas periódicas de vigilancia en áreas comunes, revisando el normal funcionamiento de bombas de agua potable, salas de calderas, portones eléctricos, iluminación común y vías de evacuación.</li>
+                    <li><strong>Custodia de Llaves Maestras:</strong> Mantener estricto control y resguardo de las llaves de salas técnicas y recintos comunitarios, prohibiéndose su entrega a terceros sin autorización de la Administración.</li>
+                    <li><strong>Activación de Protocolos de Emergencia:</strong> Activar de inmediato los planes de contingencia ante incendios, sismos, fugas de gas, inundaciones o hechos delictuales, coordinando con Bomberos, Carabineros y SAMU.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                    TERCERO: JORNADA DE TRABAJO Y SISTEMA DE TURNOS
+                  </h4>
+                  <p>
+                    La jornada ordinaria de trabajo será de <strong>{selectedWorkerForContract.weeklyHours || 44} horas semanales</strong>, distribuidas en turnos conforme al <strong>{selectedWorkerForContract.shift}</strong>. En razón de la naturaleza de los servicios de conserjería y vigilancia en copropiedades (Art. 38 N° 2 del Código del Trabajo), la jornada podrá incluir domingos y días festivos, otorgándose en tal caso los descansos compensatorios legales pertinentes.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                    CUARTO: REMUNERACIONES Y BENEFICIOS
+                  </h4>
+                  <p>
+                    El Empleador pagará al Trabajador las siguientes remuneraciones mensuales:
+                  </p>
+                  <ul className="list-disc pl-5 mt-1 space-y-0.5 text-slate-700">
+                    <li><strong>Sueldo Base:</strong> La suma de <strong>{formatCLP(selectedWorkerForContract.baseSalary)}</strong> ({numberToSpanishWords(selectedWorkerForContract.baseSalary)}) mensuales.</li>
+                    <li><strong>Gratificación Legal:</strong> Conforme al Artículo 50 del Código del Trabajo, la Comunidad pagará mensualmente el 25% de lo devengado por concepto de remuneraciones mensuales, con el tope legal de 4.75 ingresos mínimos mensuales al año.</li>
+                    {selectedWorkerForContract.contractualNightBonus > 0 && (
+                      <li><strong>Bono Turno Nocturno:</strong> Asignación imponible de {formatCLP(selectedWorkerForContract.contractualNightBonus)} por concepto de turnos de noche.</li>
+                    )}
+                    {selectedWorkerForContract.contractualResponsibilityBonus > 0 && (
+                      <li><strong>Bono de Responsabilidad:</strong> Asignación imponible de {formatCLP(selectedWorkerForContract.contractualResponsibilityBonus)} por custodia y supervisión de accesos.</li>
+                    )}
+                    <li><strong>Asignación de Colación:</strong> La suma de {formatCLP(selectedWorkerForContract.allowanceColacion)} mensual, de carácter no imponible.</li>
+                    <li><strong>Asignación de Movilización:</strong> La suma de {formatCLP(selectedWorkerForContract.allowanceMovilizacion)} mensual, de carácter no imponible.</li>
+                  </ul>
+                  <p className="mt-1">
+                    Las remuneraciones se pagarán el último día hábil de cada mes calendario mediante transferencia electrónica bancaria a la cuenta <strong>{selectedWorkerForContract.accountType} N° {selectedWorkerForContract.accountNumber || 'registrada'}</strong> del <strong>{selectedWorkerForContract.bankName}</strong>.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                    QUINTO: PREVISIÓN SOCIAL Y SALUD
+                  </h4>
+                  <p>
+                    El Trabajador declara que para los efectos previsionales de pensiones se encuentra afiliado a <strong>{selectedWorkerForContract.afpName}</strong>, y para los efectos de salud a <strong>{selectedWorkerForContract.healthName}</strong>, facultando a la Comunidad para retener y enterar las cotizaciones en las instituciones respectivas y en Previred. Asimismo, la Comunidad cotiza el Seguro de Invalidez y Sobrevivencia (SIS), Seguro de Cesantía (AFC) y la Ley N° 16.744 sobre Accidentes del Trabajo en la <strong>{selectedWorkerForContract.mutualEntity}</strong>.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                    SEXTO: OBLIGACIONES ESPECIALES, PROHIBICIONES Y CONFIDENCIALIDAD
+                  </h4>
+                  <p>
+                    El Trabajador se compromete a guardar el más estricto secreto y confidencialidad respecto de los datos personales, rutinas, ausencias y bienes de los copropietarios y residentes del condominio (Ley N° 19.628). Se prohíbe expresamente al Trabajador: a) Abandonar la caseta o puesto de conserjería sin reemplazo autorizado; b) Permitir el ingreso de personas ajenas o amistades al interior de la caseta; c) Presentarse a trabajar bajo los efectos del alcohol o estupefacientes; d) Manipular llaves de paso o tableros sin orden técnica.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                    SÉPTIMO: REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS)
+                  </h4>
+                  <p>
+                    El Trabajador declara haber recibido en este acto un ejemplar íntegro del Reglamento Interno de Orden, Higiene y Seguridad (RIOHS) de la Comunidad, obligándose a acatar sus normas, el uso permanente de sus Elementos de Protección Personal (EPP) y la normativa sobre prevención del acoso laboral y sexual (Ley Karin N° 21.643).
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-slate-900 uppercase text-[11px]">
+                    OCTAVO: VIGENCIA DEL CONTRATO Y EJEMPLARES
+                  </h4>
+                  <p>
+                    El presente contrato rige a contar del día <strong>{selectedWorkerForContract.startDate}</strong> y tendrá una duración de carácter <strong>{selectedWorkerForContract.contractType}</strong>. Se firma en dos ejemplares de idéntico tenor y fecha, quedando uno en poder del Trabajador y el otro en custodia de la Administración de la Comunidad.
+                  </p>
+                </div>
+              </div>
+
+              {/* Firmas Notariales y Patronales */}
+              <div className="pt-10 grid grid-cols-2 gap-12 text-center text-xs">
+                <div className="space-y-1">
+                  <div className="h-16 flex items-end justify-center mb-1">
+                    {/* Espacio firma trabajador */}
+                  </div>
+                  <div className="border-t border-slate-900 pt-2">
+                    <strong className="block text-slate-900 font-black">{selectedWorkerForContract.name}</strong>
+                    <span className="block font-mono text-slate-700">RUT: {selectedWorkerForContract.rut}</span>
+                    <span className="text-[10px] text-slate-500 block font-bold">EL TRABAJADOR</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1 relative">
+                  <div className="h-16 flex items-end justify-center mb-1 relative">
+                    {companySettings?.signatureDataUrl ? (
+                      <img
+                        src={companySettings.signatureDataUrl}
+                        alt="Firma Administrador"
+                        className="h-14 max-h-16 w-auto object-contain mx-auto"
+                      />
+                    ) : (
+                      <span className="text-[11px] text-slate-300 italic">Firma Administrador</span>
+                    )}
+                    <div className="absolute right-0 bottom-0 pointer-events-none">
+                      <AranproOfficialSeal size={55} showVerificationText={false} />
+                    </div>
+                  </div>
+                  <div className="border-t border-slate-900 pt-2">
+                    <strong className="block text-slate-900 font-black">
+                      {companySettings?.adminName || 'John Andrés Arancibia Maureira'}
+                    </strong>
+                    <span className="block text-slate-700 font-bold text-[10px]">
+                      Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})
+                    </span>
+                    <span className="text-[10px] text-slate-500 block">
+                      POR LA COMUNIDAD EMPLEADORA (ART. 20 LEY 21.442)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL 7: REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS) ==================== */}
+      {showRiohsModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <ScrollText className="w-5 h-5 text-[#0F3D2E]" />
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)
+                  </h3>
+                  <span className="text-xs text-slate-500">{currentCommunity.name} • Código del Trabajo & Ley Karin N° 21.643</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    printDocumentDirectly(
+                      'printable-community-riohs-document',
+                      `ARANPRO_RIOHS_${currentCommunity.name.replace(/\s+/g, '_')}`,
+                      { pdfStyle }
+                    )
+                  }
+                  className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir RIOHS Completo (PDF)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRiohsModal(false)}
+                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* DOCUMENTO RIOHS IMPRIMIBLE */}
+            <div
+              id="printable-community-riohs-document"
+              className="print-wrapper bg-white p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 text-xs space-y-5 leading-relaxed"
+            >
+              {renderAranproPdfHeader('NORMATIVA LABORAL', 'REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS)', 'RIOHS-2026')}
+
+              <div className="text-center space-y-1 border-b border-slate-200 pb-3">
+                <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
+                  REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD
+                </h2>
+                <p className="text-[11px] text-slate-600 font-bold">
+                  COMUNIDAD {currentCommunity.name.toUpperCase()} • LEY N° 16.744, LEY N° 21.442 Y LEY KARIN N° 21.643
+                </p>
+              </div>
+
+              <div className="space-y-4 text-justify text-xs">
+                <div>
+                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                    TÍTULO I: DISPOSICIONES GENERALES Y OBJETIVOS
+                  </h4>
+                  <p className="mt-1">
+                    El presente Reglamento Interno regula las condiciones, requisitos, derechos, deberes y normas de higiene y seguridad laboral que rigen para todos los trabajadores dependientes de la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, en conformidad a lo dispuesto en el Libro I, Título III del Código del Trabajo, en la Ley N° 16.744 sobre Accidentes del Trabajo y Enfermedades Profesionales, y en la Ley N° 21.442 de Copropiedad Inmobiliaria.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                    TÍTULO II: DE LA JORNADA DE TRABAJO Y SISTEMA DE ASISTENCIA
+                  </h4>
+                  <p className="mt-1">
+                    El personal cumplirá la jornada pactada en sus contratos individuales de trabajo. El control diario de asistencia, horas de entrada, salida y tiempo de colación se registrará obligatoriamente a través del Libro de Asistencia foliado o sistema electrónico validado por la Dirección del Trabajo (DT). Ningún trabajador podrá abandonar su puesto de trabajo antes de la llegada de su relevo formal.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                    TÍTULO III: OBLIGACIONES ESPECIALES DEL PERSONAL DE CONSERJERÍA Y ASEO
+                  </h4>
+                  <p className="mt-1">
+                    Son obligaciones primordiales:
+                  </p>
+                  <ul className="list-disc pl-5 mt-1 space-y-1 text-slate-700">
+                    <li>Mantener una actitud de respeto, probidad y cortesía permanente hacia los copropietarios, residentes, visitas y miembros del Comité de Administración.</li>
+                    <li>Operar el sistema de citofonía, cámaras de seguridad (CCTV) y portones con el máximo celo profesional.</li>
+                    <li>Efectuar la custodia de llaves de áreas comunes y llevar el registro de entrega y devolución.</li>
+                    <li>Utilizar en todo momento los Elementos de Protección Personal (EPP) entregados por la Administración (calzado de seguridad, guantes de nitrilo, chaleco reflectante en turnos nocturnos).</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                    TÍTULO IV: PROTOCOLO DE PREVENCIÓN DEL ACOSO LABORAL, SEXUAL Y VIOLENCIA EN EL TRABAJO (LEY KARIN N° 21.643)
+                  </h4>
+                  <p className="mt-1">
+                    La Comunidad prohíbe terminantemente toda manifestación de acoso laboral, acoso sexual o violencia física o psicológica en el trabajo, sea por parte de copropietarios, jefaturas, pares o terceros. La Administración garantiza canales confidenciales para la recepción de denuncias, medidas de resguardo inmediatas y derivación a la Dirección del Trabajo y Mutualidad.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
+                    TÍTULO V: NORMAS DE SEGURIDAD EN INSTALACIONES CRÍTICAS
+                  </h4>
+                  <p className="mt-1">
+                    Se prohíbe el ingreso de residentes a salas de bombas de impulsión de agua, calderas, tableros eléctricos y fosas sépticas. El personal de conserjería velará por el cierre con llave de estos recintos y reportará cualquier anomalía de presión o filtración de manera inmediata al Administrador Titular.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-8 grid grid-cols-2 gap-12 text-center text-xs">
+                <div className="space-y-1">
                   <div className="border-t border-slate-800 pt-2">
-                    <strong>{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
-                    <span className="block">Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})</span>
-                    <span className="text-[10px] text-slate-500 block">POR LA COMUNIDAD EMPLEADORA</span>
+                    <strong className="block text-slate-900">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
+                    <span className="text-slate-600 block text-[10px]">Administrador Titular (RNAC Minvu N° {companySettings?.rnacNumber || '48.912'})</span>
+                    <span className="text-slate-500 text-[10px]">POR LA COMUNIDAD EMPLEADORA</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="border-t border-slate-800 pt-2">
+                    <strong className="block text-slate-900">Comité de Administración</strong>
+                    <span className="text-slate-600 block text-[10px]">{currentCommunity.name}</span>
+                    <span className="text-slate-500 text-[10px]">LEY N° 21.442 DE COPROPIEDAD</span>
                   </div>
                 </div>
               </div>
