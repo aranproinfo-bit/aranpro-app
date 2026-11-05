@@ -5,6 +5,7 @@ import { AranproLogo } from './components/common/MauranLogo';
 import { ResidentLogin } from './components/resident/ResidentLogin';
 import { ResidentPortal } from './components/resident/ResidentPortal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { CompanyEnterpriseHub } from './components/admin/CompanyEnterpriseHub';
 import { ReceiptViewerModal } from './components/common/ReceiptViewerModal';
 import { CertificateModal } from './components/public/CertificateModal';
 import { 
@@ -17,11 +18,11 @@ import './App.css';
 const COMMERCIAL_WEB_URL = 'https://aranpro.cl';
 
 function MainApp() {
-  const { currentUser, communities, loginAdmin, loginResidentByRut, companySettings, simulateResidentView, exitSimulation } = useCommunity();
+  const { currentUser, communities, loginAdmin, logout, loginResidentByRut, companySettings, simulateResidentView, exitSimulation } = useCommunity();
   
-  // Navigation states: 'portal-choice' | 'communities-selector' | 'resident-login' | 'resident' | 'admin-login' | 'admin'
+  // Navigation states: 'portal-choice' | 'admin-select-community' | 'resident-login' | 'resident' | 'admin-login' | 'admin'
   const [currentView, setCurrentView] = useState(() => {
-    if (currentUser?.role === 'admin') return 'admin';
+    if (currentUser?.role === 'admin') return 'admin-select-community';
     if (currentUser?.role === 'resident') return 'resident';
     return 'portal-choice';
   });
@@ -103,14 +104,8 @@ function MainApp() {
         } catch (e) { console.error(e); }
         setAdminRutInput('');
         setAdminPasswordInput('');
-        // Si el administrador tiene solo 1 comunidad, ingresa directo
-        if (communities.length === 1) {
-          setSelectedAdminCommunityId(communities[0].id);
-          setCurrentView('admin');
-        } else {
-          // Si tiene múltiples comunidades, muestra selector inicial "¿En qué comunidad deseas trabajar hoy?"
-          setCurrentView('admin-select-community');
-        }
+        // Siempre ingresar primero al Panel Central de Empresa Administradora & Comunidades
+        setCurrentView('admin-select-community');
       } else {
         setAdminLoginError(res.message || 'RUT o contraseña de Administrador incorrectos.');
       }
@@ -399,83 +394,23 @@ function MainApp() {
           </div>
         )}
 
-        {/* PANTALLA INTERMEDIA SAAS: SELECCIÓN DE COMUNIDAD DE TRABAJO */}
+        {/* PANTALLA CENTRAL DEL ADMINISTRADOR: PANEL DE EMPRESA ADMINISTRADORA, COMUNIDADES, METAS, POSTULACIONES, RR.HH. OFICINA & ALIANZAS */}
         {currentView === 'admin-select-community' && (
-          <div className="max-w-4xl mx-auto px-4 py-10 md:py-16 space-y-8 animate-in fade-in duration-200">
-            <div className="text-center space-y-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-[#0F3D2E] text-[#D4B895]">
-                <Building2 className="w-3.5 h-3.5" />
-                Suite Multi-Comunidad • ARANPRO SaaS
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-black text-[#0F3D2E] tracking-tight uppercase">
-                ¿En qué comunidad deseas trabajar hoy?
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
-                Tienes {communities.length} comunidades bajo tu administración. Selecciona el condominio donde deseas trabajar para evitar cualquier error de registro contable o emisión:
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-              {communities.map((c) => (
-                <div
-                  key={c.id}
-                  onClick={() => {
-                    setSelectedAdminCommunityId(c.id);
-                    setCurrentView('admin');
-                  }}
-                  className="group bg-white p-6 rounded-3xl border-2 border-slate-200 hover:border-[#0F3D2E] shadow-sm hover:shadow-xl transition-all cursor-pointer space-y-4 flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-[#0F3D2E]/10 group-hover:bg-[#0F3D2E] text-[#0F3D2E] group-hover:text-[#D4B895] flex items-center justify-center transition-all shrink-0">
-                        <Building2 className="w-6 h-6" />
-                      </div>
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                        {c.type} • {c.totalUnits} Casas
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-black text-slate-900 group-hover:text-[#0F3D2E] transition-colors">
-                        {c.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {c.address}, {c.city}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-[11px]">
-                      <span className="text-slate-600">
-                        Período activo: <strong className="text-slate-900">{c.activePeriod?.month || 'Mes'} {c.activePeriod?.year || '2026'}</strong>
-                      </span>
-                      <span className="text-slate-300">•</span>
-                      <span className="text-emerald-700 font-bold">
-                        {c.units?.filter(u => u.paid).length || 0} / {c.totalUnits} al día
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-[#0F3D2E]">
-                    <span>Abrir Gestión de {c.name}</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-[#D4B895]" />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="text-center pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  setCurrentView('portal-choice');
-                }}
-                className="text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors cursor-pointer"
-              >
-                Cerrar sesión de Administrador
-              </button>
-            </div>
-          </div>
+          <CompanyEnterpriseHub
+            onSelectCommunityToManage={(communityId) => {
+              setSelectedAdminCommunityId(communityId);
+              setCurrentView('admin');
+            }}
+            onSelectResidentPreview={(slug) => {
+              setSelectedCommunitySlug(slug);
+              simulateResidentView(slug);
+              setCurrentView('resident');
+            }}
+            onLogout={() => {
+              if (logout) logout();
+              setCurrentView('portal-choice');
+            }}
+          />
         )}
 
         {/* PANTALLA 3: LOGIN RESIDENTE */}
