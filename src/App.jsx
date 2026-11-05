@@ -552,6 +552,9 @@ function MainApp() {
       <CertificateModal
         isOpen={showCertModal}
         onClose={() => setShowCertModal(false)}
+        defaultCommunity={currentUser?.role === 'resident' ? communities.find(c => c.id === currentUser.communityId || c.slug === currentUser.communitySlug) : null}
+        defaultUnit={currentUser?.role === 'resident' ? { number: currentUser.unitNumber } : null}
+        defaultApplicant={currentUser?.role === 'resident' ? { name: currentUser.loggedUserName || currentUser.name, rut: currentUser.rut, email: currentUser.email, phone: currentUser.phone } : null}
       />
 
       <ReceiptViewerModal />

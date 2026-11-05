@@ -3,19 +3,41 @@ import { useCommunity } from '../../context/CommunityContext';
 import { formatRut } from '../../utils/formatters';
 import { FileText, CheckCircle2, X, Send, Building } from 'lucide-react';
 
-export const CertificateModal = ({ isOpen, onClose }) => {
+export const CertificateModal = ({ isOpen, onClose, defaultCommunity, defaultUnit, defaultApplicant }) => {
   const { communities, requestCertificate } = useCommunity();
+  
+  // Si se pasa comunidad por prop (ej. residente logueado), se fija automáticamente
+  const initialCommunity = defaultCommunity 
+    ? (communities.find(c => c.id === defaultCommunity.id || c.name === defaultCommunity.name) || defaultCommunity)
+    : communities[0];
+
   const [formData, setFormData] = useState({
-    communityName: communities[0]?.name || '',
-    applicantName: '',
-    rut: '',
-    unitNumber: '',
-    email: '',
-    phone: '',
-    type: 'Certificado de Residencia',
+    communityName: initialCommunity?.name || '',
+    applicantName: defaultApplicant?.name || '',
+    rut: defaultApplicant?.rut || '',
+    unitNumber: defaultUnit?.number || '',
+    email: defaultApplicant?.email || '',
+    phone: defaultApplicant?.phone || '',
+    type: 'Certificado de Residencia y Domicilio',
     purpose: 'Trámite Bancario / Escolar'
   });
   const [submitted, setSubmitted] = useState(false);
+
+  // Sincronizar si cambian los props al abrir
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        communityName: initialCommunity?.name || prev.communityName || communities[0]?.name || '',
+        applicantName: defaultApplicant?.name || prev.applicantName,
+        rut: defaultApplicant?.rut || prev.rut,
+        unitNumber: defaultUnit?.number || prev.unitNumber,
+        email: defaultApplicant?.email || prev.email,
+        phone: defaultApplicant?.phone || prev.phone
+      }));
+      setSubmitted(false);
+    }
+  }, [isOpen, defaultCommunity, defaultUnit, defaultApplicant]);
 
   if (!isOpen) return null;
 
@@ -78,18 +100,27 @@ export const CertificateModal = ({ isOpen, onClose }) => {
               <label className="block text-xs font-semibold text-[#0F3D2E] uppercase tracking-wider mb-1">
                 Comunidad / Condominio *
               </label>
-              <select
-                required
-                value={formData.communityName}
-                onChange={(e) => setFormData({ ...formData, communityName: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E9EBE8] text-sm focus:ring-2 focus:ring-[#0F3D2E] focus:outline-hidden"
-              >
-                {communities.map((c) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name} ({c.city})
-                  </option>
-                ))}
-              </select>
+              {defaultCommunity ? (
+                <div className="w-full px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50/70 text-sm font-bold text-[#0F3D2E] flex items-center justify-between">
+                  <span>🏢 {formData.communityName}</span>
+                  <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-md font-semibold">
+                    Comunidad Identificada
+                  </span>
+                </div>
+              ) : (
+                <select
+                  required
+                  value={formData.communityName}
+                  onChange={(e) => setFormData({ ...formData, communityName: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E9EBE8] text-sm focus:ring-2 focus:ring-[#0F3D2E] focus:outline-hidden"
+                >
+                  {communities.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name} ({c.city})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -127,28 +158,37 @@ export const CertificateModal = ({ isOpen, onClose }) => {
                 <label className="block text-xs font-semibold text-[#0F3D2E] uppercase tracking-wider mb-1">
                   N° de Casa / Depto *
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: 14"
-                  value={formData.unitNumber}
-                  onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E9EBE8] text-sm focus:ring-2 focus:ring-[#0F3D2E] focus:outline-hidden"
-                />
+                {defaultUnit ? (
+                  <div className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-100 text-sm font-bold text-slate-800">
+                    Casa / Unidad {defaultUnit.number}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: 14"
+                    value={formData.unitNumber}
+                    onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E9EBE8] text-sm focus:ring-2 focus:ring-[#0F3D2E] focus:outline-hidden"
+                  />
+                )}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#0F3D2E] uppercase tracking-wider mb-1">
-                  Tipo de Documento *
+                  Tipo de Documento Oficial (Ley N° 21.442) *
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E9EBE8] text-sm focus:ring-2 focus:ring-[#0F3D2E] focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E9EBE8] text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#0F3D2E] focus:outline-hidden"
                 >
-                  <option value="Certificado de Residencia">Certificado de Residencia</option>
-                  <option value="Certificado de Copropietario al Día">Certificado de Gasto Común al Día</option>
-                  <option value="Constancia de Arrendatario">Constancia de Residente Arrendatario</option>
+                  <option value="Certificado de Residencia y Domicilio">🏠 Certificado de Residencia y Domicilio</option>
+                  <option value="Certificado de Gastos Comunes al Día (No Deuda)">✅ Certificado de Gastos Comunes al Día (No Deuda)</option>
+                  <option value="Certificado Oficial de Estado de Deuda y Liquidación Morosa">📋 Certificado de Estado de Deuda (Art. 36° Ley 21.442)</option>
+                  <option value="Certificado de Salvoconducto y Autorización de Mudanza">🚚 Salvoconducto y Autorización de Mudanza</option>
+                  <option value="Certificado Oficial de Copropiedad y Alícuota de Prorrateo">📑 Certificado de Copropiedad y Alícuota</option>
+                  <option value="Certificado de Buena Convivencia y No Infracciones">🤝 Certificado de Buena Convivencia</option>
                 </select>
               </div>
             </div>

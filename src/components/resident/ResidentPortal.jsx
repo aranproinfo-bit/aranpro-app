@@ -1139,22 +1139,25 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
               </div>
             </div>
 
-            {/* 3. TRÁMITES RÁPIDOS */}
+            {/* 3. TRÁMITES RÁPIDOS Y EMISIÓN DE CERTIFICADOS */}
             <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center space-x-3">
                 <div className="p-3 bg-white rounded-xl text-[#0F3D2E] border border-slate-200 shadow-2xs">
-                  <FileText className="w-5 h-5" />
+                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">¿Necesitas un Certificado de Residencia?</h4>
-                  <p className="text-xs text-slate-500">Genera una solicitud oficial timbrada para trámites escolares o bancarios.</p>
+                  <h4 className="text-sm font-bold text-slate-900">¿Necesitas un Certificado Oficial Timbrado?</h4>
+                  <p className="text-xs text-slate-500">
+                    Solicita certificados de <strong>Residencia</strong>, <strong>Gastos Comunes al Día (No Deuda)</strong>, <strong>Mudanza/Salvoconducto</strong> o <strong>Copropiedad</strong> con firma autorizada RNAC Minvu.
+                  </p>
                 </div>
               </div>
               <button
                 onClick={onOpenCertificates}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-xs shrink-0"
+                className="px-5 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] font-bold text-xs rounded-xl shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer transition-colors"
               >
-                Solicitar Certificado
+                <FileText className="w-4 h-4" />
+                <span>Solicitar Certificado Oficial</span>
               </button>
             </div>
 
