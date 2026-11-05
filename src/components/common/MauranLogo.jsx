@@ -100,6 +100,7 @@ export const AranproOfficialSeal = ({
   variant = 'integral',
   size = 'md',
   showCaption = true,
+  showText = true,
   companyRut = '76.999.888-8',
   rnacNumber = '48.912',
   className = ''
@@ -120,9 +121,16 @@ export const AranproOfficialSeal = ({
         src={imgSrc}
         alt="Sello Oficial ARANPRO"
         className={`${sizeMap[size] || 'h-14 w-14'} object-contain shrink-0`}
+        style={{
+          height: size === 'sm' ? '44px' : size === 'lg' ? '64px' : '54px',
+          width: size === 'sm' ? '44px' : size === 'lg' ? '64px' : '54px',
+          maxHeight: '64px',
+          maxWidth: '64px',
+          objectFit: 'contain'
+        }}
         loading="eager"
       />
-      {showCaption && (
+      {(showCaption && showText !== false) && (
         <div className="text-left leading-tight space-y-0.5">
           <div className="text-[9.5px] font-extrabold uppercase tracking-wider text-[#0F3D2E]">
             Sello Oficial de Administración
@@ -155,6 +163,7 @@ export const AranproLogo = ({
   theme = 'light', // 'light' | 'dark'
   className = '',
   size, // 'sm' | 'md' | 'lg' | 'xl'
+  style = {},
 }) => {
   const sizeClasses = {
     horizontal: {
@@ -165,9 +174,9 @@ export const AranproLogo = ({
     },
     principal: {
       sm: 'h-11',
-      md: 'h-14',
-      lg: 'h-24',
-      xl: 'h-36'
+      md: 'h-12',
+      lg: 'h-20',
+      xl: 'h-28'
     },
     negative: {
       sm: 'h-12',
@@ -189,12 +198,35 @@ export const AranproLogo = ({
     }
   };
 
+  // Determinar altura explícita en px para blindar encabezados PDF e iframes de impresión
+  const resolveInlineHeight = () => {
+    if (style?.height) return style.height;
+    if (className.includes('h-6')) return '24px';
+    if (className.includes('h-7')) return '28px';
+    if (className.includes('h-8')) return '32px';
+    if (className.includes('h-9')) return '36px';
+    if (className.includes('h-10')) return '40px';
+    if (className.includes('h-11')) return '44px';
+    if (className.includes('h-12')) return '48px';
+    if (className.includes('h-13')) return '50px';
+    if (className.includes('h-14')) return '54px';
+    if (className.includes('h-16')) return '64px';
+    if (size === 'sm') return variant === 'horizontal' ? '28px' : '44px';
+    if (size === 'md') return variant === 'horizontal' ? '38px' : '48px';
+    if (size === 'lg') return variant === 'horizontal' ? '52px' : '80px';
+    if (size === 'xl') return variant === 'horizontal' ? '72px' : '112px';
+    return variant === 'horizontal' ? '36px' : '48px';
+  };
+
+  const inlineHeight = resolveInlineHeight();
+
   if (variant === 'sello' || variant === 'sello-integral') {
     return (
       <img
         src="/brand/ARANPRO_sello_circular_integral_transparente.png"
         alt="Sello Oficial ARANPRO Gestión Integral"
-        className={`object-contain inline-block select-none shrink-0 ${sizeClasses.sello[size] || 'h-14 w-14'} ${className}`}
+        className={`object-contain inline-block select-none shrink-0 ${sizeClasses.sello[size] || 'h-12 w-12'} ${className}`}
+        style={{ height: inlineHeight, width: inlineHeight, maxHeight: inlineHeight, maxWidth: inlineHeight, objectFit: 'contain', ...style }}
         loading="eager"
       />
     );
@@ -205,7 +237,8 @@ export const AranproLogo = ({
       <img
         src="/brand/ARANPRO_sello_circular_ap_transparente.png"
         alt="Sello Oficial ARANPRO"
-        className={`object-contain inline-block select-none shrink-0 ${sizeClasses.sello[size] || 'h-14 w-14'} ${className}`}
+        className={`object-contain inline-block select-none shrink-0 ${sizeClasses.sello[size] || 'h-12 w-12'} ${className}`}
+        style={{ height: inlineHeight, width: inlineHeight, maxHeight: inlineHeight, maxWidth: inlineHeight, objectFit: 'contain', ...style }}
         loading="eager"
       />
     );
@@ -217,6 +250,7 @@ export const AranproLogo = ({
         src="/brand/ARANPRO_isotipo_trimmed.png"
         alt="Isotipo ARANPRO AP"
         className={`object-contain inline-block select-none transition-transform duration-300 hover:scale-105 ${sizeClasses.isotipo[size] || 'h-9 w-auto'} ${className}`}
+        style={{ height: inlineHeight, maxHeight: inlineHeight, width: 'auto', objectFit: 'contain', ...style }}
         loading="eager"
       />
     );
@@ -229,6 +263,7 @@ export const AranproLogo = ({
           src="/brand/ARANPRO_logo_para_fondo_oscuro_trimmed.png"
           alt="ARANPRO • Gestión Integral"
           className={`object-contain transition-transform duration-300 hover:scale-[1.02] ${sizeClasses.negative[size] || 'h-16 w-auto'}`}
+          style={{ height: inlineHeight, maxHeight: inlineHeight, width: 'auto', objectFit: 'contain', ...style }}
           loading="eager"
         />
       </div>
@@ -242,6 +277,7 @@ export const AranproLogo = ({
           src="/brand/ARANPRO_logo_horizontal_transparente_trimmed.png"
           alt="ARANPRO • Gestión Integral"
           className={`object-contain transition-transform duration-300 hover:scale-[1.01] ${sizeClasses.horizontal[size] || 'h-9 sm:h-10'}`}
+          style={{ height: inlineHeight, maxHeight: inlineHeight, width: 'auto', objectFit: 'contain', ...style }}
           loading="eager"
         />
       </div>
@@ -249,13 +285,15 @@ export const AranproLogo = ({
   }
 
   // Logo Vertical Principal por defecto para todos los PDFs y membretes oficiales
-  const explicitImgSize = size ? (sizeClasses.principal[size] || 'h-14 w-auto') : (className || 'h-14 w-auto');
+  const sanitizedClass = className ? className.replace(/\bh-13\b/g, 'h-12') : '';
+  const explicitImgSize = size ? (sizeClasses.principal[size] || 'h-12 w-auto') : (sanitizedClass || 'h-12 w-auto');
   return (
     <div className="inline-flex flex-col items-center text-center select-none shrink-0">
       <img
         src="/brand/ARANPRO_logo_principal_transparente_trimmed.png"
         alt="ARANPRO • Gestión Integral"
         className={`object-contain transition-transform duration-300 ${explicitImgSize}`}
+        style={{ height: inlineHeight, maxHeight: inlineHeight, width: 'auto', objectFit: 'contain', ...style }}
         loading="eager"
       />
     </div>

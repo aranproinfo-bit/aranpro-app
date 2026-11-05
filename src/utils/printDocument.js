@@ -209,6 +209,21 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             table { width: 100%; border-collapse: collapse; }
             tr { page-break-inside: avoid !important; break-inside: avoid !important; }
             img { max-width: 100%; height: auto; }
+            img[src*="ARANPRO_logo_principal"],
+            img[src*="ARANPRO_logo_horizontal"],
+            img[src*="ARANPRO_isotipo"] {
+              height: 46px !important;
+              max-height: 50px !important;
+              width: auto !important;
+              object-fit: contain !important;
+            }
+            img[src*="ARANPRO_sello_circular"]:not(.aranpro-print-watermark) {
+              height: 48px !important;
+              width: 48px !important;
+              max-height: 54px !important;
+              max-width: 54px !important;
+              object-fit: contain !important;
+            }
             .page-break-after, .dossier-page-break { page-break-after: always !important; break-after: page !important; }
             .page-break-before { page-break-before: always !important; break-before: page !important; }
             .page-break-inside-avoid, .avoid-break, .break-inside-avoid { page-break-inside: avoid !important; break-inside: avoid !important; }
@@ -406,6 +421,21 @@ export const downloadHtmlDocument = (elementOrId, fileName = 'documento.html') =
   <style>
     body { background: #ffffff; padding: 24px; font-family: system-ui, sans-serif; }
     .no-print { display: none !important; }
+    img[src*="ARANPRO_logo_principal"],
+    img[src*="ARANPRO_logo_horizontal"],
+    img[src*="ARANPRO_isotipo"] {
+      height: 46px !important;
+      max-height: 50px !important;
+      width: auto !important;
+      object-fit: contain !important;
+    }
+    img[src*="ARANPRO_sello_circular"]:not(.aranpro-print-watermark) {
+      height: 48px !important;
+      width: 48px !important;
+      max-height: 54px !important;
+      max-width: 54px !important;
+      object-fit: contain !important;
+    }
     ${visualStyleCss}
   </style>
 </head>

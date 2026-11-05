@@ -215,4 +215,23 @@
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+
+  /* Blindaje de dimensiones de logos y sellos en documentos PDF / Impresión */
+  .dossier-page img[src*="ARANPRO_logo_principal"],
+  .print-area img[src*="ARANPRO_logo_principal"],
+  [id*="printable"] img[src*="ARANPRO_logo_principal"] {
+    height: 46px !important;
+    max-height: 50px !important;
+    width: auto !important;
+    object-fit: contain !important;
+  }
+  .dossier-page img[src*="ARANPRO_sello_circular"]:not(.aranpro-print-watermark),
+  .print-area img[src*="ARANPRO_sello_circular"]:not(.aranpro-print-watermark),
+  [id*="printable"] img[src*="ARANPRO_sello_circular"]:not(.aranpro-print-watermark) {
+    height: 48px !important;
+    width: 48px !important;
+    max-height: 54px !important;
+    max-width: 54px !important;
+    object-fit: contain !important;
+  }
 }

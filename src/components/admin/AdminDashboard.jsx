@@ -16334,7 +16334,7 @@ _Administración ARANPRO_`;
 
             <div className="flex items-start justify-between pb-4 border-b-2 border-[#0F3D2E] gap-4">
               <div className="flex items-center space-x-3.5">
-                <AranproLogo variant="principal" className="h-13 w-auto" />
+                <AranproLogo variant="principal" className="h-12 w-auto" />
                 <div className="border-l border-slate-300 pl-3.5">
                   <span className="text-[11px] font-black uppercase tracking-widest text-[#0F3D2E] block">
                     {companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL • RENDICIÓN DOCUMENTADA LEY N° 21.442

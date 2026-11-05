@@ -1029,7 +1029,7 @@ export const CompanySettingsAndBackupModule = ({
     printDocumentDirectly('printable-cold-value-letter', filename, {
       pageSize: 'letter portrait',
       fitPage: true,
-      margin: '6mm 8mm 6mm 8mm'
+      margin: '5mm 7mm 5mm 7mm'
     });
   };
 
@@ -4441,7 +4441,7 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
                 <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo variant="principal" className="h-13 w-auto" style={{ height: '52px' }} />
+                    <AranproLogo variant="principal" className="h-12 w-auto" />
                     <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                       <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
                         {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
@@ -4727,7 +4727,7 @@ export const CompanySettingsAndBackupModule = ({
                     {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
                     <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3">
                       <div className="flex items-center space-x-3.5">
-                        <AranproLogo variant="principal" className="h-13 w-auto" />
+                        <AranproLogo variant="principal" className="h-12 w-auto" />
                         <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                           <div className="text-sm font-black tracking-tight text-[#0F3D2E] uppercase">
                             {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
@@ -5705,7 +5705,7 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Membrete Maestro del Brochure ARANPRO */}
                 <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo variant="principal" className="h-13 w-auto" />
+                    <AranproLogo variant="principal" className="h-12 w-auto" />
                     <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                       <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                         SUITE DIGITAL PARA CONDOMINIOS • LEY N° 21.442
@@ -5862,7 +5862,7 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Membrete Maestro Técnico ARANPRO */}
                 <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo variant="principal" className="h-13 w-auto" />
+                    <AranproLogo variant="principal" className="h-12 w-auto" />
                     <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                       <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                         DEPARTAMENTO TÉCNICO & AUDITORÍA CONSTRUCTIVA
@@ -6017,7 +6017,7 @@ export const CompanySettingsAndBackupModule = ({
               >
                 <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo variant="principal" className="h-13 w-auto" />
+                    <AranproLogo variant="principal" className="h-12 w-auto" />
                     <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                       <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                         ANÁLISIS COMPARATIVO DE VALOR AGREGADO

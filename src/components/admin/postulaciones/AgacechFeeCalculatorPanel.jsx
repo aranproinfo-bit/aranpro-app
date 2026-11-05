@@ -758,7 +758,7 @@ export const AgacechFeeCalculatorPanel = ({
         >
           <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
             <div className="flex items-center space-x-3.5">
-              <AranproLogo variant="principal" className="h-13 w-auto" />
+              <AranproLogo variant="principal" className="h-12 w-auto" />
               <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
                 <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                   ESTUDIO TÉCNICO DE HONORARIOS • MODELO AGACECH

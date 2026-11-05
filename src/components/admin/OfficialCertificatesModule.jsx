@@ -1280,7 +1280,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                 {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 con Logo Vertical Principal) */}
                 <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-4">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo variant="principal" className="h-13 w-auto" />
+                    <AranproLogo variant="principal" className="h-12 w-auto" />
                     <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
                       <div className="text-sm font-black tracking-tight text-[#0F3D2E] uppercase">
                         {companySettings?.companyName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
