@@ -481,29 +481,40 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
     </div>
   );
 
-  // Helper para firma del administrador con firma manuscrita digital subida + timbre oficial ARANPRO
+  // Helper para firma del administrador con firma manuscrita digital subida + timbre oficial ARANPRO al lado
   const renderAdminSignatureBlock = (sublabel = 'POR LA ADMINISTRACIÓN DELEGADA (LEY N° 21.442)', compact = false) => {
     const adminSignature = companySettings?.signatureDataUrl || companySettings?.signature || companySettings?.digitalSignature || '';
     const adminScale = Number(companySettings?.signatureScale) || 1.35;
     return (
-      <div className="space-y-1 relative text-center min-w-[240px]">
-        <div className={`${compact ? 'h-11' : 'h-16'} flex items-end justify-center mb-1 relative overflow-visible`}>
-          {adminSignature ? (
-            <img
-              src={adminSignature}
-              alt="Firma Administrador"
-              className={`${compact ? 'h-10 max-h-12' : 'h-14 max-h-16'} w-auto max-w-[220px] object-contain mx-auto`}
-              style={{ transform: `scale(${adminScale})`, transformOrigin: 'bottom center' }}
+      <div className="space-y-1 relative text-center min-w-[260px]">
+        <div className={`${compact ? 'h-12' : 'h-16'} flex items-end justify-center gap-3 md:gap-4 mb-1`}>
+          {/* Sello Oficial Institucional al lado izquierdo */}
+          <div className="shrink-0 flex items-center mb-0.5">
+            <AranproOfficialSeal
+              size="sm"
+              showText={true}
+              companyRut={companySettings?.rut || '76.999.888-8'}
+              rnacNumber={companySettings?.rnacNumber || '48.912'}
             />
-          ) : (
-            <div className={`${compact ? 'h-9' : 'h-12'} flex items-center justify-center`}>
-              <span className="text-[11px] text-slate-400 italic">Firma Administrador Registrada</span>
-            </div>
-          )}
-          <div className="absolute right-0 bottom-0 pointer-events-none">
-            <AranproOfficialSeal size={compact ? 44 : 55} showVerificationText={false} />
+          </div>
+
+          {/* Firma Manuscrita Digital al lado derecho */}
+          <div className="shrink-0 flex items-end justify-center">
+            {adminSignature ? (
+              <img
+                src={adminSignature}
+                alt="Firma Administrador"
+                className={`${compact ? 'h-10 max-h-12' : 'h-13 max-h-15'} w-auto max-w-[150px] object-contain`}
+                style={{ transform: `scale(${adminScale})`, transformOrigin: 'bottom center' }}
+              />
+            ) : (
+              <div className={`${compact ? 'h-9' : 'h-12'} flex items-center justify-center`}>
+                <span className="text-[11px] text-slate-400 italic">Firma Administrador Registrada</span>
+              </div>
+            )}
           </div>
         </div>
+
         <div className="border-t-[1.5px] border-slate-800 pt-1.5">
           <strong className="block text-slate-900 font-black text-xs leading-tight">
             {companySettings?.adminName || 'John Andrés Arancibia Maureira'}
