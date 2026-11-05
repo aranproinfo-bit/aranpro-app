@@ -5,13 +5,14 @@ import { printDocumentDirectly } from '../../utils/printDocument';
 import { AranproLogo } from '../common/MauranLogo';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { UnitAccountStatementView } from '../admin/UnitAccountStatementView';
+import { LegalAspectsModal } from '../common/LegalAspectsModal';
 import { PwaInstallButton } from '../layout/PwaPrompt';
 import { 
   Building2, Home, User, CheckCircle2, AlertCircle, Eye, 
   Download, ArrowUpRight, DollarSign, FileText, Send, 
   CreditCard, Copy, Check, ShieldCheck, ChevronDown, ChevronUp, LogOut,
   Megaphone, FolderOpen, KeyRound, Printer, Menu, X, Globe, Shield, Plus,
-  FileCheck, HelpCircle, MessageCircle, Clock, CheckCheck, Sparkles
+  FileCheck, HelpCircle, MessageCircle, Clock, CheckCheck, Sparkles, Scale, Lock
 } from 'lucide-react';
 
 export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) => {
@@ -31,6 +32,13 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
   const [copiedBank, setCopiedBank] = useState(false);
   const [copiedItem, setCopiedItem] = useState(''); // 'account' | 'rut' | 'email' | 'amount'
   const [showHowIsCalculated, setShowHowIsCalculated] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalInitialTab, setLegalInitialTab] = useState('terminos');
+
+  const openLegalModal = (tab = 'terminos') => {
+    setLegalInitialTab(tab);
+    setLegalModalOpen(true);
+  };
 
   // Formulario para informar pago
   const [paymentForm, setPaymentForm] = useState({
@@ -1581,6 +1589,36 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
           </div>
         )}
 
+          {/* PIE DE PÁGINA INSTITUCIONAL & AVISO LEGAL DEL PORTAL DE RESIDENTES */}
+          <div className="pt-8 pb-16 lg:pb-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
+              <span>© {new Date().getFullYear()} ARANPRO • Portal Copropietarios. Todos los derechos reservados.</span>
+              <span className="hidden sm:inline text-slate-300">•</span>
+              <button
+                type="button"
+                onClick={() => openLegalModal('terminos')}
+                className="text-[#0F3D2E] hover:underline font-bold cursor-pointer inline-flex items-center gap-1"
+              >
+                <Scale className="w-3.5 h-3.5 text-[#D4B895]" />
+                <span>Aviso Legal & Términos</span>
+              </button>
+              <span className="hidden sm:inline text-slate-300">•</span>
+              <button
+                type="button"
+                onClick={() => openLegalModal('privacidad')}
+                className="hover:text-slate-800 transition-colors cursor-pointer inline-flex items-center gap-1"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Privacidad (Ley 19.628)</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-[11px] text-slate-400">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Conforme a Ley 21.442 • Minvu RNAC N° 48.912</span>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -2065,6 +2103,13 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
         isOpen={showExpenseReportModal}
         onClose={() => setShowExpenseReportModal(false)}
         community={community}
+      />
+
+      {/* MODAL LEGAL Y PRIVACIDAD INTERACTIVO */}
+      <LegalAspectsModal
+        isOpen={legalModalOpen}
+        onClose={() => setLegalModalOpen(false)}
+        initialTab={legalInitialTab}
       />
 
       </div>
