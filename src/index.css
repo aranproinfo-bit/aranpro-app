@@ -49,6 +49,90 @@
   background: #0F3D2E;
 }
 
+/* ==========================================================================
+   ESTÁNDAR VISUAL DE HOJA EDITORIAL ARANPRO (Alternativa 4 por defecto)
+   Elimina el marco cuadrado redondeado y aplica el Doble Filete Lateral
+   (Verde Bosque #0F3D2E + Champán Dorado #D4B895) tanto en vista previa como en PDF
+   ========================================================================== */
+.dossier-page,
+#printable-commercial-proposal,
+#printable-cold-value-letter,
+#printable-agacech-fee-sheet,
+#printable-app-brochure,
+#printable-technical-inspection,
+#printable-comparison-matrix,
+#printable-official-certificate,
+#unit-bill-printable-doc,
+#resident-bill-printable-doc,
+#payment-receipt-printable-doc,
+#resident-payment-receipt-printable-doc,
+#committee-report-printable-doc,
+#expense-rendition-printable-doc,
+#expense-voucher-printable-doc,
+#collection-letter-printable-doc,
+#unit-bitacora-printable-doc,
+#printable-unit-account-statement,
+#assembly-budget-printable-doc,
+#resident-brochure-printable-doc,
+#official-registry-printable-doc,
+#assembly-citation-printable-doc,
+#assembly-minutes-draft-doc,
+#voting-brochure-printable-doc,
+#assembly-minute-printable-doc,
+#proxy-legal-template-doc,
+#complaints-official-book-printable,
+#single-warning-letter-printable,
+#maintenance-official-log-printable {
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-radius: 2px !important;
+  border-left: 3px solid #0F3D2E !important;
+  background-color: #ffffff !important;
+  background-image: linear-gradient(to bottom, #D4B895, #D4B895) !important;
+  background-size: 1.5px calc(100% - 24px) !important;
+  background-position: 5px 12px !important;
+  background-repeat: no-repeat !important;
+  box-shadow: 0 18px 40px -15px rgba(15, 23, 42, 0.16), 0 0 1px 1px rgba(15, 23, 42, 0.08) !important;
+  position: relative;
+}
+
+/* Alternativa 1: Línea Verde Simple Izquierda */
+[data-pdf-style="alt1"].dossier-page,
+[data-pdf-style="alt1"] .dossier-page,
+[data-pdf-style="alt1"]#printable-commercial-proposal,
+[data-pdf-style="alt1"]#printable-cold-value-letter,
+[data-pdf-style="alt1"]#printable-agacech-fee-sheet,
+[data-pdf-style="alt1"]#printable-app-brochure,
+[data-pdf-style="alt1"]#printable-technical-inspection,
+[data-pdf-style="alt1"]#printable-comparison-matrix,
+[data-pdf-style="alt1"]#printable-official-certificate,
+[data-pdf-style="alt1"]#unit-bill-printable-doc,
+[data-pdf-style="alt1"]#resident-bill-printable-doc,
+[data-pdf-style="alt1"]#payment-receipt-printable-doc,
+[data-pdf-style="alt1"]#committee-report-printable-doc {
+  border-left: 3.5px solid #0F3D2E !important;
+  background-image: none !important;
+}
+
+/* Alternativa 2: Hoja Editorial Abierta Sin Líneas Laterales */
+[data-pdf-style="alt2"].dossier-page,
+[data-pdf-style="alt2"] .dossier-page,
+[data-pdf-style="alt2"]#printable-commercial-proposal,
+[data-pdf-style="alt2"]#printable-cold-value-letter,
+[data-pdf-style="alt2"]#printable-agacech-fee-sheet,
+[data-pdf-style="alt2"]#printable-app-brochure,
+[data-pdf-style="alt2"]#printable-technical-inspection,
+[data-pdf-style="alt2"]#printable-comparison-matrix,
+[data-pdf-style="alt2"]#printable-official-certificate,
+[data-pdf-style="alt2"]#unit-bill-printable-doc,
+[data-pdf-style="alt2"]#resident-bill-printable-doc,
+[data-pdf-style="alt2"]#payment-receipt-printable-doc,
+[data-pdf-style="alt2"]#committee-report-printable-doc {
+  border-left: none !important;
+  background-image: none !important;
+}
+
 /* Reglas de Impresión y Exportación a PDF (Ley 21.442, Cartas, Colillas y Bitácoras) */
 @media print {
   @page {

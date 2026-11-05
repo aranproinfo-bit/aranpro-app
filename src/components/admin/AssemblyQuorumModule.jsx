@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { formatCLP, formatDate, formatRut } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo } from '../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal } from '../common/MauranLogo';
 import { WrittenConsultationsSubTab } from './assembly/WrittenConsultationsSubTab';
 import { AssemblyMinutesSubTab } from './assembly/AssemblyMinutesSubTab';
 import { RegisteredProxiesSubTab } from './assembly/RegisteredProxiesSubTab';
@@ -2026,13 +2026,13 @@ RUT: ______________________                 RUT: ______________________`;
                     {/* Membrete Oficial Maestro ARANPRO */}
                     <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-4 font-sans">
                       <div className="flex items-center space-x-3.5">
-                        <AranproLogo className="h-10 w-auto" />
-                        <div className="space-y-0.5">
+                        <AranproLogo variant="principal" className="h-12 w-auto" />
+                        <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
                           <div className="text-xs font-black text-[#0F3D2E] uppercase">
                             ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA
                           </div>
                           <div className="text-[9px] text-slate-500 font-mono">
-                            RUT: 76.999.888-1 • RNAC MINVU N° 48.912 • Fono: +56 9 5811 8504
+                            RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'} • Fono: {companySettings?.phone || '+56 9 5811 8504'}
                           </div>
                         </div>
                       </div>
@@ -2102,19 +2102,24 @@ RUT: ______________________                 RUT: ______________________`;
                         </div>
                       </div>
                       <div>
-                        <div className="h-16 flex items-center justify-center">
+                        <div className="h-16 flex items-center justify-center gap-3">
+                          <AranproOfficialSeal size="sm" showText={false} />
                           {companySettings?.signatureDataUrl ? (
                             <img 
                               src={companySettings.signatureDataUrl} 
                               alt="Firma Administrador" 
-                              className="max-h-16 object-contain mx-auto" 
+                              className="max-h-16 object-contain mx-auto"
+                              style={{
+                                transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                                transformOrigin: 'bottom center'
+                              }}
                             />
                           ) : (
                             <span className="text-xs text-slate-400 italic">Firma del Administrador</span>
                           )}
                         </div>
-                        <div className="border-t border-slate-400 pt-1">
-                          <strong>{companySettings?.adminName || companySettings?.administratorName || 'Administrador de la Comunidad'}</strong><br />
+                        <div className="border-t-2 border-[#0F3D2E] pt-1">
+                          <strong>{companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}</strong><br />
                           <span className="text-[10px] text-slate-500">
                             ARANPRO • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
                           </span>

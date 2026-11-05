@@ -3,7 +3,7 @@ import { useCommunity } from '../../context/CommunityContext';
 import { formatDate, formatRut, formatCLP, validateRut } from '../../utils/formatters';
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
-import { AranproLogo } from '../common/MauranLogo';
+import { AranproLogo, AranproPdfStyleSelector, AranproOfficialSeal, useAranproPdfStyle } from '../common/MauranLogo';
 import { DocumentLibraryPanel } from './postulaciones/DocumentLibraryPanel';
 import { ReadinessPanel } from './postulaciones/ReadinessPanel';
 import { PipelinePanel } from './postulaciones/PipelinePanel';
@@ -337,6 +337,7 @@ export const CompanySettingsAndBackupModule = ({
   const [showPin, setShowPin] = useState(false);
 
   // Estados de Notificación / Modales
+  const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
   const [saveFeedback, setSaveFeedback] = useState(false);
   const [copiedLicitacionFeedback, setCopiedLicitacionFeedback] = useState(false);
   const [previewProposalModal, setPreviewProposalModal] = useState(false);
@@ -4177,34 +4178,36 @@ export const CompanySettingsAndBackupModule = ({
                   <span>En blanco</span>
                 </label>
               </div>
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
             </div>
 
             {/* CONTENEDOR DE LA CARTA IMPRIMIBLE TAMAÑO CARTA */}
             <div className="overflow-y-auto flex-1 pr-1">
               <div
                 id="printable-commercial-proposal"
-                className="bg-white p-8 md:p-12 border border-slate-300 rounded-2xl shadow-xs max-w-3xl mx-auto space-y-6 text-slate-900"
-                style={{ minHeight: '840px', fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                data-pdf-style={pdfStyle}
+                className="bg-white p-6 md:p-8 pl-8 md:pl-11 max-w-3xl mx-auto space-y-4 text-slate-900"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
-                {/* Membrete Corporativo Maestro ARANPRO */}
-                <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-5">
+                {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
+                <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo className="h-11 w-auto" />
-                    <div className="space-y-0.5">
+                    <AranproLogo variant="principal" className="h-14 w-auto" />
+                    <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                       <div className="text-sm font-black tracking-tight text-[#0F3D2E] uppercase">
                         {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
                       </div>
-                      <p className="text-[10px] text-slate-500 font-mono">
-                        RUT: {empresaForm.companyRut || '76.999.888-1'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
+                      <p className="text-[10px] text-slate-600 font-mono font-semibold">
+                        RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
                       </p>
                       <p className="text-[10px] text-slate-500">
-                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'La Serena, Chile'}
+                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'Santiago, Chile'}
                       </p>
                     </div>
                   </div>
 
                   <div className="text-right space-y-1">
-                    <span className="inline-block px-3 py-1 bg-[#0F3D2E]/10 text-[#0F3D2E] text-[10px] font-mono font-bold rounded-md border border-[#0F3D2E]/20">
+                    <span className="inline-block px-3 py-1 bg-[#F5F4EF] text-[#0F3D2E] text-[10px] font-mono font-bold rounded-md border border-[#D4B895]">
                       PROPUESTA LICITACIÓN {new Date().getFullYear()}
                     </span>
                     <p className="text-[11px] font-bold text-slate-800">
@@ -4220,9 +4223,9 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* Encabezado Formal Notarial */}
-                <div className="text-xs text-slate-700 space-y-1.5 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div className="text-xs text-slate-700 space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                   <p>
-                    <strong>A:</strong>{' '}
+                    <strong>Dirigido cordialmente a:</strong>{' '}
                     {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim() ? (
                       <span className="font-mono text-slate-400">__________________________________________________________________</span>
                     ) : (
@@ -4242,7 +4245,7 @@ export const CompanySettingsAndBackupModule = ({
                       </p>
                     )
                   )}
-                  <p><strong>De:</strong> {empresaForm.adminName} — {empresaForm.adminRole}</p>
+                  <p><strong>Presentado por:</strong> {empresaForm.adminName} — {empresaForm.adminRole}</p>
                   <p>
                     <strong>Fecha:</strong>{' '}
                     {proposalConfig.proposalDate
@@ -4254,15 +4257,15 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* Título de la Propuesta */}
-                <div className="text-center py-2">
-                  <h1 className="text-lg md:text-xl font-black text-[#0F3D2E] uppercase tracking-tight">
+                <div className="text-center py-1">
+                  <h1 className="text-base md:text-lg font-black text-[#0F3D2E] uppercase tracking-tight">
                     Propuesta de Administración & Preservación Patrimonial
                   </h1>
-                  <div className="w-20 h-1 bg-[#D4B895] mx-auto mt-2 rounded-full"></div>
+                  <div className="w-20 h-1 bg-[#D4B895] mx-auto mt-1 rounded-full"></div>
                 </div>
 
                 {/* Cuerpo de la Carta */}
-                <div className="text-justify text-xs md:text-sm text-slate-800 leading-relaxed space-y-3">
+                <div className="text-justify text-xs text-slate-800 leading-relaxed space-y-2.5">
                   <p>
                     {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim()
                       ? 'Estimados señores miembros del Comité de Administración y vecinos copropietarios:'
@@ -4284,11 +4287,11 @@ export const CompanySettingsAndBackupModule = ({
                   </p>
 
                   {/* Fortalezas y Diferenciadores Técnicos */}
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
-                    <p className="font-black text-[#0F3D2E] uppercase text-[11px]">
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5 text-xs">
+                    <p className="font-black text-[#0F3D2E] uppercase text-[10.5px]">
                       NUESTRAS 4 FORTALEZAS Y VENTAJAS COMPETITIVAS:
                     </p>
-                    <ul className="list-disc pl-5 space-y-1.5 text-slate-700">
+                    <ul className="list-disc pl-5 space-y-1 text-slate-700 text-[11px]">
                       <li>
                         <strong>Solvencia Técnica en Construcción:</strong> Formación como Técnico en Construcción y estudios avanzados en Construcción Civil, permitiéndonos realizar diagnósticos certeros en bombas, filtraciones, tableros eléctricos, sellos y cubiertas sin depender a ciegas de presupuestos inflados de contratistas externos.
                       </li>
@@ -4310,36 +4313,40 @@ export const CompanySettingsAndBackupModule = ({
                   </p>
                 </div>
 
-                {/* Sección de Firma Manuscrita Estampada */}
-                <div className="pt-6 border-t border-slate-200 text-center space-y-1.5 max-w-sm mx-auto">
-                  <div className="h-24 flex items-end justify-center pb-1 overflow-visible">
-                    {signatureImage ? (
-                      <img
-                        src={signatureImage}
-                        alt="Firma Administrador"
-                        className="h-20 max-h-24 w-auto max-w-[280px] object-contain mx-auto"
-                        style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                      />
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
-                    )}
-                  </div>
-                  <div className="border-t-2 border-slate-400 pt-2">
-                    <p className="font-bold text-xs text-slate-900">{empresaForm.adminName}</p>
-                    <p className="text-[10px] text-slate-500 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
-                    <p className="text-[10px] text-[#0F3D2E] font-semibold">
-                      {empresaForm.adminRole}
-                    </p>
-                    <p className="text-[9px] text-slate-500">
-                      Técnico en Construcción • Construcción Civil
-                    </p>
+                {/* Sección de Sello Circular Dorado + Firma Manuscrita Estampada */}
+                <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-end justify-between gap-4">
+                  <AranproOfficialSeal
+                    size="md"
+                    companyRut={empresaForm.companyRut || '76.999.888-8'}
+                    rnacNumber={empresaForm.rnacNumber || '48.912'}
+                  />
+                  <div className="text-center space-y-1 min-w-[260px]">
+                    <div className="h-16 flex items-end justify-center pb-1 overflow-visible">
+                      {signatureImage ? (
+                        <img
+                          src={signatureImage}
+                          alt="Firma Administrador"
+                          className="h-16 max-h-20 w-auto max-w-[260px] object-contain mx-auto"
+                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                        />
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
+                      )}
+                    </div>
+                    <div className="border-t-[1.5px] border-slate-800 pt-1.5">
+                      <p className="font-black text-xs text-slate-900 leading-tight">{empresaForm.adminName}</p>
+                      <p className="text-[9.5px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
+                      <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
+                        {empresaForm.adminRole} • Técnico en Construcción & Construcción Civil
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Pie de Página */}
-                <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
                   <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                  <div>Contacto Directo: {empresaForm.phone}</div>
+                  <div>Contacto Directo: {empresaForm.phone} • Documento Oficial Formato Carta</div>
                 </div>
               </div>
             </div>
@@ -4384,83 +4391,85 @@ export const CompanySettingsAndBackupModule = ({
             </div>
 
             {/* BARRA RÁPIDA: MODO ENTREGA MASIVA EN CONSERJERÍA O CON NOMBRE DEL EDIFICIO */}
-            <div className="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 flex flex-wrap items-center justify-between gap-3 text-xs mb-4">
+            <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 flex flex-wrap items-center justify-between gap-2.5 text-xs mb-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold text-[#0F3D2E]">Modalidad de Entrega:</span>
                 <button
                   type="button"
                   onClick={() => setProposalConfig({ ...proposalConfig, targetCondo: '', leaveRecipientBlank: false, targetRecipient: 'Señores Miembros del Comité de Administración' })}
-                  className={`px-3 py-1 rounded-lg font-bold text-xs border transition-all ${
+                  className={`px-2.5 py-1 rounded-lg font-bold text-xs border transition-all ${
                     !proposalConfig.targetCondo?.trim() && !proposalConfig.leaveRecipientBlank
                       ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
                       : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                   }`}
                 >
-                  🏢 Genérica para Conserjería (Impresión en Lote)
+                  🏢 Genérica Conserjería
                 </button>
                 <button
                   type="button"
                   onClick={() => setProposalConfig({ ...proposalConfig, leaveRecipientBlank: true, targetCondo: '' })}
-                  className={`px-3 py-1 rounded-lg font-bold text-xs border transition-all ${
+                  className={`px-2.5 py-1 rounded-lg font-bold text-xs border transition-all ${
                     proposalConfig.leaveRecipientBlank
                       ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
                       : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                   }`}
                 >
-                  ✍️ Con Líneas para Escribir a Mano en Terreno
+                  ✍️ Líneas para Escribir a Mano
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-700">O Nombre del Edificio:</span>
+                <span className="font-bold text-slate-700">Edificio:</span>
                 <input
                   type="text"
                   placeholder="Opcional (ej: Edificio Costa Mar)"
                   value={proposalConfig.targetCondo}
                   onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value, leaveRecipientBlank: false })}
-                  className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs w-48 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+                  className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs w-44 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
                 />
               </div>
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
             </div>
 
-            {/* CONTENEDOR DE LA CARTA DE VALOR IMPRIMIBLE TAMAÑO CARTA */}
+            {/* CONTENEDOR DE LA CARTA DE VALOR IMPRIMIBLE TAMAÑO CARTA (GARANTIZADO EN 1 SOLA PÁGINA) */}
             <div className="overflow-y-auto flex-1 pr-1">
               <div
                 id="printable-cold-value-letter"
-                className="bg-white p-7 md:p-10 border border-slate-300 rounded-2xl shadow-xs max-w-3xl mx-auto space-y-4 text-slate-900"
+                data-pdf-style={pdfStyle}
+                className="bg-white p-5 md:p-7 pl-8 md:pl-10 max-w-3xl mx-auto space-y-2.5 text-slate-900"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
-                {/* Membrete Corporativo Maestro ARANPRO */}
-                <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-3.5">
+                {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
+                <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo className="h-11 w-auto" />
-                    <div className="space-y-0.5">
-                      <div className="text-sm font-black tracking-tight text-[#0F3D2E] uppercase">
+                    <AranproLogo variant="principal" className="h-13 w-auto" style={{ height: '52px' }} />
+                    <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
+                      <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
                         {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                       </div>
-                      <p className="text-[10px] text-slate-500 font-mono">
+                      <p className="text-[10px] text-slate-600 font-mono font-semibold">
                         RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
                       </p>
-                      <p className="text-[10px] text-slate-500">
-                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'La Serena, Chile'}
+                      <p className="text-[9.5px] text-slate-500">
+                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'Santiago, Chile'}
                       </p>
                     </div>
                   </div>
 
                   <div className="text-right space-y-0.5 shrink-0">
-                    <span className="inline-block px-3 py-1 bg-[#0F3D2E] text-[#D4B895] text-[10px] font-mono font-bold rounded-md whitespace-nowrap">
+                    <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9.5px] font-mono font-bold rounded whitespace-nowrap">
                       PRESENTACIÓN INSTITUCIONAL {new Date().getFullYear()}
                     </span>
-                    <p className="text-[11px] font-bold text-slate-800">
+                    <p className="text-[10.5px] font-bold text-slate-800">
                       Carta de Presentación & Invitación Técnica
                     </p>
-                    <p className="text-[10px] text-slate-500 font-semibold">
+                    <p className="text-[9.5px] text-slate-500 font-semibold">
                       Especial para el Comité de Administración
                     </p>
                   </div>
                 </div>
 
                 {/* Encabezado Protocolar */}
-                <div className="text-xs text-slate-700 space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div className="text-[11px] text-slate-700 space-y-0.5 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200">
                   <p>
                     <strong>Dirigido cordialmente a:</strong>{' '}
                     {proposalConfig.leaveRecipientBlank ? (
@@ -4494,68 +4503,63 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* Título de Alto Impacto */}
-                <div className="text-center py-1">
-                  <h1 className="text-base md:text-lg font-black text-[#0F3D2E] uppercase tracking-tight">
+                <div className="text-center py-0.5">
+                  <h1 className="text-sm md:text-base font-black text-[#0F3D2E] uppercase tracking-tight">
                     Administración con Criterio Constructivo & Transparencia Digital 24/7
                   </h1>
-                  <div className="w-20 h-1 bg-[#D4B895] mx-auto mt-1 rounded-full"></div>
+                  <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
                 </div>
 
-                {/* Cuerpo Consultivo (Sin asumir si están o no cambiando de administrador) */}
-                <div className="text-justify text-xs text-slate-800 leading-relaxed space-y-2.5">
+                {/* Cuerpo Consultivo (Compactado para calzar en 1 página exacta sin cortes) */}
+                <div className="text-justify text-[11px] text-slate-800 leading-snug space-y-2">
                   <p>
-                    <strong>Estimados integrantes del Comité de Administración:</strong>
-                  </p>
-                  <p>
-                    Junto con saludarles muy cordialmente y reconociendo la importante labor que desempeñan en representación de sus vecinos,
-                    hacemos entrega de nuestras credenciales profesionales a través de la presente carpeta ejecutiva. Sabemos que la tranquilidad financiera,
-                    el funcionamiento continuo de los equipos críticos y la plusvalía de{' '}
+                    <strong>Estimados integrantes del Comité de Administración:</strong> Junto con saludarles muy cordialmente y reconociendo la importante labor que desempeñan en representación de sus vecinos, hacemos entrega de nuestras credenciales profesionales. Sabemos que la tranquilidad financiera, el funcionamiento continuo de los equipos críticos y la plusvalía de{' '}
                     {proposalConfig.targetCondo?.trim() ? <strong>{proposalConfig.targetCondo}</strong> : <strong>su condominio</strong>} dependen directamente de contar con una administración rigurosa, cercana y técnicamente competente.
                   </p>
                   <p>
                     Ya sea que su comunidad se encuentre evaluando alternativas de gestión en el corto plazo o desee mantener en su registro a un
-                    <strong> Administrador Oficial acreditado ante el MINVU (RNAC N° {empresaForm.rnacNumber})</strong> para futuras decisiones, ponemos a disposición del Comité los <strong>3 pilares diferenciadores</strong> que distinguen a <strong>ARANPRO</strong> en la región:
+                    <strong> Administrador Oficial acreditado ante el MINVU (RNAC N° {empresaForm.rnacNumber})</strong> para futuras decisiones, ponemos a disposición del Comité los <strong>3 pilares diferenciadores</strong> que distinguen a <strong>ARANPRO</strong>:
                   </p>
 
                   {/* 3 Pilares de Valor Agregado */}
-                  <div className="grid grid-cols-1 gap-2 pt-0.5">
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-6 h-6 rounded-lg bg-[#0F3D2E] text-[#D4B895] font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="grid grid-cols-1 gap-1.5 pt-0.5">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
                         1
                       </span>
                       <div>
-                        <strong className="text-[#0F3D2E] block text-xs">
+                        <strong className="text-[#0F3D2E] block text-[11px]">
                           Respaldo Real en Construcción (Freno a Presupuestos Inflados de Terceros)
                         </strong>
-                        <p className="text-[11px] text-slate-600 leading-snug mt-0.5">
-                          A diferencia de las administraciones meramente administrativas, nuestro titular cuenta con formación de <strong>Técnico en Construcción y estudios en Construcción Civil</strong>. Inspeccionamos en terreno salas de bombas, calderas, ascensores, cubiertas y filtraciones, exigiendo cubicaciones reales y evitando sobrecostos de contratistas externos.
+                        <p className="text-[10.5px] text-slate-600 leading-snug mt-0.5">
+                          Nuestro titular cuenta con formación de <strong>Técnico en Construcción y estudios en Construcción Civil</strong>. Inspeccionamos en terreno salas de bombas, calderas, ascensores, cubiertas y filtraciones, exigiendo cubicaciones reales y evitando sobrecostos de contratistas externos.
                         </p>
                       </div>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-6 h-6 rounded-lg bg-[#0F3D2E] text-[#D4B895] font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
                         2
                       </span>
                       <div>
-                        <strong className="text-[#0F3D2E] block text-xs">
+                        <strong className="text-[#0F3D2E] block text-[11px]">
                           Transparencia Contable Radical: Portal Web & App Móvil Propia 24/7
                         </strong>
-                        <p className="text-[11px] text-slate-600 leading-snug mt-0.5">
-                          Eliminamos las planillas confusas. En nuestra plataforma digital cada copropietario y miembro del Comité puede auditar desde su celular, con un solo clic, las <strong>facturas originales, boletas y comprobantes de transferencia bancaria</strong> de cada egreso mensual.
+                        <p className="text-[10.5px] text-slate-600 leading-snug mt-0.5">
+                          En nuestra plataforma digital cada copropietario y miembro del Comité puede auditar desde su celular, con un solo clic, las <strong>facturas originales, boletas y comprobantes de transferencia bancaria</strong> de cada egreso mensual.
                         </p>
                       </div>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-6 h-6 rounded-lg bg-[#0F3D2E] text-[#D4B895] font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
                         3
                       </span>
                       <div>
-                        <strong className="text-[#0F3D2E] block text-xs">
+                        <strong className="text-[#0F3D2E] block text-[11px]">
                           Blindaje Legal para el Comité bajo la Nueva Ley N° 21.442
                         </strong>
-                        <p className="text-[11px] text-slate-600 leading-snug mt-0.5">
+                        <p className="text-[10.5px] text-slate-600 leading-snug mt-0.5">
                           Cumplimiento estricto del Registro Nacional de Administradores, asambleas híbridas con votación electrónica certificada (Art. 15°), Libro Oficial de Reclamos foliado (Art. 20°), convenios de pago y control riguroso de morosidad (Art. 36°).
                         </p>
                       </div>
@@ -4564,76 +4568,73 @@ export const CompanySettingsAndBackupModule = ({
 
                   {/* GANCHO DE ENTRADA / INVITACIÓN GRATUITA AL COMITÉ (ALTO CONTRASTE EN PANTALLA Y PAPEL) */}
                   <div
-                    className="p-3.5 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-1"
+                    className="p-2.5 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-0.5"
                     style={{ backgroundColor: '#f0fdf4', borderColor: '#0F3D2E' }}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-mono font-black uppercase tracking-wider text-[#0F3D2E]">
+                      <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-[#0F3D2E]">
                         ★ BENEFICIO SIN COSTO NI COMPROMISO PARA SU COMITÉ DE ADMINISTRACIÓN
                       </span>
                       <span
-                        className="text-[9.5px] font-bold px-2.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
+                        className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
                         style={{ backgroundColor: '#0F3D2E', color: '#D4B895' }}
                       >
                         100% Gratuito
                       </span>
                     </div>
-                    <p className="text-xs font-black text-[#0F3D2E] leading-snug">
+                    <p className="text-[11px] font-black text-[#0F3D2E] leading-snug">
                       Invitación a una Visita de Diagnóstico Técnico-Constructivo Preventivo en Terreno
                     </p>
-                    <p className="text-[11px] text-slate-800 font-medium leading-relaxed">
+                    <p className="text-[10.5px] text-slate-800 font-medium leading-snug">
                       Ponemos a disposición del Comité una visita técnica sin costo ni compromiso para realizar una inspección visual de sus instalaciones críticas (sala de bombas, tableros, cubiertas o puntos sensibles) y entregarles una segunda opinión técnica profesional o presentarles formalmente una propuesta a la medida de su comunidad.
                     </p>
                   </div>
                 </div>
 
-                {/* Firma Manuscrita Ejecutiva y Contacto Directo */}
-                <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
-                  <div className="text-xs space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 w-full sm:w-auto">
-                    <span className="text-[10px] font-black uppercase text-[#0F3D2E] block">
-                      Canales Directos para el Comité:
-                    </span>
-                    <p className="text-[11px] text-slate-800">
-                      <strong>WhatsApp / Fono Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone}</span>
-                    </p>
-                    <p className="text-[11px] text-slate-800">
-                      <strong>Correo Oficial:</strong> <span className="font-mono">{empresaForm.email}</span>
-                    </p>
-                    <p className="text-[11px] text-slate-800">
-                      <strong>Portal & Demo en Vivo:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website}</span>
-                    </p>
+                {/* Sello Circular Dorado + Firma Manuscrita Ejecutiva y Contacto Directo */}
+                <div className="pt-2.5 flex flex-col sm:flex-row items-end justify-between gap-3 border-t border-slate-200">
+                  <div className="flex items-center gap-3 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 w-full sm:w-auto">
+                    <AranproLogo variant="sello" size="sm" />
+                    <div className="text-xs space-y-0.5">
+                      <span className="text-[9.5px] font-black uppercase text-[#0F3D2E] block">
+                        Canales Directos para el Comité:
+                      </span>
+                      <p className="text-[10.5px] text-slate-800">
+                        <strong>WhatsApp / Fono:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone}</span>
+                      </p>
+                      <p className="text-[10.5px] text-slate-800">
+                        <strong>Correo:</strong> <span className="font-mono">{empresaForm.email}</span> • <strong>Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website}</span>
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="text-center space-y-1 min-w-[260px] mx-auto sm:mx-0 pt-2">
-                    <div className="h-24 flex items-end justify-center pb-1 overflow-visible">
+                  <div className="text-center space-y-0.5 min-w-[250px] mx-auto sm:mx-0">
+                    <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
                       {signatureImage ? (
                         <img
                           src={signatureImage}
                           alt="Firma Administrador"
-                          className="h-16 max-h-20 w-auto max-w-[260px] object-contain mx-auto"
+                          className="h-14 max-h-16 w-auto max-w-[250px] object-contain mx-auto"
                           style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                         />
                       ) : (
                         <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
                       )}
                     </div>
-                    <div className="border-t-2 border-slate-400 pt-1.5">
-                      <p className="font-black text-xs text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                      <p className="text-[9.5px] text-slate-500 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
-                      <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
-                        {empresaForm.adminRole}
-                      </p>
-                      <p className="text-[9px] text-slate-500 font-medium">
-                        Técnico en Construcción • Construcción Civil
+                    <div className="border-t-[1.5px] border-slate-800 pt-1">
+                      <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
+                      <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
+                      <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
+                        {empresaForm.adminRole} • Técnico en Construcción & Construcción Civil
                       </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Pie de Página */}
-                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
+                <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
                   <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                  <div>Presentación Oficial para Comités de Administración • Ley N° 21.442</div>
+                  <div>Presentación Oficial para Comités de Administración • Ley N° 21.442 (Pág. 1 de 1)</div>
                 </div>
               </div>
             </div>
@@ -4709,37 +4710,39 @@ export const CompanySettingsAndBackupModule = ({
                   <span>En blanco</span>
                 </label>
               </div>
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
             </div>
 
             {/* CONTENEDOR DEL DOSSIER INTEGRAL IMPRIMIBLE */}
             <div className="overflow-y-auto flex-1 pr-1 space-y-6">
               <div
                 id="printable-full-dossier"
+                data-pdf-style={pdfStyle}
                 className="bg-slate-100 p-0 max-w-4xl mx-auto space-y-6 text-slate-900"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* ==================== PÁGINA 1: PORTADA & CARTA DE PRESENTACIÓN ==================== */}
-                <div className="dossier-page page-1 bg-white p-8 md:p-10 border border-slate-300 rounded-2xl shadow-xs">
-                  <div className="space-y-4">
-                    {/* Membrete Corporativo Maestro ARANPRO */}
-                    <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-3">
+                <div className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11">
+                  <div className="space-y-3.5">
+                    {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
+                    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3">
                       <div className="flex items-center space-x-3.5">
-                        <AranproLogo className="h-10 w-auto" />
-                        <div className="space-y-0.5">
+                        <AranproLogo variant="principal" className="h-13 w-auto" />
+                        <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                           <div className="text-sm font-black tracking-tight text-[#0F3D2E] uppercase">
                             {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
                           </div>
-                          <p className="text-[10px] text-slate-500 font-mono">
+                          <p className="text-[10px] text-slate-600 font-mono font-semibold">
                             RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
                           </p>
                           <p className="text-[10px] text-slate-500">
-                            {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'La Serena, Chile'}
+                            {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'Santiago, Chile'}
                           </p>
                         </div>
                       </div>
 
                       <div className="text-right space-y-1">
-                        <span className="inline-block px-3 py-1 bg-[#0F3D2E] text-[#D4B895] text-[10px] font-mono font-bold rounded-md">
+                        <span className="inline-block px-3 py-1 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[10px] font-mono font-bold rounded-md">
                           DOSSIER OFICIAL {new Date().getFullYear()}
                         </span>
                         <p className="text-xs font-bold text-slate-800">
@@ -4754,7 +4757,7 @@ export const CompanySettingsAndBackupModule = ({
                     {/* Encabezado Formal Protocolar */}
                     <div className="text-xs text-slate-700 space-y-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                       <p>
-                        <strong>A:</strong>{' '}
+                        <strong>Dirigido cordialmente a:</strong>{' '}
                         {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim() ? (
                           <span className="font-mono text-slate-400">__________________________________________________________________</span>
                         ) : (
@@ -4774,7 +4777,7 @@ export const CompanySettingsAndBackupModule = ({
                           </p>
                         )
                       )}
-                      <p><strong>De:</strong> {empresaForm.adminName} — {empresaForm.adminRole}</p>
+                      <p><strong>Presentado por:</strong> {empresaForm.adminName} — {empresaForm.adminRole}</p>
                       <p>
                         <strong>Fecha:</strong>{' '}
                         {proposalConfig.proposalDate
@@ -4787,17 +4790,17 @@ export const CompanySettingsAndBackupModule = ({
 
                     {/* Título de la Propuesta */}
                     <div className="text-center py-1">
-                      <h1 className="text-xl font-black text-[#0F3D2E] uppercase tracking-tight">
+                      <h1 className="text-lg font-black text-[#0F3D2E] uppercase tracking-tight">
                         Dossier de Presentación & Propuesta de Administración
                       </h1>
-                      <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                      <p className="text-[10.5px] text-slate-500 font-semibold mt-0.5">
                         Solvencia Técnica en Construcción • Transparencia Digital • Acreditación Minvu Ley N° 21.442
                       </p>
-                      <div className="w-20 h-1 bg-[#D4B895] mx-auto mt-1.5 rounded-full"></div>
+                      <div className="w-20 h-1 bg-[#D4B895] mx-auto mt-1 rounded-full"></div>
                     </div>
 
                     {/* Carta de Presentación */}
-                    <div className="text-justify text-xs text-slate-800 leading-relaxed space-y-2.5">
+                    <div className="text-justify text-xs text-slate-800 leading-relaxed space-y-2">
                       <p>
                         {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim()
                           ? 'Estimados señores miembros del Comité de Administración y vecinos copropietarios:'
@@ -4821,51 +4824,51 @@ export const CompanySettingsAndBackupModule = ({
                       </p>
                     </div>
 
-                    {/* Resumen de Experiencia en Cifras (4 Tarjetas) */}
-                    <div className="pt-2">
+                    {/* Resumen de Respaldo y Acreditación en Cifras (Clarificado sin ambigüedad) */}
+                    <div className="pt-1">
                       <div className="text-center mb-1.5">
-                        <span className="text-[10px] font-black uppercase text-[#0F3D2E] tracking-wider">Capacidad Operativa & Trayectoria Acreditada</span>
+                        <span className="text-[10px] font-black uppercase text-[#0F3D2E] tracking-wider">Respaldo Profesional & Cartera Activa Acreditada</span>
                       </div>
                       <div className="grid grid-cols-4 gap-2 text-center">
-                        <div className="p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200">
-                          <span className="text-[9.5px] font-bold text-slate-500 uppercase block">Trayectoria</span>
-                          <strong className="text-sm font-black text-[#0F3D2E]">{portfolioStats.yearsExp} Años</strong>
+                        <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                          <span className="text-[9px] font-bold text-slate-500 uppercase block">Acreditación Oficial</span>
+                          <strong className="text-xs font-black text-[#0F3D2E]">RNAC N° {empresaForm.rnacNumber || '48.912'}</strong>
                         </div>
-                        <div className="p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200">
-                          <span className="text-[9.5px] font-bold text-slate-500 uppercase block">Comunidades</span>
-                          <strong className="text-sm font-black text-[#0F3D2E]">{portfolioStats.totalComms} Activa(s)</strong>
+                        <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                          <span className="text-[9px] font-bold text-slate-500 uppercase block">Experiencia</span>
+                          <strong className="text-xs font-black text-[#0F3D2E]">{portfolioStats.yearsExp} Años Acreditados</strong>
                         </div>
-                        <div className="p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200">
-                          <span className="text-[9.5px] font-bold text-slate-500 uppercase block">Unidades</span>
-                          <strong className="text-sm font-black text-[#0F3D2E]">{portfolioStats.totalUnits} Casas/Deptos</strong>
+                        <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                          <span className="text-[9px] font-bold text-slate-500 uppercase block">Cartera Base Activa</span>
+                          <strong className="text-xs font-black text-[#0F3D2E]">{portfolioStats.totalComms} Condominio(s)</strong>
                         </div>
-                        <div className="p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200">
-                          <span className="text-[9.5px] font-bold text-slate-500 uppercase block">Fe Notarial</span>
-                          <strong className="text-sm font-black text-[#0F3D2E]">{portfolioStats.totalIssuedCerts} Certificados</strong>
+                        <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                          <span className="text-[9px] font-bold text-slate-500 uppercase block">Especialidad</span>
+                          <strong className="text-xs font-black text-[#0F3D2E]">Construcción Civil</strong>
                         </div>
                       </div>
                     </div>
 
                     {/* Propuesta Económica y Alcance del Servicio (Opcional) */}
                     {proposalConfig.includeEconomicInDossier !== false && Number(proposalConfig.proposedMonthlyFee) > 0 && (
-                      <div className="p-3.5 rounded-xl bg-slate-50 border-2 border-[#0F3D2E]/20 space-y-1.5 text-xs">
+                      <div className="p-3 rounded-xl bg-slate-50 border-2 border-[#0F3D2E]/20 space-y-1.5 text-xs">
                         <div className="flex items-center justify-between border-b border-slate-200 pb-1">
                           <span className="font-black text-[#0F3D2E] uppercase text-[10.5px]">
-                            Resumen de Propuesta Económica & Alcance Garantizado (SLA)
+                            Resumen de Propuesta Económica para la Comunidad Evaluada (SLA)
                           </span>
-                          <span className="font-mono font-bold text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                          <span className="font-mono font-bold text-[9.5px] text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2 py-0.5 rounded">
                             {proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'}
                           </span>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 text-center py-1">
+                        <div className="grid grid-cols-3 gap-2 text-center py-0.5">
                           <div className="bg-white p-2 rounded-lg border border-slate-200">
-                            <span className="text-[9px] text-slate-500 uppercase block font-bold">Honorario Mensual</span>
+                            <span className="text-[8.5px] text-slate-500 uppercase block font-bold">Honorario Mensual Propuesto</span>
                             <strong className="text-sm font-black text-[#0F3D2E]">
                               {formatCLP(Number(proposalConfig.proposedMonthlyFee) || 0)} / mes
                             </strong>
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-slate-200">
-                            <span className="text-[9px] text-slate-500 uppercase block font-bold">Equivalente por Unidad</span>
+                            <span className="text-[8.5px] text-slate-500 uppercase block font-bold">Costo Estimado por Unidad</span>
                             <strong className="text-sm font-black text-slate-800">
                               {formatCLP(
                                 Math.round(
@@ -4873,17 +4876,17 @@ export const CompanySettingsAndBackupModule = ({
                                     Math.max(1, Number(proposalConfig.targetUnits) || 1)
                                 )
                               )}{' '}
-                              / depto
+                              / unidad
                             </strong>
                           </div>
                           <div className="bg-white p-2 rounded-lg border border-slate-200">
-                            <span className="text-[9px] text-slate-500 uppercase block font-bold">Unidades Consideradas</span>
+                            <span className="text-[8.5px] text-slate-500 uppercase block font-bold">Dotación Comunidad Postulada</span>
                             <strong className="text-sm font-black text-slate-800">
                               {proposalConfig.targetUnits || '60'} Unidades
                             </strong>
                           </div>
                         </div>
-                        <p className="text-[10px] text-slate-600 leading-snug">
+                        <p className="text-[9.5px] text-slate-600 leading-snug">
                           <strong>Incluye sin costo adicional:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}, Suite Web & App Móvil ARANPRO 24/7 para todos los residentes, auditoría contable de traspaso inicial y diagnóstico constructivo preventivo.
                         </p>
                       </div>
@@ -4891,7 +4894,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Pie de Página Institucional Página 1 */}
-                  <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-500 font-mono">
+                  <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-500 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Página 1 de 3 • Carta de Presentación Oficial</div>
                     <div>Fono Directo: {empresaForm.phone}</div>
@@ -4899,19 +4902,19 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* ==================== PÁGINA 2: SECCIÓN 1 - FICHA TÉCNICA CONSTRUCTIVA & METODOLOGÍA ==================== */}
-                <div className="dossier-page page-2 bg-white p-8 md:p-10 border border-slate-300 rounded-2xl shadow-xs">
+                <div className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11">
                   <div className="space-y-4">
                     {/* Membrete de Continuidad ARANPRO */}
                     <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
-                      <div className="flex items-center space-x-2.5">
-                        <AranproLogo className="h-8 w-auto" />
-                        <div>
+                      <div className="flex items-center space-x-3">
+                        <AranproLogo variant="principal" className="h-10 w-auto" />
+                        <div className="border-l border-slate-300 pl-3">
                           <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">{empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}</span>
-                          <span className="text-[9px] text-slate-400 font-mono">Auditoría Constructiva & Administración Ley N° 21.442</span>
+                          <span className="text-[9px] text-slate-500 font-mono">Auditoría Constructiva & Administración Ley N° 21.442 • RNAC N° {empresaForm.rnacNumber || '48.912'}</span>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="text-[10px] font-mono font-bold text-[#D4B895] bg-[#0F3D2E] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
+                        <span className="text-[10px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
                           SECCIÓN TÉCNICA • PÁG. 2 DE 3
                         </span>
                       </div>
@@ -5043,19 +5046,19 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* ==================== PÁGINA 3: SECCIONES 2 & 3 - ACREDITACIONES, REFERENCIAS & FIRMA ==================== */}
-                <div className="dossier-page page-3 bg-white p-6 md:p-7 border border-slate-300 rounded-2xl shadow-xs">
-                  <div className="space-y-2.5">
+                <div className="dossier-page page-3 bg-white p-6 md:p-7 pl-9 md:pl-11">
+                  <div className="space-y-2">
                     {/* Membrete de Continuidad ARANPRO */}
                     <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                      <div className="flex items-center space-x-2.5">
-                        <AranproLogo className="h-7 w-auto" />
-                        <div>
+                      <div className="flex items-center space-x-3">
+                        <AranproLogo variant="principal" className="h-9 w-auto" />
+                        <div className="border-l border-slate-300 pl-3">
                           <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">{empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}</span>
-                          <span className="text-[9px] text-slate-400 font-mono">Acreditación Técnica, Referencias Notariales y Firma Oficial</span>
+                          <span className="text-[9px] text-slate-500 font-mono">Acreditación Técnica, Referencias Notariales y Firma Oficial • RNAC N° {empresaForm.rnacNumber || '48.912'}</span>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="text-[10px] font-mono font-bold text-[#D4B895] bg-[#0F3D2E] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
+                        <span className="text-[10px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
                           ACREDITACIÓN & FIRMA • PÁG. 3 DE 3
                         </span>
                       </div>
@@ -5158,26 +5161,33 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    {/* SECCIÓN DE FIRMA DIGITAL OFICIAL */}
-                    <div className="pt-2 text-center space-y-1 max-w-sm mx-auto">
-                      <div className="h-20 flex items-end justify-center pb-1 overflow-visible">
-                        {signatureImage ? (
-                          <img
-                            src={signatureImage}
-                            alt="Firma Administrador"
-                            className="h-16 max-h-20 w-auto max-w-[260px] object-contain mx-auto"
-                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                          />
-                        ) : (
-                          <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
-                        )}
-                      </div>
-                      <div className="border-t-2 border-slate-400 pt-1.5">
-                        <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                        <p className="text-[9px] text-slate-500 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
-                        <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                          {empresaForm.adminRole} • Técnico en Construcción & Construcción Civil
-                        </p>
+                    {/* SECCIÓN DE SELLO CIRCULAR DORADO + FIRMA DIGITAL OFICIAL */}
+                    <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
+                      <AranproOfficialSeal
+                        size="sm"
+                        companyRut={empresaForm.companyRut || '76.999.888-8'}
+                        rnacNumber={empresaForm.rnacNumber || '48.912'}
+                      />
+                      <div className="text-center space-y-0.5 min-w-[250px]">
+                        <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
+                          {signatureImage ? (
+                            <img
+                              src={signatureImage}
+                              alt="Firma Administrador"
+                              className="h-14 max-h-16 w-auto max-w-[250px] object-contain mx-auto"
+                              style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                            />
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
+                          )}
+                        </div>
+                        <div className="border-t-[1.5px] border-slate-800 pt-1">
+                          <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
+                          <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
+                          <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
+                            {empresaForm.adminRole} • Técnico en Construcción & Construcción Civil
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -5680,31 +5690,39 @@ export const CompanySettingsAndBackupModule = ({
               </div>
             </div>
 
+            <div className="no-print pb-1">
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+            </div>
+
             {/* CONTENEDOR DEL BROCHURE IMPRIMIBLE */}
             <div className="overflow-y-auto flex-1 pr-1">
               <div
                 id="printable-app-brochure"
-                className="bg-white p-8 md:p-10 border border-slate-300 rounded-2xl shadow-xs max-w-3xl mx-auto space-y-6 text-slate-900"
+                data-pdf-style={pdfStyle}
+                className="bg-white p-7 md:p-9 pl-9 md:pl-11 max-w-3xl mx-auto space-y-5 text-slate-900"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* Membrete Maestro del Brochure ARANPRO */}
-                <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-4">
+                <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo className="h-11 w-auto" />
-                    <div className="space-y-0.5">
+                    <AranproLogo variant="principal" className="h-13 w-auto" />
+                    <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                       <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                         SUITE DIGITAL PARA CONDOMINIOS • LEY N° 21.442
                       </span>
                       <h2 className="text-lg font-black text-[#0F3D2E] tracking-tight uppercase leading-none">
                         Portal Web & App Móvil ARANPRO
                       </h2>
-                      <p className="text-[10px] text-slate-500 font-mono">
+                      <p className="text-[10px] text-slate-600 font-mono font-semibold">
+                        RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
+                      </p>
+                      <p className="text-[9.5px] text-slate-500 font-mono">
                         {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.website || 'www.aranpro.cl'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right space-y-1">
-                    <span className="inline-block px-3 py-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold font-mono">
+                    <span className="inline-block px-3 py-1 rounded bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[10px] font-bold font-mono">
                       ACCESO 24/7 EN LÍNEA
                     </span>
                     <p className="text-[10px] text-slate-500">
@@ -5756,8 +5774,32 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
+                {/* Sello Circular Dorado + Firma del Administrador */}
+                <div className="pt-4 border-t border-slate-200 flex items-end justify-between gap-4">
+                  <AranproOfficialSeal
+                    size="sm"
+                    companyRut={empresaForm.companyRut || '76.999.888-8'}
+                    rnacNumber={empresaForm.rnacNumber || '48.912'}
+                  />
+                  <div className="text-center min-w-[230px]">
+                    <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
+                      {(signatureImage || companySettings?.signatureDataUrl) && (
+                        <img
+                          src={signatureImage || companySettings?.signatureDataUrl}
+                          alt="Firma"
+                          className="h-14 max-h-16 w-auto max-w-[230px] object-contain mx-auto"
+                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                        />
+                      )}
+                    </div>
+                    <span className="text-[10.5px] font-black text-slate-900 block border-t-[1.5px] border-slate-800 pt-1">{empresaForm.adminName}</span>
+                    <span className="text-[9px] text-slate-600 font-mono block">RUT: {empresaForm.adminRut} • RNAC MINVU N° {empresaForm.rnacNumber}</span>
+                    <span className="text-[9px] text-[#0F3D2E] font-bold block">Técnico en Construcción • Construcción Civil</span>
+                  </div>
+                </div>
+
                 {/* Pie de Página del Brochure */}
-                <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-500 font-mono">
                   <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                   <div>Contacto Comercial: {empresaForm.phone}</div>
                 </div>
@@ -5805,31 +5847,36 @@ export const CompanySettingsAndBackupModule = ({
               </div>
             </div>
 
+            <div className="no-print pb-1">
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+            </div>
+
             {/* CONTENEDOR DEL INFORME IMPRIMIBLE */}
             <div className="overflow-y-auto flex-1 pr-1">
               <div
                 id="printable-technical-inspection"
-                className="bg-white p-8 md:p-10 border border-slate-300 rounded-2xl shadow-xs max-w-3xl mx-auto space-y-6 text-slate-900"
+                data-pdf-style={pdfStyle}
+                className="bg-white p-7 md:p-9 pl-9 md:pl-11 max-w-3xl mx-auto space-y-5 text-slate-900"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* Membrete Maestro Técnico ARANPRO */}
-                <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-4">
+                <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo className="h-11 w-auto" />
-                    <div className="space-y-0.5">
+                    <AranproLogo variant="principal" className="h-13 w-auto" />
+                    <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                       <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                         DEPARTAMENTO TÉCNICO & AUDITORÍA CONSTRUCTIVA
                       </span>
                       <h2 className="text-lg font-black text-[#0F3D2E] tracking-tight uppercase">
                         Informe de Diagnóstico Técnico Inicial
                       </h2>
-                      <p className="text-[10px] text-slate-500 font-mono">
-                        RNAC MINVU N° {empresaForm.rnacNumber || '48.912'} • Fono: {empresaForm.phone || '+56 9 5811 8504'}
+                      <p className="text-[10px] text-slate-600 font-mono font-semibold">
+                        RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'} • Fono: {empresaForm.phone || '+56 9 5811 8504'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right text-xs space-y-0.5">
-                    <span className="inline-block px-2.5 py-0.5 rounded bg-[#0F3D2E]/10 text-[#0F3D2E] text-[10px] font-mono font-bold border border-[#0F3D2E]/20">
+                    <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] text-[#0F3D2E] text-[10px] font-mono font-bold border border-[#D4B895]">
                       DIAGNÓSTICO TÉCNICO
                     </span>
                     <p className="font-bold text-slate-800 text-xs">
@@ -5842,7 +5889,7 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Datos del Inspector Técnico */}
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Profesional a Cargo:</span>
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Profesional Evaluador a Cargo:</span>
                     <strong className="text-slate-900">{empresaForm.adminName}</strong>
                     <span className="text-slate-600 block text-[11px]">Técnico en Construcción • Construcción Civil • RNAC Minvu N° {empresaForm.rnacNumber}</span>
                   </div>
@@ -5858,9 +5905,9 @@ export const CompanySettingsAndBackupModule = ({
                     Evaluación de Estado de Instalaciones Críticas:
                   </h4>
 
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {inspectionForm.items.map((item, idx) => (
-                      <div key={item.id} className="p-3 rounded-xl border border-slate-200 bg-white space-y-1 text-xs">
+                      <div key={item.id} className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-1 text-xs break-inside-avoid">
                         <div className="flex items-center justify-between">
                           <span className="font-black text-slate-900">{idx + 1}. {item.name}</span>
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -5882,29 +5929,33 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* Firma y Conclusión */}
-                <div className="pt-6 border-t border-slate-200 flex items-center justify-between text-xs">
-                  <div className="space-y-0.5 max-w-sm">
-                    <p className="font-bold text-slate-900">Conclusión de Inspección:</p>
-                    <p className="text-[11px] text-slate-600 leading-relaxed">
-                      El presente diagnóstico fue realizado sin costo para orientar al Comité de Administración en la priorización de obras preventivas y evitar emergencias de alto costo.
-                    </p>
+                <div className="pt-4 border-t border-slate-200 flex items-end justify-between gap-4 text-xs">
+                  <div className="flex items-center gap-3 max-w-md">
+                    <AranproLogo variant="sello" size="sm" />
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-slate-900">Conclusión de Inspección Técnica:</p>
+                      <p className="text-[10.5px] text-slate-600 leading-snug">
+                        Diagnóstico realizado sin costo para orientar al Comité de Administración en la priorización de obras preventivas y evitar emergencias de alto costo.
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-center space-y-1 min-w-[220px]">
-                    <div className="h-20 flex items-end justify-center pb-1 overflow-visible">
+                  <div className="text-center space-y-0.5 min-w-[230px]">
+                    <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
                       {signatureImage ? (
                         <img
                           src={signatureImage}
                           alt="Firma"
-                          className="h-16 max-h-20 w-auto max-w-[240px] object-contain mx-auto"
+                          className="h-14 max-h-16 w-auto max-w-[230px] object-contain mx-auto"
                           style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                         />
                       ) : (
                         <div className="h-12"></div>
                       )}
                     </div>
-                    <div className="border-t-2 border-slate-400 pt-1 text-[10px]">
-                      <p className="font-bold text-slate-900">{empresaForm.adminName}</p>
-                      <p className="text-slate-500">Técnico en Construcción • RNAC N° {empresaForm.rnacNumber}</p>
+                    <div className="border-t-[1.5px] border-slate-800 pt-1 text-[10px]">
+                      <p className="font-black text-slate-900">{empresaForm.adminName}</p>
+                      <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • RNAC N° {empresaForm.rnacNumber}</p>
+                      <p className="text-[9px] text-[#0F3D2E] font-bold">Técnico en Construcción • Construcción Civil</p>
                     </div>
                   </div>
                 </div>
@@ -5952,30 +6003,35 @@ export const CompanySettingsAndBackupModule = ({
               </div>
             </div>
 
+            <div className="no-print pb-1">
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+            </div>
+
             {/* CONTENEDOR DE LA MATRIZ IMPRIMIBLE */}
             <div className="overflow-y-auto flex-1 pr-1">
               <div
                 id="printable-comparison-matrix"
-                className="bg-white p-8 md:p-10 border border-slate-300 rounded-2xl shadow-xs max-w-3xl mx-auto space-y-6 text-slate-900"
+                data-pdf-style={pdfStyle}
+                className="bg-white p-6 md:p-8 pl-9 md:pl-11 max-w-3xl mx-auto space-y-4 text-slate-900"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
-                <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-4">
+                <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
                   <div className="flex items-center space-x-3.5">
-                    <AranproLogo className="h-11 w-auto" />
-                    <div className="space-y-0.5">
+                    <AranproLogo variant="principal" className="h-13 w-auto" />
+                    <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                       <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                         ANÁLISIS COMPARATIVO DE VALOR AGREGADO
                       </span>
                       <h2 className="text-lg font-black text-[#0F3D2E] uppercase tracking-tight">
                         ¿Por qué elegir la Gestión Integral de ARANPRO?
                       </h2>
-                      <p className="text-[10px] text-slate-500">
-                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.website || 'www.aranpro.cl'}
+                      <p className="text-[10px] text-slate-600 font-mono">
+                        RUT: {empresaForm.companyRut || '76.999.888-8'} • {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right space-y-0.5">
-                    <span className="inline-block px-2.5 py-0.5 bg-[#0F3D2E] text-[#D4B895] text-[10px] font-mono font-bold rounded">
+                    <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[10px] font-mono font-bold rounded">
                       ESTÁNDAR LEY 21.442
                     </span>
                     <p className="text-[10px] text-slate-500">
@@ -5984,7 +6040,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {[
                     { p: '1. Supervisión Constructiva', t: 'Visitas esporádicas. No saben de construcción ni bombas; dependen a ciegas de técnicos externos con sobrecostos.', a: 'Administrador Técnico en Construcción y estudiante de Construcción Civil. Audita bombas, sellos, filtraciones y fiscaliza a contratistas en terreno.' },
                     { p: '2. Transparencia en Cuentas', t: 'Planillas Excel confusas enviadas a fin de mes. Comprobantes bancarios ocultos o extraviados.', a: 'Portal y App móvil 24/7 donde cada vecino audita las facturas y comprobantes bancarios reales de cada gasto con 1 solo clic.' },
@@ -5992,40 +6048,42 @@ export const CompanySettingsAndBackupModule = ({
                     { p: '4. Atención de Reclamos', t: 'Mensajes de WhatsApp o llamados informales que quedan en el olvido sin respuesta.', a: 'Libro Oficial de Reclamos y Sugerencias digital foliado con plazo legal estricto de respuesta garantizado (Art. 20°).' },
                     { p: '5. Cobranzas & Fe Notarial', t: 'Cobranza informal sin protocolos legales ni respaldo jurídico.', a: 'Certificados oficiales foliados de no deuda, convenios de pago y certificados morosos para compraventas (Art. 36°).' }
                   ].map((row, i) => (
-                    <div key={i} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2 text-xs">
+                    <div key={i} className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5 text-xs">
                       <span className="font-black text-slate-900 text-xs block">{row.p}</span>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10.5px]">
                         <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-slate-700">
-                          <strong className="text-rose-800 block text-[10px] uppercase">✕ Administración Tradicional:</strong>
-                          <p className="mt-0.5 leading-relaxed">{row.t}</p>
+                          <strong className="text-rose-800 block text-[9.5px] uppercase">✕ Administración Tradicional:</strong>
+                          <p className="mt-0.5 leading-snug">{row.t}</p>
                         </div>
                         <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-slate-800">
-                          <strong className="text-[#0F3D2E] block text-[10px] uppercase">✓ Con ARANPRO:</strong>
-                          <p className="mt-0.5 leading-relaxed font-medium">{row.a}</p>
+                          <strong className="text-[#0F3D2E] block text-[9.5px] uppercase">✓ Con ARANPRO:</strong>
+                          <p className="mt-0.5 leading-snug font-medium">{row.a}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-xs">
-                  <div className="text-[10px] text-slate-500 font-mono space-y-0.5">
-                    <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div>Contacto: {empresaForm.phone} • RNAC Minvu N° {empresaForm.rnacNumber}</div>
-                  </div>
-                  <div className="text-center min-w-[200px]">
-                    <div className="h-16 flex items-end justify-center pb-1 overflow-visible">
+                <div className="pt-3 border-t border-slate-200 flex items-end justify-between text-xs">
+                  <AranproOfficialSeal
+                    size="sm"
+                    companyRut={empresaForm.companyRut || '76.999.888-8'}
+                    rnacNumber={empresaForm.rnacNumber || '48.912'}
+                  />
+                  <div className="text-center min-w-[230px]">
+                    <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
                       {(signatureImage || companySettings?.signatureDataUrl) && (
                         <img
                           src={signatureImage || companySettings?.signatureDataUrl}
                           alt="Firma"
-                          className="h-14 max-h-16 w-auto max-w-[220px] object-contain mx-auto"
+                          className="h-14 max-h-16 w-auto max-w-[230px] object-contain mx-auto"
                           style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                         />
                       )}
                     </div>
-                    <span className="text-[10px] font-bold text-slate-800 block border-t border-slate-400 pt-1">{empresaForm.adminName}</span>
-                    <span className="text-[9px] text-slate-400 font-mono">Firma Autorizada • RNAC N° {empresaForm.rnacNumber}</span>
+                    <span className="text-[10.5px] font-black text-slate-900 block border-t-[1.5px] border-slate-800 pt-1">{empresaForm.adminName}</span>
+                    <span className="text-[9px] text-slate-600 font-mono block">RUT: {empresaForm.adminRut} • RNAC MINVU N° {empresaForm.rnacNumber}</span>
+                    <span className="text-[9px] text-[#0F3D2E] font-bold block">Técnico en Construcción • Construcción Civil</span>
                   </div>
                 </div>
               </div>

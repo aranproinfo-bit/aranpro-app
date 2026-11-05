@@ -3,7 +3,7 @@ import { FileCheck, Printer, Download, X, FileSpreadsheet, ArrowLeft } from 'luc
 import { formatCLP, formatDate } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
 import { useCommunity } from '../../context/CommunityContext';
-import { AranproLogo } from './MauranLogo';
+import { AranproLogo, AranproOfficialSeal } from './MauranLogo';
 
 // Agrupador ordenado de gastos por categoría con subtotales
 export const groupExpensesByCategory = (expensesList) => {
@@ -324,7 +324,7 @@ export const ExpenseReportModal = ({
                         Gestión Inmobiliaria Integral
                       </div>
                       <div className="text-[8.5px] text-slate-500 font-mono">
-                        RUT: 76.999.888-1 • RNAC MINVU N° 48.912 • Fono: +56 9 5811 8504
+                        RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'} • Fono: {companySettings?.phone || '+56 9 5811 8504'}
                       </div>
                     </div>
                   </div>
@@ -493,9 +493,18 @@ export const ExpenseReportModal = ({
                 {/* Bloque de Firmas Formales (Ajustado para no cortarse jamás en 1 página) */}
                 <div className="pt-2 pb-1 grid grid-cols-3 gap-4 text-center text-[8.5px] page-break-inside-avoid">
                   <div className="flex flex-col items-center">
-                    <div className="h-9 w-full max-w-[125px] flex flex-col items-center justify-center text-[7px] text-slate-400 mb-1">
+                    <div className="h-10 w-full max-w-[140px] flex items-center justify-center gap-2 text-[7px] text-slate-400 mb-1">
+                      <AranproOfficialSeal size="sm" showText={false} />
                       {companySettings?.signatureDataUrl ? (
-                        <img src={companySettings.signatureDataUrl} alt="Firma" className="max-h-9 object-contain mx-auto" />
+                        <img
+                          src={companySettings.signatureDataUrl}
+                          alt="Firma"
+                          className="max-h-10 object-contain mx-auto"
+                          style={{
+                            transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                            transformOrigin: 'bottom center'
+                          }}
+                        />
                       ) : (
                         <div className="w-full h-full border border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center bg-slate-50/40">
                           <span className="font-bold text-slate-500">Firma y Timbre</span>

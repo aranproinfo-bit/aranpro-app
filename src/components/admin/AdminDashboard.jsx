@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatCLP, formatDate, formatRut, generateCommunityEmailProposal } from '../../utils/formatters';
-import { AranproLogo } from '../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import { printDocumentDirectly as printFormalDocument } from '../../utils/printDocument';
 import { AssemblyQuorumModule } from './AssemblyQuorumModule';
 import { PreventiveMaintenanceModule } from './PreventiveMaintenanceModule';
@@ -43,7 +43,7 @@ const DEFAULT_CHILEAN_PROVIDERS = [
   { name: 'Jardines del Elqui / Paisajismo y Poda', rut: '14.892.341-2', category: 'Aseo y Áreas Verdes', documentType: 'Boleta de Honorarios' },
   { name: 'Extintores y Seguridad Chile Ltda. (DS 44)', rut: '78.901.234-5', category: 'Mantención Periódica', documentType: 'Factura Electrónica' },
   { name: 'Hidráulica & Bombas del Norte SpA', rut: '76.543.210-9', category: 'Reparaciones e Imprevistos', documentType: 'Factura Electrónica' },
-  { name: 'ARANPRO • Gestión Integral', rut: '76.999.888-1', category: 'Administración y Seguros', documentType: 'Factura Electrónica' }
+  { name: 'ARANPRO • Gestión Integral', rut: '76.999.888-8', category: 'Administración y Seguros', documentType: 'Factura Electrónica' }
 ];
 
 // Helper para clasificar e iconizar categorías de gastos en condominios
@@ -387,6 +387,8 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
   const [comiteSubTab, setComiteSubTab] = useState('reuniones'); // 'reuniones' | 'novedades' | 'tareas' | 'directorio'
   const [emisionSubTab, setEmisionSubTab] = useState('todos');
   const [companySubTab, setCompanySubTab] = useState('empresa'); // 'todos' | 'auditoria' | 'calculo' | 'despacho' | 'cierre'
+  const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
+  const [colillaDesign, setColillaDesign] = useState('ejecutiva'); // 'ejecutiva' | 'transparencia' | 'cupon'
   const [providerSearchQuery, setProviderSearchQuery] = useState('');
   const [providerCategoryFilter, setProviderCategoryFilter] = useState('ALL');
   const [providerContractFilter, setProviderContractFilter] = useState('ALL');
@@ -1335,12 +1337,22 @@ _Administración ARANPRO_`;
       `;
     }).join('');
 
+    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
+    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
+    const sigHtml = companySettings?.signatureDataUrl
+      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 52px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
+      : `<div style="border-bottom: 1px solid #334155; height: 35px; margin-bottom: 4px;"></div>`;
+
     const html = `
       <div style="font-family: system-ui, sans-serif; color: #0f172a; line-height: 1.4; padding: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0F3D2E; padding-bottom: 8px;">
-          <div>
-            <div style="font-size: 11px; font-weight: 900; color: #0F3D2E; text-transform: uppercase;">ARANPRO GESTIÓN INMOBILIARIA</div>
-            <div style="font-size: 9px; color: #64748b;">RUT: 76.999.888-1 • Reg. MINVU N° 44.201</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0F3D2E; padding-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="${logoUrl}" alt="ARANPRO" style="height: 46px; width: auto; object-fit: contain;" />
+            <div style="border-left: 1px solid #cbd5e1; padding-left: 12px;">
+              <div style="font-size: 11px; font-weight: 900; color: #0F3D2E; text-transform: uppercase;">${companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL INMOBILIARIA</div>
+              <div style="font-size: 9px; color: #64748b; font-family: monospace;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+              <div style="font-size: 8.5px; color: #64748b;">${companySettings?.email || 'administracion@aranpro.cl'} • ${companySettings?.phone || '+56 9 5811 8504'}</div>
+            </div>
           </div>
           <div style="text-align: right;">
             <div style="font-size: 13px; font-weight: 900;">${currentCommunity.name}</div>
@@ -1394,12 +1406,17 @@ _Administración ARANPRO_`;
           </tbody>
         </table>
 
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; font-size: 9px; margin-top: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; font-size: 9px; margin-top: 24px; align-items: end;">
           <div>
-            <div style="border-bottom: 1px solid #334155; height: 35px; margin-bottom: 4px;"></div>
-            <strong>ARANPRO GESTIÓN</strong><br/>
-            <span>Administrador de Copropiedad</span><br/>
-            <span style="font-size: 8px; color: #64748b;">Reg. MINVU N° 44.201</span>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px;">
+              <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 44px; width: 44px; object-fit: contain;" />
+              <div>${sigHtml}</div>
+            </div>
+            <div style="border-top: 1.5px solid #0F3D2E; padding-top: 4px;">
+              <strong>${companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia M.'}</strong><br/>
+              <span>Administrador Titular • ${companySettings?.brandName || 'ARANPRO'}</span><br/>
+              <span style="font-size: 8px; color: #0F3D2E; font-weight: bold;">RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</span>
+            </div>
           </div>
           <div>
             <div style="border-bottom: 1px solid #334155; height: 35px; margin-bottom: 4px;"></div>
@@ -1417,7 +1434,7 @@ _Administración ARANPRO_`;
       </div>
     `;
 
-    printFormalDocument(html, `Acta_Cierre_Contable_${cleanComm}_Periodo_${m}_${y}`, { fitPage: true });
+    printFormalDocument(html, `Acta_Cierre_Contable_${cleanComm}_Periodo_${m}_${y}`, { fitPage: true, pdfStyle });
   };
 
   // Selector y resolución de datos de período histórico
@@ -1511,6 +1528,12 @@ _Administración ARANPRO_`;
     const sumCredits = (currentCommunity.units || []).reduce((acc, u) => acc + (getUnitFinancials(u).creditBalance || 0), 0);
     const sumGrandTotal = (currentCommunity.units || []).reduce((acc, u) => acc + (getUnitFinancials(u).totalToPay || 0), 0);
 
+    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
+    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
+    const sigHtml = companySettings?.signatureDataUrl
+      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 48px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
+      : ``;
+
     const html = `
 <!DOCTYPE html>
 <html lang="es">
@@ -1519,10 +1542,10 @@ _Administración ARANPRO_`;
   <title>Planilla General de Emisión y Prorrateo - ${periodName} - ${currentCommunity.name}</title>
   <style>
     @page { size: letter landscape; margin: 10mm 12mm; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #0f172a; margin: 0; padding: 12px; font-size: 11px; line-height: 1.35; background: #fff; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #0f172a; margin: 0; padding: 12px 12px 12px 24px; font-size: 11px; line-height: 1.35; background: #fff; border-left: 2.5px solid #0F3D2E; box-shadow: inset 4px 0 0 0 #fff, inset 5.5px 0 0 0 #D4B895; }
     .header-bar { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0F3D2E; padding-bottom: 10px; margin-bottom: 12px; }
-    .logo-title { font-size: 18px; font-weight: 900; color: #0F3D2E; letter-spacing: -0.5px; margin: 0; }
-    .logo-sub { font-size: 10px; font-weight: 700; color: #D4B895; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+    .logo-title { font-size: 15px; font-weight: 900; color: #0F3D2E; letter-spacing: -0.3px; margin: 0; }
+    .logo-sub { font-size: 9.5px; font-weight: 700; color: #D4B895; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
     .badge-period { display: inline-block; background: #0F3D2E; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 11px; }
     .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
     .kpi-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; }
@@ -1532,18 +1555,22 @@ _Administración ARANPRO_`;
     th { background: #0F3D2E; color: #fff; font-weight: 800; text-transform: uppercase; font-size: 8.5px; padding: 6px 8px; border: 1px solid #0F3D2E; letter-spacing: 0.3px; }
     td { padding: 5px 8px; border-bottom: 1px solid #e2e8f0; }
     .totals-row td { background: #F5F4EF; font-weight: 900; font-family: monospace; border-top: 2px solid #0F3D2E; border-bottom: 2px solid #0F3D2E; font-size: 10px; }
-    .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 25px; page-break-inside: avoid; }
-    .sig-box { border-top: 1px solid #94a3b8; text-align: center; padding-top: 8px; font-size: 10px; color: #334155; }
+    .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; page-break-inside: avoid; align-items: end; }
+    .sig-box { border-top: 1.5px solid #0F3D2E; text-align: center; padding-top: 8px; font-size: 10px; color: #334155; }
     .legal-footer { margin-top: 12px; font-size: 8px; color: #64748b; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 8px; }
   </style>
 </head>
 <body>
   <div class="header-bar">
-    <div>
-      <div class="logo-title">${companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL</div>
-      <div class="logo-sub">Planilla General de Emisión, Prorrateo & Cobro de Gastos Comunes</div>
-      <div style="font-size: 11px; color: #334155; margin-top: 4px;">
-        <strong>${currentCommunity.name}</strong> • RUT: ${currentCommunity.rut || '96.854.120-K'} • ${currentCommunity.address || 'Av. Los Pajaritos 1234'} (${currentCommunity.city || 'La Serena / Coquimbo'})
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
+      <div style="border-left: 1px solid #cbd5e1; padding-left: 14px;">
+        <div class="logo-title">${companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL INMOBILIARIA</div>
+        <div style="font-size: 9.5px; color: #64748b; font-family: monospace; margin-top: 1px;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+        <div class="logo-sub">Planilla General de Emisión, Prorrateo & Cobro de Gastos Comunes</div>
+        <div style="font-size: 10.5px; color: #334155; margin-top: 3px;">
+          <strong>${currentCommunity.name}</strong> • RUT: ${currentCommunity.rut || '65.123.456-7'} • ${currentCommunity.address || 'Av. Los Pajaritos 1234'} (${currentCommunity.city || 'La Serena / Coquimbo'})
+        </div>
       </div>
     </div>
     <div style="text-align: right;">
@@ -1611,15 +1638,24 @@ _Administración ARANPRO_`;
   </table>
 
   <div class="signatures">
-    <div class="sig-box">
-      <strong>${companySettings?.administratorName || 'Administrador General ARANPRO'}</strong><br/>
-      Administrador de Condominios Ley N° 21.442<br/>
-      <span style="font-size: 8.5px; color: #64748b;">Firma y Timbre de Emisión Oficial</span>
+    <div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 6px;">
+        <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 48px; width: 48px; object-fit: contain;" />
+        <div>${sigHtml}</div>
+      </div>
+      <div class="sig-box">
+        <strong>${companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}</strong><br/>
+        Administrador Titular • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}<br/>
+        <span style="font-size: 8.5px; color: #64748b;">Firma y Timbre de Emisión Oficial</span>
+      </div>
     </div>
-    <div class="sig-box">
-      <strong>Comité de Administración</strong><br/>
-      ${currentCommunity.name}<br/>
-      <span style="font-size: 8.5px; color: #64748b;">Visación y Visto Bueno Art. 17° Ley N° 21.442</span>
+    <div>
+      <div style="height: 54px;"></div>
+      <div class="sig-box">
+        <strong>Comité de Administración</strong><br/>
+        ${currentCommunity.name}<br/>
+        <span style="font-size: 8.5px; color: #64748b;">Visación y Visto Bueno Art. 17° Ley N° 21.442</span>
+      </div>
     </div>
   </div>
 
@@ -1630,7 +1666,7 @@ _Administración ARANPRO_`;
 </html>
     `;
 
-    printFormalDocument(html, `Planilla_Emision_Prorrateo_${m}_${y}_${cleanComm}`);
+    printFormalDocument(html, `Planilla_Emision_Prorrateo_${m}_${y}_${cleanComm}`, { landscape: true, pdfStyle });
   };
 
   // Enviar recordatorio o colilla por WhatsApp directo al vecino
@@ -1713,7 +1749,7 @@ _Administración ARANPRO_`;
 
   // Impresión directa aislada y generación de PDF formal delegada a la utilidad estándar ARANPRO
   const printDocumentDirectly = (elementId, documentTitle = 'Documento Oficial ARANPRO', options = {}) => {
-    return printFormalDocument(elementId, documentTitle, options);
+    return printFormalDocument(elementId, documentTitle, { pdfStyle, ...options });
   };
 
   // Descarga instantánea de cualquier documento como archivo HTML formateado
@@ -12424,7 +12460,7 @@ _Administración ARANPRO_`;
                       Administración Profesional de Condominios • Ley N° 21.442
                     </div>
                     <div className="text-[9px] text-slate-400">
-                      RUT: 76.999.888-1 • Fono: {companySettings.phone || '+56 9 5811 8504'}
+                      RUT: {companySettings.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings.rnacNumber || '48.912'} • Fono: {companySettings.phone || '+56 9 5811 8504'}
                     </div>
                   </div>
                 </div>
@@ -12628,12 +12664,17 @@ _Administración ARANPRO_`;
                 </div>
                 <div className="grid grid-cols-3 gap-6 text-center text-xs">
                   <div>
-                    <div className="h-20 print:h-16 w-full flex items-center justify-center mb-2">
+                    <div className="h-20 print:h-16 w-full flex items-center justify-center gap-2 mb-2">
+                      <AranproOfficialSeal size="sm" />
                       {companySettings?.signatureDataUrl ? (
                         <img 
                           src={companySettings.signatureDataUrl} 
                           alt="Firma Administrador" 
-                          className="max-h-20 print:max-h-16 object-contain mx-auto" 
+                          className="max-h-20 print:max-h-16 object-contain mx-auto"
+                          style={{
+                            transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                            transformOrigin: 'bottom center'
+                          }}
                         />
                       ) : (
                         <div className="w-full max-w-[130px] h-14 print:h-12 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] print:text-[8px] text-slate-400 bg-slate-50/50">
@@ -13566,7 +13607,7 @@ _Administración ARANPRO_`;
                           ARANPRO • Gestión Integral Inmobiliaria
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">
-                          RUT: 76.999.888-1 • Reg. Nacional MINVU N° 45.291-K
+                          RUT: {companySettings?.rut || '76.999.888-8'} • Reg. Nacional MINVU N° {companySettings?.rnacNumber || '48.912'}
                         </div>
                         <div className="text-[10px] text-slate-500">
                           administracion@aranpro.cl • www.aranpro.cl
@@ -14113,12 +14154,28 @@ _Administración ARANPRO_`;
                   </div>
 
                   {/* Footer con firmas institucionales */}
-                  <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between text-[10px] text-slate-500 gap-2">
-                    <div>
-                      <strong>Administración ARANPRO</strong> • Gestión Inmobiliaria & Cumplimiento Legal
+                  <div className="pt-4 border-t-2 border-slate-200 flex flex-col sm:flex-row sm:items-end justify-between text-[10px] text-slate-500 gap-4">
+                    <div className="flex items-center gap-3">
+                      <AranproOfficialSeal size="sm" />
+                      <div>
+                        <strong className="text-[#0F3D2E] block">Administración ARANPRO • Gestión Integral</strong>
+                        <span>RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}</span>
+                      </div>
                     </div>
                     <div className="text-right">
-                      Aprobación en Asamblea Ordinaria de Copropietarios • {budgetYear}
+                      {companySettings?.signatureDataUrl && (
+                        <img
+                          src={companySettings.signatureDataUrl}
+                          alt="Firma"
+                          className="max-h-12 object-contain ml-auto mb-1"
+                          style={{
+                            transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                            transformOrigin: 'bottom right'
+                          }}
+                        />
+                      )}
+                      <div className="font-bold text-slate-800">{companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}</div>
+                      <div>Aprobación en Asamblea Ordinaria de Copropietarios • {budgetYear}</div>
                     </div>
                   </div>
                 </div>
@@ -16268,23 +16325,31 @@ _Administración ARANPRO_`;
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
           <div 
             id="committee-report-printable-doc"
-            className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-8 space-y-6 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-8 space-y-5 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-[#D4B895]">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-widest text-[#0F3D2E]">
-                  ARANPRO • Gestión Integral • Rendición Documentada Ley 21.442
-                </span>
-                <h3 className="text-xl font-black text-slate-900">
-                  Balance Financiero Mensual — {currentCommunity.name}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year} • Administrador: {companySettings.administratorName} (CGAI N° 13-563)
-                </p>
+            {/* Selector de Alternativas Visuales (No se imprime) */}
+            <div className="no-print pb-2 border-b border-slate-100">
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+            </div>
+
+            <div className="flex items-start justify-between pb-4 border-b-2 border-[#0F3D2E] gap-4">
+              <div className="flex items-center space-x-3.5">
+                <AranproLogo variant="principal" className="h-13 w-auto" />
+                <div className="border-l border-slate-300 pl-3.5">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-[#0F3D2E] block">
+                    {companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL • RENDICIÓN DOCUMENTADA LEY N° 21.442
+                  </span>
+                  <h3 className="text-lg font-black text-slate-900 leading-tight mt-0.5">
+                    Balance Financiero Mensual — {currentCommunity.name}
+                  </h3>
+                  <p className="text-[10.5px] text-slate-600 font-mono mt-0.5">
+                    Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year} • RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setShowCommitteeReportModal(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600"
+                className="no-print p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
               >
                 ✕
               </button>
@@ -16335,7 +16400,38 @@ _Administración ARANPRO_`;
               </table>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+            {/* Sello Oficial y Firma del Administrador para el PDF */}
+            <div className="pt-4 border-t-2 border-slate-200 flex items-end justify-between gap-6">
+              <AranproOfficialSeal size="md" />
+              <div className="text-center min-w-[230px]">
+                <div className="h-16 flex items-end justify-center pb-1">
+                  {companySettings?.signatureDataUrl ? (
+                    <img
+                      src={companySettings.signatureDataUrl}
+                      alt="Firma Administrador"
+                      className="max-h-16 object-contain mx-auto"
+                      style={{
+                        transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                        transformOrigin: 'bottom center'
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div className="border-t-2 border-[#0F3D2E] pt-1.5">
+                  <div className="text-xs font-black text-slate-900">
+                    {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-mono">
+                    RUT: {companySettings?.adminRut || '14.882.140-K'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                  </div>
+                  <div className="text-[10px] font-bold text-[#0F3D2E]">
+                    Administrador Titular • {companySettings?.brandName || 'ARANPRO'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="no-print flex items-center justify-between pt-4 border-t border-slate-200">
               <button
                 onClick={() => {
                   const commName = (currentCommunity?.name || 'Condominio').replace(/\s+/g, '_');
@@ -16363,21 +16459,28 @@ _Administración ARANPRO_`;
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
           <div 
             id="payment-receipt-printable-doc"
-            className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-7 space-y-5"
+            className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-7 space-y-4"
           >
-            <div className="flex justify-between items-start border-b border-slate-200 pb-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#0F3D2E] block">
-                  ARANPRO • Gestión Integral
-                </span>
-                <h3 className="text-lg font-black text-slate-900">Comprobante Oficial de Pago</h3>
-                <p className="text-xs font-mono font-bold text-emerald-700">
-                  Folio: {activePaymentReceipt.receiptFolio || 'REC-OFICIAL'}
-                </p>
+            <div className="no-print pb-2 border-b border-slate-100">
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+            </div>
+
+            <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-3.5 gap-3">
+              <div className="flex items-center space-x-3">
+                <AranproLogo variant="principal" className="h-12 w-auto" />
+                <div className="border-l border-slate-300 pl-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#0F3D2E] block">
+                    {companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL
+                  </span>
+                  <h3 className="text-base font-black text-slate-900 leading-tight">Comprobante Oficial de Pago</h3>
+                  <p className="text-[11px] font-mono font-bold text-emerald-700">
+                    Folio: {activePaymentReceipt.receiptFolio || 'REC-OFICIAL'} • RNAC N° {companySettings?.rnacNumber || '48.912'}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setActivePaymentReceipt(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="no-print text-slate-400 hover:text-slate-600 p-1"
               >
                 ✕
               </button>
@@ -16411,23 +16514,34 @@ _Administración ARANPRO_`;
             </div>
 
             {/* Timbre y Firma Digital de Emisión */}
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
-              <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-500 font-mono block">Recaudado y Validado</span>
-                <span className="font-bold text-[#0F3D2E] text-[11px] block">{companySettings?.adminName || companySettings?.administratorName || 'Administración ARANPRO'}</span>
-                <span className="text-[9px] text-slate-500 font-mono">RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}</span>
-              </div>
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs gap-3">
+              <AranproOfficialSeal size="sm" />
               <div className="text-right">
                 {companySettings?.signatureDataUrl ? (
-                  <img src={companySettings.signatureDataUrl} alt="Firma" className="max-h-11 object-contain ml-auto" />
+                  <img
+                    src={companySettings.signatureDataUrl}
+                    alt="Firma"
+                    className="max-h-14 object-contain ml-auto mb-1"
+                    style={{
+                      transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                      transformOrigin: 'bottom right'
+                    }}
+                  />
                 ) : (
                   <div className="h-6"></div>
                 )}
-                <span className="text-[9px] font-mono text-emerald-800 font-bold block">✓ Timbre Digital Verificado</span>
+                <div className="border-t border-slate-300 pt-1">
+                  <span className="font-bold text-[#0F3D2E] text-[11px] block">
+                    {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}
+                  </span>
+                  <span className="text-[9px] font-mono text-emerald-800 font-bold block">
+                    ✓ Recaudado y Validado • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="no-print flex items-center justify-between pt-2">
               <button
                 onClick={() => {
                   const commName = (activePaymentReceipt.communityName || 'Condominio').replace(/\s+/g, '_');
@@ -16450,75 +16564,152 @@ _Administración ARANPRO_`;
         </div>
       )}
 
-      {/* MODAL VER COLILLA DE COBRO DE UNA UNIDAD (IMPRIMIBLE / DESCARGABLE) */}
+      {/* MODAL VER COLILLA DE COBRO DE UNA UNIDAD (IMPRIMIBLE / DESCARGABLE CON 3 DISEÑOS SELECCIONABLES) */}
       {activeUnitBill && currentCommunity && (() => {
         const fin = getUnitFinancials(activeUnitBill);
         const commTotals = calculateCommunityTotals(currentCommunity);
+        const bank = currentCommunity.bankInfo || {};
+        const groupedExpenses = groupExpensesByCategory(currentCommunity.expenses || []);
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
             <div 
               id="unit-bill-printable-doc"
-              className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-7 space-y-5"
+              className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-6 sm:p-7 space-y-4 max-h-[92vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between pb-4 border-b border-slate-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#0F3D2E] text-white flex items-center justify-center font-bold">
-                    <Building2 className="w-5 h-5 text-[#D4B895]" />
+              {/* Barra de Selección de las 3 Alternativas de Diseño de Colilla + Estilo de Hoja (Oculta en Impresión) */}
+              <div className="no-print space-y-2 pb-3 border-b border-slate-200">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-[#F5F4EF] px-3 py-2 rounded-xl border border-[#D4B895]/60">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-[#0F3D2E]">
+                    Diseño de Colilla:
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {[
+                      { id: 'ejecutiva', label: '1. Ejecutiva Oficial' },
+                      { id: 'transparencia', label: '2. Transparencia Ley 21.442 (Desglose)' },
+                      { id: 'cupon', label: '3. Con Cupón Recortable Conserjería' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setColillaDesign(opt.id)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                          colillaDesign === opt.id
+                            ? 'bg-[#0F3D2E] text-[#D4B895] shadow-xs'
+                            : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
-                  <div>
-                    <h3 className="text-base font-black text-slate-900">{currentCommunity.name}</h3>
-                    <p className="text-xs text-slate-500">
-                      Colilla Oficial de Cobro • Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}
+                </div>
+                <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+              </div>
+
+              {/* Membrete Oficial Alternativa 4 con Logo Vertical Principal */}
+              <div className="flex items-start justify-between pb-3.5 border-b-2 border-[#0F3D2E] gap-3">
+                <div className="flex items-center space-x-3">
+                  <AranproLogo variant="principal" className="h-12 w-auto" />
+                  <div className="border-l border-slate-300 pl-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0F3D2E] block">
+                      {companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL INMOBILIARIA
+                    </span>
+                    <h3 className="text-base font-black text-slate-900 leading-tight">{currentCommunity.name}</h3>
+                    <p className="text-[10.5px] text-slate-500 font-mono">
+                      RUT Comunidad: {currentCommunity.rut || bank.rut || '65.123.456-7'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setActiveUnitBill(null)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full"
-                >
-                  ✕
-                </button>
+                <div className="flex items-start gap-2">
+                  <div className="text-right">
+                    <span className="inline-block px-2.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] text-[9.5px] font-black uppercase tracking-wider">
+                      Colilla Oficial Gasto Común
+                    </span>
+                    <p className="text-[11px] font-bold text-slate-800 mt-1">
+                      Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}
+                    </p>
+                    <p className="text-[10px] text-rose-700 font-bold">
+                      Vence: {formatDate(currentCommunity.activePeriod?.dueDate)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveUnitBill(null)}
+                    className="no-print p-1.5 text-slate-400 hover:text-slate-600 rounded-full"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               {/* Ficha de la unidad y pagador */}
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-2 gap-2.5 text-xs">
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Unidad:</span>
-                  <span className="font-black text-slate-900 text-sm">
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Unidad:</span>
+                  <span className="font-black text-[#0F3D2E] text-sm">
                     {getUnitLabel(currentCommunity.type, false)} {activeUnitBill.number}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Propietario Titular:</span>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Copropietario Titular:</span>
                   <span className="font-bold text-slate-900">{activeUnitBill.owner}</span>
                 </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">RUT Titular:</span>
+                  <span className="font-mono font-bold text-slate-900">{activeUnitBill.rut || 'No informado'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Prorrateo / Alícuota:</span>
+                  <span className="font-mono font-bold text-slate-900">{activeUnitBill.sharePercentage}%</span>
+                </div>
                 {(!activeUnitBill.payerSameAsOwner && activeUnitBill.additionalUsers?.length > 0) && (
-                  <div className="col-span-2 pt-1 border-t border-slate-200/60">
-                    <span className="text-slate-400 block text-[10px]">Pagador Registrado:</span>
+                  <div className="col-span-2 sm:col-span-4 pt-1.5 border-t border-slate-200/60">
+                    <span className="text-slate-400 text-[10px] mr-1.5">Pagador Registrado:</span>
                     <span className="font-bold text-[#0F3D2E]">
                       {activeUnitBill.additionalUsers.map(su => `${su.name} (${su.role})`).join(' | ')}
                     </span>
                   </div>
                 )}
-                <div>
-                  <span className="text-slate-400 block text-[10px]">RUT Titular:</span>
-                  <span className="font-bold text-slate-900">{activeUnitBill.rut || 'No informado'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">Prorrateo / Alícuota:</span>
-                  <span className="font-bold text-slate-900">{activeUnitBill.sharePercentage}%</span>
-                </div>
               </div>
 
+              {/* Diseño 2: Tabla de Desglose por Categoría de Gasto de la Comunidad (Ley 21.442) */}
+              {colillaDesign === 'transparencia' && groupedExpenses.length > 0 && (
+                <div className="border border-slate-200 rounded-xl overflow-hidden text-[11px]">
+                  <div className="bg-[#0F3D2E] text-white px-3 py-1.5 font-black uppercase tracking-wider text-[10px] flex justify-between">
+                    <span>Resumen de Egresos Comunidad por Categoría (Art. 6° Ley 21.442)</span>
+                    <span className="text-[#D4B895]">Prorrateo {activeUnitBill.sharePercentage}%</span>
+                  </div>
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-slate-50 text-slate-500 text-[9.5px] uppercase border-b border-slate-200">
+                      <tr>
+                        <th className="px-3 py-1">Categoría de Gasto</th>
+                        <th className="px-3 py-1 text-right">Total Comunidad</th>
+                        <th className="px-3 py-1 text-right">Su Proporción</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {groupedExpenses.map((cat) => (
+                        <tr key={cat.name}>
+                          <td className="px-3 py-1 font-medium text-slate-700">{cat.name} ({cat.expenses.length})</td>
+                          <td className="px-3 py-1 text-right font-mono text-slate-600">{formatCLP(cat.total)}</td>
+                          <td className="px-3 py-1 text-right font-mono font-bold text-slate-900">
+                            {formatCLP(Math.round(cat.total * ((parseFloat(activeUnitBill.sharePercentage) || 0) / 100)))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
               {/* Detalle numérico transparente */}
-              <div className="space-y-2 text-xs">
+              <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between py-1 border-b border-slate-100 text-slate-600">
                   <span>Total Gastos Operacionales Condominio:</span>
                   <span className="font-semibold text-slate-900">{formatCLP(commTotals.totalExpenses)}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-100 text-slate-600">
-                  <span>Fondo de Reserva ({currentCommunity.reserveFundPercentage}%):</span>
+                  <span>Fondo de Reserva Legal Art. 14° ({currentCommunity.reserveFundPercentage}%):</span>
                   <span className="font-semibold text-slate-900">{formatCLP(commTotals.reserveFundAmount)}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-100 font-bold text-slate-900">
@@ -16540,14 +16731,14 @@ _Administración ARANPRO_`;
 
                 {/* Convenio de Deuda Histórica Repactada si aplica */}
                 {fin.repactacionActive && (
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
                     <div className="flex justify-between font-black text-amber-950">
                       <span>
                         3. Cuota Deuda Histórica Repactada ({Math.min(fin.repactacionPaidInstallments + 1, fin.repactacionTotalInstallments)}/{fin.repactacionTotalInstallments}):
                       </span>
                       <span>{formatCLP(fin.repactedInstallment)}</span>
                     </div>
-                    <div className="flex justify-between text-[11px] text-amber-800">
+                    <div className="flex justify-between text-[10.5px] text-amber-800">
                       <span>Deuda Inicial: {formatCLP(fin.repactacionTotal)} | Ya Rebajado: -{formatCLP(fin.repactacionAlreadyPaidAmount)}</span>
                       <span className="font-bold">
                         Resta tras este pago: {formatCLP(Math.max(0, fin.repactacionRemainingBeforeThisMonth - fin.repactedInstallment))}
@@ -16576,23 +16767,86 @@ _Administración ARANPRO_`;
                 )}
 
                 {fin.favorBalance > 0 ? (
-                  <div className="flex justify-between py-3 text-sm font-black text-emerald-800 bg-emerald-50 px-3 rounded-xl border border-emerald-200">
+                  <div className="flex justify-between py-2.5 text-sm font-black text-emerald-800 bg-emerald-50 px-3 rounded-xl border border-emerald-200">
                     <span>SALDO A FAVOR (SE DESCUENTA EL PRÓXIMO MES):</span>
                     <span className="text-base">+ {formatCLP(fin.favorBalance)}</span>
                   </div>
                 ) : (
-                  <div className="flex justify-between py-3 text-sm font-black text-slate-900 border-t border-slate-200">
-                    <span>TOTAL A PAGAR (MONTO EN CONTRA):</span>
-                    <span className="text-base text-rose-700">{formatCLP(fin.pendingDebt)}</span>
+                  <div className="flex justify-between py-2.5 px-3 rounded-xl bg-[#0F3D2E] text-white text-sm font-black">
+                    <span className="text-[#D4B895]">TOTAL LÍQUIDO A PAGAR:</span>
+                    <span className="text-base font-mono">{formatCLP(fin.pendingDebt)}</span>
                   </div>
                 )}
               </div>
 
-              <div className="p-3 bg-[#F5F4EF] rounded-xl text-center text-xs text-[#0F3D2E] border border-[#D4B895]">
-                Fecha de Vencimiento: <strong>{formatDate(currentCommunity.activePeriod?.dueDate)}</strong>
+              {/* Datos Bancarios de Transferencia + Sello y Firma */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1 items-center">
+                <div className="sm:col-span-7 p-3 bg-[#F5F4EF] rounded-xl border border-[#D4B895] text-[10.5px] space-y-0.5">
+                  <div className="font-black uppercase text-[#0F3D2E] tracking-wider">
+                    Datos Oficiales de Transferencia — {currentCommunity.name}
+                  </div>
+                  <div className="text-slate-700">
+                    <strong>Banco:</strong> {bank.bank || 'Banco Estado'} • <strong>Cuenta:</strong> {bank.accountType || 'Cuenta Corriente'} N° <span className="font-mono font-bold">{bank.accountNumber || 'Por informar'}</span>
+                  </div>
+                  <div className="text-slate-700">
+                    <strong>RUT:</strong> <span className="font-mono">{bank.rut || currentCommunity.rut || '65.123.456-7'}</span> • <strong>Correo:</strong> {bank.email || companySettings?.email || 'pagos@aranpro.cl'}
+                  </div>
+                </div>
+                <div className="sm:col-span-5 flex items-center justify-between gap-2 px-2">
+                  <AranproOfficialSeal size="sm" showText={false} />
+                  <div className="text-right flex-1">
+                    {companySettings?.signatureDataUrl && (
+                      <img
+                        src={companySettings.signatureDataUrl}
+                        alt="Firma"
+                        className="max-h-11 object-contain ml-auto mb-0.5"
+                        style={{
+                          transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                          transformOrigin: 'bottom right'
+                        }}
+                      />
+                    )}
+                    <div className="border-t border-[#0F3D2E] pt-0.5">
+                      <span className="text-[9.5px] font-black text-slate-900 block">
+                        {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia M.'}
+                      </span>
+                      <span className="text-[8.5px] font-mono text-[#0F3D2E] font-bold block">
+                        RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
+              {/* Diseño 3: Cupón Recortable de Control de Pago para Conserjería / Recaudación */}
+              {colillaDesign === 'cupon' && (
+                <div className="pt-2 border-t-2 border-dashed border-slate-400 space-y-1.5 text-[10.5px]">
+                  <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-widest text-slate-500">
+                    <span>✂ Cupón Desprendible de Control de Pago — Conserjería / Administración</span>
+                    <span>Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-300">
+                    <div>
+                      <span className="text-[9px] text-slate-400 block uppercase">Comunidad / Unidad</span>
+                      <strong className="text-slate-900">{getUnitLabel(currentCommunity.type, false)} {activeUnitBill.number}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block uppercase">Copropietario</span>
+                      <strong className="text-slate-900 truncate block">{activeUnitBill.owner}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block uppercase">Monto Pagado / N° Op.</span>
+                      <strong className="text-[#0F3D2E] font-mono">{formatCLP(fin.pendingDebt)} / ___________</strong>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block uppercase">Timbre Recepción</span>
+                      <span className="text-slate-400">Fecha: ____/____/2026</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="no-print flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
                 <button
                   onClick={() => {
                     const commName = (currentCommunity?.name || 'Condominio').replace(/\s+/g, '_');
@@ -16846,20 +17100,23 @@ _Administración ARANPRO_`;
                 {/* Membrete Oficial para la Impresión / PDF */}
                 <div className="hidden print:block border-b-2 border-[#0F3D2E] pb-3">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-base font-black text-[#0F3D2E]">
-                        {companySettings.brandName} • Bitácora Oficial de Cobranza & Acuerdos
-                      </h2>
-                      <p className="text-xs text-slate-700">
-                        Comunidad: <strong>{currentCommunity.name}</strong> • Unidad: <strong>{bitacoraUnit.tower ? `${bitacoraUnit.tower} • ` : ''}{getUnitLabel(currentCommunity.type, false)} {bitacoraUnit.number}</strong>
-                      </p>
-                      <p className="text-xs text-slate-700">
-                        Copropietario: <strong>{bitacoraUnit.owner}</strong> • RUT: <strong>{bitacoraUnit.rut || 'No informado'}</strong>
-                      </p>
+                    <div className="flex items-center space-x-3">
+                      <AranproLogo variant="principal" className="h-12 w-auto" />
+                      <div className="border-l border-slate-300 pl-3">
+                        <h2 className="text-sm font-black text-[#0F3D2E] uppercase">
+                          {companySettings.brandName || 'ARANPRO'} • Bitácora Oficial de Cobranza & Acuerdos
+                        </h2>
+                        <p className="text-xs text-slate-700">
+                          Comunidad: <strong>{currentCommunity.name}</strong> • Unidad: <strong>{bitacoraUnit.tower ? `${bitacoraUnit.tower} • ` : ''}{getUnitLabel(currentCommunity.type, false)} {bitacoraUnit.number}</strong>
+                        </p>
+                        <p className="text-xs text-slate-700">
+                          Copropietario: <strong>{bitacoraUnit.owner}</strong> • RUT: <strong>{bitacoraUnit.rut || 'No informado'}</strong>
+                        </p>
+                      </div>
                     </div>
                     <div className="text-right text-[10px] text-slate-500 font-mono">
                       <p>Fecha Emisión: {new Date().toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                      <p>Administrador: {companySettings.administratorName}</p>
+                      <p>Administrador: {companySettings.administratorName} • RNAC N° {companySettings?.rnacNumber || '48.912'}</p>
                     </div>
                   </div>
                 </div>
@@ -17220,19 +17477,19 @@ _Administración ARANPRO_`;
                 
                 {/* Encabezado Institucional ARANPRO y Cita Legal */}
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b-2 border-[#0F3D2E] pb-4 gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <AranproLogo className="w-7 h-7 text-[#0F3D2E]" />
-                      <span className="font-black text-base tracking-wider text-[#0F3D2E]">
+                  <div className="flex items-center space-x-3.5">
+                    <AranproLogo variant="principal" className="h-12 w-auto" />
+                    <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
+                      <span className="font-black text-base tracking-wider text-[#0F3D2E] block leading-tight">
                         {companySettings.brandName} • {companySettings.subtitle}
                       </span>
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-[#D4B895]">
+                        RUT: {companySettings.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings.rnacNumber || '48.912'}
+                      </p>
+                      <p className="text-[11px] text-slate-600 font-medium">
+                        Administrador: <strong>{companySettings.administratorName}</strong> • {companySettings.email} • {companySettings.phone}
+                      </p>
                     </div>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-[#D4B895]">
-                      Gestión Inmobiliaria & Administración Profesional de Condominios
-                    </p>
-                    <p className="text-[11px] text-slate-600 font-medium">
-                      Administrador: <strong>{companySettings.administratorName}</strong> • {companySettings.email} • {companySettings.phone}
-                    </p>
                   </div>
                   <div className="text-right space-y-0.5">
                     <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 inline-block">
@@ -17388,9 +17645,18 @@ _Administración ARANPRO_`;
 
                   <div className="grid grid-cols-2 gap-8 pt-6 print:pt-8">
                     <div className="text-center space-y-1">
-                      <div className="h-20 w-full flex items-center justify-center mb-2">
+                      <div className="h-20 w-full flex items-center justify-center gap-3 mb-2">
+                        <AranproOfficialSeal size="sm" showText={false} />
                         {companySettings?.signatureDataUrl ? (
-                          <img src={companySettings.signatureDataUrl} alt="Firma Administrador" className="max-h-20 object-contain mx-auto" />
+                          <img
+                            src={companySettings.signatureDataUrl}
+                            alt="Firma Administrador"
+                            className="max-h-20 object-contain mx-auto"
+                            style={{
+                              transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                              transformOrigin: 'bottom center'
+                            }}
+                          />
                         ) : (
                           <div className="w-48 h-14 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] text-slate-400 bg-slate-50/50">
                             <span className="font-bold text-slate-500">Firma y Timbre</span>
@@ -17889,24 +18155,24 @@ _Administración ARANPRO_`;
                     >
                       {/* Membrete Institucional ARANPRO */}
                       <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <AranproLogo className="w-8 h-8 text-[#0F3D2E]" />
+                        <div className="flex items-center space-x-3.5">
+                          <AranproLogo variant="principal" className="h-12 w-auto" />
+                          <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
                             <div>
-                              <span className="font-black text-lg tracking-wider text-[#0F3D2E] block leading-none">
-                                {companySettings.brandName}
+                              <span className="font-black text-base tracking-wider text-[#0F3D2E] block leading-none">
+                                {companySettings.brandName} • {companySettings.subtitle}
                               </span>
-                              <span className="text-[10px] uppercase font-bold tracking-widest text-[#D4B895]">
-                                {companySettings.subtitle}
+                              <span className="text-[10px] font-mono text-slate-500 block mt-0.5">
+                                RUT: {companySettings.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings.rnacNumber || '48.912'}
                               </span>
                             </div>
+                            <p className="text-[11px] text-slate-600 font-medium">
+                              Administrador Profesional: <strong>{companySettings.administratorName}</strong>
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-mono">
+                              {companySettings.email} • {companySettings.phone}
+                            </p>
                           </div>
-                          <p className="text-[11px] text-slate-600 font-medium">
-                            Administrador Profesional: <strong>{companySettings.administratorName}</strong>
-                          </p>
-                          <p className="text-[10px] text-slate-500 font-mono">
-                            {companySettings.email} • {companySettings.phone}
-                          </p>
                         </div>
 
                         <div className="text-right space-y-1">
@@ -18076,9 +18342,18 @@ _Administración ARANPRO_`;
                       {/* FIRMAS LEGALES */}
                       <div className="pt-6 grid grid-cols-2 gap-8 text-center text-xs print:pt-8">
                         <div className="space-y-1">
-                          <div className="h-20 w-full flex items-center justify-center mb-2">
+                          <div className="h-20 w-full flex items-center justify-center gap-3 mb-2">
+                            <AranproOfficialSeal size="sm" showText={false} />
                             {companySettings?.signatureDataUrl ? (
-                              <img src={companySettings.signatureDataUrl} alt="Firma Administrador" className="max-h-20 object-contain mx-auto" />
+                              <img
+                                src={companySettings.signatureDataUrl}
+                                alt="Firma Administrador"
+                                className="max-h-20 object-contain mx-auto"
+                                style={{
+                                  transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                                  transformOrigin: 'bottom center'
+                                }}
+                              />
                             ) : (
                               <div className="w-48 h-14 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] text-slate-400 bg-slate-50/50">
                                 <span className="font-bold text-slate-500">Firma y Timbre</span>

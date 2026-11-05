@@ -287,6 +287,12 @@ export const CommitteeMeetingsAndLogModule = ({
       </tr>
     `).join('');
 
+    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
+    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
+    const sigHtml = companySettings?.signatureDataUrl
+      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 48px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
+      : ``;
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="es">
@@ -294,11 +300,11 @@ export const CommitteeMeetingsAndLogModule = ({
         <meta charset="utf-8">
         <title>Acta_Sesion_Comite_${minute.folio || 'FOLIO'}_${communityName.replace(/\s+/g, '_')}_${minute.date}.pdf</title>
         <style>
-          @page { size: letter; margin: 15mm 15mm 15mm 15mm; }
-          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; color: #0F172A; margin: 0; padding: 0; font-size: 11px; line-height: 1.4; }
+          @page { size: letter; margin: 12mm 14mm 12mm 14mm; }
+          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; color: #0F172A; margin: 0; padding: 10px 10px 10px 22px; font-size: 11px; line-height: 1.4; border-left: 2.5px solid ${primaryColor}; box-shadow: inset 4px 0 0 0 #fff, inset 5.5px 0 0 0 ${accentGold}; }
           .header-table { width: 100%; border-bottom: 2.5px solid ${primaryColor}; padding-bottom: 12px; margin-bottom: 14px; }
-          .brand-title { font-size: 20px; font-weight: 900; color: ${primaryColor}; letter-spacing: -0.5px; margin: 0; }
-          .brand-sub { font-size: 10px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+          .brand-title { font-size: 16px; font-weight: 900; color: ${primaryColor}; letter-spacing: -0.3px; margin: 0; }
+          .brand-sub { font-size: 9.5px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
           .doc-badge { background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 8px; padding: 8px 12px; text-align: right; }
           .kpi-row { display: table; width: 100%; table-layout: fixed; margin-bottom: 16px; border-spacing: 6px; }
           .kpi-cell { display: table-cell; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 10px; vertical-align: middle; }
@@ -307,20 +313,25 @@ export const CommitteeMeetingsAndLogModule = ({
           .section-title { font-size: 11.5px; font-weight: 900; text-transform: uppercase; color: ${primaryColor}; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; margin-top: 14px; margin-bottom: 8px; letter-spacing: 0.3px; display: flex; align-items: center; }
           table.data-table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 12px; }
           table.data-table th { background: #F1F5F9; color: #334155; font-size: 9.5px; font-weight: 800; text-transform: uppercase; padding: 6px 10px; border-bottom: 1.5px solid #CBD5E1; text-align: left; }
-          .signatures-table { width: 100%; margin-top: 35px; page-break-inside: avoid; }
-          .sig-box { width: 33%; text-align: center; vertical-align: top; padding: 0 10px; }
-          .sig-line { border-top: 1.5px solid #334155; margin-bottom: 5px; margin-top: 40px; }
-          .footer-note { margin-top: 25px; padding-top: 8px; border-top: 1px dashed #CBD5E1; font-size: 8.5px; color: #64748B; text-align: justify; line-height: 1.35; }
+          .signatures-table { width: 100%; margin-top: 28px; page-break-inside: avoid; }
+          .sig-box { width: 33%; text-align: center; vertical-align: bottom; padding: 0 10px; }
+          .sig-line { border-top: 1.5px solid #334155; margin-bottom: 5px; margin-top: 8px; }
+          .footer-note { margin-top: 20px; padding-top: 8px; border-top: 1px dashed #CBD5E1; font-size: 8.5px; color: #64748B; text-align: justify; line-height: 1.35; }
         </style>
       </head>
       <body>
         <table class="header-table">
           <tr>
             <td style="vertical-align: middle;">
-              <h1 class="brand-title">${brandName}</h1>
-              <div class="brand-sub">${subtitle}</div>
-              <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 4px;">
-                Condominio: ${communityName}
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
+                <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
+                  <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
+                  <div class="brand-sub">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+                  <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 3px;">
+                    Condominio: ${communityName}
+                  </div>
+                </div>
               </div>
             </td>
             <td style="vertical-align: middle; text-align: right;">
@@ -422,10 +433,14 @@ export const CommitteeMeetingsAndLogModule = ({
               <div style="font-family: monospace; font-size: 8.5px; color: #64748B;">RUT: ${minute.secretaryRut ? formatRut(minute.secretaryRut) : '—'}</div>
             </td>
             <td class="sig-box">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 44px; width: 44px; object-fit: contain;" />
+                <div>${sigHtml}</div>
+              </div>
               <div class="sig-line"></div>
-              <div style="font-weight: bold; color: #0F172A; font-size: 10.5px;">${minute.adminName || 'Administración ARANPRO'}</div>
-              <div style="color: #64748B; font-size: 9px; font-weight: 600;">Administrador Titular (RNAC)</div>
-              <div style="font-family: monospace; font-size: 8.5px; color: #64748B;">RUT: ${minute.adminRut ? formatRut(minute.adminRut) : '76.999.888-1'}</div>
+              <div style="font-weight: bold; color: #0F172A; font-size: 10.5px;">${companySettings?.adminName || minute.adminName || 'John Andrés Arancibia Maureira'}</div>
+              <div style="color: #64748B; font-size: 9px; font-weight: 600;">Administrador Titular (RNAC N° ${companySettings?.rnacNumber || '48.912'})</div>
+              <div style="font-family: monospace; font-size: 8.5px; color: #64748B;">RUT: ${companySettings?.adminRut || '14.882.140-K'}</div>
             </td>
           </tr>
         </table>
@@ -537,6 +552,12 @@ export const CommitteeMeetingsAndLogModule = ({
     const accentGold = companySettings?.colors?.accent || '#D4B895';
     const communityName = currentCommunity?.name || 'Condominio';
 
+    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
+    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
+    const sigHtml = companySettings?.signatureDataUrl
+      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 48px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
+      : ``;
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="es">
@@ -544,27 +565,32 @@ export const CommitteeMeetingsAndLogModule = ({
         <meta charset="utf-8">
         <title>Circular_Comite_${circularForm.folio}_${communityName.replace(/\s+/g, '_')}.pdf</title>
         <style>
-          @page { size: letter; margin: 15mm 15mm 15mm 15mm; }
-          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0F172A; margin: 0; padding: 0; font-size: 11.5px; line-height: 1.5; }
+          @page { size: letter; margin: 12mm 14mm 12mm 14mm; }
+          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0F172A; margin: 0; padding: 10px 10px 10px 22px; font-size: 11.5px; line-height: 1.5; border-left: 2.5px solid ${primaryColor}; box-shadow: inset 4px 0 0 0 #fff, inset 5.5px 0 0 0 ${accentGold}; }
           .header-table { width: 100%; border-bottom: 2.5px solid ${primaryColor}; padding-bottom: 12px; margin-bottom: 16px; }
-          .brand-title { font-size: 20px; font-weight: 900; color: ${primaryColor}; margin: 0; }
+          .brand-title { font-size: 16px; font-weight: 900; color: ${primaryColor}; margin: 0; }
           .doc-badge { background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 8px; padding: 8px 12px; text-align: right; }
           .title-box { background: #F8FAFC; border-left: 4px solid ${accentGold}; padding: 12px 14px; margin-bottom: 18px; border-radius: 4px; }
           .body-text { white-space: pre-wrap; font-size: 12px; color: #1E293B; line-height: 1.6; margin-bottom: 30px; text-align: justify; }
-          .signatures-table { width: 100%; margin-top: 45px; page-break-inside: avoid; }
-          .sig-box { width: 50%; text-align: center; vertical-align: top; padding: 0 25px; }
-          .sig-line { border-top: 1.5px solid #334155; margin-bottom: 6px; margin-top: 45px; }
-          .legal-footer { margin-top: 40px; padding-top: 10px; border-top: 1px dashed #CBD5E1; font-size: 9px; color: #64748B; text-align: justify; }
+          .signatures-table { width: 100%; margin-top: 35px; page-break-inside: avoid; }
+          .sig-box { width: 50%; text-align: center; vertical-align: bottom; padding: 0 25px; }
+          .sig-line { border-top: 1.5px solid #334155; margin-bottom: 6px; margin-top: 8px; }
+          .legal-footer { margin-top: 30px; padding-top: 10px; border-top: 1px dashed #CBD5E1; font-size: 9px; color: #64748B; text-align: justify; }
         </style>
       </head>
       <body>
         <table class="header-table">
           <tr>
             <td style="vertical-align: middle;">
-              <h1 class="brand-title">${brandName}</h1>
-              <div style="font-size: 10px; color: #64748B; font-weight: 600; text-transform: uppercase;">Gestión Integral de Condominios y Comunidades</div>
-              <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 4px;">
-                ${communityName}
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
+                <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
+                  <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
+                  <div style="font-size: 9.5px; color: #64748B; font-weight: 600; font-family: monospace;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+                  <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 3px;">
+                    ${communityName}
+                  </div>
+                </div>
               </div>
             </td>
             <td style="vertical-align: middle; text-align: right;">
@@ -599,10 +625,14 @@ export const CommitteeMeetingsAndLogModule = ({
               <div style="font-size: 8.5px; color: #64748B;">Ley N° 21.442 • Art. 17°</div>
             </td>
             <td class="sig-box">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 46px; width: 46px; object-fit: contain;" />
+                <div>${sigHtml}</div>
+              </div>
               <div class="sig-line"></div>
-              <div style="font-weight: bold; color: #0F172A; font-size: 11px;">Administración ${brandName}</div>
-              <div style="color: #64748B; font-size: 9.5px;">Administrador Titular (RNAC N° 48.912)</div>
-              <div style="font-size: 8.5px; color: #64748B;">Ejecución y Custodia Legal</div>
+              <div style="font-weight: bold; color: #0F172A; font-size: 11px;">${companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}</div>
+              <div style="color: #64748B; font-size: 9.5px;">Administrador Titular (RNAC N° ${companySettings?.rnacNumber || '48.912'})</div>
+              <div style="font-size: 8.5px; color: #64748B;">Ejecución y Custodia Legal • ${brandName}</div>
             </td>
           </tr>
         </table>

@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '../../../utils/formatters';
 import { printDocumentDirectly, downloadHtmlDocument } from '../../../utils/printDocument';
-import { AranproLogo } from '../../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal } from '../../common/MauranLogo';
 
 export const AssemblyMinutesSubTab = ({ currentCommunity }) => {
   const { addAssemblyMinute, deleteAssemblyMinute, companySettings } = useCommunity();
@@ -291,16 +291,16 @@ export const AssemblyMinutesSubTab = ({ currentCommunity }) => {
               id="assembly-minute-printable-doc"
               className="p-6 sm:p-9 space-y-6 text-slate-900 font-serif leading-relaxed text-xs sm:text-sm max-h-[75vh] overflow-y-auto bg-[#FDFBF7]"
             >
-              {/* Membrete Oficial Maestro ARANPRO */}
-              <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3 font-sans">
+              {/* Membrete Oficial Maestro ARANPRO (Alternativa 4) */}
+              <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5 font-sans">
                 <div className="flex items-center space-x-3.5">
-                  <AranproLogo className="h-10 w-auto" />
-                  <div className="border-l border-slate-300 pl-3 hidden sm:block space-y-0.5">
-                    <div className="text-[10px] font-black text-[#0F3D2E] uppercase tracking-wider">
-                      Gestión Inmobiliaria Integral
+                  <AranproLogo variant="principal" className="h-12 w-auto shrink-0" />
+                  <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
+                    <div className="text-[10.5px] font-black text-[#0F3D2E] uppercase tracking-wider">
+                      ARANPRO • Gestión Integral Inmobiliaria
                     </div>
-                    <div className="text-[9px] text-slate-500 font-mono">
-                      RUT: 76.999.888-1 • RNAC MINVU N° 48.912 • Fono: +56 9 5811 8504
+                    <div className="text-[9px] text-slate-600 font-mono font-bold">
+                      RUT: 76.999.888-8 • RNAC MINVU N° 48.912 • Fono: +56 9 5811 8504
                     </div>
                   </div>
                 </div>
@@ -390,12 +390,14 @@ export const AssemblyMinutesSubTab = ({ currentCommunity }) => {
                 </div>
 
                 <div className="space-y-1">
-                  <div className="h-14 flex items-center justify-center">
+                  <div className="h-16 flex items-center justify-center gap-3">
+                    <AranproOfficialSeal size="sm" showText={false} />
                     {companySettings?.signatureDataUrl ? (
                       <img 
                         src={companySettings.signatureDataUrl} 
                         alt="Firma Administrador" 
-                        className="max-h-14 object-contain mx-auto" 
+                        className="max-h-14 object-contain"
+                        style={{ transform: `scale(${companySettings?.signatureScale || 1.25})` }}
                       />
                     ) : (
                       <span className="font-mono text-emerald-800 text-xs italic font-bold">

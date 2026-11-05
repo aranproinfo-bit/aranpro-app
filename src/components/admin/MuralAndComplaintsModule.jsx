@@ -267,6 +267,12 @@ export const MuralAndComplaintsModule = ({
       ? '#FFFBEB'
       : '#ECFDF5';
 
+    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
+    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
+    const sigHtml = companySettings?.signatureDataUrl
+      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 48px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
+      : ``;
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="es">
@@ -274,11 +280,11 @@ export const MuralAndComplaintsModule = ({
         <meta charset="utf-8">
         <title>Diario_Mural_${communityName.replace(/\\s+/g, '_')}_${ann.title.slice(0, 20).replace(/\\s+/g, '_')}.pdf</title>
         <style>
-          @page { size: letter; margin: 16mm 16mm 16mm 16mm; }
+          @page { size: letter; margin: 14mm 14mm 14mm 14mm; }
           body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0F172A; margin: 0; padding: 0; }
-          .mural-frame { border: 4px solid ${primaryColor}; border-radius: 12px; padding: 24px; position: relative; }
-          .header-table { width: 100%; border-bottom: 2px solid ${accentGold}; padding-bottom: 14px; margin-bottom: 20px; }
-          .brand-title { font-size: 22px; font-weight: 900; color: ${primaryColor}; margin: 0; }
+          .mural-frame { border-left: 3px solid ${primaryColor}; box-shadow: inset 5px 0 0 0 #fff, inset 6.5px 0 0 0 ${accentGold}; padding: 14px 16px 14px 26px; position: relative; }
+          .header-table { width: 100%; border-bottom: 2px solid ${primaryColor}; padding-bottom: 14px; margin-bottom: 20px; }
+          .brand-title { font-size: 16px; font-weight: 900; color: ${primaryColor}; margin: 0; }
           .badge-box { background: ${priorityBg}; border: 2px solid ${priorityBadgeColor}; color: ${priorityBadgeColor}; font-weight: 900; font-size: 13px; text-transform: uppercase; padding: 6px 14px; border-radius: 8px; text-align: center; }
           .title-area { margin: 20px 0 16px 0; }
           .mural-title { font-size: 20px; font-weight: 900; color: #0F172A; line-height: 1.3; margin: 0; }
@@ -286,8 +292,8 @@ export const MuralAndComplaintsModule = ({
           .content-body { font-size: 14px; line-height: 1.65; color: #1E293B; white-space: pre-wrap; text-align: justify; margin-bottom: 30px; }
           .footer-box { margin-top: 35px; border-top: 1.5px dashed #CBD5E1; padding-top: 14px; font-size: 10px; color: #64748B; text-align: justify; }
           .sig-table { width: 100%; margin-top: 30px; }
-          .sig-td { width: 50%; text-align: center; padding: 0 30px; font-size: 11px; }
-          .sig-line { border-top: 1.5px solid #334155; margin-top: 40px; margin-bottom: 6px; }
+          .sig-td { width: 50%; text-align: center; vertical-align: bottom; padding: 0 30px; font-size: 11px; }
+          .sig-line { border-top: 1.5px solid #334155; margin-top: 8px; margin-bottom: 6px; }
           .notice-instruction { background: #FEF9C3; border: 1px solid #FDE047; padding: 8px 12px; font-size: 10px; font-weight: bold; color: #854D0E; border-radius: 6px; margin-bottom: 16px; text-align: center; }
         </style>
       </head>
@@ -300,10 +306,15 @@ export const MuralAndComplaintsModule = ({
           <table class="header-table">
             <tr>
               <td style="vertical-align: middle;">
-                <h1 class="brand-title">${brandName}</h1>
-                <div style="font-size: 11px; font-weight: bold; color: #64748B; text-transform: uppercase;">Administración y Gestión Inmobiliaria Integral</div>
-                <div style="font-size: 13px; font-weight: 800; color: ${primaryColor}; margin-top: 2px;">
-                  Comunidad: ${communityName}
+                <div style="display: flex; align-items: center; gap: 14px;">
+                  <img src="${logoUrl}" alt="ARANPRO" style="height: 54px; width: auto; object-fit: contain;" />
+                  <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
+                    <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
+                    <div style="font-size: 9.5px; font-weight: bold; color: #64748B; font-family: monospace;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+                    <div style="font-size: 13px; font-weight: 800; color: ${primaryColor}; margin-top: 2px;">
+                      Comunidad: ${communityName}
+                    </div>
+                  </div>
                 </div>
               </td>
               <td style="text-align: right; vertical-align: middle; width: 35%;">
@@ -337,9 +348,13 @@ export const MuralAndComplaintsModule = ({
           <table class="sig-table">
             <tr>
               <td class="sig-td">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                  <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 48px; width: 48px; object-fit: contain;" />
+                  <div>${sigHtml}</div>
+                </div>
                 <div class="sig-line"></div>
-                <strong>Administración ${brandName}</strong><br/>
-                <span style="font-size: 10px; color: #64748B;">Administrador Titular (RNAC N° 48.912)</span>
+                <strong>${companySettings?.adminName || companySettings?.administratorName || `Administración ${brandName}`}</strong><br/>
+                <span style="font-size: 10px; color: #64748B;">Administrador Titular (RNAC N° ${companySettings?.rnacNumber || '48.912'})</span>
               </td>
               <td class="sig-td">
                 <div class="sig-line"></div>
@@ -440,6 +455,12 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
     const primaryColor = companySettings?.colors?.primary || '#0F3D2E';
     const communityName = currentCommunity?.name || 'Condominio';
 
+    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
+    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
+    const sigHtml = companySettings?.signatureDataUrl
+      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 48px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
+      : ``;
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="es">
@@ -447,29 +468,34 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
         <meta charset="utf-8">
         <title>Notificacion_Multa_Casa_${targetUnit.number}_${communityName.replace(/\\s+/g, '_')}.pdf</title>
         <style>
-          @page { size: letter; margin: 15mm 15mm 15mm 15mm; }
-          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0F172A; margin: 0; padding: 0; font-size: 11px; line-height: 1.5; }
+          @page { size: letter; margin: 14mm 14mm 14mm 14mm; }
+          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0F172A; margin: 0; padding: 10px 10px 10px 22px; font-size: 11px; line-height: 1.5; border-left: 2.5px solid ${primaryColor}; box-shadow: inset 4px 0 0 0 #fff, inset 5.5px 0 0 0 #D4B895; }
           .header-table { width: 100%; border-bottom: 2.5px solid #991B1B; padding-bottom: 12px; margin-bottom: 16px; }
-          .brand-title { font-size: 19px; font-weight: 900; color: ${primaryColor}; margin: 0; }
+          .brand-title { font-size: 16px; font-weight: 900; color: ${primaryColor}; margin: 0; }
           .doc-badge { background: #FEF2F2; border: 1.5px solid #F87171; border-radius: 8px; padding: 6px 12px; text-align: right; }
           .title-box { background: #FEF2F2; border-left: 4px solid #DC2626; padding: 10px 14px; margin-bottom: 18px; border-radius: 4px; }
           .data-table { width: 100%; border-collapse: collapse; margin: 14px 0; }
           .data-table td { padding: 6px 10px; border: 1px solid #CBD5E1; font-size: 11px; }
           .data-table td.header { background: #F8FAFC; font-weight: bold; width: 35%; color: #334155; }
           .legal-box { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 10px 12px; margin: 16px 0; border-radius: 6px; font-size: 10px; text-align: justify; }
-          .sig-table { width: 100%; margin-top: 40px; }
-          .sig-td { width: 50%; text-align: center; padding: 0 25px; }
-          .sig-line { border-top: 1.5px solid #334155; margin-top: 40px; margin-bottom: 6px; }
+          .sig-table { width: 100%; margin-top: 35px; }
+          .sig-td { width: 50%; text-align: center; vertical-align: bottom; padding: 0 25px; }
+          .sig-line { border-top: 1.5px solid #334155; margin-top: 8px; margin-bottom: 6px; }
         </style>
       </head>
       <body>
         <table class="header-table">
           <tr>
             <td>
-              <h1 class="brand-title">${brandName}</h1>
-              <div style="font-size: 9.5px; color: #64748B; font-weight: 600; text-transform: uppercase;">Gestión Integral de Condominios y Comunidades</div>
-              <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 2px;">
-                Condominio: ${communityName}
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
+                <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
+                  <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
+                  <div style="font-size: 9.5px; color: #64748B; font-weight: 600; font-family: monospace;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+                  <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 2px;">
+                    Condominio: ${communityName}
+                  </div>
+                </div>
               </div>
             </td>
             <td style="text-align: right;">
@@ -526,9 +552,13 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
         <table class="sig-table">
           <tr>
             <td class="sig-td">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 46px; width: 46px; object-fit: contain;" />
+                <div>${sigHtml}</div>
+              </div>
               <div class="sig-line"></div>
-              <strong>Administración ${brandName}</strong><br/>
-              <span style="font-size: 9.5px; color: #64748B;">Administrador Titular (RNAC N° 48.912)</span>
+              <strong>${companySettings?.adminName || companySettings?.administratorName || `Administración ${brandName}`}</strong><br/>
+              <span style="font-size: 9.5px; color: #64748B;">Administrador Titular (RNAC N° ${companySettings?.rnacNumber || '48.912'})</span>
             </td>
             <td class="sig-td">
               <div class="sig-line"></div>

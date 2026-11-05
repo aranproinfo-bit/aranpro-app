@@ -5,7 +5,8 @@ import {
 } from 'lucide-react';
 import { formatCLP } from '../../../utils/formatters';
 import { printDocumentDirectly } from '../../../utils/printDocument';
-import { AranproLogo } from '../../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
+import { useCommunity } from '../../../context/CommunityContext';
 
 const UNIT_TIERS = [
   { id: 't1', min: 1, max: 50, rateUF: 0.30, label: '1 a 50 unidades', desc: 'Comunidades pequeñas (0.30 UF / unidad)' },
@@ -77,6 +78,10 @@ export const AgacechFeeCalculatorPanel = ({
   onApplyToDossier,
   showAlert
 }) => {
+  const { companySettings } = useCommunity();
+  const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
+  const signatureImage = empresaForm?.signatureDataUrl || companySettings?.signatureDataUrl || '';
+  const signatureScale = Number(companySettings?.signatureScale) || 1.65;
   const [calc, setCalc] = useState({
     condoName: proposalConfig?.targetCondo || 'Condominio en Evaluación',
     units: Number(proposalConfig?.targetUnits) || 64,
@@ -726,6 +731,10 @@ export const AgacechFeeCalculatorPanel = ({
                 <Sparkles className="w-4 h-4" />
                 Aplicar {formatCLP(result.finalMonthlyCLP)} al Dossier y Propuesta
               </button>
+              <div className="pt-1">
+                <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact label="Plantilla PDF:" />
+              </div>
+
               <button
                 type="button"
                 onClick={handlePrintFeeSheet}
@@ -743,26 +752,30 @@ export const AgacechFeeCalculatorPanel = ({
       <div className="hidden">
         <div
           id="printable-agacech-fee-sheet"
-          className="bg-white p-8 border border-slate-300 rounded-2xl max-w-3xl mx-auto space-y-5 text-slate-900"
+          data-pdf-style={pdfStyle}
+          className="bg-white p-7 pl-10 max-w-3xl mx-auto space-y-4 text-slate-900"
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-          <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-4">
-            <div className="flex items-center space-x-3">
-              <AranproLogo className="h-10 w-auto" />
-              <div>
+          <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
+            <div className="flex items-center space-x-3.5">
+              <AranproLogo variant="principal" className="h-13 w-auto" />
+              <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
                 <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                   ESTUDIO TÉCNICO DE HONORARIOS • MODELO AGACECH
                 </span>
                 <h2 className="text-base font-black text-[#0F3D2E] uppercase">
                   {empresaForm?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                 </h2>
-                <p className="text-[10px] text-slate-500 font-mono">
-                  RNAC Minvu N° {empresaForm?.rnacNumber || '48.912'} • {empresaForm?.email} • {empresaForm?.phone}
+                <p className="text-[10px] text-slate-600 font-mono font-semibold">
+                  RUT: {empresaForm?.companyRut || '76.999.888-8'} • RNAC Minvu N° {empresaForm?.rnacNumber || '48.912'}
+                </p>
+                <p className="text-[9.5px] text-slate-500 font-mono">
+                  {empresaForm?.email || 'contacto@aranpro.cl'} • {empresaForm?.phone || '+56 9 5811 8504'}
                 </p>
               </div>
             </div>
             <div className="text-right text-xs">
-              <span className="inline-block px-2.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] text-[10px] font-mono font-bold">
+              <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[10px] font-mono font-bold">
                 MEMORIA DE CÁLCULO
               </span>
               <p className="font-bold text-slate-800 mt-1">{calc.condoName || 'Comunidad en Evaluación'}</p>
@@ -770,14 +783,14 @@ export const AgacechFeeCalculatorPanel = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
             <div className="font-black text-[#0F3D2E] uppercase text-[11px]">
               1. Metodología Gremial Aplicada (Estándar AGACECH & Ley N° 21.442)
             </div>
             <p className="text-slate-600 text-[11px] leading-relaxed">
               El honorario de administración profesional se determina objetivamente en función de la escala de unidades, el equipamiento crítico que requiere inspección técnica en terreno (Técnico en Construcción / Construcción Civil), la dotación de trabajadores contratados y el factor de antigüedad de las instalaciones.
             </p>
-            <div className="p-2.5 bg-white rounded-lg border border-slate-200 font-mono text-[11px] text-[#0F3D2E] font-bold text-center">
+            <div className="p-2 bg-white rounded-lg border border-slate-200 font-mono text-[10.5px] text-[#0F3D2E] font-bold text-center">
               Honorario Final = máx( Piso Mínimo {result.minFloorUF} UF , [ Tarifa Base + Equipamiento + RRHH ] × Factor Antigüedad )
             </div>
           </div>
@@ -837,9 +850,38 @@ export const AgacechFeeCalculatorPanel = ({
             </tbody>
           </table>
 
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-            <div>{empresaForm?.adminName} • Técnico en Construcción • Construcción Civil</div>
-            <div>Estudio Técnico de Honorarios ARANPRO</div>
+          <div className="pt-3 border-t border-slate-200 flex items-end justify-between gap-4">
+            <AranproOfficialSeal
+              size="sm"
+              companyRut={empresaForm?.companyRut || '76.999.888-8'}
+              rnacNumber={empresaForm?.rnacNumber || '48.912'}
+            />
+            <div className="text-center min-w-[240px]">
+              <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
+                {signatureImage ? (
+                  <img
+                    src={signatureImage}
+                    alt="Firma Administrador"
+                    className="h-14 max-h-16 w-auto max-w-[240px] object-contain mx-auto"
+                    style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                  />
+                ) : (
+                  <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
+                )}
+              </div>
+              <div className="border-t-[1.5px] border-slate-800 pt-1">
+                <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm?.adminName || 'John Andrés Arancibia Maureira'}</p>
+                <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm?.adminRut || '14.882.140-K'} • RNAC Minvu N° {empresaForm?.rnacNumber || '48.912'}</p>
+                <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
+                  Técnico en Construcción • Construcción Civil
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-500 font-mono">
+            <div>ARANPRO Gestión Integral • {empresaForm?.website || 'https://aranpro.cl'}</div>
+            <div>Estudio Técnico de Honorarios • Estándar AGACECH & Ley N° 21.442</div>
           </div>
         </div>
       </div>

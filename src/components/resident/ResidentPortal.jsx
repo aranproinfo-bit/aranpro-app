@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatCLP, formatDate, getMonthName } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo } from '../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { UnitAccountStatementView } from '../admin/UnitAccountStatementView';
 import { LegalAspectsModal } from '../common/LegalAspectsModal';
@@ -28,6 +28,8 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [passwordSaved, setPasswordSaved] = useState(false);
+  const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
+  const [colillaDesign, setColillaDesign] = useState('ejecutiva');
   const [activePaymentReceipt, setActivePaymentReceipt] = useState(null);
   const [copiedBank, setCopiedBank] = useState(false);
   const [copiedItem, setCopiedItem] = useState(''); // 'account' | 'rut' | 'email' | 'amount'
@@ -1788,20 +1790,53 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
           <div 
             id="resident-bill-printable-doc"
-            className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-8 space-y-6"
+            className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-7 space-y-4 max-h-[92vh] overflow-y-auto"
           >
-            
-            <div className="flex items-center justify-between pb-4 border-b-2 border-[#0F3D2E]">
+            {/* Selector de las 3 alternativas de colilla y 3 estilos de hoja */}
+            <div className="no-print space-y-2 pb-3 border-b border-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-[#F5F4EF] px-3 py-2 rounded-xl border border-[#D4B895]/60">
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#0F3D2E]">
+                  Diseño de Colilla:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: 'ejecutiva', label: '1. Ejecutiva Oficial' },
+                    { id: 'cupon', label: '2. Con Cupón Recortable' }
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setColillaDesign(opt.id)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        colillaDesign === opt.id
+                          ? 'bg-[#0F3D2E] text-[#D4B895] shadow-xs'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+            </div>
+
+            <div className="flex items-start justify-between pb-3.5 border-b-2 border-[#0F3D2E] gap-3">
               <div className="flex items-center space-x-3.5">
-                <AranproLogo className="h-10 w-auto" />
-                <div>
-                  <h3 className="text-base font-black text-slate-900">{community.name}</h3>
-                  <p className="text-xs text-slate-500">Cobro de Gasto Común Oficial • Ley N° 21.442</p>
+                <AranproLogo variant="principal" className="h-12 w-auto" />
+                <div className="border-l border-slate-300 pl-3.5">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#0F3D2E] block">
+                    {companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL INMOBILIARIA
+                  </span>
+                  <h3 className="text-base font-black text-slate-900 leading-tight">{community.name}</h3>
+                  <p className="text-[10.5px] text-slate-500 font-mono">
+                    RUT Comunidad: {community.rut || community.bankInfo?.rut || '65.123.456-7'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowBillModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-600"
+                className="no-print p-1 text-slate-400 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -1904,15 +1939,60 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
               )}
             </div>
 
-            <div className="p-3 bg-[#F5F4EF] rounded-xl text-center text-xs text-[#0F3D2E] border border-[#D4B895]">
-              Fecha de Vencimiento: <strong>{formatDate(community.activePeriod.dueDate)}</strong>
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1 items-center">
+              <div className="sm:col-span-7 p-3 bg-[#F5F4EF] rounded-xl text-[10.5px] text-[#0F3D2E] border border-[#D4B895] space-y-0.5">
+                <div className="font-black uppercase tracking-wider">
+                  Vencimiento: <strong>{formatDate(community.activePeriod.dueDate)}</strong>
+                </div>
+                <div className="text-slate-700">
+                  <strong>Banco:</strong> {community.bankInfo?.bank || 'Banco Estado'} • <strong>Cta:</strong> {community.bankInfo?.accountType || 'Cta. Corriente'} N° <span className="font-mono font-bold">{community.bankInfo?.accountNumber || 'Por informar'}</span>
+                </div>
+              </div>
+              <div className="sm:col-span-5 flex items-center justify-between gap-2 px-2">
+                <AranproOfficialSeal size="sm" showText={false} />
+                <div className="text-right flex-1">
+                  {companySettings?.signatureDataUrl && (
+                    <img
+                      src={companySettings.signatureDataUrl}
+                      alt="Firma"
+                      className="max-h-11 object-contain ml-auto mb-0.5"
+                      style={{
+                        transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                        transformOrigin: 'bottom right'
+                      }}
+                    />
+                  )}
+                  <div className="border-t border-[#0F3D2E] pt-0.5">
+                    <span className="text-[9.5px] font-black text-slate-900 block">
+                      {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia M.'}
+                    </span>
+                    <span className="text-[8.5px] font-mono text-[#0F3D2E] font-bold block">
+                      RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            {colillaDesign === 'cupon' && (
+              <div className="pt-2 border-t-2 border-dashed border-slate-400 space-y-1 text-[10px]">
+                <div className="flex justify-between font-black uppercase tracking-wider text-slate-500">
+                  <span>✂ Cupón Desprendible de Control de Pago</span>
+                  <span>Casa N° {unit.number} — {community.name}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-300">
+                  <div><strong>Titular:</strong> {unit.owner}</div>
+                  <div><strong>Total:</strong> {formatCLP(totalToPay)}</div>
+                  <div><strong>Fecha / Op:</strong> ______________</div>
+                </div>
+              </div>
+            )}
+
+            <div className="no-print flex items-center justify-between pt-2">
               <button
                 onClick={() => {
                   const commName = (community?.name || 'Condominio').replace(/\s+/g, '_');
-                  printDocumentDirectly('resident-bill-printable-doc', `Colilla_Gasto_Comun_Casa_${unit.number}_${commName}`, { fitPage: true });
+                  printDocumentDirectly('resident-bill-printable-doc', `Colilla_Gasto_Comun_Casa_${unit.number}_${commName}`, { fitPage: true, pdfStyle });
                 }}
                 className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
               >
@@ -1936,14 +2016,18 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
           <div 
             id="resident-payment-receipt-printable-doc"
-            className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-7 space-y-5"
+            className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-7 space-y-4"
           >
-            <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-4">
+            <div className="no-print pb-2 border-b border-slate-100">
+              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+            </div>
+
+            <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-3.5">
               <div className="flex items-center space-x-3">
-                <AranproLogo className="h-9 w-auto" />
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#0F3D2E] block">
-                    ARANPRO • Gestión Integral
+                <AranproLogo variant="principal" className="h-12 w-auto" />
+                <div className="border-l border-slate-300 pl-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#0F3D2E] block">
+                    ARANPRO • GESTIÓN INTEGRAL
                   </span>
                   <h3 className="text-base font-black text-slate-900">Comprobante Oficial de Pago</h3>
                   <p className="text-xs font-mono font-bold text-emerald-700">
@@ -1953,7 +2037,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
               </div>
               <button
                 onClick={() => setActivePaymentReceipt(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="no-print text-slate-400 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -1987,28 +2071,39 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
             </div>
 
             {/* Timbre y Firma Digital de Emisión */}
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
-              <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-500 font-mono block">Recaudado y Validado</span>
-                <span className="font-bold text-[#0F3D2E] text-[11px] block">{companySettings?.adminName || companySettings?.administratorName || 'Administración ARANPRO'}</span>
-                <span className="text-[9px] text-slate-500 font-mono">RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}</span>
-              </div>
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs gap-3">
+              <AranproOfficialSeal size="sm" />
               <div className="text-right">
                 {companySettings?.signatureDataUrl ? (
-                  <img src={companySettings.signatureDataUrl} alt="Firma" className="max-h-11 object-contain ml-auto" />
+                  <img
+                    src={companySettings.signatureDataUrl}
+                    alt="Firma"
+                    className="max-h-14 object-contain ml-auto mb-1"
+                    style={{
+                      transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                      transformOrigin: 'bottom right'
+                    }}
+                  />
                 ) : (
                   <div className="h-6"></div>
                 )}
-                <span className="text-[9px] font-mono text-emerald-800 font-bold block">✓ Timbre Digital Verificado</span>
+                <div className="border-t border-slate-300 pt-1">
+                  <span className="font-bold text-[#0F3D2E] text-[11px] block">
+                    {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}
+                  </span>
+                  <span className="text-[9px] font-mono text-emerald-800 font-bold block">
+                    ✓ Timbre Digital Verificado • RNAC N° {companySettings?.rnacNumber || '48.912'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="no-print flex items-center justify-between pt-2">
               <button
                 onClick={() => {
                   const commName = (community?.name || 'Condominio').replace(/\s+/g, '_');
                   const folio = (activePaymentReceipt.receiptFolio || 'REC').replace(/[^a-zA-Z0-9_-]/g, '_');
-                  printDocumentDirectly('resident-payment-receipt-printable-doc', `Recibo_Pago_${folio}_Casa_${unit.number}_${commName}`, { fitPage: true });
+                  printDocumentDirectly('resident-payment-receipt-printable-doc', `Recibo_Pago_${folio}_Casa_${unit.number}_${commName}`, { fitPage: true, pdfStyle });
                 }}
                 className="px-4 py-2 bg-[#0F3D2E] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
               >

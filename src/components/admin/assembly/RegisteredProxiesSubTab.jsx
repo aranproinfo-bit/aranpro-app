@@ -455,17 +455,17 @@ RUT: __________________________________`;
               id="proxy-legal-template-doc"
               className="p-5 bg-white rounded-xl border border-slate-300 font-sans text-xs text-slate-800 space-y-4"
             >
-              {/* Membrete Oficial ARANPRO */}
-              <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5 font-sans">
-                <div className="flex items-center space-x-3">
+              {/* Membrete Oficial ARANPRO (Alternativa 4) */}
+              <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3 font-sans">
+                <div className="flex items-center space-x-3.5">
                   <img 
-                    src="/brand/ARANPRO_logo_horizontal_transparente_trimmed.png" 
+                    src="/brand/ARANPRO_logo_principal_transparente_trimmed.png" 
                     alt="ARANPRO" 
-                    className="h-8 w-auto object-contain"
+                    className="h-11 w-auto object-contain shrink-0"
                   />
-                  <div className="border-l border-slate-300 pl-2.5">
-                    <div className="text-[9.5px] font-black text-[#0F3D2E] uppercase">Gestión Inmobiliaria Integral</div>
-                    <div className="text-[8.5px] text-slate-500 font-mono">RUT: 76.999.888-1 • Reg. MINVU N° 44.201</div>
+                  <div className="border-l border-slate-300 pl-3">
+                    <div className="text-[10px] font-black text-[#0F3D2E] uppercase tracking-wider">ARANPRO • Gestión Integral Inmobiliaria</div>
+                    <div className="text-[9px] text-slate-600 font-mono font-bold">RUT: 76.999.888-8 • RNAC MINVU N° 48.912</div>
                   </div>
                 </div>
                 <div className="text-right text-xs">

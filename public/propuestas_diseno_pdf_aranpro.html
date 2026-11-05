@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratorio Visual de Estándares PDF — ARANPRO (Logos Oficiales)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #e2e8f0;
+      color: #0f172a;
+    }
+    .serif-title {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .paper-sheet {
+      background: #ffffff;
+      box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.22), 0 0 1px 1px rgba(15, 23, 42, 0.08);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+  <!-- HEADER PRINCIPAL -->
+  <div class="max-w-7xl mx-auto mb-5 bg-[#0F3D2E] text-white rounded-2xl p-6 shadow-xl border border-[#D4B895]/40">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <img src="brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello ARANPRO" class="h-16 w-16 object-contain bg-white rounded-full p-1 shadow-md shrink-0" />
+        <div>
+          <span class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-widest bg-[#D4B895]/20 text-[#D4B895] border border-[#D4B895]/40 mb-1">
+            Logos Oficiales Integrados • Sin el cuadrado verde artificial
+          </span>
+          <h1 class="text-xl md:text-2xl font-extrabold tracking-tight">
+            Laboratorio Visual PDF con tu Encabezado Original y Logos Reales ARANPRO
+          </h1>
+          <p class="text-xs md:text-sm text-emerald-100/90 mt-0.5 max-w-3xl">
+            Eliminamos por completo ese cuadro verde genérico <code class="bg-black/30 px-1.5 py-0.5 rounded text-[#D4B895]">AP</code> y restauramos tu <strong>encabezado institucional original</strong> usando tus logos oficiales de <code class="bg-black/30 px-1.5 py-0.5 rounded text-[#D4B895]">04_Logos ARANPRO</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 bg-[#09291E] p-1.5 rounded-xl border border-emerald-800/60 self-start">
+        <button onclick="switchSection('global')" id="tab-global" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-[#D4B895] text-[#0F3D2E] shadow">
+          1. 4 Estilos de Hoja + Logos
+        </button>
+        <button onclick="switchSection('logos')" id="tab-logos" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-emerald-100 hover:bg-white/10">
+          2. Galería de tus 6 Logos en Documentos
+        </button>
+        <button onclick="switchSection('colillas')" id="tab-colillas" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-emerald-100 hover:bg-white/10">
+          3. 3 Diseños de Colilla Gasto Común
+        </button>
+        <button onclick="switchSection('auditoria')" id="tab-auditoria" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-emerald-100 hover:bg-white/10">
+          4. Auditoría de los 32 PDFs
+        </button>
+      </div>
+    </div>
+
+    <!-- SELECTOR INTERACTIVO DE LOGO EN TIEMPO REAL -->
+    <div class="mt-4 pt-4 border-t border-emerald-800/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="text-xs font-bold text-[#D4B895] uppercase tracking-wider flex items-center gap-2">
+        <span>✨ Pruébalo en vivo: Cambia el logo del encabezado en todas las hojas con 1 clic:</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="setHeaderLogo('horizontal')" id="logo-btn-horizontal" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-[#0F3D2E] shadow flex items-center gap-2">
+          <span>1. Horizontal Clásico (Encabezado Anterior)</span>
+        </button>
+        <button onclick="setHeaderLogo('sello-integral')" id="logo-btn-sello-integral" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-900/70 text-emerald-100 hover:bg-emerald-800 border border-[#D4B895]/40 flex items-center gap-2">
+          <span>2. Sello Circular Dorado "Gestión Integral"</span>
+        </button>
+        <button onclick="setHeaderLogo('sello-ap')" id="logo-btn-sello-ap" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-900/70 text-emerald-100 hover:bg-emerald-800 border border-[#D4B895]/40 flex items-center gap-2">
+          <span>3. Sello Circular Dorado "ARANPRO"</span>
+        </button>
+        <button onclick="setHeaderLogo('principal')" id="logo-btn-principal" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-900/70 text-emerald-100 hover:bg-emerald-800 border border-[#D4B895]/40 flex items-center gap-2">
+          <span>4. Logo Vertical Principal</span>
+        </button>
+        <button onclick="setHeaderLogo('isotipo')" id="logo-btn-isotipo" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-900/70 text-emerald-100 hover:bg-emerald-800 border border-[#D4B895]/40 flex items-center gap-2">
+          <span>5. Isotipo AP Transparente</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- SECCIÓN 1: 4 ALTERNATIVAS DE HOJA MAESTRA CON ENCABEZADO ORIGINAL   -->
+  <!-- =================================================================== -->
+  <div id="section-global" class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Barra de filtro de vista -->
+    <div class="bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+      <div class="text-xs text-slate-700">
+        <strong>Encabezado Anterior Restaurado:</strong> Logo oficial a la izquierda + Bloque <code class="bg-slate-100 px-1.5 py-0.5 rounded font-bold text-[#0F3D2E]">ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA</code> + Credenciales RNAC/RUT + Etiqueta superior derecha sobre línea divisoria <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono">#0F3D2E</code>.
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        <button onclick="highlightStyle('all')" id="btn-style-all" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0F3D2E] text-white">Ver las 4 Hojas</button>
+        <button onclick="highlightStyle('alt1')" id="btn-style-alt1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Alt 1: Línea Verde Izquierda</button>
+        <button onclick="highlightStyle('alt2')" id="btn-style-alt2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Alt 2: Hoja Limpia (Sin Borde)</button>
+        <button onclick="highlightStyle('alt3')" id="btn-style-alt3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Alt 3: Membrete Verde & Oro</button>
+        <button onclick="highlightStyle('alt4')" id="btn-style-alt4" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Alt 4: Sello Circular Dorado + Timbre</button>
+      </div>
+    </div>
+
+    <div id="global-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- =============================================================== -->
+      <!-- ALTERNATIVA 1: ENCABEZADO ORIGINAL + LÍNEA FINA VERDE IZQUIERDA -->
+      <!-- =============================================================== -->
+      <div id="card-alt1" class="flex flex-col">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-[#0F3D2E] border border-emerald-300">
+              ALTERNATIVA 1 • Encabezado Original + Línea Vertical Izquierda Fina
+            </span>
+            <h3 class="text-sm font-extrabold text-slate-900 mt-1">
+              Mantiene tu encabezado clásico, sin cuadro alrededor y con filete izquierdo verde/dorado
+            </h3>
+          </div>
+        </div>
+
+        <div class="paper-sheet rounded-sm p-8 pl-10 flex flex-col justify-between min-h-[670px]">
+          <!-- Filete vertical izquierdo fino (3px verde bosque + tramo superior champán dorado) -->
+          <div class="absolute left-3.5 top-6 bottom-6 w-[3px] bg-[#0F3D2E] rounded-full"></div>
+          <div class="absolute left-3.5 top-6 h-24 w-[3px] bg-[#D4B895] rounded-t-full"></div>
+
+          <div>
+            <!-- ENCABEZADO ANTERIOR EXACTO CON LOGO REAL -->
+            <div class="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-3.5">
+              <div class="flex items-center gap-3.5">
+                <img
+                  src="brand/ARANPRO_logo_horizontal_transparente_trimmed.png"
+                  alt="ARANPRO Logo"
+                  class="dynamic-header-logo h-12 w-auto object-contain shrink-0"
+                />
+                <div class="space-y-0.5 border-l border-slate-300 pl-3.5">
+                  <div class="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
+                    ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA
+                  </div>
+                  <p class="text-[10px] text-slate-600 font-mono font-semibold">
+                    RUT: 76.999.888-8 • RNAC MINVU N° 48.912
+                  </p>
+                  <p class="text-[9.5px] text-slate-500">
+                    contacto@aranpro.cl • +56 9 5811 8504 • Huechuraba, Santiago
+                  </p>
+                </div>
+              </div>
+
+              <div class="text-right space-y-0.5 shrink-0">
+                <span class="inline-block px-2.5 py-0.5 bg-[#0F3D2E]/10 text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded border border-[#0F3D2E]/20">
+                  PRESENTACIÓN COMITÉ 2026
+                </span>
+                <p class="text-[10.5px] font-bold text-slate-800">
+                  Carta de Valor e Invitación Técnica
+                </p>
+                <p class="text-[9.5px] text-slate-500">
+                  Ley N° 21.442 de Copropiedad Inmobiliaria
+                </p>
+              </div>
+            </div>
+
+            <!-- Bloque Destinatario Formal -->
+            <div class="mt-3.5 text-[10.5px] text-slate-700 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 flex flex-wrap justify-between gap-2">
+              <div>
+                <div><strong>Dirigido cordialmente a:</strong> <strong class="text-slate-900">Señores Miembros del Comité de Administración</strong></div>
+                <div class="mt-0.5"><strong>Presentado por:</strong> John Andrés Arancibia Maureira • Administrador RNAC N° 48.912</div>
+              </div>
+              <div class="text-right">
+                <div><strong>Motivo de Invitación:</strong> <span class="text-[#0F3D2E] font-bold">Diagnóstico Técnico sin Costo</span></div>
+                <div class="text-[9.5px] text-slate-500 mt-0.5">Construcción Civil & Técnico en Construcción</div>
+              </div>
+            </div>
+
+            <!-- Cuerpo de la Carta -->
+            <div class="mt-3.5 space-y-2.5 text-[11px] leading-relaxed text-slate-700">
+              <p>
+                <strong>Estimados integrantes del Comité de Administración:</strong> Junto con saludarles cordialmente y desearles una excelente gestión en su comunidad, ponemos a su disposición nuestra firma <strong>ARANPRO Gestión Integral</strong>, liderada directamente por un profesional del área de la <strong>Construcción Civil</strong> inscrito en el Registro Nacional de Administradores de Condominios (<strong>RNAC MINVU N° 48.912</strong>).
+              </p>
+
+              <!-- 4 Pilares -->
+              <div class="grid grid-cols-2 gap-2.5 pt-1">
+                <div class="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200 border-l-4 border-l-[#0F3D2E]">
+                  <div class="text-[10px] font-extrabold text-[#0F3D2E] uppercase">1. Especialización en Construcción Civil</div>
+                  <p class="text-[9.5px] text-slate-600 mt-0.5">Supervisión técnica real en terreno de salas de bombas, calderas, ascensores, techumbres y contratos de mantención.</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200 border-l-4 border-l-[#0F3D2E]">
+                  <div class="text-[10px] font-extrabold text-[#0F3D2E] uppercase">2. Transparencia Financiera Total</div>
+                  <p class="text-[9.5px] text-slate-600 mt-0.5">Conciliación bancaria mensual exacta; cada factura, boleta y pago a proveedor disponible en línea 24/7 para el Comité.</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200 border-l-4 border-l-[#0F3D2E]">
+                  <div class="text-[10px] font-extrabold text-[#0F3D2E] uppercase">3. Rigor Legal Ley N° 21.442</div>
+                  <p class="text-[9.5px] text-slate-600 mt-0.5">Gestión formal de asambleas, actas, actualización de reglamento de copropiedad y control efectivo de morosidad.</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200 border-l-4 border-l-[#0F3D2E]">
+                  <div class="text-[10px] font-extrabold text-[#0F3D2E] uppercase">4. Plataforma Web & App Incluida</div>
+                  <p class="text-[9.5px] text-slate-600 mt-0.5">Portal digital propio incluido sin costo adicional para la comunidad (colillas, pagos, certificados y mural digital).</p>
+                </div>
+              </div>
+
+              <!-- Recuadro de Beneficio con Alto Contraste en Papel -->
+              <div class="bg-[#F4F8F6] border border-[#0F3D2E]/30 border-l-4 border-l-[#0F3D2E] p-3 rounded-xl">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#0F3D2E]">
+                    ★ Beneficio Sin Costo ni Compromiso para su Comité de Administración
+                  </span>
+                  <span class="text-[9px] font-extrabold px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895]">100% Gratuito</span>
+                </div>
+                <p class="text-[10px] text-slate-800 font-medium mt-1">
+                  Ponemos a disposición del Comité una <strong>visita técnica sin costo ni compromiso</strong> para realizar una inspección visual de sus instalaciones críticas (sala de bombas, tableros, cubiertas o puntos sensibles) y entregarles una segunda opinión técnica profesional.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pie y Firma con Sello Circular Real -->
+          <div class="pt-3 mt-3 border-t border-slate-200">
+            <div class="flex items-end justify-between">
+              <div class="flex items-center gap-3">
+                <img src="brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello Dorado ARANPRO" class="h-14 w-14 object-contain" />
+                <div class="text-[9.5px] text-slate-600 space-y-0.5">
+                  <div class="font-extrabold text-[#0F3D2E] uppercase">Canales Directos para el Comité:</div>
+                  <div>📞 <strong>+56 9 5811 8504</strong> • ✉️ <strong>contacto@aranpro.cl</strong></div>
+                  <div>🌐 <strong>https://aranpro.cl</strong> • Atención Presencial en Terreno</div>
+                </div>
+              </div>
+
+              <div class="text-center w-64">
+                <svg class="h-14 mx-auto -mb-2 text-slate-900" viewBox="0 0 220 70" fill="none">
+                  <path d="M25 52 C45 15, 65 60, 82 22 C95 45, 110 18, 135 42 C155 25, 175 40, 195 28" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>
+                  <path d="M40 38 L185 34" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M72 12 C68 35, 70 55, 76 64" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="border-t-[1.5px] border-slate-800 pt-1">
+                  <div class="text-[11px] font-extrabold text-slate-900">John Andrés Arancibia Maureira</div>
+                  <div class="text-[9.5px] font-semibold text-slate-600">RUT: 14.882.140-K • RNAC MINVU N° 48.912</div>
+                  <div class="text-[9px] font-bold text-[#0F3D2E]">Técnico en Construcción • Construcción Civil</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============================================================== -->
+      <!-- ALTERNATIVA 2: ENCABEZADO ORIGINAL + HOJA 100% LIMPIA SIN LÍNEA -->
+      <!-- =============================================================== -->
+      <div id="card-alt2" class="flex flex-col">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-200 text-slate-800">
+              ALTERNATIVA 2 • Encabezado Original + Hoja Abierta ("Simplemente Nada")
+            </span>
+            <h3 class="text-sm font-extrabold text-slate-900 mt-1">
+              Tu mismo encabezado institucional con el Sello Circular Dorado, sin bordes laterales ni cajas
+            </h3>
+          </div>
+        </div>
+
+        <div class="paper-sheet rounded-sm p-8 flex flex-col justify-between min-h-[670px]">
+          <div>
+            <!-- ENCABEZADO CON EL SELLO CIRCULAR DORADO QUE SUBISTE -->
+            <div class="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
+              <div class="flex items-center gap-3.5">
+                <img
+                  src="brand/ARANPRO_sello_circular_integral_transparente.png"
+                  alt="Sello ARANPRO"
+                  class="dynamic-header-logo h-16 w-16 object-contain shrink-0"
+                />
+                <div class="space-y-0.5">
+                  <div class="text-sm font-black tracking-tight text-[#0F3D2E] uppercase">
+                    ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA
+                  </div>
+                  <p class="text-[10px] text-slate-600 font-mono font-semibold">
+                    RUT: 76.999.888-8 • RNAC MINVU N° 48.912
+                  </p>
+                  <p class="text-[9.5px] text-slate-500">
+                    contacto@aranpro.cl • +56 9 5811 8504 • Huechuraba, Santiago
+                  </p>
+                </div>
+              </div>
+
+              <div class="text-right space-y-0.5 shrink-0">
+                <span class="inline-block px-2.5 py-0.5 bg-[#0F3D2E]/10 text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded border border-[#0F3D2E]/20">
+                  DOSSIER EJECUTIVO 2026
+                </span>
+                <p class="text-[10.5px] font-bold text-slate-800">
+                  Propuesta Técnica y Financiera
+                </p>
+                <p class="text-[9.5px] text-slate-500">
+                  Ley N° 21.442 • Estándar AGACECH
+                </p>
+              </div>
+            </div>
+
+            <!-- Ficha Abierta Sin Cuadros Pesados -->
+            <div class="mt-4 grid grid-cols-3 gap-4 py-2.5 border-b border-slate-200 text-[10px]">
+              <div>
+                <span class="text-slate-400 font-bold uppercase block text-[8.5px]">Dirigido cordialmente a:</span>
+                <span class="font-bold text-slate-900">Comité de Administración</span>
+              </div>
+              <div>
+                <span class="text-slate-400 font-bold uppercase block text-[8.5px]">Administrador Titular:</span>
+                <span class="font-bold text-slate-900">John Arancibia M. (RNAC 48.912)</span>
+              </div>
+              <div>
+                <span class="text-slate-400 font-bold uppercase block text-[8.5px]">Especialidad Técnica:</span>
+                <span class="font-bold text-[#0F3D2E]">Construcción Civil & Mantención</span>
+              </div>
+            </div>
+
+            <!-- Cuerpo Editorial Limpio -->
+            <div class="mt-4 space-y-3 text-[11px] leading-relaxed text-slate-700">
+              <p>
+                Presentamos al Comité de Administración nuestra metodología de trabajo para una gestión transparente, preventiva y rigurosa, respaldada por formación profesional en <strong>Construcción Civil</strong> y plataforma tecnológica propia.
+              </p>
+
+              <table class="w-full text-left border-collapse mt-2">
+                <thead>
+                  <tr class="border-b-2 border-[#0F3D2E] text-[9.5px] uppercase tracking-wider text-[#0F3D2E]">
+                    <th class="py-1.5">Pilar de Gestión ARANPRO</th>
+                    <th class="py-1.5">Entregable Verificable para el Comité</th>
+                    <th class="py-1.5 text-right">Garantía</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-[10px]">
+                  <tr>
+                    <td class="py-2 font-bold text-slate-900">1. Auditoría Técnica de Activos</td>
+                    <td class="py-2 text-slate-600">Inspección en terreno de salas de bombas, calderas, ascensores y techumbres.</td>
+                    <td class="py-2 text-right font-bold text-[#0F3D2E]">Informe 30 días</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 font-bold text-slate-900">2. Rendición Contable Transparente</td>
+                    <td class="py-2 text-slate-600">Conciliación bancaria mensual al peso con respaldo digital de cada egreso.</td>
+                    <td class="py-2 text-right font-bold text-[#0F3D2E]">Acceso 24/7</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 font-bold text-slate-900">3. Gestión Laboral y Proveedores</td>
+                    <td class="py-2 text-slate-600">Control de asistencia, F30-1, turnos OS-10 y licitación competitiva de contratos.</td>
+                    <td class="py-2 text-right font-bold text-[#0F3D2E]">Mensual</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 font-bold text-slate-900">4. Cumplimiento Ley N° 21.442</td>
+                    <td class="py-2 text-slate-600">Ejecución de acuerdos de asamblea, actas formales y cobranza oportuna.</td>
+                    <td class="py-2 text-right font-bold text-[#0F3D2E]">Permanente</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="mt-3 p-3 bg-[#F5F4EF] border-l-4 border-[#D4B895] rounded-r-lg">
+                <div class="text-[10px] font-extrabold uppercase tracking-wider text-[#0F3D2E]">
+                  ★ Invitación sin costo ni compromiso para su Comité:
+                </div>
+                <p class="text-[10px] text-slate-700 mt-0.5">
+                  Agendemos una visita técnica presencial a su condominio para entregarles un diagnóstico objetivo del estado de sus instalaciones críticas y oportunidades de optimización del gasto común.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pie y Firma -->
+          <div class="pt-3 mt-3 border-t border-slate-200">
+            <div class="flex items-end justify-between">
+              <div class="text-[9.5px] text-slate-600 space-y-0.5">
+                <div class="font-extrabold text-[#0F3D2E]">ARANPRO • Gestión Integral de Condominios</div>
+                <div>📞 +56 9 5811 8504 • ✉️ contacto@aranpro.cl • 🌐 https://aranpro.cl</div>
+                <div class="text-slate-400 text-[8.5px]">Documento Oficial • Hoja Carta sin marco perimetral</div>
+              </div>
+              <div class="text-center w-64">
+                <svg class="h-14 mx-auto -mb-2 text-slate-900" viewBox="0 0 220 70" fill="none">
+                  <path d="M25 52 C45 15, 65 60, 82 22 C95 45, 110 18, 135 42 C155 25, 175 40, 195 28" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>
+                  <path d="M40 38 L185 34" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M72 12 C68 35, 70 55, 76 64" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="border-t-[1.5px] border-slate-800 pt-1">
+                  <div class="text-[11px] font-extrabold text-slate-900">John Andrés Arancibia Maureira</div>
+                  <div class="text-[9.5px] font-semibold text-slate-600">RUT: 14.882.140-K • RNAC MINVU N° 48.912</div>
+                  <div class="text-[9px] font-bold text-[#0F3D2E]">Técnico en Construcción • Construcción Civil</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============================================================== -->
+      <!-- ALTERNATIVA 3: MEMBRETE VERDE BOSQUE & ORO METÁLICO (IMAGEN 2)  -->
+      <!-- =============================================================== -->
+      <div id="card-alt3" class="flex flex-col">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-[#0F3D2E] text-[#D4B895]">
+              ALTERNATIVA 3 • Cabezal Verde Bosque con tu Logo Dorado Metálico (Imágenes 2 y 3)
+            </span>
+            <h3 class="text-sm font-extrabold text-slate-900 mt-1">
+              Usa tu logo dorado sobre fondo verde bosque en el cabezal superior y hoja abierta abajo
+            </h3>
+          </div>
+        </div>
+
+        <div class="paper-sheet rounded-sm flex flex-col justify-between min-h-[670px]">
+          <div>
+            <!-- Cabezal Verde Bosque con el Logo Dorado Metálico Real -->
+            <div class="bg-[#0F3D2E] text-white px-8 py-4 border-b-4 border-[#D4B895] flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <img
+                  src="brand/ARANPRO_logo_para_fondo_oscuro_trimmed.png"
+                  alt="ARANPRO Oro sobre Verde"
+                  class="h-14 w-auto object-contain shrink-0"
+                />
+                <div class="border-l border-[#D4B895]/40 pl-4 space-y-0.5">
+                  <div class="text-xs font-extrabold tracking-wider text-[#D4B895] uppercase">
+                    GESTIÓN INTEGRAL DE CONDOMINIOS Y COMUNIDADES
+                  </div>
+                  <div class="text-[10px] text-emerald-100 font-mono">
+                    RUT Empresa: 76.999.888-8 • Registro Nacional MINVU N° 48.912
+                  </div>
+                  <div class="text-[9.5px] text-emerald-200/80">
+                    contacto@aranpro.cl • +56 9 5811 8504 • https://aranpro.cl
+                  </div>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="inline-block px-2.5 py-0.5 bg-[#D4B895] text-[#0F3D2E] text-[9px] font-black uppercase tracking-wider rounded">
+                  LICITACIÓN / COMITÉ
+                </span>
+                <div class="text-[10px] font-bold text-white mt-1">Ley N° 21.442</div>
+              </div>
+            </div>
+
+            <div class="p-8 pt-5 space-y-3.5 text-[11px] text-slate-700 leading-relaxed">
+              <div class="flex justify-between items-center border-b border-slate-200 pb-2.5 text-[10px]">
+                <div><strong>Dirigido cordialmente a:</strong> Comité de Administración</div>
+                <div><strong>Modalidad:</strong> Presentación Ejecutiva & Diagnóstico Inicial</div>
+              </div>
+
+              <p>
+                Ponemos a disposición de su comunidad un servicio de administración profesional sustentado en <strong>ingeniería de mantención preventiva</strong>, <strong>transparencia contable verificable</strong> y atención presencial permanente en su edificio o condominio.
+              </p>
+
+              <div class="grid grid-cols-2 gap-3 pt-1">
+                <div class="border-l-2 border-[#D4B895] pl-3">
+                  <div class="font-extrabold text-[#0F3D2E] text-[10.5px]">Supervisión Técnica Constructiva</div>
+                  <p class="text-[9.5px] text-slate-600 mt-0.5">Control experto de salas de calderas, bombas impulsoras, ascensores y obras civiles.</p>
+                </div>
+                <div class="border-l-2 border-[#D4B895] pl-3">
+                  <div class="font-extrabold text-[#0F3D2E] text-[10.5px]">Finanzas Abiertas al Comité</div>
+                  <p class="text-[9.5px] text-slate-600 mt-0.5">Cartola bancaria conciliada mes a mes y acceso digital a cada respaldo de gasto.</p>
+                </div>
+                <div class="border-l-2 border-[#D4B895] pl-3">
+                  <div class="font-extrabold text-[#0F3D2E] text-[10.5px]">Cumplimiento Normativo Integral</div>
+                  <p class="text-[9.5px] text-slate-600 mt-0.5">Adecuación a Ley N° 21.442, certificaciones SEC/MINSAL y control laboral F30-1.</p>
+                </div>
+                <div class="border-l-2 border-[#D4B895] pl-3">
+                  <div class="font-extrabold text-[#0F3D2E] text-[10.5px]">Ecosistema Digital Propio</div>
+                  <p class="text-[9.5px] text-slate-600 mt-0.5">Portal web para residentes y módulo de control ejecutivo para el Comité sin costo extra.</p>
+                </div>
+              </div>
+
+              <div class="bg-[#F4F8F6] border-l-4 border-[#0F3D2E] p-3 rounded-r-xl">
+                <div class="text-[10px] font-extrabold text-[#0F3D2E] uppercase">
+                  ★ Invitación sin costo para su Comité de Administración
+                </div>
+                <p class="text-[10px] text-slate-800 mt-0.5">
+                  Soliciten sin costo una <strong>visita de diagnóstico técnico presencial</strong> a sus instalaciones para evaluar el estado operativo del condominio y presentarles una propuesta formal ajustada a su realidad.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-8 pb-6">
+            <div class="pt-3 border-t border-slate-200 flex items-end justify-between">
+              <div class="flex items-center gap-3">
+                <img src="brand/ARANPRO_sello_circular_ap_transparente.png" alt="Sello AP" class="h-13 w-13 object-contain" style="height:52px;width:52px;" />
+                <div class="text-[9.5px] text-slate-600">
+                  <div class="font-bold text-[#0F3D2E]">ARANPRO Gestión Integral</div>
+                  <div>Fono: +56 9 5811 8504 • contacto@aranpro.cl</div>
+                </div>
+              </div>
+              <div class="text-center w-64">
+                <svg class="h-14 mx-auto -mb-2 text-slate-900" viewBox="0 0 220 70" fill="none">
+                  <path d="M25 52 C45 15, 65 60, 82 22 C95 45, 110 18, 135 42 C155 25, 175 40, 195 28" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>
+                  <path d="M40 38 L185 34" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M72 12 C68 35, 70 55, 76 64" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="border-t-[1.5px] border-[#0F3D2E] pt-1">
+                  <div class="text-[11px] font-extrabold text-slate-900">John Andrés Arancibia Maureira</div>
+                  <div class="text-[9.5px] font-semibold text-slate-600">RUT: 14.882.140-K • RNAC MINVU N° 48.912</div>
+                  <div class="text-[9px] font-bold text-[#0F3D2E]">Técnico en Construcción • Construcción Civil</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============================================================== -->
+      <!-- ALTERNATIVA 4: DOBLE FILETE + MARCA DE AGUA SUTIL + SELLO ORO   -->
+      <!-- =============================================================== -->
+      <div id="card-alt4" class="flex flex-col">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300">
+              ALTERNATIVA 4 • Doble Filete Lateral + Sello Circular Dorado + Marca de Agua
+            </span>
+            <h3 class="text-sm font-extrabold text-slate-900 mt-1">
+              Ideal para Certificados Oficiales, Estudio de Honorarios AGACECH y Dossier
+            </h3>
+          </div>
+        </div>
+
+        <div class="paper-sheet rounded-sm p-8 pl-11 flex flex-col justify-between min-h-[670px]">
+          <!-- Doble línea vertical fina izquierda (Verde Bosque + Champán Dorado) -->
+          <div class="absolute left-3.5 top-5 bottom-5 w-[2.5px] bg-[#0F3D2E]"></div>
+          <div class="absolute left-[19px] top-5 bottom-5 w-[1.5px] bg-[#D4B895]"></div>
+
+          <!-- Marca de agua central ultra sutil con el sello circular -->
+          <img
+            src="brand/ARANPRO_sello_circular_integral_transparente.png"
+            alt=""
+            class="absolute inset-0 m-auto w-72 h-72 object-contain opacity-[0.04] pointer-events-none select-none"
+          />
+
+          <div class="relative z-10">
+            <!-- Encabezado con Logo Vertical Principal o Sello -->
+            <div class="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
+              <div class="flex items-center gap-3.5">
+                <img
+                  src="brand/ARANPRO_sello_circular_ap_transparente.png"
+                  alt="Sello Circular AP"
+                  class="dynamic-header-logo h-15 w-15 object-contain shrink-0"
+                  style="height:58px;width:58px;"
+                />
+                <div class="space-y-0.5">
+                  <div class="text-xs font-black tracking-widest text-[#0F3D2E] uppercase">
+                    ARANPRO • ADMINISTRACIÓN DE COPROPIEDADES
+                  </div>
+                  <p class="text-[10px] text-slate-600 font-mono font-semibold">
+                    RUT Empresa: 76.999.888-8 • Inscripción Oficial RNAC MINVU N° 48.912
+                  </p>
+                  <p class="text-[9.5px] text-slate-500">
+                    Cumplimiento Normativo Ley N° 21.442 • Estándar Técnico AGACECH
+                  </p>
+                </div>
+              </div>
+              <div class="text-right font-mono text-[9.5px] text-slate-600">
+                <div class="px-2 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] font-bold rounded">
+                  DOCUMENTO CERTIFICADO
+                </div>
+                <div class="mt-1">Folio: CERT-2026-089</div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <h4 class="text-sm font-black uppercase tracking-wide text-slate-900">
+                Respaldo Institucional, Acreditación MINVU y Garantía de Gestión
+              </h4>
+              <p class="text-[11px] text-slate-700 mt-1.5 leading-relaxed">
+                Cada documento emitido por <strong>ARANPRO Gestión Integral</strong> cuenta con respaldo profesional verificable ante el Ministerio de Vivienda y Urbanismo y trazabilidad financiera completa en plataforma.
+              </p>
+            </div>
+
+            <!-- Diferenciación clara de cartera actual vs comunidad postulada -->
+            <div class="mt-4 grid grid-cols-3 gap-3 bg-[#F5F4EF]/80 border border-[#D4B895]/60 rounded-xl p-3 text-[10px]">
+              <div>
+                <div class="text-[8.5px] font-bold uppercase text-slate-500">Credencial Oficial</div>
+                <div class="text-xs font-extrabold text-[#0F3D2E] mt-0.5">RNAC MINVU N° 48.912</div>
+                <div class="text-[9px] text-slate-600">Registro Nacional Vigente</div>
+              </div>
+              <div class="border-l border-[#D4B895]/50 pl-3">
+                <div class="text-[8.5px] font-bold uppercase text-slate-500">Formación Técnica</div>
+                <div class="text-xs font-extrabold text-slate-900 mt-0.5">Construcción Civil</div>
+                <div class="text-[9px] text-slate-600">Especialista en Mantención</div>
+              </div>
+              <div class="border-l border-[#D4B895]/50 pl-3">
+                <div class="text-[8.5px] font-bold uppercase text-slate-500">Comunidad Postulada</div>
+                <div class="text-xs font-extrabold text-slate-900 mt-0.5">Propuesta a Medida</div>
+                <div class="text-[9px] text-slate-600">Según Matriz AGACECH</div>
+              </div>
+            </div>
+
+            <div class="mt-4 space-y-2 text-[10.5px] text-slate-700">
+              <div class="font-extrabold text-[#0F3D2E] uppercase text-[10px] tracking-wider">Estándares de Calidad Garantizados:</div>
+              <ul class="space-y-1.5 list-disc pl-4">
+                <li><strong>Levantamiento Técnico Inicial (Día 1 al 30):</strong> Diagnóstico completo de instalaciones hidráulicas, eléctricas, térmicas y estructura común.</li>
+                <li><strong>Rendición Financiera Auditada:</strong> Separación estricta de fondos, conciliación bancaria mensual y respaldo digital de cada egreso.</li>
+                <li><strong>Firma y Sello Oficial Acreditado:</strong> Todos los certificados, actas, colillas e informes llevan identificación completa del Administrador Titular.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Pie con Sello Dorado + Firma Grande -->
+          <div class="relative z-10 pt-3 mt-3 border-t border-slate-200">
+            <div class="flex items-end justify-between">
+              <div class="flex items-center gap-3">
+                <img src="brand/ARANPRO_sello_circular_integral_transparente.png" alt="Timbre Oficial ARANPRO" class="h-16 w-16 object-contain" />
+                <div class="text-[9.5px] text-slate-600">
+                  <div class="font-extrabold text-[#0F3D2E]">Sello Oficial de Administración</div>
+                  <div>RUT Empresa: 76.999.888-8</div>
+                  <div>RNAC MINVU N° 48.912 • Ley N° 21.442</div>
+                </div>
+              </div>
+
+              <div class="text-center w-64">
+                <svg class="h-14 mx-auto -mb-2 text-slate-900" viewBox="0 0 220 70" fill="none">
+                  <path d="M25 52 C45 15, 65 60, 82 22 C95 45, 110 18, 135 42 C155 25, 175 40, 195 28" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>
+                  <path d="M40 38 L185 34" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M72 12 C68 35, 70 55, 76 64" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="border-t-[1.5px] border-slate-900 pt-1">
+                  <div class="text-[11px] font-extrabold text-slate-900">John Andrés Arancibia Maureira</div>
+                  <div class="text-[9.5px] font-semibold text-slate-600">RUT: 14.882.140-K • RNAC MINVU N° 48.912</div>
+                  <div class="text-[9px] font-bold text-[#0F3D2E]">Técnico en Construcción • Construcción Civil</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- SECCIÓN 2: GALERÍA DE TUS LOGOS OFICIALES Y DÓNDE USAR CADA UNO     -->
+  <!-- =================================================================== -->
+  <div id="section-logos" class="max-w-7xl mx-auto space-y-6 hidden">
+    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+      <h2 class="text-base font-extrabold text-slate-900">
+        Tus Logos Oficiales en <code class="bg-slate-100 px-2 py-0.5 rounded text-[#0F3D2E]">04_Logos ARANPRO</code> y Cómo Los Usaremos en los PDFs
+      </h2>
+      <p class="text-xs text-slate-600 mt-1">
+        Procesamos tus archivos originales en alta resolución (incluyendo recorte circular transparente para los sellos de aro dorado) para que cada parte del documento use el logo exacto que mejor luce:
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-5">
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col items-center text-center">
+          <div class="h-28 flex items-center justify-center p-2 bg-white rounded-lg border border-slate-200 w-full">
+            <img src="brand/ARANPRO_logo_horizontal_transparente_trimmed.png" alt="Logo Horizontal" class="max-h-20 object-contain" />
+          </div>
+          <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-[#0F3D2E]">1. Membrete Clásico Horizontal</span>
+          <h4 class="text-xs font-bold text-slate-900 mt-1">ARANPRO_logo_horizontal_transparente</h4>
+          <p class="text-[11px] text-slate-600 mt-1">
+            Ideal para el <strong>encabezado superior izquierdo</strong> de Cartas, Dossier, Colillas e Informes (el estilo de encabezado anterior que te gusta).
+          </p>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col items-center text-center">
+          <div class="h-28 flex items-center justify-center p-2 bg-white rounded-lg border border-slate-200 w-full gap-4">
+            <img src="brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello Circular Integral" class="h-24 w-24 object-contain" />
+            <img src="brand/ARANPRO_sello_circular_ap_transparente.png" alt="Sello Circular AP" class="h-24 w-24 object-contain" />
+          </div>
+          <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900">2. Sellos Circulares Dorados (Transparentes)</span>
+          <h4 class="text-xs font-bold text-slate-900 mt-1">Sellos "Gestión Integral" y "ARANPRO"</h4>
+          <p class="text-[11px] text-slate-600 mt-1">
+            Perfectos tanto como <strong>emblema de encabezado</strong> como para el <strong>Timbre Oficial al lado de tu firma</strong> en el pie de página y marca de agua sutil al 4%.
+          </p>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 flex flex-col items-center text-center">
+          <div class="h-28 flex items-center justify-center p-3 bg-[#0F3D2E] rounded-lg border border-[#D4B895] w-full gap-4">
+            <img src="brand/ARANPRO_logo_para_fondo_oscuro_trimmed.png" alt="Logo Fondo Oscuro" class="max-h-20 object-contain" />
+          </div>
+          <span class="mt-3 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#0F3D2E] text-[#D4B895]">3. Versión Oro Metálico sobre Verde Bosque</span>
+          <h4 class="text-xs font-bold text-slate-900 mt-1">Logo Dorado para Fondos #0F3D2E</h4>
+          <p class="text-[11px] text-slate-600 mt-1">
+            Ideal para la <strong>Plantilla 3 (Cabezal Verde Bosque Institucional)</strong> en Dossier Comercial, Brochure del Portal Web y Colilla Bancaria.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- SECCIÓN 3: 3 DISEÑOS DE COLILLA CON TU LOGO REAL                    -->
+  <!-- =================================================================== -->
+  <div id="section-colillas" class="max-w-7xl mx-auto space-y-6 hidden">
+    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+      <h2 class="text-base font-extrabold text-slate-900">
+        3 Diseños de Colilla de Gasto Común con tus Logos Oficiales ARANPRO
+      </h2>
+      <p class="text-xs text-slate-600 mt-1">
+        Sin los botones <code class="bg-rose-50 text-rose-700 px-1 rounded">✕</code> ni <code class="bg-rose-50 text-rose-700 px-1 rounded">Cerrar</code>, con tu membrete oficial, datos de cuenta bancaria de la comunidad y tu firma acompañada del sello dorado:
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- COLILLA 1 -->
+      <div class="paper-sheet rounded-sm p-6 pl-8 flex flex-col justify-between min-h-[540px]">
+        <div class="absolute left-3 top-5 bottom-5 w-[3px] bg-[#0F3D2E]"></div>
+        <div>
+          <div class="flex justify-between items-center pb-2.5 border-b-2 border-[#0F3D2E]">
+            <div class="flex items-center gap-2.5">
+              <img src="brand/ARANPRO_logo_horizontal_transparente_trimmed.png" alt="ARANPRO" class="h-8 w-auto object-contain" />
+              <div class="border-l border-slate-300 pl-2">
+                <div class="text-[10px] font-black text-[#0F3D2E]">CONDOMINIO LOS CEREZOS</div>
+                <div class="text-[8px] text-slate-500">RNAC MINVU N° 48.912</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-[8px] font-bold uppercase text-slate-400">Cobro Mensual</div>
+              <div class="text-xs font-extrabold text-slate-900">NOV 2026</div>
+            </div>
+          </div>
+
+          <div class="mt-3 flex justify-between items-center bg-slate-50 p-2.5 rounded border-l-2 border-[#D4B895] text-[10px]">
+            <div>
+              <div class="text-slate-400 font-bold uppercase text-[8px]">Unidad / Copropietario</div>
+              <div class="font-extrabold text-slate-900">Casa 104 • Roberto Gómez</div>
+              <div class="text-slate-500 text-[9px]">Alícuota: 5,263%</div>
+            </div>
+            <div class="text-right">
+              <div class="text-slate-400 font-bold uppercase text-[8px]">Total a Pagar</div>
+              <div class="text-base font-black text-[#0F3D2E]">$118.450</div>
+              <div class="text-[8.5px] text-rose-700 font-bold">Vence: 05/12/2026</div>
+            </div>
+          </div>
+
+          <table class="w-full text-[10px] mt-3 border-collapse">
+            <thead>
+              <tr class="border-b border-slate-300 text-slate-400 uppercase text-[8.5px]">
+                <th class="py-1 text-left">Concepto</th>
+                <th class="py-1 text-right">Monto</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr><td class="py-1.5">Gasto Común Ordinario</td><td class="py-1.5 text-right font-semibold">$105.610</td></tr>
+              <tr><td class="py-1.5">Fondo de Reserva Legal (5%)</td><td class="py-1.5 text-right font-semibold">$5.280</td></tr>
+              <tr><td class="py-1.5">Cargos Individuales</td><td class="py-1.5 text-right font-semibold">$7.560</td></tr>
+              <tr class="border-t-2 border-slate-800 font-extrabold text-slate-900">
+                <td class="py-2">TOTAL A PAGAR</td>
+                <td class="py-2 text-right text-xs text-[#0F3D2E]">$118.450</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="mt-3 p-2.5 bg-[#F4F8F6] rounded text-[9px] text-slate-700 space-y-0.5 border-l-2 border-[#0F3D2E]">
+            <div class="font-extrabold text-[#0F3D2E] uppercase">Datos Bancarios de la Comunidad:</div>
+            <div>Banco Estado • Cta. Corriente N° 345-00981-22</div>
+            <div>RUT Comunidad: 65.123.456-7 • pagos@aranpro.cl</div>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex items-end justify-between text-[8.5px]">
+          <div class="flex items-center gap-2">
+            <img src="brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello" class="h-10 w-10 object-contain" />
+            <div class="text-slate-500">
+              <strong>ARANPRO Gestión Integral</strong><br/>Ley N° 21.442 • Portal en línea
+            </div>
+          </div>
+          <div class="text-center w-36">
+            <div class="border-t border-slate-700 pt-0.5 font-bold text-slate-800">John Arancibia M.</div>
+            <div class="text-[7.5px] text-slate-500">Administrador RNAC 48.912</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLILLA 2 -->
+      <div class="paper-sheet rounded-sm p-6 flex flex-col justify-between min-h-[540px]">
+        <div>
+          <div class="flex justify-between items-center pb-2.5 border-b border-slate-300">
+            <div class="flex items-center gap-2.5">
+              <img src="brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello" class="h-11 w-11 object-contain" />
+              <div>
+                <div class="text-xs font-extrabold text-slate-900">ESTADO DE CUENTA MENSUAL</div>
+                <div class="text-[9px] text-slate-500">Condominio Los Cerezos • Noviembre 2026</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-[#0F3D2E] text-[#D4B895] text-[9px] font-bold rounded">Casa 104</span>
+          </div>
+
+          <div class="grid grid-cols-4 gap-2 my-3 text-center bg-slate-50 p-2 rounded text-[9px] border border-slate-200">
+            <div><span class="text-slate-400 block">Saldo Ant.</span><strong class="text-slate-800">$0</strong></div>
+            <div><span class="text-slate-400 block">Cobro Mes</span><strong class="text-slate-800">$118.450</strong></div>
+            <div><span class="text-slate-400 block">F. Reserva</span><strong class="text-slate-800">$5.280</strong></div>
+            <div><span class="text-slate-400 block">Total</span><strong class="text-[#0F3D2E] text-[11px]">$118.450</strong></div>
+          </div>
+
+          <div class="text-[9px] font-bold uppercase text-slate-500 mb-1">Desglose Transparente Ley N° 21.442:</div>
+          <table class="w-full text-[9.5px] border-collapse">
+            <thead>
+              <tr class="border-b border-slate-300 text-slate-400 text-[8px] uppercase">
+                <th class="py-1 text-left">Ítem Gasto Común</th>
+                <th class="py-1 text-right">Total Condominio</th>
+                <th class="py-1 text-right">Tu Cuota</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr><td class="py-1">1. Administración y Gestión</td><td class="py-1 text-right">$450.000</td><td class="py-1 text-right font-semibold">$23.684</td></tr>
+              <tr><td class="py-1">2. Mantención Preventiva</td><td class="py-1 text-right">$580.000</td><td class="py-1 text-right font-semibold">$30.526</td></tr>
+              <tr><td class="py-1">3. Consumos Comunes</td><td class="py-1 text-right">$420.000</td><td class="py-1 text-right font-semibold">$22.105</td></tr>
+              <tr><td class="py-1">4. Aseo y Seguridad</td><td class="py-1 text-right">$556.600</td><td class="py-1 text-right font-semibold">$29.295</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex items-end justify-between text-[8.5px]">
+          <div class="text-slate-500">
+            <strong>ARANPRO Gestión Integral</strong> • RUT 76.999.888-8<br/>Facturas disponibles 24/7 en el Portal de Vecinos.
+          </div>
+          <div class="text-center w-36">
+            <div class="border-t border-slate-700 pt-0.5 font-bold text-slate-800">John Arancibia M.</div>
+            <div class="text-[7.5px] text-slate-500">RNAC MINVU N° 48.912</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLILLA 3 -->
+      <div class="paper-sheet rounded-sm p-6 flex flex-col justify-between min-h-[540px]">
+        <div>
+          <div class="bg-[#0F3D2E] text-white p-3.5 -mx-6 -mt-6 mb-4 border-b-2 border-[#D4B895] flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+              <img src="brand/ARANPRO_logo_para_fondo_oscuro_trimmed.png" alt="ARANPRO Oro" class="h-9 w-auto object-contain" />
+              <div class="border-l border-[#D4B895]/40 pl-2">
+                <div class="text-[10px] font-extrabold text-[#D4B895]">CONDOMINIO LOS CEREZOS</div>
+                <div class="text-[8.5px] text-emerald-100">Casa 104 • Noviembre 2026</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-[8px] uppercase text-[#D4B895]">Total a Pagar</div>
+              <div class="text-sm font-black text-white">$118.450</div>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 text-[10px]">
+            <div class="flex justify-between py-1 border-b border-slate-100"><span>Gasto Común Ordinario</span><strong>$105.610</strong></div>
+            <div class="flex justify-between py-1 border-b border-slate-100"><span>Fondo de Reserva Legal (5%)</span><strong>$5.280</strong></div>
+            <div class="flex justify-between py-1 border-b border-slate-100"><span>Cargos Individuales</span><strong>$7.560</strong></div>
+            <div class="flex justify-between py-1.5 font-extrabold text-slate-900"><span>TOTAL VENCIMIENTO 05/12/2026</span><span>$118.450</span></div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t-2 border-dashed border-slate-300">
+          <div class="text-[8px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">✂ Cupón Recortable de Control de Pago (Conserjería / Tesorería)</div>
+          <div class="bg-slate-50 p-2.5 rounded border border-slate-200 text-[9px] space-y-1">
+            <div class="flex justify-between">
+              <span><strong>Unidad:</strong> Casa 104</span>
+              <span><strong>Mes:</strong> Nov 2026</span>
+              <span><strong>Monto:</strong> $118.450</span>
+            </div>
+            <div class="flex justify-between pt-2 text-slate-500">
+              <span>N° Operación / Cheque: _______________</span>
+              <span>Fecha: ____/____/2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- SECCIÓN 4: TABLA DE AUDITORÍA DE LOS 32 PDFs                        -->
+  <!-- =================================================================== -->
+  <div id="section-auditoria" class="max-w-7xl mx-auto space-y-4 hidden">
+    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+      <h2 class="text-lg font-extrabold text-slate-900">Resumen de Correcciones en los 32 PDFs del Programa</h2>
+      <p class="text-xs text-slate-600 mt-1">
+        Todos los documentos conservarán tu encabezado institucional con los logos reales de <code class="bg-slate-100 px-1.5 py-0.5 rounded">04_Logos ARANPRO</code>, sin marcos cuadrados gigantes ni páginas cortadas.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const LOGO_MAP = {
+      'horizontal': {
+        src: 'brand/ARANPRO_logo_horizontal_transparente_trimmed.png',
+        cls: 'dynamic-header-logo h-12 w-auto object-contain shrink-0'
+      },
+      'sello-integral': {
+        src: 'brand/ARANPRO_sello_circular_integral_transparente.png',
+        cls: 'dynamic-header-logo h-16 w-16 object-contain shrink-0'
+      },
+      'sello-ap': {
+        src: 'brand/ARANPRO_sello_circular_ap_transparente.png',
+        cls: 'dynamic-header-logo h-16 w-16 object-contain shrink-0'
+      },
+      'principal': {
+        src: 'brand/ARANPRO_logo_principal_transparente_trimmed.png',
+        cls: 'dynamic-header-logo h-16 w-auto object-contain shrink-0'
+      },
+      'isotipo': {
+        src: 'brand/ARANPRO_isotipo_trimmed.png',
+        cls: 'dynamic-header-logo h-12 w-auto object-contain shrink-0'
+      }
+    };
+
+    function setHeaderLogo(key) {
+      const cfg = LOGO_MAP[key];
+      if (!cfg) return;
+      document.querySelectorAll('.dynamic-header-logo').forEach(img => {
+        img.src = cfg.src;
+        img.className = cfg.cls;
+        img.style = '';
+      });
+      ['horizontal', 'sello-integral', 'sello-ap', 'principal', 'isotipo'].forEach(k => {
+        const btn = document.getElementById('logo-btn-' + k);
+        if (!btn) return;
+        btn.className = (k === key)
+          ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-[#0F3D2E] shadow flex items-center gap-2'
+          : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-900/70 text-emerald-100 hover:bg-emerald-800 border border-[#D4B895]/40 flex items-center gap-2';
+      });
+    }
+
+    function switchSection(section) {
+      ['global', 'logos', 'colillas', 'auditoria'].forEach(s => {
+        document.getElementById('section-' + s).classList.add('hidden');
+        const tab = document.getElementById('tab-' + s);
+        tab.className = 'px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-emerald-100 hover:bg-white/10';
+      });
+      document.getElementById('section-' + section).classList.remove('hidden');
+      const activeTab = document.getElementById('tab-' + section);
+      activeTab.className = 'px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-[#D4B895] text-[#0F3D2E] shadow';
+    }
+
+    function highlightStyle(which) {
+      const grid = document.getElementById('global-grid');
+      const cards = ['alt1', 'alt2', 'alt3', 'alt4'];
+      const btns = ['all', 'alt1', 'alt2', 'alt3', 'alt4'];
+
+      btns.forEach(b => {
+        const el = document.getElementById('btn-style-' + b);
+        el.className = (b === which)
+          ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0F3D2E] text-white'
+          : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+      });
+
+      if (which === 'all') {
+        grid.className = 'grid grid-cols-1 lg:grid-cols-2 gap-8';
+        cards.forEach(c => document.getElementById('card-' + c).classList.remove('hidden'));
+      } else {
+        grid.className = 'grid grid-cols-1 max-w-3xl mx-auto gap-8';
+        cards.forEach(c => {
+          if (c === which) {
+            document.getElementById('card-' + c).classList.remove('hidden');
+          } else {
+            document.getElementById('card-' + c).classList.add('hidden');
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>

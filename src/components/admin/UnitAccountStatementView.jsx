@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { formatCLP, formatDate, formatRut } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo } from '../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal } from '../common/MauranLogo';
 import {
   FileText, Search, Printer, Download, CheckCircle2, AlertTriangle,
   ArrowUpRight, ArrowDownLeft, Calendar, User, Home, CreditCard,
@@ -334,16 +334,16 @@ export const UnitAccountStatementView = ({
           <div id="printable-unit-account-statement" className="hidden print:block p-8 bg-white text-slate-900 font-sans text-xs">
             {/* Cabecera Membretada ARANPRO */}
             <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-4 mb-6">
-              <div className="flex items-center gap-3">
-                <AranproLogo variant="horizontal" size="md" className="h-10 w-auto" />
-                <div>
+              <div className="flex items-center gap-3.5">
+                <AranproLogo variant="principal" size="md" className="h-12 w-auto" />
+                <div className="border-l border-slate-300 pl-3.5">
                   <h1 className="text-base font-black text-[#0F3D2E] uppercase">ESTADO DE CUENTA CORRIENTE • COPROPIETARIO</h1>
                   <p className="text-[10px] text-slate-500 font-bold">LEY DE COPROPIEDAD INMOBILIARIA N° 21.442 • GESTIÓN TRANSPARENTE</p>
                 </div>
               </div>
               <div className="text-right text-[10px]">
                 <p className="font-bold text-slate-900">{companySettings?.brandName || 'ARANPRO'}</p>
-                <p className="text-slate-600 font-mono">RUT: {companySettings?.companyRut || '76.999.888-8'}</p>
+                <p className="text-slate-600 font-mono">RUT: {companySettings?.companyRut || companySettings?.rut || '76.999.888-8'}</p>
                 <p className="text-slate-500">Fecha Emisión: {new Date().toLocaleDateString('es-CL')}</p>
               </div>
             </div>
@@ -411,16 +411,27 @@ export const UnitAccountStatementView = ({
             </table>
 
             {/* Firma y Timbre del Administrador */}
-            <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
-              <div className="text-[9px] text-slate-500 max-w-sm">
-                Documento emitido conforme al Art. 6° y Art. 17° de la Ley N° 21.442 de Copropiedad Inmobiliaria. Certificado de validez para fines notariales, bancarios o entrega de unidades.
+            <div className="pt-6 border-t border-slate-200 flex items-end justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <AranproOfficialSeal size="sm" />
+                <div className="text-[9px] text-slate-500 max-w-xs">
+                  Documento emitido conforme al Art. 6° y Art. 17° de la Ley N° 21.442 de Copropiedad Inmobiliaria. Certificado de validez para fines notariales, bancarios o entrega de unidades.
+                </div>
               </div>
               <div className="text-center min-w-[200px]">
                 {companySettings?.signatureDataUrl && (
-                  <img src={companySettings.signatureDataUrl} alt="Firma Administrador" className="h-12 w-auto mx-auto mb-1" />
+                  <img
+                    src={companySettings.signatureDataUrl}
+                    alt="Firma Administrador"
+                    className="h-14 w-auto mx-auto mb-1 object-contain"
+                    style={{
+                      transform: `scale(${companySettings?.signatureScale || 1.35})`,
+                      transformOrigin: 'bottom center'
+                    }}
+                  />
                 )}
-                <div className="border-t border-slate-400 pt-1">
-                  <p className="font-bold text-[10px] text-slate-900">{companySettings?.administratorName || 'John Andrés Arancibia Maureira'}</p>
+                <div className="border-t-2 border-[#0F3D2E] pt-1">
+                  <p className="font-bold text-[10px] text-slate-900">{companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}</p>
                   <p className="text-[9px] text-slate-600">Administrador Colegiado • Reg. RNAC Minvu N° {companySettings?.rnacNumber || '48.912'}</p>
                 </div>
               </div>
