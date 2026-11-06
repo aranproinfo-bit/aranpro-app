@@ -219,3 +219,195 @@ export const calculateMonthlyPayroll = (worker, monthlyInputs = {}) => {
     totalCommunityCost
   };
 };
+
+/**
+ * Causales de término de contrato según Código del Trabajo de Chile
+ */
+export const TERMINATION_CAUSES_CHILE = [
+  { id: '159_1', article: 'Art. 159 N° 1', name: 'Mutuo acuerdo de las partes', paysSeveranceYears: false, paysNotice: false, paysVacations: true },
+  { id: '159_2', article: 'Art. 159 N° 2', name: 'Renuncia voluntaria del trabajador', paysSeveranceYears: false, paysNotice: false, paysVacations: true },
+  { id: '159_4', article: 'Art. 159 N° 4', name: 'Vencimiento del plazo convenido en el contrato', paysSeveranceYears: false, paysNotice: false, paysVacations: true },
+  { id: '159_5', article: 'Art. 159 N° 5', name: 'Conclusión del trabajo o servicio que dio origen al contrato', paysSeveranceYears: false, paysNotice: false, paysVacations: true },
+  { id: '161_1', article: 'Art. 161 Inciso 1°', name: 'Necesidades de la empresa, establecimiento o servicio', paysSeveranceYears: true, paysNotice: true, paysVacations: true },
+  { id: '160', article: 'Art. 160', name: 'Conductas indebidas graves o incumplimiento contractual (Sin indemnización)', paysSeveranceYears: false, paysNotice: false, paysVacations: true }
+];
+
+/**
+ * Calcula el saldo de vacaciones legales (1.25 días hábiles por mes trabajado = 15 días anuales)
+ */
+export const calculateVacationBalance = (startDateStr, daysTaken = 0, targetDateStr = null) => {
+  if (!startDateStr) return { monthsWorked: 0, daysAccrued: 15, daysTaken: 0, daysRemaining: 15 };
+  
+  const start = new Date(startDateStr);
+  const target = targetDateStr ? new Date(targetDateStr) : new Date();
+  
+  if (isNaN(start.getTime()) || isNaN(target.getTime())) {
+    return { monthsWorked: 0, daysAccrued: 15, daysTaken: Number(daysTaken) || 0, daysRemaining: 15 };
+  }
+
+  let months = (target.getFullYear() - start.getFullYear()) * 12 + (target.getMonth() - start.getMonth());
+  if (target.getDate() < start.getDate()) {
+    months -= 1;
+  }
+  months = Math.max(0, months);
+
+  // 1.25 días hábiles por cada mes completo trabajado
+  const daysAccrued = Math.round(months * 1.25 * 10) / 10;
+  const taken = Number(daysTaken) || 0;
+  const daysRemaining = Math.max(0, Math.round((daysAccrued - taken) * 10) / 10);
+
+  return {
+    monthsWorked: months,
+    daysAccrued,
+    daysTaken: taken,
+    daysRemaining
+  };
+};
+
+/**
+ * Calcula el desglose detallado de un Finiquito Laboral según causales del Código del Trabajo
+ */
+export const calculateSeverancePay = ({
+  worker,
+  terminationDateStr,
+  causeId = '161_1',
+  noticeGiven = false,
+  vacationDaysPending = 0,
+  workedDaysInMonth = 0,
+  afcBalanceDeduction = 0
+}) => {
+  const cause = TERMINATION_CAUSES_CHILE.find((c) => c.id === causeId) || TERMINATION_CAUSES_CHILE[4];
+  const baseSalary = Number(worker?.baseSalary) || 0;
+  const gratification = worker?.hasLegalGratification !== false
+    ? Math.min(Math.round(baseSalary * 0.25), CHILE_TOPE_GRATIFICACION_MENSUAL)
+    : 0;
+  const lastGrossSalary = baseSalary + gratification; // Base legal de cálculo para indemnización
+
+  // Antigüedad laboral
+  const startDate = new Date(worker?.startDate || '2024-01-01');
+  const termDate = new Date(terminationDateStr || new Date());
+  
+  let monthsTotal = (termDate.getFullYear() - startDate.getFullYear()) * 12 + (termDate.getMonth() - startDate.getMonth());
+  if (termDate.getDate() < startDate.getDate()) monthsTotal -= 1;
+  monthsTotal = Math.max(0, monthsTotal);
+
+  const fullYears = Math.floor(monthsTotal / 12);
+  const remainingMonths = monthsTotal % 12;
+
+  // En Chile (Art. 163): Fracción superior a 6 meses se computa como año completo. Tope máximo de 11 años.
+  let yearsOfService = fullYears;
+  if (remainingMonths > 6) {
+    yearsOfService += 1;
+  }
+  yearsOfService = Math.min(11, yearsOfService);
+
+  // Indemnización por Años de Servicio (Art. 163)
+  const isIndefinido = worker?.contractType !== 'Contrato Plazo Fijo' && worker?.contractType !== 'Honorarios';
+  let severanceYearsAmount = 0;
+  if (cause.paysSeveranceYears && isIndefinido && yearsOfService >= 1) {
+    severanceYearsAmount = yearsOfService * lastGrossSalary;
+  }
+
+  // Indemnización Sustitutiva de Aviso Previo (Art. 161 Inc. 2°)
+  let substituteNoticeAmount = 0;
+  if (cause.paysNotice && !noticeGiven && isIndefinido) {
+    substituteNoticeAmount = lastGrossSalary;
+  }
+
+  // Feriado Proporcional (Art. 73)
+  const vacationDayValue = Math.round(baseSalary / 30);
+  const proportionalVacationAmount = Math.round((Number(vacationDaysPending) || 0) * vacationDayValue);
+
+  // Remuneración días pendientes del mes de salida
+  const pendingSalaryAmount = Math.round((baseSalary / 30) * Math.min(30, Math.max(0, workedDaysInMonth)));
+
+  // Descuento aporte empleador AFC al fondo de cesantía (Art. 13 Ley 19.728) solo en causal 161
+  const afcDeduction = (cause.id === '161_1' && isIndefinido) ? Math.min(Number(afcBalanceDeduction) || 0, severanceYearsAmount) : 0;
+
+  // Totales
+  const totalGrossSeverance = severanceYearsAmount + substituteNoticeAmount + proportionalVacationAmount + pendingSalaryAmount;
+  const totalNetSeverance = Math.max(0, totalGrossSeverance - afcDeduction);
+
+  return {
+    cause,
+    yearsOfService,
+    monthsTotal,
+    lastGrossSalary,
+    severanceYearsAmount,
+    substituteNoticeAmount,
+    proportionalVacationAmount,
+    pendingSalaryAmount,
+    afcDeduction,
+    totalGrossSeverance,
+    totalNetSeverance,
+    totalNetSeveranceWords: numberToSpanishWords(totalNetSeverance)
+  };
+};
+
+/**
+ * Genera el archivo plano TXT oficial compatible con el importador de Previred (delimitado por punto y coma ;)
+ */
+export const generatePreviredTxtContent = (community, payrollConsolidated, periodMonth, periodYear) => {
+  const lines = [];
+  const periodMonthStr = String(periodMonth).padStart(2, '0');
+  const periodYearStr = String(periodYear);
+
+  payrollConsolidated.slips.forEach(({ worker, calc }) => {
+    // Normalizar RUT
+    const cleanRut = (worker.rut || '').replace(/\./g, '').trim().toUpperCase();
+    const rutParts = cleanRut.split('-');
+    const rutNum = rutParts[0] || '0';
+    const rutDv = rutParts[1] || '0';
+
+    // Apellidos y Nombres
+    const nameParts = (worker.name || '').trim().split(/\s+/);
+    const apellidoPaterno = nameParts[0] || 'TRABAJADOR';
+    const apellidoMaterno = nameParts.length > 2 ? nameParts[1] : '';
+    const nombres = nameParts.length > 2 ? nameParts.slice(2).join(' ') : (nameParts[1] || nameParts[0]);
+
+    // Código AFP
+    const afpObj = AFP_RATES_CHILE.find((a) => a.id === worker.afpId) || AFP_RATES_CHILE[0];
+    const afpCode = afpObj.code;
+
+    // Código Salud (01 = Fonasa, 02.. = Isapres)
+    const isFonasa = !worker.healthId || worker.healthId === 'fonasa';
+    const healthCode = isFonasa ? '01' : '02';
+
+    const row = [
+      rutNum,
+      rutDv,
+      apellidoPaterno,
+      apellidoMaterno,
+      nombres,
+      'M',
+      '0',
+      '01',
+      `${periodYearStr}${periodMonthStr}`,
+      `${periodYearStr}${periodMonthStr}`,
+      '0',
+      '0',
+      calc.daysWorked,
+      '00',
+      afpCode,
+      calc.totalTaxable,
+      calc.afpAmount,
+      '0',
+      calc.employerSisAmount,
+      healthCode,
+      calc.totalTaxable,
+      calc.healthAmount,
+      '0',
+      '0',
+      calc.totalTaxable,
+      calc.afcWorkerAmount,
+      calc.employerAfcAmount,
+      '0.93',
+      calc.employerMutualAmount,
+      community?.bankInfo?.rut || '65.184.920-K'
+    ];
+
+    lines.push(row.join(';'));
+  });
+
+  return lines.join('\r\n');
+};

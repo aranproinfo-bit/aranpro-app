@@ -338,7 +338,12 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             #printable-community-previred-sheet,
             #printable-community-staff-roster,
             #printable-community-labor-contract,
-            #printable-community-riohs-document {
+            #printable-community-riohs-document,
+            #printable-community-vacation-slip,
+            #printable-community-severance-doc,
+            #printable-community-dismissal-letter,
+            #printable-community-overtime-pact,
+            #printable-community-karin-protocol {
               border: none !important;
               border-radius: 0 !important;
               padding: 0 !important;
