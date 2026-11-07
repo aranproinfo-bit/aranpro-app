@@ -657,11 +657,30 @@ export const CompanySettingsAndBackupModule = ({
       }
     } catch (err) {
       console.error('Error al enviar correo de postulación:', err);
-      showAlert(
-        'Error al Enviar Correo',
-        `Hubo un problema al despachar el correo: ${err.message}. Puedes verificar tu conexión o usar el botón "Copiar Mensaje".`,
-        'error'
-      );
+      const isFetchBlock = err.message?.toLowerCase().includes('fetch');
+      if (isFetchBlock) {
+        showConfirm({
+          title: 'Conexión Bloqueada por el Navegador',
+          message: `El navegador bloqueó la salida automática (habitual si no se ha recargado la pestaña [F5] tras la actualización, o por extensiones de bloqueo AdBlock). ¿Deseas abrir tu cliente de correo (Gmail/Outlook) con el texto y destinatario listos?`,
+          type: 'warning',
+          confirmText: 'Abrir en mi Correo',
+          cancelText: 'Cerrar',
+          onConfirm: () => {
+            const subject = encodeURIComponent(msg.subject);
+            const body = encodeURIComponent(msg.email);
+            window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
+          }
+        });
+        try {
+          navigator.clipboard.writeText(msg.email);
+        } catch (e) {}
+      } else {
+        showAlert(
+          'Error al Enviar Correo',
+          `Hubo un problema al despachar el correo: ${err.message}. Puedes verificar tu conexión o usar el botón "Copiar Mensaje".`,
+          'error'
+        );
+      }
     } finally {
       setSendingEmailStep(null);
     }
