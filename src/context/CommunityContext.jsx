@@ -148,7 +148,7 @@ export const CommunityProvider = ({ children }) => {
           administratorName: parsed.administratorName || parsed.adminName || initialCompanySettings.administratorName,
           adminName: parsed.adminName || parsed.administratorName || initialCompanySettings.administratorName,
           adminRut: parsed.adminRut || '16.012.871-2',
-          rnacNumber: parsed.rnacNumber || '48.912',
+          rnacNumber: (parsed.rnacNumber && parsed.rnacNumber !== '48.912') ? parsed.rnacNumber : '',
           companyRut: (parsed.companyRut && parsed.companyRut !== '76.999.888-1') ? parsed.companyRut : '76.999.888-8',
           phone: (parsed.phone && parsed.phone !== '+56 9 4183 2711') ? parsed.phone : '+56958118504',
           signatureDataUrl: parsed.signatureDataUrl || parsed.signature || parsed.digitalSignature || '',

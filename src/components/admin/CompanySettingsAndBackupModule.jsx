@@ -144,13 +144,13 @@ export const CompanySettingsAndBackupModule = ({
     adminName: companySettings?.adminName || 'John Andrés Arancibia Maureira',
     adminRut: companySettings?.adminRut || '16.012.871-2',
     adminRole: companySettings?.adminRole || 'Administrador Titular & Representante Legal',
-    rnacNumber: companySettings?.rnacNumber || '48.912',
-    rnacCategory: companySettings?.rnacCategory || 'Persona Natural (Vigente)',
+    rnacNumber: (companySettings?.rnacNumber && companySettings.rnacNumber !== '48.912') ? companySettings.rnacNumber : '',
+    rnacCategory: companySettings?.rnacCategory || 'Persona Natural (En trámite Ley 21.442)',
     // Perfil para licitaciones y cartas
     specialty: companySettings?.profileLicitacion?.specialty || 'Administración Integral de Condominios, Mantención Técnica e Infraestructura Edilicia',
     startYear: companySettings?.profileLicitacion?.startYear || '2019',
     presentationText: companySettings?.profileLicitacion?.presentationText ||
-      'ARANPRO ofrece servicios profesionales de administración bajo la Ley N° 21.442 de Copropiedad Inmobiliaria. Nuestra gran ventaja competitiva radica en la formación técnica y constructiva de nuestro equipo (Técnico en Construcción y estudios avanzados en Construcción Civil), lo que nos permite auditar, fiscalizar y supervisar con criterio experto obras de mantención, salas de bombas, cubiertas, filtraciones y contratos de proveedores, garantizando la preservación y plusvalía del patrimonio comunitario.'
+      'ARANPRO ofrece servicios profesionales de administración bajo la Ley N° 21.442 de Copropiedad Inmobiliaria. Nuestra gran ventaja competitiva radica en la formación profesional como Constructor Civil, lo que nos permite auditar, fiscalizar y supervisar con criterio experto obras de mantención, salas de bombas, cubiertas, filtraciones y contratos de proveedores, garantizando la preservación y plusvalía del patrimonio comunitario.'
   });
 
   // Estado para la Firma Digital Manuscrita (Canvas y Subida)
@@ -174,17 +174,17 @@ export const CompanySettingsAndBackupModule = ({
     setAboutOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Estados de Formación Técnica y Acreditaciones (Técnico en Construcción / Construcción Civil)
+  // Estados de Formación Profesional y Acreditaciones (Constructor Civil)
   const [academicRecords, setAcademicRecords] = useState(companySettings?.academicBackground || [
     {
       id: 'acad-1',
-      title: 'Técnico en Construcción (Titulado)',
-      institution: 'Instituto Profesional AIEP / Santo Tomás',
-      category: 'Título Técnico Profesional',
+      title: 'Constructor Civil',
+      institution: 'Universidad / Instituto Profesional',
+      category: 'Título Profesional Universitario',
       status: 'Titulado',
       year: '2018',
-      relevance: 'Inspección técnica de obras, análisis de fallas constructivas, cubicación de mantenciones, control de calidad y supervisión de contratistas en terreno.',
-      fileName: 'Certificado_Titulo_Tecnico_Construccion.pdf',
+      relevance: 'Inspección técnica de obras, patologías del hormigón, redes hidráulicas y sanitarias, cubicación de mantenciones, control de calidad y supervisión de contratistas en terreno.',
+      fileName: 'Certificado_Titulo_Constructor_Civil.pdf',
       fileType: 'application/pdf',
       fileData: null,
       fileSize: '1.2 MB',
@@ -193,21 +193,6 @@ export const CompanySettingsAndBackupModule = ({
     },
     {
       id: 'acad-2',
-      title: 'Construcción Civil (Estudios en Curso)',
-      institution: 'Universidad / Instituto Profesional',
-      category: 'Formación Superior / Universitaria',
-      status: 'En curso (Nivel Superior)',
-      year: '2024 - Presente',
-      relevance: 'Gestión integral de proyectos de edificación, patologías del hormigón, redes hidráulicas y sanitarias, impermeabilizaciones complejas y planes de mantenimiento preventivo.',
-      fileName: 'Certificado_Alumno_Regular_Construccion_Civil.pdf',
-      fileType: 'application/pdf',
-      fileData: null,
-      fileSize: '840 KB',
-      uploadDate: '2026-03-01',
-      includeInProposal: true
-    },
-    {
-      id: 'acad-3',
       title: 'Curso Oficial de Administración de Copropiedades (Ley 21.442)',
       institution: 'Learning Group / OTEC Acreditada Sence',
       category: 'Certificación Minvu Ley 21.442',
@@ -227,14 +212,14 @@ export const CompanySettingsAndBackupModule = ({
   const [accreditationDocs, setAccreditationDocs] = useState(companySettings?.accreditationFiles || [
     {
       id: 'acc-1',
-      name: 'Certificado de Inscripción Vigente RNAC Minvu (Folio 48.912)',
+      name: 'Comprobante de Inscripción Registro Nacional de Administradores (MINVU)',
       category: 'rnac',
       issuer: 'Ministerio de Vivienda y Urbanismo (Minvu)',
-      folio: '48.912',
-      issueDate: '2026-02-15',
-      expiryDate: '2027-02-15',
-      status: 'Vigente ★★★',
-      notes: 'Habilitación legal obligatoria Art. 82° Ley 21.442 a título oneroso sin sanciones registradas.',
+      folio: 'En proceso (Sol. PN-27583)',
+      issueDate: '2026-10-31',
+      expiryDate: 'Pendiente emisión resolución',
+      status: 'En trámite ★★★',
+      notes: 'Solicitud de inscripción Persona Natural tramitada ante MINVU (Ley N° 21.442).',
       includeInDossier: true
     },
     {
@@ -384,7 +369,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Configuración de Destinatario, Condominio y Propuesta Económica (Carta de Presentación & Dossier)
   const [proposalConfig, setProposalConfig] = useState({
-    targetCondo: companySettings?.lastProposalConfig?.targetCondo || '',
+    targetCondo: companySettings?.lastProposalConfig?.targetCondo || 'Valle de la Florida IV',
     targetRecipient: companySettings?.lastProposalConfig?.targetRecipient || 'Señores Miembros del Comité de Administración',
     targetCity: companySettings?.lastProposalConfig?.targetCity || 'La Serena, Región de Coquimbo',
     proposalDate: companySettings?.lastProposalConfig?.proposalDate || new Date().toISOString().split('T')[0],
@@ -996,7 +981,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Sugerir presentación maestra con IA desde historial
   const handleSuggestPresentationFromHistory = () => {
-    const suggested = `ARANPRO es una empresa de gestión y administración profesional de condominios con ${portfolioStats.yearsExp} años de trayectoria en la Región de Coquimbo. A la fecha administramos ${portfolioStats.totalComms} comunidad(es) con más de ${portfolioStats.totalUnits} unidades habitacionales. Nuestro valor diferenciador único radica en el perfil técnico en construcción de nuestro administrador titular, combinando sólida fiscalización de contratos de mantención, auditoría preventiva de bombas y ascensores, junto a un portal web exclusivo que otorga transparencia 100% en las cuentas y cobros mensuales.`;
+    const suggested = `ARANPRO es una empresa de gestión y administración profesional de condominios con ${portfolioStats.yearsExp} años de trayectoria en la Región de Coquimbo. A la fecha administramos ${portfolioStats.totalComms} comunidad(es) con más de ${portfolioStats.totalUnits} unidades habitacionales. Nuestro valor diferenciador único radica en el perfil de Constructor Civil de nuestro administrador titular, combinando sólida fiscalización de contratos de mantención, auditoría preventiva de bombas y ascensores, junto a un portal web exclusivo que otorga transparencia 100% en las cuentas y cobros mensuales.`;
     setEmpresaForm(prev => ({ ...prev, presentationText: suggested }));
   };
 
@@ -1008,7 +993,7 @@ export const CompanySettingsAndBackupModule = ({
       `Junto con saludarle cordialmente, nos encontramos participando en un proceso de licitación para la administración de una nueva comunidad habitacional en la región.\n\n` +
       `Con el propósito de acreditar nuestra trayectoria y satisfacción de los copropietarios, le agradeceríamos enormemente si pudiéramos contar con una breve carta de recomendación o constancia de conformidad de su gestión como Comité.\n\n` +
       `Agradecemos desde ya su constante apoyo y confianza en nuestro trabajo profesional.\n\n` +
-      `Atentamente,\n*${empresaForm.adminName}*\nAdministrador Titular (RNAC Minvu N° ${empresaForm.rnacNumber})`;
+      `Atentamente,\n*${empresaForm.adminName}*\nConstructor Civil • Administrador Titular ARANPRO`;
 
     const url = phoneClean ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
@@ -1112,7 +1097,7 @@ export const CompanySettingsAndBackupModule = ({
   const handleCopyPitchToClipboard = () => {
     const pitchText = `GUION MAESTRO ARANPRO (PRESENTACIÓN EN 10 MINUTOS)\n` +
       `1. MINUTO 1-2 (El Dolor Común): La mayoría de las comunidades cambian de administración por desconfianza en los gastos y demora en resolver problemas. En ARANPRO eliminamos ambos con tecnología y presencia técnica.\n` +
-      `2. MINUTO 3-5 (Ventaja Técnica Constructiva): Administrador con formación de Técnico en Construcción y estudios en Construcción Civil. Auditamos en terreno bombas, techumbres, filtraciones y tableros eléctricos, frenando sobreprecios de contratistas.\n` +
+      `2. MINUTO 3-5 (Ventaja Técnica Constructiva): Administrador con formación de Constructor Civil. Auditamos en terreno bombas, techumbres, filtraciones y tableros eléctricos, frenando sobreprecios de contratistas.\n` +
       `3. MINUTO 6-8 (Demostración de la App): Cada vecino tiene en su celular los gastos comunes y puede auditar con un clic las facturas reales y cartolas bancarias.\n` +
       `4. MINUTO 9-10 (Cierre y Traspaso): Auditoría inicial de traspaso sin costo y diagnóstico constructivo preventivo.\n` +
       `Contacto: ${empresaForm.adminName} • ${empresaForm.phone}`;
@@ -1274,7 +1259,7 @@ export const CompanySettingsAndBackupModule = ({
   const navSubItems = [
     { id: 'empresa', label: 'Empresa', icon: Building2, desc: 'Datos de la empresa, RUT y representante legal' },
     { id: 'firma', label: 'Firma Digital', icon: PenTool, desc: 'Firma manuscrita en canvas y vista previa PDF' },
-    { id: 'acreditacion', label: 'Acreditaciones & Diplomas', icon: HardHat, desc: 'Técnico en Construcción, RNAC Minvu y títulos' },
+    { id: 'acreditacion', label: 'Acreditaciones & Diplomas', icon: HardHat, desc: 'Constructor Civil, Ley 21.442 y títulos' },
     { id: 'postulaciones', label: 'Postulaciones & Dossier', icon: Briefcase, desc: 'Carta de presentación, referencias y licitaciones' },
     { id: 'equipo', label: 'Equipo & Asistentes', icon: Users, desc: 'Asistentes autorizados, permisos y auditoría Ley 21.442' },
     { id: 'respaldos', label: 'Respaldos & Seguridad', icon: Key, desc: 'Backup integral JSON, PIN maestro y restauración' },
@@ -1635,7 +1620,7 @@ export const CompanySettingsAndBackupModule = ({
                       type="text"
                       value={empresaForm.rnacNumber}
                       onChange={(e) => setEmpresaForm({ ...empresaForm, rnacNumber: e.target.value })}
-                      placeholder="Ej: 48.912"
+                      placeholder="Ej: En trámite (Sol. PN-27583)"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-[#0F3D2E] focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                     />
                   </div>
@@ -1940,8 +1925,8 @@ export const CompanySettingsAndBackupModule = ({
                       Ventaja Técnica Exclusiva: Formación Constructiva al Servicio del Condominio
                     </h4>
                     <p className="text-slate-600 leading-relaxed">
-                      Ser <strong>Técnico en Construcción</strong> y encontrarse cursando estudios superiores de <strong>Construcción Civil</strong> es un activo de incalculable valor para una comunidad:
-                      permite auditar con autoridad salas de bombas, cubiertas, filtraciones y fiscalizar a contratistas externos evitando sobrecostos y presupuestos inflados.
+                      Ser <strong>Constructor Civil</strong> es un activo de incalculable valor para una comunidad:
+                      permite auditar con autoridad técnica salas de bombas, cubiertas, filtraciones y fiscalizar a contratistas externos evitando sobrecostos y presupuestos inflados.
                     </p>
                   </div>
                 </div>
@@ -2765,7 +2750,7 @@ export const CompanySettingsAndBackupModule = ({
                       </h4>
                       <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
                         Ofrece al comité una auditoría visual in situ sin costo de sus instalaciones críticas. Demuestra tu experiencia como
-                        <strong> Técnico en Construcción y estudiante de Construcción Civil</strong> detectando fallas que otros administradores ignoran.
+                        <strong> Constructor Civil</strong> detectando fallas que otros administradores ignoran.
                       </p>
                     </div>
 
@@ -2928,7 +2913,7 @@ export const CompanySettingsAndBackupModule = ({
                       {
                         title: '1. Criterio Constructivo & Obras',
                         trad: 'No distinguen una falla de bombas de una fuga eléctrica. Aceptan presupuestos de contratistas externos a ciegas con sobrecostos.',
-                        aran: 'Administrador con formación de Técnico en Construcción y estudios en Construcción Civil. Audita salas de bombas, cubiertas y techumbres con criterio experto.'
+                        aran: 'Administrador con formación de Constructor Civil. Audita salas de bombas, cubiertas y techumbres con criterio experto en terreno.'
                       },
                       {
                         title: '2. Transparencia en Gastos Comunes',
@@ -2991,7 +2976,7 @@ export const CompanySettingsAndBackupModule = ({
                         Guía de Pitch: Cómo Ganar la Licitación en 10 Minutos
                       </h4>
                       <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                        Estructura probada para exponer ante comités o asambleas. Aborda los dolores del cliente, resalta tu perfil técnico en construcción y cierra la contratación con solvencia.
+                        Estructura probada para exponer ante comités o asambleas. Aborda los dolores del cliente, resalta tu perfil de Constructor Civil y cierra la contratación con solvencia.
                       </p>
                     </div>
 
@@ -3026,8 +3011,8 @@ export const CompanySettingsAndBackupModule = ({
                       },
                       {
                         time: 'Minutos 3 - 5',
-                        title: 'El Diferenciador Técnico en Construcción',
-                        what: 'Explicar que los administradores convencionales son contadores o comerciales sin experiencia en terreno. Tu formación como Técnico en Construcción y estudiante de Construcción Civil ahorra millones a la comunidad.',
+                        title: 'El Diferenciador de Constructor Civil',
+                        what: 'Explicar que los administradores convencionales son contadores o comerciales sin experiencia en terreno. Tu formación como Constructor Civil ahorra millones a la comunidad.',
                         phrase: '"Cuando falla una bomba o hay una filtración en cubierta, nosotros diagnosticamos la falla real en terreno antes de llamar a un contratista, evitando que les cobren presupuestos inflados."'
                       },
                       {
@@ -3944,10 +3929,10 @@ export const CompanySettingsAndBackupModule = ({
                   {aboutOpenSections.quienesSomos && (
                     <div className="px-5 py-4 text-xs text-slate-600 leading-relaxed space-y-2 border-t border-slate-100">
                       <p>
-                        ARANPRO es una empresa liderada por <strong>John Andrés Arancibia Maureira</strong>, Administrador Profesional de Condominios acreditado por el Colegio de Gestión y Administración Inmobiliaria (CGAI Chile Socio N° 13-563), la Asociación Gremial AGACECH e inscrito en el Registro Nacional de Administradores Minvu (RNAC N° 48.912).
+                        ARANPRO es una empresa liderada por <strong>John Andrés Arancibia Maureira</strong>, Administrador Profesional de Condominios acreditado por el Colegio de Gestión y Administración Inmobiliaria (CGAI Chile Socio N° 13-563), la Asociación Gremial AGACECH y habilitado bajo la Ley N° 21.442.
                       </p>
                       <p>
-                        Nuestra gran ventaja competitiva radica en la formación técnica y constructiva de nuestro equipo: <strong>Técnico en Construcción titulado y estudiante avanzado de Construcción Civil</strong>. Esta sólida base constructiva nos permite auditar, fiscalizar y supervisar con criterio experto obras de mantención, salas de bombas, cubiertas, filtraciones y contratos de proveedores, garantizando la preservación y plusvalía del patrimonio comunitario.
+                        Nuestra gran ventaja competitiva radica en la formación profesional de nuestro titular: <strong>Constructor Civil</strong>. Esta sólida base constructiva nos permite auditar, fiscalizar y supervisar con criterio experto obras de mantención, salas de bombas, cubiertas, filtraciones y contratos de proveedores, garantizando la preservación y plusvalía del patrimonio comunitario.
                       </p>
                     </div>
                   )}
@@ -4098,7 +4083,7 @@ export const CompanySettingsAndBackupModule = ({
                         {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
                       </div>
                       <p className="text-[10px] text-slate-600 font-mono font-semibold">
-                        RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
+                        RUT: {empresaForm.companyRut || '76.999.888-8'} • {empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442'}
                       </p>
                       <p className="text-[10px] text-slate-500">
                         {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'Santiago, Chile'}
@@ -4193,13 +4178,13 @@ export const CompanySettingsAndBackupModule = ({
                     </p>
                     <ul className="list-disc pl-5 space-y-1 text-slate-700 text-[11px]">
                       <li>
-                        <strong>Solvencia Técnica en Construcción:</strong> Formación como Técnico en Construcción y estudios avanzados en Construcción Civil, permitiéndonos realizar diagnósticos certeros en bombas, filtraciones, tableros eléctricos, sellos y cubiertas sin depender a ciegas de presupuestos inflados de contratistas externos.
+                        <strong>Solvencia Técnica en Construcción:</strong> Formación profesional como Constructor Civil, permitiéndonos realizar diagnósticos certeros en bombas, filtraciones, tableros eléctricos, sellos y cubiertas sin depender a ciegas de presupuestos inflados de contratistas externos.
                       </li>
                       <li>
                         <strong>Transparencia Contable 100% Digital:</strong> Implementamos para su comunidad un portal web y aplicación móvil donde cada copropietario puede auditar en vivo con 1 clic las boletas, facturas y comprobantes bancarios reales de cada gasto realizado.
                       </li>
                       <li>
-                        <strong>Acreditación Minvu Ley 21.442:</strong> Administrador titular válidamente inscrito en el Registro Nacional de Administradores de Condominios del Minvu (RNAC N° {empresaForm.rnacNumber}).
+                        <strong>Cumplimiento Integral Ley 21.442:</strong> Administrador titular acreditado conforme a las exigencias legales del Ministerio de Vivienda y Urbanismo.
                       </li>
                       <li>
                         <strong>Cobranza Asistida & Fe Notarial:</strong> Emisión formal de certificados de no deuda, convenios de pago y certificados de liquidación morosa para compraventas bajo el Art. 36° de la ley.
@@ -4218,7 +4203,7 @@ export const CompanySettingsAndBackupModule = ({
                   <AranproOfficialSeal
                     size="md"
                     companyRut={empresaForm.companyRut || '76.999.888-8'}
-                    rnacNumber={empresaForm.rnacNumber || '48.912'}
+                    rnacNumber=""
                   />
                   <div className="text-center space-y-1 min-w-[260px]">
                     <div className="h-16 flex items-end justify-center pb-1 overflow-visible">
@@ -4235,9 +4220,9 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                     <div className="border-t-[1.5px] border-slate-800 pt-1.5">
                       <p className="font-black text-xs text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                      <p className="text-[9.5px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
+                      <p className="text-[9.5px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • Ley N° 21.442</p>
                       <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
-                        {empresaForm.adminRole} • Técnico en Construcción & Construcción Civil
+                        {empresaForm.adminRole} • Constructor Civil
                       </p>
                     </div>
                   </div>
@@ -4318,13 +4303,13 @@ export const CompanySettingsAndBackupModule = ({
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-700">Edificio:</span>
+                <span className="font-bold text-slate-700">Comunidad / Condominio:</span>
                 <input
                   type="text"
-                  placeholder="Opcional (ej: Edificio Costa Mar)"
+                  placeholder="Ej: Valle de la Florida IV"
                   value={proposalConfig.targetCondo}
                   onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value, leaveRecipientBlank: false })}
-                  className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs w-44 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+                  className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs w-48 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
                 />
               </div>
               <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
@@ -4335,47 +4320,47 @@ export const CompanySettingsAndBackupModule = ({
               <div
                 id="printable-cold-value-letter"
                 data-pdf-style={pdfStyle}
-                className="bg-white p-5 md:p-7 pl-8 md:pl-10 max-w-3xl mx-auto space-y-2.5 text-slate-900"
+                className="bg-white p-4 md:p-6 pl-7 md:pl-9 max-w-3xl mx-auto space-y-2 text-slate-900"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
-                <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
-                  <div className="flex items-center space-x-3.5">
-                    <AranproLogo variant="principal" className="h-12 w-auto" />
-                    <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
+                <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
+                  <div className="flex items-center space-x-3">
+                    <AranproLogo variant="principal" className="h-11 w-auto" />
+                    <div className="space-y-0.5 border-l border-slate-300 pl-3">
                       <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
                         {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                       </div>
-                      <p className="text-[10px] text-slate-600 font-mono font-semibold">
-                        RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
+                      <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
+                        RUT Empresa: {empresaForm.companyRut || '76.999.888-8'} • Ley N° 21.442 de Copropiedad Inmobiliaria
                       </p>
-                      <p className="text-[9.5px] text-slate-500">
-                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'Santiago, Chile'}
+                      <p className="text-[9px] text-slate-500">
+                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'La Serena, Chile'}
                       </p>
                     </div>
                   </div>
 
                   <div className="text-right space-y-0.5 shrink-0">
-                    <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9.5px] font-mono font-bold rounded whitespace-nowrap">
+                    <span className="inline-block px-2 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9px] font-mono font-bold rounded whitespace-nowrap">
                       PRESENTACIÓN INSTITUCIONAL {new Date().getFullYear()}
                     </span>
-                    <p className="text-[10.5px] font-bold text-slate-800">
-                      Carta de Presentación & Invitación Técnica
+                    <p className="text-[10px] font-bold text-slate-800">
+                      Carta de Presentación & Propuesta de Servicios
                     </p>
-                    <p className="text-[9.5px] text-slate-500 font-semibold">
-                      Especial para el Comité de Administración
+                    <p className="text-[9px] text-slate-500 font-semibold">
+                      Para el Comité de Administración
                     </p>
                   </div>
                 </div>
 
                 {/* Encabezado Protocolar */}
-                <div className="text-[11px] text-slate-700 space-y-0.5 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200">
+                <div className="text-[10.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
                   <p>
                     <strong>Dirigido cordialmente a:</strong>{' '}
                     {proposalConfig.leaveRecipientBlank ? (
                       <span className="font-mono text-slate-400">__________________________________________________________________</span>
                     ) : (
-                      <strong className="text-slate-900">Señores Miembros del Comité de Administración</strong>
+                      <strong className="text-slate-900">Señores Integrantes del Comité de Administración</strong>
                     )}
                   </p>
                   {proposalConfig.targetCondo?.trim() ? (
@@ -4390,149 +4375,157 @@ export const CompanySettingsAndBackupModule = ({
                     </p>
                   ) : (
                     <p>
-                      <strong>Comunidad:</strong>{' '}
+                      <strong>Comunidad / Condominio:</strong>{' '}
                       <span className="font-semibold text-slate-800">Comunidad de Copropietarios • {empresaForm.city}</span>
                     </p>
                   )}
                   <p>
-                    <strong>Presentado por:</strong> {empresaForm.adminName} — Administrador Acreditado RNAC Minvu N° {empresaForm.rnacNumber} (Técnico en Construcción & Construcción Civil)
+                    <strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)
                   </p>
                   <p>
-                    <strong>Motivo de Invitación:</strong> Presentación de Credenciales Profesionales, Gestión Transparente Ley N° 21.442 e Invitación a Diagnóstico Técnico Preventivo Sin Costo
+                    <strong>Materia:</strong> Presentación de Servicios de Administración Profesional & Propuesta Operativa Integral
                   </p>
                 </div>
 
                 {/* Título de Alto Impacto */}
                 <div className="text-center py-0.5">
-                  <h1 className="text-sm md:text-base font-black text-[#0F3D2E] uppercase tracking-tight">
-                    Administración con Criterio Constructivo & Transparencia Digital 24/7
+                  <h1 className="text-xs md:text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
+                    Administración Profesional, Criterio Constructivo & Gestión Integral
                   </h1>
                   <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
                 </div>
 
-                {/* Cuerpo Consultivo (Compactado para calzar en 1 página exacta sin cortes) */}
-                <div className="text-justify text-[11px] text-slate-800 leading-snug space-y-2">
+                {/* Cuerpo Consultivo (Garantizado en 1 página exacta sin desbordes) */}
+                <div className="text-justify text-[10.5px] text-slate-800 leading-snug space-y-1.5">
                   <p>
-                    <strong>Estimados integrantes del Comité de Administración:</strong> Junto con saludarles muy cordialmente y reconociendo la importante labor que desempeñan en representación de sus vecinos, hacemos entrega de nuestras credenciales profesionales. Sabemos que la tranquilidad financiera, el funcionamiento continuo de los equipos críticos y la plusvalía de{' '}
-                    {proposalConfig.targetCondo?.trim() ? <strong>{proposalConfig.targetCondo}</strong> : <strong>su condominio</strong>} dependen directamente de contar con una administración rigurosa, cercana y técnicamente competente.
+                    <strong>Estimadas y estimados integrantes del Comité de Administración:</strong> Junto con saludarles cordialmente y reconociendo el compromiso que dedican a su comunidad, me dirijo a ustedes para presentar los servicios de <strong>ARANPRO Gestión Integral</strong> y poner a su consideración nuestra administración para {proposalConfig.targetCondo?.trim() ? <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong> : <strong>su comunidad</strong>}. Nos interesa conocer en profundidad las prioridades y necesidades actuales de su comunidad y presentarles una propuesta formal que detalle con total claridad el alcance del servicio, la forma de trabajo y los honorarios.
                   </p>
                   <p>
-                    Ya sea que su comunidad se encuentre evaluando alternativas de gestión en el corto plazo o desee mantener en su registro a un
-                    <strong> Administrador Oficial acreditado ante el MINVU (RNAC N° {empresaForm.rnacNumber})</strong> para futuras decisiones, ponemos a disposición del Comité los <strong>3 pilares diferenciadores</strong> que distinguen a <strong>ARANPRO</strong>:
+                    Nuestra gestión se fundamenta en <strong>tres pilares operativos</strong> diseñados para entregar tranquilidad, control y valorización continua a su condominio:
                   </p>
 
-                  {/* 3 Pilares de Valor Agregado */}
+                  {/* 3 Pilares Solicitados */}
                   <div className="grid grid-cols-1 gap-1.5 pt-0.5">
+                    {/* Pilar 1: Gestión financiera y rendición de cuentas */}
                     <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
                         1
                       </span>
                       <div>
                         <strong className="text-[#0F3D2E] block text-[11px]">
-                          Respaldo Real en Construcción (Freno a Presupuestos Inflados de Terceros)
+                          Gestión financiera y rendición de cuentas
                         </strong>
-                        <p className="text-[10.5px] text-slate-600 leading-snug mt-0.5">
-                          Nuestro titular cuenta con formación de <strong>Técnico en Construcción y estudios en Construcción Civil</strong>. Inspeccionamos en terreno salas de bombas, calderas, ascensores, cubiertas y filtraciones, exigiendo cubicaciones reales y evitando sobrecostos de contratistas externos.
+                        <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
+                          Preparación y seguimiento del presupuesto, gestión de gastos comunes y morosidad, revisión de pagos y organización de respaldos. La plataforma digital de ARANPRO facilita la consulta de la información de gestión, con accesos definidos según las funciones del comité y de los residentes.
                         </p>
                       </div>
                     </div>
 
+                    {/* Pilar 2: Mantención y evaluación de proveedores */}
                     <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
                         2
                       </span>
                       <div>
                         <strong className="text-[#0F3D2E] block text-[11px]">
-                          Transparencia Contable Radical: Portal Web & App Móvil Propia 24/7
+                          Mantención y evaluación de proveedores (Criterio Constructor Civil)
                         </strong>
-                        <p className="text-[10.5px] text-slate-600 leading-snug mt-0.5">
-                          En nuestra plataforma digital cada copropietario y miembro del Comité puede auditar desde su celular, con un solo clic, las <strong>facturas originales, boletas y comprobantes de transferencia bancaria</strong> de cada egreso mensual.
+                        <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
+                          Revisión en terreno de las necesidades de la comunidad, programación de mantenciones y seguimiento de reparaciones. Al comparar cotizaciones, revisamos alcances, cantidades, exclusiones y condiciones de ejecución para apoyar decisiones fundamentadas del comité y controlar el cumplimiento de los trabajos contratados.
                         </p>
                       </div>
                     </div>
 
+                    {/* Pilar 3: Personal, acuerdos y organización de la comunidad */}
                     <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
                         3
                       </span>
                       <div>
                         <strong className="text-[#0F3D2E] block text-[11px]">
-                          Blindaje Legal para el Comité bajo la Nueva Ley N° 21.442
+                          Personal, acuerdos y organización de la comunidad
                         </strong>
-                        <p className="text-[10.5px] text-slate-600 leading-snug mt-0.5">
-                          Cumplimiento estricto del Registro Nacional de Administradores, asambleas híbridas con votación electrónica certificada (Art. 15°), Libro Oficial de Reclamos foliado (Art. 20°), convenios de pago y control riguroso de morosidad (Art. 36°).
+                        <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
+                          Gestión documental del personal, coordinación de turnos y seguimiento de obligaciones laborales y preventivas (Ley Karin y RIOHS). Apoyo en la preparación de asambleas, registro y ejecución de acuerdos y coordinación de proveedores, con responsables y plazos que permitan al comité conocer el avance de la gestión.
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* GANCHO DE ENTRADA / INVITACIÓN GRATUITA AL COMITÉ (ALTO CONTRASTE EN PANTALLA Y PAPEL) */}
+                  {/* Cierre / Llamado a la Acción */}
                   <div
-                    className="p-2.5 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-0.5"
+                    className="p-2 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-0.5"
                     style={{ backgroundColor: '#f0fdf4', borderColor: '#0F3D2E' }}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-[#0F3D2E]">
-                        ★ BENEFICIO SIN COSTO NI COMPROMISO PARA SU COMITÉ DE ADMINISTRACIÓN
+                        ★ UNA PROPUESTA AJUSTADA A {proposalConfig.targetCondo?.trim() ? proposalConfig.targetCondo.toUpperCase() : 'SU COMUNIDAD'}
                       </span>
                       <span
-                        className="text-[9px] font-bold px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
+                        className="text-[8.5px] font-bold px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
                         style={{ backgroundColor: '#0F3D2E', color: '#D4B895' }}
                       >
-                        100% Gratuito
+                        Reunión & Visita Sin Costo
                       </span>
                     </div>
-                    <p className="text-[11px] font-black text-[#0F3D2E] leading-snug">
-                      Invitación a una Visita de Diagnóstico Técnico-Constructivo Preventivo en Terreno
-                    </p>
-                    <p className="text-[10.5px] text-slate-800 font-medium leading-snug">
-                      Ponemos a disposición del Comité una visita técnica sin costo ni compromiso para realizar una inspección visual de sus instalaciones críticas (sala de bombas, tableros, cubiertas o puntos sensibles) y entregarles una segunda opinión técnica profesional o presentarles formalmente una propuesta a la medida de su comunidad.
+                    <p className="text-[10px] text-slate-800 leading-snug">
+                      Les propongo coordinar una <strong>reunión de presentación</strong> y una <strong>visita inicial sin costo ni compromiso</strong>. Esta instancia permitirá conocer las instalaciones, la dotación, los servicios contratados y las prioridades del comité, y preparar una propuesta que precise las funciones asumidas, la modalidad de atención, los reportes, las prioridades de inicio y los honorarios.
                     </p>
                   </div>
                 </div>
 
-                {/* Sello Circular Dorado + Firma Manuscrita Ejecutiva y Contacto Directo */}
-                <div className="pt-2.5 flex flex-col sm:flex-row items-end justify-between gap-3 border-t border-slate-200">
-                  <div className="flex items-center gap-3 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 w-full sm:w-auto">
-                    <AranproLogo variant="sello" size="sm" />
-                    <div className="text-xs space-y-0.5">
-                      <span className="text-[9.5px] font-black uppercase text-[#0F3D2E] block">
-                        Canales Directos para el Comité:
-                      </span>
-                      <p className="text-[10.5px] text-slate-800">
-                        <strong>WhatsApp / Fono:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone}</span>
+                {/* Sello Oficial y Firma del Administrador (Estándar Oficial ARANPRO • Sello al lado de la firma) */}
+                <div className="pt-2 flex items-end justify-between gap-4 border-t border-slate-200">
+                  {/* Lado Izquierdo: Sello Oficial con RUT Empresa y Canales Directos */}
+                  <div className="flex items-center gap-3">
+                    <AranproOfficialSeal
+                      variant="integral"
+                      size="sm"
+                      companyRut={empresaForm.companyRut || '76.999.888-8'}
+                      rnacNumber=""
+                      showCaption={true}
+                    />
+                    <div className="text-[9.5px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
+                      <p>
+                        <strong>Fono / WhatsApp:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone}</span>
                       </p>
-                      <p className="text-[10.5px] text-slate-800">
-                        <strong>Correo:</strong> <span className="font-mono">{empresaForm.email}</span> • <strong>Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website}</span>
+                      <p>
+                        <strong>Correo:</strong> <span className="font-mono">{empresaForm.email}</span>
+                      </p>
+                      <p>
+                        <strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website}</span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-center space-y-0.5 min-w-[250px] mx-auto sm:mx-0">
-                    <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
+                  {/* Lado Derecho: Firma Manuscrita sobre Línea + Datos Profesionales */}
+                  <div className="text-center min-w-[240px]">
+                    <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
                       {signatureImage ? (
                         <img
                           src={signatureImage}
                           alt="Firma Administrador"
-                          className="h-14 max-h-16 w-auto max-w-[250px] object-contain mx-auto"
+                          className="h-12 max-h-14 w-auto max-w-[230px] object-contain mx-auto"
                           style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                         />
                       ) : (
                         <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
                       )}
                     </div>
-                    <div className="border-t-[1.5px] border-slate-800 pt-1">
+                    <div className="border-t-[1.5px] border-[#0F3D2E] pt-1">
                       <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                      <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
-                      <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                        {empresaForm.adminRole} • Técnico en Construcción & Construcción Civil
+                      <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
+                        Constructor Civil • Administrador de Condominios
+                      </p>
+                      <p className="text-[9px] text-slate-600 font-mono">
+                        RUT: {empresaForm.adminRut || '16.012.871-2'} • Representante Legal ARANPRO
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Pie de Página */}
-                <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                {/* Pie de Página Maestro */}
+                <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
                   <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                   <div>Presentación Oficial para Comités de Administración • Ley N° 21.442 (Pág. 1 de 1)</div>
                 </div>
@@ -4633,7 +4626,7 @@ export const CompanySettingsAndBackupModule = ({
                             {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
                           </div>
                           <p className="text-[10px] text-slate-600 font-mono font-semibold">
-                            RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
+                            RUT: {empresaForm.companyRut || '76.999.888-8'} • {empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442'}
                           </p>
                           <p className="text-[10px] text-slate-500">
                             {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'Santiago, Chile'}
@@ -4732,7 +4725,7 @@ export const CompanySettingsAndBackupModule = ({
                       <div className="grid grid-cols-4 gap-2 text-center">
                         <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
                           <span className="text-[9px] font-bold text-slate-500 uppercase block">Acreditación Oficial</span>
-                          <strong className="text-xs font-black text-[#0F3D2E]">RNAC N° {empresaForm.rnacNumber || '48.912'}</strong>
+                          <strong className="text-xs font-black text-[#0F3D2E]">{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442'}</strong>
                         </div>
                         <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
                           <span className="text-[9px] font-bold text-slate-500 uppercase block">Experiencia</span>
@@ -4810,7 +4803,7 @@ export const CompanySettingsAndBackupModule = ({
                         <AranproLogo variant="principal" className="h-10 w-auto" />
                         <div className="border-l border-slate-300 pl-3">
                           <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">{empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}</span>
-                          <span className="text-[9px] text-slate-500 font-mono">Auditoría Constructiva & Administración Ley N° 21.442 • RNAC N° {empresaForm.rnacNumber || '48.912'}</span>
+                          <span className="text-[9px] text-slate-500 font-mono">Auditoría Constructiva & Administración Ley N° 21.442</span>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
@@ -4830,7 +4823,7 @@ export const CompanySettingsAndBackupModule = ({
                           Ficha Técnica Constructiva: Auditoría & Prevención de Daños
                         </h2>
                         <p className="text-[10px] text-slate-500">
-                          La ventaja diferencial del perfil de Técnico en Construcción y estudios avanzados en Construcción Civil
+                          La ventaja diferencial del perfil profesional de Constructor Civil
                         </p>
                       </div>
                     </div>
@@ -4932,7 +4925,7 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="p-3 rounded-xl bg-gradient-to-r from-[#0F3D2E]/10 via-[#0F3D2E]/5 to-transparent border-l-4 border-[#0F3D2E] text-xs">
                       <strong className="text-[#0F3D2E] block text-[11px]">Garantía de Cumplimiento Legal • Ley N° 21.442</strong>
                       <p className="text-slate-600 text-[10px] leading-relaxed mt-0.5">
-                        Administrador inscrito con vigencia plena en el <strong>Registro Nacional de Administradores de Condominios (RNAC Minvu N° {empresaForm.rnacNumber || '48.912'})</strong>, sin anotaciones negativas, sanciones ni reclamos. Sujeto a rendición documentada mensual ante el Comité de Administración.
+                        Administrador debidamente acreditado conforme a las exigencias de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>, sin anotaciones negativas, sanciones ni reclamos. Sujeto a rendición documentada mensual ante el Comité de Administración.
                       </p>
                     </div>
                   </div>
@@ -4954,7 +4947,7 @@ export const CompanySettingsAndBackupModule = ({
                         <AranproLogo variant="principal" className="h-9 w-auto" />
                         <div className="border-l border-slate-300 pl-3">
                           <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">{empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}</span>
-                          <span className="text-[9px] text-slate-500 font-mono">Acreditación Técnica, Referencias Notariales y Firma Oficial • RNAC N° {empresaForm.rnacNumber || '48.912'}</span>
+                          <span className="text-[9px] text-slate-500 font-mono">Acreditación Técnica, Referencias Notariales y Firma Oficial • Ley N° 21.442</span>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
@@ -5066,7 +5059,7 @@ export const CompanySettingsAndBackupModule = ({
                       <AranproOfficialSeal
                         size="sm"
                         companyRut={empresaForm.companyRut || '76.999.888-8'}
-                        rnacNumber={empresaForm.rnacNumber || '48.912'}
+                        rnacNumber=""
                       />
                       <div className="text-center space-y-0.5 min-w-[250px]">
                         <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
@@ -5083,9 +5076,9 @@ export const CompanySettingsAndBackupModule = ({
                         </div>
                         <div className="border-t-[1.5px] border-slate-800 pt-1">
                           <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                          <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}</p>
+                          <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • Ley N° 21.442</p>
                           <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                            {empresaForm.adminRole} • Técnico en Construcción & Construcción Civil
+                            {empresaForm.adminRole} • Constructor Civil
                           </p>
                         </div>
                       </div>
@@ -5253,7 +5246,7 @@ export const CompanySettingsAndBackupModule = ({
                 <input
                   type="text"
                   required
-                  placeholder="Ej: Técnico en Construcción, Construcción Civil, Curso Ley 21.442"
+                  placeholder="Ej: Constructor Civil, Curso Ley 21.442"
                   value={newDiplomaForm.title}
                   onChange={(e) => setNewDiplomaForm({ ...newDiplomaForm, title: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
@@ -5614,7 +5607,7 @@ export const CompanySettingsAndBackupModule = ({
                         Portal Web & App Móvil ARANPRO
                       </h2>
                       <p className="text-[10px] text-slate-600 font-mono font-semibold">
-                        RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'}
+                        RUT: {empresaForm.companyRut || '76.999.888-8'} • {empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442'}
                       </p>
                       <p className="text-[9.5px] text-slate-500 font-mono">
                         {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.website || 'www.aranpro.cl'}
@@ -5679,7 +5672,7 @@ export const CompanySettingsAndBackupModule = ({
                   <AranproOfficialSeal
                     size="sm"
                     companyRut={empresaForm.companyRut || '76.999.888-8'}
-                    rnacNumber={empresaForm.rnacNumber || '48.912'}
+                    rnacNumber=""
                   />
                   <div className="text-center min-w-[230px]">
                     <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
@@ -5693,8 +5686,8 @@ export const CompanySettingsAndBackupModule = ({
                       )}
                     </div>
                     <span className="text-[10.5px] font-black text-slate-900 block border-t-[1.5px] border-slate-800 pt-1">{empresaForm.adminName}</span>
-                    <span className="text-[9px] text-slate-600 font-mono block">RUT: {empresaForm.adminRut} • RNAC MINVU N° {empresaForm.rnacNumber}</span>
-                    <span className="text-[9px] text-[#0F3D2E] font-bold block">Técnico en Construcción • Construcción Civil</span>
+                    <span className="text-[9px] text-slate-600 font-mono block">RUT: {empresaForm.adminRut} • Ley N° 21.442</span>
+                    <span className="text-[9px] text-[#0F3D2E] font-bold block">Constructor Civil • Administrador de Condominios</span>
                   </div>
                 </div>
 
@@ -5771,7 +5764,7 @@ export const CompanySettingsAndBackupModule = ({
                         Informe de Diagnóstico Técnico Inicial
                       </h2>
                       <p className="text-[10px] text-slate-600 font-mono font-semibold">
-                        RUT: {empresaForm.companyRut || '76.999.888-8'} • RNAC MINVU N° {empresaForm.rnacNumber || '48.912'} • Fono: {empresaForm.phone || '+56 9 5811 8504'}
+                        RUT: {empresaForm.companyRut || '76.999.888-8'} • Ley N° 21.442 • Fono: {empresaForm.phone || '+56 9 5811 8504'}
                       </p>
                     </div>
                   </div>
@@ -5791,7 +5784,7 @@ export const CompanySettingsAndBackupModule = ({
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase font-bold">Profesional Evaluador a Cargo:</span>
                     <strong className="text-slate-900">{empresaForm.adminName}</strong>
-                    <span className="text-slate-600 block text-[11px]">Técnico en Construcción • Construcción Civil • RNAC Minvu N° {empresaForm.rnacNumber}</span>
+                    <span className="text-slate-600 block text-[11px]">Constructor Civil • Administrador de Condominios (Ley N° 21.442)</span>
                   </div>
                   <div className="text-right">
                     <span className="text-slate-500 block text-[10px] uppercase font-bold">Contacto Directo:</span>
@@ -5854,8 +5847,8 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                     <div className="border-t-[1.5px] border-slate-800 pt-1 text-[10px]">
                       <p className="font-black text-slate-900">{empresaForm.adminName}</p>
-                      <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • RNAC N° {empresaForm.rnacNumber}</p>
-                      <p className="text-[9px] text-[#0F3D2E] font-bold">Técnico en Construcción • Construcción Civil</p>
+                      <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • Ley N° 21.442</p>
+                      <p className="text-[9px] text-[#0F3D2E] font-bold">Constructor Civil • Administrador de Condominios</p>
                     </div>
                   </div>
                 </div>
@@ -5942,7 +5935,7 @@ export const CompanySettingsAndBackupModule = ({
 
                 <div className="space-y-2.5">
                   {[
-                    { p: '1. Supervisión Constructiva', t: 'Visitas esporádicas. No saben de construcción ni bombas; dependen a ciegas de técnicos externos con sobrecostos.', a: 'Administrador Técnico en Construcción y estudiante de Construcción Civil. Audita bombas, sellos, filtraciones y fiscaliza a contratistas en terreno.' },
+                    { p: '1. Supervisión Constructiva', t: 'Visitas esporádicas. No saben de construcción ni bombas; dependen a ciegas de técnicos externos con sobrecostos.', a: 'Administrador Constructor Civil. Audita bombas, sellos, filtraciones y fiscaliza a contratistas en terreno con criterio técnico experto.' },
                     { p: '2. Transparencia en Cuentas', t: 'Planillas Excel confusas enviadas a fin de mes. Comprobantes bancarios ocultos o extraviados.', a: 'Portal y App móvil 24/7 donde cada vecino audita las facturas y comprobantes bancarios reales de cada gasto con 1 solo clic.' },
                     { p: '3. Asambleas Ley 21.442', t: 'Falta crónica de quórum presencial. Actas en papel que tardan semanas en protocolizarse.', a: 'Asambleas telemáticas e híbridas con voto digital seguro desde el teléfono celular y quórums automatizados (Art. 15°).' },
                     { p: '4. Atención de Reclamos', t: 'Mensajes de WhatsApp o llamados informales que quedan en el olvido sin respuesta.', a: 'Libro Oficial de Reclamos y Sugerencias digital foliado con plazo legal estricto de respuesta garantizado (Art. 20°).' },
@@ -5968,7 +5961,7 @@ export const CompanySettingsAndBackupModule = ({
                   <AranproOfficialSeal
                     size="sm"
                     companyRut={empresaForm.companyRut || '76.999.888-8'}
-                    rnacNumber={empresaForm.rnacNumber || '48.912'}
+                    rnacNumber=""
                   />
                   <div className="text-center min-w-[230px]">
                     <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
@@ -5982,8 +5975,8 @@ export const CompanySettingsAndBackupModule = ({
                       )}
                     </div>
                     <span className="text-[10.5px] font-black text-slate-900 block border-t-[1.5px] border-slate-800 pt-1">{empresaForm.adminName}</span>
-                    <span className="text-[9px] text-slate-600 font-mono block">RUT: {empresaForm.adminRut} • RNAC MINVU N° {empresaForm.rnacNumber}</span>
-                    <span className="text-[9px] text-[#0F3D2E] font-bold block">Técnico en Construcción • Construcción Civil</span>
+                    <span className="text-[9px] text-slate-600 font-mono block">RUT: {empresaForm.adminRut} • Ley N° 21.442</span>
+                    <span className="text-[9px] text-[#0F3D2E] font-bold block">Constructor Civil • Administrador de Condominios</span>
                   </div>
                 </div>
               </div>
@@ -6015,7 +6008,7 @@ export const CompanySettingsAndBackupModule = ({
                 { q: '1. "¿Cuánto cobran de honorarios y qué incluye?"', r: 'Nuestros honorarios son transparentes y acordes a la escala de la comunidad. Incluyen visitas semanales en terreno, la plataforma web y app móvil para todos los copropietarios, y la emisión de colillas y certificados sin cobros ocultos.' },
                 { q: '2. "¿Cómo se realiza el cambio con la administración actual?"', r: 'ARANPRO se encarga de la auditoría de traspaso formal según el Art. 20° de la Ley N° 21.442, levantando un acta formal de conciliación bancaria y revisión de deudas para blindar la responsabilidad del nuevo comité.' },
                 { q: '3. "¿Cómo manejan la morosidad histórica?"', r: 'Aplicamos el Art. 36° de la ley: emisión de convenios de pago formalizados, certificados morosos para notarías y cortes de suministro coordinados conforme al reglamento interno.' },
-                { q: '4. "¿Por qué un administrador con formación en construcción es mejor?"', r: 'Porque las mantenciones representan el 60% del gasto común. Con criterio de Técnico en Construcción y Construcción Civil evitamos que contratistas inflen presupuestos de impermeabilización, bombas o pintura.' }
+                { q: '4. "¿Por qué un administrador con formación en construcción es mejor?"', r: 'Porque las mantenciones representan el 60% del gasto común. Con criterio técnico de Constructor Civil evitamos que contratistas inflen presupuestos de impermeabilización, bombas o pintura.' }
               ].map((item, idx) => (
                 <div key={idx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
                   <span className="font-black text-slate-900 block">{item.q}</span>

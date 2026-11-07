@@ -102,7 +102,7 @@ export const AranproOfficialSeal = ({
   showCaption = true,
   showText = true,
   companyRut = '76.999.888-8',
-  rnacNumber = '48.912',
+  rnacNumber = '',
   className = ''
 }) => {
   const sizeMap = {
@@ -114,6 +114,17 @@ export const AranproOfficialSeal = ({
     variant === 'ap'
       ? '/brand/ARANPRO_sello_circular_ap_transparente.png'
       : '/brand/ARANPRO_sello_circular_integral_transparente.png';
+
+  const cleanRnacText = () => {
+    if (!rnacNumber || rnacNumber === '48.912') {
+      return 'Ley N° 21.442 de Copropiedad Inmobiliaria';
+    }
+    const lower = String(rnacNumber).toLowerCase();
+    if (lower.includes('trámite') || lower.includes('tramite') || lower.includes('proceso')) {
+      return `Registro MINVU: En trámite • Ley 21.442`;
+    }
+    return `RNAC MINVU N° ${rnacNumber} • Ley N° 21.442`;
+  };
 
   return (
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
@@ -139,7 +150,7 @@ export const AranproOfficialSeal = ({
             RUT Empresa: {companyRut}
           </div>
           <div className="text-[8.5px] font-bold text-slate-500">
-            RNAC MINVU N° {rnacNumber} • Ley N° 21.442
+            {cleanRnacText()}
           </div>
         </div>
       )}
