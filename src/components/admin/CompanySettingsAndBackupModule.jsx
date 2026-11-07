@@ -18,7 +18,8 @@ import {
   HardHat, BookOpen, FileCheck, Upload, RefreshCw, PenTool,
   HelpCircle, Settings, Smartphone, Layers, CheckSquare, MessageCircle,
   Paperclip, FileUp, QrCode, Presentation, Compass, ClipboardCheck,
-  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert, Kanban, Calculator
+  ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert, Kanban, Calculator,
+  Mail, GraduationCap
 } from 'lucide-react';
 
 // Recorta automáticamente márgenes blancos/transparentes alrededor de la firma manuscrita
