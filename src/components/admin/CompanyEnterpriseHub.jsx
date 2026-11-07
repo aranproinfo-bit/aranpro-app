@@ -344,7 +344,7 @@ export const CompanyEnterpriseHub = ({
     });
   };
 
-  // Módulos ordenados y sin duplicados para la barra lateral
+  // Módulos ordenados según el flujo de trabajo guiado para el Administrador
   const hubNavTabs = [
     {
       id: 'comunidades',
@@ -354,25 +354,25 @@ export const CompanyEnterpriseHub = ({
       badge: `${totalCommunities}`
     },
     {
+      id: 'empresa',
+      label: '2. Datos Empresa, Firma & MINVU',
+      shortLabel: 'Datos Empresa',
+      icon: ShieldCheck,
+      badge: 'MINVU'
+    },
+    {
       id: 'postulaciones',
-      label: '2. Postulaciones & CRM',
+      label: '3. Postulaciones & CRM',
       shortLabel: 'Postulaciones',
       icon: Target,
       badge: 'Licitaciones'
     },
     {
       id: 'rrhh_oficina',
-      label: '3. Mi Oficina (RR.HH.)',
+      label: '4. Mi Oficina (RR.HH.)',
       shortLabel: 'Mi Oficina',
       icon: Users,
       badge: `${officeWorkers.length}`
-    },
-    {
-      id: 'empresa',
-      label: '4. Datos Empresa, Firma & RNAC',
-      shortLabel: 'Datos Empresa',
-      icon: ShieldCheck,
-      badge: 'MINVU'
     },
     {
       id: 'alianzas',
@@ -925,7 +925,20 @@ export const CompanyEnterpriseHub = ({
             </div>
           )}
 
-          {/* ==================== MÓDULO 2: POSTULACIONES & CRM (DESDE SUBMENÚ LATERAL) ==================== */}
+          {/* ==================== MÓDULO 2: DATOS EMPRESA, FIRMA & MINVU ==================== */}
+          {activeHubTab === 'empresa' && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <CompanySettingsAndBackupModule
+                currentCommunity={communities[0]}
+                activeSubTab={empresaSubSection}
+                setActiveSubTab={setEmpresaSubSection}
+                hideHeader={true}
+                hideNavBar={true}
+              />
+            </div>
+          )}
+
+          {/* ==================== MÓDULO 3: POSTULACIONES & CRM ==================== */}
           {activeHubTab === 'postulaciones' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <CompanySettingsAndBackupModule
@@ -940,7 +953,7 @@ export const CompanyEnterpriseHub = ({
             </div>
           )}
 
-          {/* ==================== MÓDULO 3: MI OFICINA (RR.HH., CONTRATOS & PREVIRED) ==================== */}
+          {/* ==================== MÓDULO 4: MI OFICINA (RR.HH., CONTRATOS & PREVIRED) ==================== */}
           {activeHubTab === 'rrhh_oficina' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-5">
@@ -1207,20 +1220,7 @@ export const CompanyEnterpriseHub = ({
             </div>
           )}
 
-          {/* ==================== MÓDULO 4: DATOS EMPRESA, FIRMA & RNAC MINVU ==================== */}
-          {activeHubTab === 'empresa' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <CompanySettingsAndBackupModule
-                currentCommunity={communities[0]}
-                activeSubTab={empresaSubSection}
-                setActiveSubTab={setEmpresaSubSection}
-                hideHeader={true}
-                hideNavBar={true}
-              />
-            </div>
-          )}
-
-          {/* ==================== MÓDULO 6: CONVENIOS, GREMIOS & PROVEEDORES ==================== */}
+          {/* ==================== MÓDULO 5: CONVENIOS, GREMIOS & PROVEEDORES ==================== */}
           {activeHubTab === 'alianzas' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               {/* Convenios con Gremios y Abogados */}
@@ -1369,7 +1369,7 @@ export const CompanyEnterpriseHub = ({
             </div>
           )}
 
-          {/* ==================== MÓDULO 7: RESPALDOS & SEGURIDAD ==================== */}
+          {/* ==================== MÓDULO 6: RESPALDOS & SEGURIDAD ==================== */}
           {activeHubTab === 'respaldos' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <CompanySettingsAndBackupModule
