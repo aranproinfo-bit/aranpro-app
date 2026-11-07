@@ -9,12 +9,19 @@ const getResendApiKey = () => {
          ['re', '9R3DLwdJ', 'DQ3tvi8VSNB6iFyRTnQZDPwx'].join('_');
 };
 
-const getResendEndpoints = (path = '/emails') => {
-  // En navegador intentamos primero el proxy local del gateway y como fallback la API directa
+const getResendEndpoints = (type = 'single') => {
+  const gatewayRoute = type === 'batch' ? '/api/mail-gateway/batch' : '/api/mail-gateway/emails';
+  const directUrl = type === 'batch' ? 'https://api.resend.com/emails/batch' : 'https://api.resend.com/emails';
+  // En navegador usamos la Cloudflare Pages Function local y respaldos Edge de ARANPRO (con CORS habilitado)
   if (typeof window !== 'undefined') {
-    return [`/api/mail-gateway${path}`, `https://api.resend.com${path}`];
+    return [
+      gatewayRoute,
+      `https://aranpro-app.pages.dev${gatewayRoute}`,
+      `https://aranpro.cl${gatewayRoute}`,
+      directUrl
+    ];
   }
-  return [`https://api.resend.com${path}`];
+  return [directUrl];
 };
 
 export const resendMailService = {
@@ -27,7 +34,7 @@ export const resendMailService = {
       return { success: false, error: 'Falta configurar VITE_RESEND_API_KEY' };
     }
 
-    const endpoints = getResendEndpoints('/emails');
+    const endpoints = getResendEndpoints('single');
     let lastError = null;
 
     for (const url of endpoints) {
@@ -85,7 +92,7 @@ export const resendMailService = {
 
       const results = [];
       for (const chunk of chunks) {
-        const endpoints = getResendEndpoints('/emails/batch');
+        const endpoints = getResendEndpoints('batch');
         let chunkSent = false;
         let chunkError = null;
 

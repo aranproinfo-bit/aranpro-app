@@ -6,7 +6,9 @@ const resendMailPlugin = () => ({
   name: 'resend-mail-plugin',
   configureServer(server) {
     server.middlewares.use(async (req, res, next) => {
-      if (req.url && req.url.startsWith('/api/mail-gateway/emails')) {
+      if (req.url && req.url.startsWith('/api/mail-gateway/')) {
+        const isBatch = req.url.includes('/batch');
+        const targetResendUrl = isBatch ? 'https://api.resend.com/emails/batch' : 'https://api.resend.com/emails';
         console.log('[GATEWAY HIT]', req.method, req.url);
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -23,13 +25,13 @@ const resendMailPlugin = () => ({
         req.on('end', async () => {
           try {
             console.log('[GATEWAY BODY LEN]', body.length);
-            const payload = JSON.parse(body || '{}');
+            const payload = JSON.parse(body || (isBatch ? '[]' : '{}'));
             const authHeader = req.headers['authorization'] || '';
             const apiKey = authHeader.replace(/^Bearer\s+/i, '').trim() || 
                            process.env.VITE_RESEND_API_KEY || 
                            ['re', '9R3DLwdJ', 'DQ3tvi8VSNB6iFyRTnQZDPwx'].join('_');
 
-            const resendRes = await fetch('https://api.resend.com/emails', {
+            const resendRes = await fetch(targetResendUrl, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${apiKey}`,
