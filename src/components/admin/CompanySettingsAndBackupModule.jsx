@@ -2278,15 +2278,14 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               </div>
 
-              {/* SELECTOR MODULAR PRINCIPAL (5 PESTAÑAS ESTRUCTURADAS Y AMIGABLES) */}
+              {/* SELECTOR MODULAR PRINCIPAL (4 PESTAÑAS ESTRUCTURADAS Y AMIGABLES) */}
               {!hidePostulacionSubNav && (
                 <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
                   {[
                     { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send, badge: '4 Pasos' },
-                    { id: 'antecedentes', label: '2. Mis Antecedentes & Títulos', icon: Award, badge: `${accreditationDocs.filter(d => d.includeInDossier !== false).length + academicRecords.filter(r => r.includeInProposal !== false).length}` },
-                    { id: 'material', label: '3. Documentos & Cartas PDF', icon: FileText },
-                    { id: 'pipeline', label: `4. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
-                    { id: 'herramientas', label: '5. Caja de Herramientas (AGACECH & Pitch)', icon: Calculator }
+                    { id: 'material', label: '2. Documentos & Cartas PDF', icon: FileText },
+                    { id: 'pipeline', label: `3. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
+                    { id: 'herramientas', label: '4. Caja de Herramientas (AGACECH & Pitch)', icon: Calculator }
                   ].map((tab) => {
                     const IconC = tab.icon;
                     const isAct = postulacionSection === tab.id ||
@@ -2690,6 +2689,15 @@ export const CompanySettingsAndBackupModule = ({
                         </button>
                         <button
                           type="button"
+                          onClick={() => setActiveSubTab('acreditacion')}
+                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                          title="Gestionar mis títulos y antecedentes en Datos de Empresa"
+                        >
+                          <Award className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          Mis Títulos ({academicRecords.length}) & Docs ({accreditationDocs.length})
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleShareWhatsApp(2)}
                           className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
@@ -2990,189 +2998,7 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               )}
 
-              {/* ==================== SECCIÓN 2: MIS ANTECEDENTES & TÍTULOS GUARDADOS ==================== */}
-              {postulacionSection === 'antecedentes' && (
-                <div className="space-y-6 animate-in fade-in">
-                  <div className="p-5 rounded-3xl bg-emerald-50 border-2 border-emerald-600/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-bold text-xl shrink-0 shadow-xs">
-                        🛡️
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-white px-2 py-0.5 rounded border border-emerald-200">
-                            Bóveda Protegida & Vigente
-                          </span>
-                          <span className="text-[10px] font-bold text-emerald-800">
-                            {academicRecords.length} Títulos / Cursos • {accreditationDocs.length} Docs Legales
-                          </span>
-                        </div>
-                        <h4 className="text-base font-black text-slate-900 mt-0.5">
-                          Mis Antecedentes, Título de Constructor Civil & Documentos Oficiales
-                        </h4>
-                        <p className="text-xs text-slate-600">
-                          Todos los archivos que subas quedan salvaguardados permanentemente en tu plataforma y se integran como anexos al Dossier Integral de Licitación.
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setShowUploadDiplomaModal(true)}
-                        className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
-                        + Subir Título o Diploma
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 1. TÍTULOS Y DIPLOMAS DE FORMACIÓN */}
-                  <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="w-5 h-5 text-[#0F3D2E]" />
-                        <div>
-                          <h4 className="text-sm font-black text-slate-900">
-                            1. Título Profesional & Certificaciones Académicas
-                          </h4>
-                          <p className="text-[11px] text-slate-500">
-                            Personaliza tu formación profesional. Puedes eliminar, editar o agregar tus títulos según tu profesión (Constructor, Contador, Ingeniero, Abogado, etc.).
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-[11px] font-mono text-slate-500 font-bold">
-                          {academicRecords.filter(r => r.includeInProposal !== false).length} de {academicRecords.length} en Dossier
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingDiplomaId(null);
-                            setNewDiplomaForm(initialNewDiplomaState);
-                            setShowUploadDiplomaModal(true);
-                          }}
-                          className="px-3 py-1.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
-                          + Agregar Título
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {academicRecords.map((item) => (
-                        <div
-                          key={item.id}
-                          className="p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-[#0F3D2E]/40 transition-all space-y-3 flex flex-col justify-between"
-                        >
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                {item.category}
-                              </span>
-                              <span className="text-[9.5px] font-mono text-slate-500 font-bold">
-                                Año {item.year}
-                              </span>
-                            </div>
-                            <h5 className="font-black text-sm text-slate-900 leading-snug">
-                              {item.title}
-                            </h5>
-                            <p className="text-[11px] text-slate-500 font-semibold">
-                              {item.institution} • {item.status}
-                            </p>
-                            {item.relevance && (
-                              <p className="text-[10.5px] text-slate-600 leading-snug pt-1">
-                                {item.relevance}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-1.5">
-                              {hasFile(item) ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded">
-                                  <FileCheck className="w-3 h-3 text-emerald-700" />
-                                  {item.fileName || 'Archivo Guardado'}
-                                </span>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => handleEditDiploma(item)}
-                                  className="text-[10.5px] text-amber-700 hover:underline font-bold flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Upload className="w-3 h-3 text-amber-600" />
-                                  Adjuntar PDF
-                                </button>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-1.5">
-                              {hasFile(item) && (
-                                <button
-                                  type="button"
-                                  onClick={() => setActiveDiplomaPreview(item)}
-                                  className="p-1.5 text-slate-500 hover:text-[#0F3D2E] hover:bg-slate-200/70 rounded-lg transition-all cursor-pointer"
-                                  title="Ver Documento PDF"
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => handleEditDiploma(item)}
-                                className="p-1.5 text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-200/70 rounded-lg transition-all cursor-pointer"
-                                title="Editar Título o Institución"
-                              >
-                                <PenTool className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteDiploma(item)}
-                                className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
-                                title="Eliminar de mi Bóveda"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleToggleIncludeInProposal(item.id)}
-                                className={`text-[10.5px] font-bold px-2 py-1 rounded-lg border transition-all cursor-pointer ${
-                                  item.includeInProposal !== false
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                                    : 'bg-white text-slate-400 border-slate-200'
-                                }`}
-                              >
-                                {item.includeInProposal !== false ? '✓ En Dossier' : '+ Excluido'}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 2. DOCUMENTOS LEGALES Y DE IDONEIDAD (BIBLIOTECA COMPLETA) */}
-                  <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-[#0F3D2E]" />
-                        <h4 className="text-sm font-black text-slate-900">
-                          2. Documentos de Idoneidad Legal, Registro Civil & MINVU (Ley 21.442)
-                        </h4>
-                      </div>
-                    </div>
-
-                    <DocumentLibraryPanel
-                      documents={accreditationDocs}
-                      setDocuments={setAccreditationDocs}
-                      showAlert={showAlert}
-                      showConfirm={showConfirm}
-                    />
-                  </div>
-                </div>
-              )}
 
               {/* SECCIÓN 1: CHECKLIST & SEMÁFORO DE PREPARACIÓN */}
               {postulacionSection === 'preparacion' && (
