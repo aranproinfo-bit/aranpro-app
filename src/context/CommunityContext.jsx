@@ -161,9 +161,10 @@ export const CommunityProvider = ({ children }) => {
                 ...rec,
                 title: String(rec.title || '').replace(/Técnico en Construcción/gi, 'Constructor Civil')
               }))
-            : undefined,
+            : parsed.academicBackground,
+          accreditationFiles: Array.isArray(parsed.accreditationFiles) ? parsed.accreditationFiles : [],
           experienceSince: parsed.experienceSince || initialCompanySettings.experienceSince,
-          accreditations: initialCompanySettings.accreditations
+          accreditations: parsed.accreditations || initialCompanySettings.accreditations
         };
       } catch (e) { console.error(e); }
     }

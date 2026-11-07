@@ -143,7 +143,7 @@ export const CompanyEnterpriseHub = ({
   // 'comunidades' | 'postulaciones' | 'rrhh_oficina' | 'firma' | 'empresa' | 'alianzas' | 'respaldos'
   const [activeHubTab, setActiveHubTab] = useState('comunidades');
   const [empresaSubSection, setEmpresaSubSection] = useState('empresa'); // 'empresa' | 'acreditacion'
-  const [postulacionSection, setPostulacionSection] = useState('preparacion'); // 'preparacion' | 'pipeline' | 'calculadora' | 'material' | 'inspeccion' | 'comparativa' | 'pitch' | 'demo'
+  const [postulacionSection, setPostulacionSection] = useState('flujo'); // 'flujo' | 'antecedentes' | 'material' | 'pipeline' | 'herramientas'
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -390,16 +390,13 @@ export const CompanyEnterpriseHub = ({
     }
   ];
 
-  // Submenús dedicados para mantener limpia la pantalla principal
+  // Submenús dedicados para el proceso comercial guiado y amigable
   const POSTULACION_SUB_ITEMS = [
-    { id: 'preparacion', label: '1. Checklist & Semáforo', icon: ClipboardCheck },
-    { id: 'pipeline', label: '2. CRM Postulaciones', icon: Briefcase },
-    { id: 'calculadora', label: '3. Calculadora AGACECH', icon: Calculator },
-    { id: 'material', label: '4. Dossier, Propuestas & Cartas', icon: FileText },
-    { id: 'inspeccion', label: '5. Inspección Técnica Inicial', icon: HardHat },
-    { id: 'comparativa', label: '6. Cuadro Comparativo', icon: Scale },
-    { id: 'pitch', label: '7. Libreto Pitch (10 Min)', icon: Presentation },
-    { id: 'demo', label: '8. Demo en Vivo & QR', icon: QrCode },
+    { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send },
+    { id: 'antecedentes', label: '2. Mis Antecedentes & Títulos', icon: Award },
+    { id: 'material', label: '3. Documentos & Cartas PDF', icon: FileText },
+    { id: 'pipeline', label: '4. CRM de Postulaciones', icon: Briefcase },
+    { id: 'herramientas', label: '5. Caja de Herramientas (AGACECH)', icon: Calculator },
   ];
 
   const EMPRESA_SUB_ITEMS = [
@@ -510,7 +507,7 @@ export const CompanyEnterpriseHub = ({
                     setEmpresaSubSection('empresa');
                   }
                   if (tab.id === 'postulaciones' && !postulacionSection) {
-                    setPostulacionSection('preparacion');
+                    setPostulacionSection('flujo');
                   }
                   if (isMobile) setMobileSidebarOpen(false);
                 }}

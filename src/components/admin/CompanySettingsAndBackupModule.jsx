@@ -175,90 +175,100 @@ export const CompanySettingsAndBackupModule = ({
   };
 
   // Estados de Formación Profesional y Acreditaciones (Constructor Civil)
-  const [academicRecords, setAcademicRecords] = useState(companySettings?.academicBackground || [
-    {
-      id: 'acad-1',
-      title: 'Constructor Civil',
-      institution: 'Universidad / Instituto Profesional',
-      category: 'Título Profesional Universitario',
-      status: 'Titulado',
-      year: '2018',
-      relevance: 'Inspección técnica de obras, patologías del hormigón, redes hidráulicas y sanitarias, cubicación de mantenciones, control de calidad y supervisión de contratistas en terreno.',
-      fileName: 'Certificado_Titulo_Constructor_Civil.pdf',
-      fileType: 'application/pdf',
-      fileData: null,
-      fileSize: '1.2 MB',
-      uploadDate: '2024-01-10',
-      includeInProposal: true
-    },
-    {
-      id: 'acad-2',
-      title: 'Curso Oficial de Administración de Copropiedades (Ley 21.442)',
-      institution: 'Learning Group / OTEC Acreditada Sence',
-      category: 'Certificación Minvu Ley 21.442',
-      status: 'Aprobado y Certificado',
-      year: '2022',
-      relevance: 'Habilitación oficial obligatoria para inscripción y ejercicio profesional en el Registro Nacional de Administradores Minvu (RNAC).',
-      fileName: 'Certificado_Aprobacion_Curso_Ley_21442.pdf',
-      fileType: 'application/pdf',
-      fileData: null,
-      fileSize: '1.5 MB',
-      uploadDate: '2024-02-15',
-      includeInProposal: true
+  const [academicRecords, setAcademicRecords] = useState(() => {
+    if (Array.isArray(companySettings?.academicBackground) && companySettings.academicBackground.length > 0) {
+      return companySettings.academicBackground;
     }
-  ]);
+    return [
+      {
+        id: 'acad-1',
+        title: 'Constructor Civil',
+        institution: 'Universidad / Instituto Profesional',
+        category: 'Título Profesional Universitario',
+        status: 'Titulado',
+        year: '2018',
+        relevance: 'Inspección técnica de obras, patologías del hormigón, redes hidráulicas y sanitarias, cubicación de mantenciones, control de calidad y supervisión de contratistas en terreno.',
+        fileName: 'Certificado_Titulo_Constructor_Civil.pdf',
+        fileType: 'application/pdf',
+        fileData: null,
+        fileSize: '1.2 MB',
+        uploadDate: '2024-01-10',
+        includeInProposal: true
+      },
+      {
+        id: 'acad-2',
+        title: 'Curso Oficial de Administración de Copropiedades (Ley 21.442)',
+        institution: 'Learning Group / OTEC Acreditada Sence',
+        category: 'Certificación Minvu Ley 21.442',
+        status: 'Aprobado y Certificado',
+        year: '2022',
+        relevance: 'Habilitación oficial obligatoria para inscripción y ejercicio profesional en el Registro Nacional de Administradores Minvu (RNAC).',
+        fileName: 'Certificado_Aprobacion_Curso_Ley_21442.pdf',
+        fileType: 'application/pdf',
+        fileData: null,
+        fileSize: '1.5 MB',
+        uploadDate: '2024-02-15',
+        includeInProposal: true
+      }
+    ];
+  });
 
   // Lista Formal de Documentos de Acreditación Legal, Tributaria e Institucional (Ley 21.442)
-  const [accreditationDocs, setAccreditationDocs] = useState(companySettings?.accreditationFiles || [
-    {
-      id: 'acc-1',
-      name: 'Comprobante de Inscripción Registro Nacional de Administradores (MINVU)',
-      category: 'rnac',
-      issuer: 'Ministerio de Vivienda y Urbanismo (Minvu)',
-      folio: 'En proceso (Sol. PN-27583)',
-      issueDate: '2026-10-31',
-      expiryDate: 'Pendiente emisión resolución',
-      status: 'En trámite ★★★',
-      notes: 'Solicitud de inscripción Persona Natural tramitada ante MINVU (Ley N° 21.442).',
-      includeInDossier: true
-    },
-    {
-      id: 'acc-2',
-      name: 'Certificado de Antecedentes para Fines Especiales',
-      category: 'identidad',
-      issuer: 'Servicio de Registro Civil e Identificación',
-      folio: 'RC-2026-8841',
-      issueDate: new Date(Date.now() - 15 * 86400000).toISOString().slice(0, 10),
-      expiryDate: new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10),
-      status: 'Intachable',
-      notes: 'Sin anotaciones en el Registro General de Condenas (exigencia Art. 84° Ley 21.442).',
-      includeInDossier: true
-    },
-    {
-      id: 'acc-3',
-      name: 'Carpeta Tributaria Electrónica / Inicio de Actividades SII',
-      category: 'tributario',
-      issuer: 'Servicio de Impuestos Internos (SII)',
-      folio: 'SII-76999888',
-      issueDate: '2026-01-20',
-      expiryDate: '2026-12-31',
-      status: 'Habilitado',
-      notes: 'Giro de administración de bienes raíces y condominios habilitado para facturación o boleta de honorarios.',
-      includeInDossier: true
-    },
-    {
-      id: 'acc-4',
-      name: 'Contrato Tipo de Prestación de Servicios de Administración (Ley 21.442)',
-      category: 'otros',
-      issuer: 'Departamento Legal ARANPRO',
-      folio: 'MOD-2026-V2',
-      issueDate: '2026-01-10',
-      expiryDate: '',
-      status: 'Vigente',
-      notes: 'Incluye cláusulas de SLA, visitas técnicas semanales, rendición mensual documentada (Art. 20°) y salida transparente.',
-      includeInDossier: true
+  const [accreditationDocs, setAccreditationDocs] = useState(() => {
+    if (Array.isArray(companySettings?.accreditationFiles) && companySettings.accreditationFiles.length > 0) {
+      return companySettings.accreditationFiles;
     }
-  ]);
+    return [
+      {
+        id: 'acc-1',
+        name: 'Comprobante de Inscripción Registro Nacional de Administradores (MINVU)',
+        category: 'rnac',
+        issuer: 'Ministerio de Vivienda y Urbanismo (Minvu)',
+        folio: 'En proceso (Sol. PN-27583)',
+        issueDate: '2026-10-31',
+        expiryDate: 'Pendiente emisión resolución',
+        status: 'En trámite ★★★',
+        notes: 'Solicitud de inscripción Persona Natural tramitada ante MINVU (Ley N° 21.442).',
+        includeInDossier: true
+      },
+      {
+        id: 'acc-2',
+        name: 'Certificado de Antecedentes para Fines Especiales',
+        category: 'identidad',
+        issuer: 'Servicio de Registro Civil e Identificación',
+        folio: 'RC-2026-8841',
+        issueDate: new Date(Date.now() - 15 * 86400000).toISOString().slice(0, 10),
+        expiryDate: new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10),
+        status: 'Intachable',
+        notes: 'Sin anotaciones en el Registro General de Condenas (exigencia Art. 84° Ley 21.442).',
+        includeInDossier: true
+      },
+      {
+        id: 'acc-3',
+        name: 'Carpeta Tributaria Electrónica / Inicio de Actividades SII',
+        category: 'tributario',
+        issuer: 'Servicio de Impuestos Internos (SII)',
+        folio: 'SII-76999888',
+        issueDate: '2026-01-20',
+        expiryDate: '2026-12-31',
+        status: 'Habilitado',
+        notes: 'Giro de administración de bienes raíces y condominios habilitado para facturación o boleta de honorarios.',
+        includeInDossier: true
+      },
+      {
+        id: 'acc-4',
+        name: 'Contrato Tipo de Prestación de Servicios de Administración (Ley 21.442)',
+        category: 'otros',
+        issuer: 'Departamento Legal ARANPRO',
+        folio: 'MOD-2026-V2',
+        issueDate: '2026-01-10',
+        expiryDate: '',
+        status: 'Vigente',
+        notes: 'Incluye cláusulas de SLA, visitas técnicas semanales, rendición mensual documentada (Art. 20°) y salida transparente.',
+        includeInDossier: true
+      }
+    ];
+  });
 
   // Solicitud de Cartas de Referencia a Miembros de Comités Actuales
   const [committeeReferences, setCommitteeReferences] = useState(companySettings?.committeeReferenceRequests || [
@@ -372,21 +382,131 @@ export const CompanySettingsAndBackupModule = ({
     targetCondo: companySettings?.lastProposalConfig?.targetCondo || 'Valle de la Florida IV',
     targetRecipient: companySettings?.lastProposalConfig?.targetRecipient || 'Señores Miembros del Comité de Administración',
     targetCity: companySettings?.lastProposalConfig?.targetCity || 'La Serena, Región de Coquimbo',
+    targetPhone: companySettings?.lastProposalConfig?.targetPhone || '+56 9 5811 8504',
+    targetEmail: companySettings?.lastProposalConfig?.targetEmail || '',
+    currentStage: companySettings?.lastProposalConfig?.currentStage || 'contacto',
     proposalDate: companySettings?.lastProposalConfig?.proposalDate || new Date().toISOString().split('T')[0],
     leaveRecipientBlank: companySettings?.lastProposalConfig?.leaveRecipientBlank || false,
     // Propuesta Económica y Alcance del Servicio
     targetUnits: companySettings?.lastProposalConfig?.targetUnits || '60',
-    proposedMonthlyFee: companySettings?.lastProposalConfig?.proposedMonthlyFee || '480000',
+    proposedMonthlyFee: companySettings?.lastProposalConfig?.proposedMonthlyFee || '850000',
     taxModality: companySettings?.lastProposalConfig?.taxModality || 'Factura Exenta / Boleta de Honorarios Profesional',
     contractDuration: companySettings?.lastProposalConfig?.contractDuration || '12 meses renovables (con evaluación de conformidad a los 90 días)',
     includeEconomicInDossier: companySettings?.lastProposalConfig?.includeEconomicInDossier !== false,
     visitFrequency: companySettings?.lastProposalConfig?.visitFrequency || '2 visitas técnicas presenciales por semana + atención de emergencias 24/7'
   });
 
-  // Sección activa dentro de Postulaciones ('preparacion' | 'pipeline' | 'calculadora' | 'material' | 'inspeccion' | 'comparativa' | 'pitch' | 'demo')
-  const [internalPostulacionSection, setInternalPostulacionSection] = useState('preparacion');
+  // Sección activa dentro de Postulaciones ('flujo' | 'antecedentes' | 'material' | 'pipeline' | 'herramientas')
+  const [internalPostulacionSection, setInternalPostulacionSection] = useState('flujo');
   const postulacionSection = externalPostulacionSection || internalPostulacionSection;
   const setPostulacionSection = externalSetPostulacionSection || setInternalPostulacionSection;
+  const [expandedStepMsg, setExpandedStepMsg] = useState(null);
+  const [activeHerramientaTab, setActiveHerramientaTab] = useState('calculadora');
+
+  // Genera los mensajes propuestos para WhatsApp y Correo por cada paso del embudo
+  const getStepMessages = (stepNumber) => {
+    const condo = proposalConfig.targetCondo?.trim() || 'su Comunidad';
+    const recipient = proposalConfig.targetRecipient?.trim() || 'Señores Miembros del Comité de Administración';
+    const admin = empresaForm.adminName || 'John Andrés Arancibia Maureira';
+    const phone = empresaForm.phone || '+56 9 5811 8504';
+    const feeStr = formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000);
+    const unitsStr = proposalConfig.targetUnits || '60';
+
+    switch (stepNumber) {
+      case 1:
+        return {
+          title: 'Paso 1: Primer Contacto / Carta de Valor (Puerta en Frío)',
+          subject: `Presentación Oficial de Administración • ARANPRO Gestión Integral para ${condo}`,
+          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\nJunto con saludarles muy cordialmente, les escribe *${admin}*, Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442.\n\nNos dirigimos a ustedes para presentarles los servicios de *ARANPRO Gestión Integral*. Reconociendo la enorme dedicación y tiempo que entregan a sus vecinos, ponemos a su disposición un modelo de gestión basado en supervisión técnica en terreno, cuentas 100% transparentes y *plataforma digital + app móvil 100% gratuita para toda la comunidad* (sin cobro de software ni licencias).\n\nNos encantaría coordinar una breve reunión de presentación y una *visita inicial de diagnóstico técnico sin costo ni compromiso* para conocer sus instalaciones críticas y prioridades.\n\nLes comparto adjunta nuestra Carta Oficial de Presentación. Quedo muy atento a su grata respuesta.\n\nAtentamente,\n*${admin}*\nConstructor Civil • Administrador de Condominios\nFono / WhatsApp: ${phone}\nSitio Web: https://aranpro.cl`,
+          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nJunto con saludarles cordialmente y reconociendo el importante compromiso y tiempo que dedican a su comunidad, me dirijo a ustedes para presentar los servicios de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\nNuestra propuesta se fundamenta en tres pilares operativos:\n1. Gestión Financiera & Plataforma Digital 100% Gratuita para el Comité y residentes (sin costos de licencias ni cobros de software para el condominio).\n2. Mantención Técnica en Terreno con Criterio de Constructor Civil (supervisión directa de salas de bombas, tableros y contratos de contratistas para frenar sobrecostos).\n3. Gestión Documental de Personal bajo Ley Karin, RIOHS y normativa de la Dirección del Trabajo.\n\nLes propongo coordinar una visita inicial en terreno y reunión de presentación sin costo ni compromiso para conocer sus prioridades.\n\nAdjunto nuestra Carta Oficial de Presentación.\n\nSaludos cordiales,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
+        };
+      case 2:
+        return {
+          title: 'Paso 2: Cita Presencial & Visita de Diagnóstico Técnico (Dossier Integral)',
+          subject: `Confirmación de Visita Técnica en Terreno & Dossier Integral • ${condo}`,
+          whatsapp: `Estimados integrantes del Comité de *${condo}*:\n\nMuchas gracias por la excelente disposición a reunirnos. Confirmamos nuestra *visita técnica inicial de diagnóstico* a las instalaciones de su condominio para este [Indicar Fecha y Hora].\n\nLlevaremos en mano nuestro *Dossier Integral de Presentación* con nuestras credenciales de Constructor Civil, pauta de inspección preventiva de bombas, tableros y techumbres, certificados legales y cartas de recomendación de otros comités de administración.\n\n¡Nos vemos pronto en terreno!\n\n*${admin}* • ARANPRO (${phone})`,
+          email: `Estimado Comité de Administración de ${condo}:\n\nJunto con agradecer su disposición a reunirnos, confirmamos nuestra visita técnica y reunión de diagnóstico para el día [Fecha / Hora].\n\nDurante la visita realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos) y llevaremos una copia impresa de nuestro Dossier Integral de Postulación (Ficha Técnica Constructiva, Título Profesional, Acreditaciones Legales y Referencias Comprobables).\n\nQuedamos a su disposición ante cualquier coordinación previa.\n\nAtentamente,\n${admin} • ARANPRO Gestión Integral\n${phone} | https://aranpro.cl`
+        };
+      case 3:
+        return {
+          title: 'Paso 3: Propuesta Formal a Medida & Honorarios Mensuales',
+          subject: `Propuesta Formal de Administración & Honorarios Mensuales • ${condo}`,
+          whatsapp: `Estimado Comité de Administración de *${condo}*:\n\nAgradeciendo la provechosa visita técnica realizada a sus dependencias, hacemos entrega formal de nuestra *Propuesta de Administración y Honorarios a la medida* de su comunidad.\n\nNuestra propuesta contempla un honorario mensual de *${feeStr}* para su dotación de *${unitsStr} unidades*, incluyendo visitas técnicas semanales en terreno, plataforma digital 24/7 sin costo de licencias para residentes, auditoría contable de traspaso y atención de emergencias 24/7.\n\nAdjuntamos la Carta Formal de Postulación para su revisión en sesión de comité. Quedamos a su entera disposición para resolver cualquier duda.\n\nSaludos cordiales,\n*${admin}* • ARANPRO (${phone})`,
+          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nEn seguimiento a la visita técnica realizada a sus instalaciones, tenemos el agrado de presentar formalmente nuestra Propuesta Operativa y Económica para asumir la administración de su comunidad.\n\nResumen de Condiciones Propuestas:\n• Honorario Mensual Propuesto: ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n• Dotación Considerada: ${unitsStr} unidades (casas / departamentos)\n• Modalidad de Atención: ${proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}\n• Beneficios Incluidos: Suite Web y App Móvil 100% gratuita para residentes y comité, auditoría de traspaso y supervisión técnica directa de obras y contratos.\n\nAdjunto encontrarán la Carta Formal de Postulación con el desglose del servicio.\n\nAtentamente,\n${admin}\nConstructor Civil • Representante Legal ARANPRO\n${phone} | https://aranpro.cl`
+        };
+      case 4:
+        return {
+          title: 'Paso 4: Cierre Tecnológico & Demostración de App en Vivo',
+          subject: `Acceso a Demo en Vivo de Plataforma & Brochure App ARANPRO • ${condo}`,
+          whatsapp: `Estimados integrantes del Comité de *${condo}*:\n\nPara que ustedes y los copropietarios puedan experimentar en primera persona la transparencia y modernidad de nuestra gestión, les compartimos el acceso a la *Demo en Vivo de la Suite Digital y App Móvil ARANPRO* (100% gratuita para su condominio).\n\nPueden probarla directamente desde su teléfono celular escaneando el código QR del brochure adjunto o ingresando a: https://aranpro.cl\n\nPodrán ver cómo se consultan los gastos comunes con un clic, la auditoría en vivo de comprobantes de pago y facturas, y el libro de reclamos digital.\n\n¡Quedamos muy atentos a sus comentarios!\n*${admin}* • ARANPRO (${phone})`,
+          email: `Estimado Comité de Administración de ${condo}:\n\nCon el objetivo de respaldar nuestra propuesta de gestión con tecnología real, ponemos a su disposición el Brochure Oficial y el acceso a la Demo Interactiva de la Suite ARANPRO.\n\nPrincipales ventajas para ${condo}:\n• 100% Gratuita para la comunidad: Cero cobros de licencias o costos de software para el condominio.\n• Transparencia total 24/7: Comprobantes bancarios y facturas visibles con 1 clic para copropietarios y directiva.\n• Gestión móvil: Votaciones, libro de reclamos foliado y comunicación oficial en la palma de la mano.\n\nPueden explorar la demo interactiva en https://aranpro.cl o mediante el código QR incluido en el archivo adjunto.\n\nSaludos cordiales,\n${admin} • ARANPRO Gestión Integral\n${phone} | https://aranpro.cl`
+        };
+      default:
+        return { title: '', subject: '', whatsapp: '', email: '' };
+    }
+  };
+
+  const handleShareWhatsApp = (stepNumber) => {
+    const msg = getStepMessages(stepNumber);
+    const rawPhone = (proposalConfig.targetPhone || '').replace(/[^0-9]/g, '');
+    let phoneParam = '';
+    if (rawPhone) {
+      phoneParam = rawPhone.startsWith('56') ? rawPhone : (rawPhone.length === 9 ? `56${rawPhone}` : rawPhone);
+    }
+    const url = phoneParam
+      ? `https://wa.me/${phoneParam}?text=${encodeURIComponent(msg.whatsapp)}`
+      : `https://wa.me/?text=${encodeURIComponent(msg.whatsapp)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleShareEmail = (stepNumber) => {
+    const msg = getStepMessages(stepNumber);
+    const email = proposalConfig.targetEmail || '';
+    const subject = encodeURIComponent(msg.subject);
+    const body = encodeURIComponent(msg.email);
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  };
+
+  const handleCopyStepMessage = (stepNumber) => {
+    const msg = getStepMessages(stepNumber);
+    navigator.clipboard.writeText(msg.whatsapp);
+    showAlert('✓ Mensaje Copiado', `El texto propuesto del Paso ${stepNumber} para ${proposalConfig.targetCondo || 'el condominio'} fue copiado al portapapeles listo para enviar por WhatsApp o chat.`, 'success');
+  };
+
+  const handleSaveTargetCondoToCrm = () => {
+    const condoName = proposalConfig.targetCondo?.trim() || 'Nuevo Condominio';
+    const existingIdx = postulationPipeline.findIndex(p => p.condoName?.toLowerCase() === condoName.toLowerCase());
+    const newEntry = {
+      id: existingIdx >= 0 ? postulationPipeline[existingIdx].id : `post-${Date.now()}`,
+      condoName: condoName,
+      city: proposalConfig.targetCity || 'La Serena',
+      unitsCount: Number(proposalConfig.targetUnits) || 60,
+      contactName: proposalConfig.targetRecipient || 'Comité de Administración',
+      contactPhone: proposalConfig.targetPhone || '',
+      contactEmail: proposalConfig.targetEmail || '',
+      stage: proposalConfig.currentStage || 'contacto',
+      monthlyFeeCLP: Number(proposalConfig.proposedMonthlyFee) || 850000,
+      nextAction: proposalConfig.nextAction || 'Enviar Carta de Valor (Paso 1)',
+      nextActionDate: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10),
+      competitionNotes: `Postulación iniciada con embudo de 4 pasos.`,
+      createdAt: existingIdx >= 0 ? postulationPipeline[existingIdx].createdAt : new Date().toISOString().slice(0, 10),
+      updatedAt: new Date().toISOString().slice(0, 10)
+    };
+
+    let updatedPipeline;
+    if (existingIdx >= 0) {
+      updatedPipeline = postulationPipeline.map((p, idx) => idx === existingIdx ? newEntry : p);
+    } else {
+      updatedPipeline = [newEntry, ...postulationPipeline];
+    }
+    setPostulationPipeline(updatedPipeline);
+    setCompanySettings(prev => ({
+      ...prev,
+      postulationPipeline: updatedPipeline,
+      lastProposalConfig: proposalConfig
+    }));
+    showAlert('✓ Condominio Registrado', `"${condoName}" fue guardado exitosamente en tu CRM de Postulaciones.`, 'success');
+  };
 
   // Modales de Material de Apoyo, Ventas y Licitación
   const [previewColdLetterModal, setPreviewColdLetterModal] = useState(false);
@@ -2157,26 +2277,24 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               </div>
 
-              {/* SELECTOR DE HERRAMIENTAS DE CAPTACIÓN & MATERIAL DE APOYO (8 MÓDULOS) */}
+              {/* SELECTOR MODULAR PRINCIPAL (5 PESTAÑAS ESTRUCTURADAS Y AMIGABLES) */}
               {!hidePostulacionSubNav && (
                 <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
                   {[
-                    { id: 'preparacion', label: `1. Checklist & Semáforo (${readinessReport.score}%)`, icon: ClipboardCheck },
-                    { id: 'pipeline', label: `2. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
-                    { id: 'calculadora', label: '3. Calculadora Piso Honorarios (AGACECH)', icon: Calculator },
-                    { id: 'material', label: '4. Dossier, Propuesta & Cartas', icon: FileText },
-                    { id: 'inspeccion', label: '5. Inspección Técnica Inicial', icon: HardHat },
-                    { id: 'comparativa', label: '6. Cuadro Comparativo', icon: Scale },
-                    { id: 'pitch', label: '7. Libreto Pitch (10 Min)', icon: Presentation },
-                    { id: 'demo', label: '8. Demo en Vivo & QR', icon: QrCode }
+                    { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send, badge: '4 Pasos' },
+                    { id: 'antecedentes', label: '2. Mis Antecedentes & Títulos', icon: Award, badge: `${accreditationDocs.filter(d => d.includeInDossier !== false).length + academicRecords.filter(r => r.includeInProposal !== false).length}` },
+                    { id: 'material', label: '3. Documentos & Cartas PDF', icon: FileText },
+                    { id: 'pipeline', label: `4. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
+                    { id: 'herramientas', label: '5. Caja de Herramientas (AGACECH & Pitch)', icon: Calculator }
                   ].map((tab) => {
                     const IconC = tab.icon;
-                    const isAct = postulacionSection === tab.id;
+                    const isAct = postulacionSection === tab.id ||
+                      (tab.id === 'herramientas' && ['calculadora', 'inspeccion', 'comparativa', 'pitch', 'demo', 'preparacion'].includes(postulacionSection));
                     return (
                       <button
                         key={tab.id}
                         type="button"
-                        onClick={() => setPostulacionSection(tab.id)}
+                        onClick={() => setPostulacionSection(tab.id === 'herramientas' ? 'calculadora' : tab.id)}
                         className={`flex-1 min-w-[140px] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl font-bold text-xs transition-all ${
                           isAct
                             ? 'bg-[#0F3D2E] text-white shadow-sm'
@@ -2185,9 +2303,704 @@ export const CompanySettingsAndBackupModule = ({
                       >
                         <IconC className={`w-3.5 h-3.5 shrink-0 ${isAct ? 'text-[#D4B895]' : 'text-slate-400'}`} />
                         <span className="truncate">{tab.label}</span>
+                        {tab.badge && (
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+                            isAct ? 'bg-[#D4B895] text-[#0F3D2E]' : 'bg-slate-200 text-slate-700'
+                          }`}>
+                            {tab.badge}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
+                </div>
+              )}
+
+              {/* ==================== SECCIÓN 1: GUÍA PASO A PASO (EL EMBUDO COMERCIAL ARANPRO) ==================== */}
+              {postulacionSection === 'flujo' && (
+                <div className="space-y-6 animate-in fade-in">
+                  {/* 1. TARJETA DE CONTROL: CONDOMINIO OBJETIVO A POSTULAR (EN VIVO) */}
+                  <div className="bg-gradient-to-br from-[#0F3D2E] via-[#144D3A] to-[#0A291F] text-white p-5 md:p-6 rounded-3xl shadow-lg border border-emerald-900/40 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-800/60 pb-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-2xl bg-[#D4B895] text-[#0F3D2E] flex items-center justify-center font-black shadow-xs text-base">
+                          🎯
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] block">
+                            Paso Previo • Datos del Condominio Objetivo
+                          </span>
+                          <h4 className="text-sm md:text-base font-black text-white">
+                            Configuración de la Comunidad a Postular (En Tiempo Real)
+                          </h4>
+                          <p className="text-[11px] text-emerald-200/80">
+                            Lo que ingreses aquí se actualizará de inmediato en los 4 documentos oficiales y en los mensajes automáticos de WhatsApp y Correo.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={handleSaveTargetCondoToCrm}
+                          className="px-4 py-2 rounded-xl bg-[#D4B895] hover:bg-[#c7a67b] text-[#0F3D2E] font-black text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Briefcase className="w-3.5 h-3.5" />
+                          Guardar en CRM
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Inputs de configuración rápida */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                      <div className="space-y-1">
+                        <label className="text-[10.5px] font-bold text-emerald-100 flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-[#D4B895]" />
+                          Nombre del Condominio:
+                        </label>
+                        <input
+                          type="text"
+                          value={proposalConfig.targetCondo}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
+                          placeholder="Ej: Valle de la Florida IV"
+                          className="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-bold placeholder-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-[#D4B895]"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10.5px] font-bold text-emerald-100 flex items-center gap-1">
+                          <UserCheck className="w-3 h-3 text-[#D4B895]" />
+                          Dirigido a / Contacto:
+                        </label>
+                        <input
+                          type="text"
+                          value={proposalConfig.targetRecipient}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetRecipient: e.target.value })}
+                          placeholder="Ej: Señores Miembros del Comité"
+                          className="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-bold placeholder-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-[#D4B895]"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10.5px] font-bold text-emerald-100 flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3 text-[#D4B895]" />
+                          WhatsApp / Teléfono Contacto:
+                        </label>
+                        <input
+                          type="text"
+                          value={proposalConfig.targetPhone || ''}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetPhone: e.target.value })}
+                          placeholder="Ej: +56 9 5811 8504"
+                          className="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-mono placeholder-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-[#D4B895]"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10.5px] font-bold text-emerald-100 flex items-center gap-1">
+                          <Mail className="w-3 h-3 text-[#D4B895]" />
+                          Correo Electrónico Comité:
+                        </label>
+                        <input
+                          type="email"
+                          value={proposalConfig.targetEmail || ''}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetEmail: e.target.value })}
+                          placeholder="Ej: comite@valledelaflorida.cl"
+                          className="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white placeholder-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-[#D4B895]"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10.5px] font-bold text-emerald-100 flex items-center gap-1">
+                          <Home className="w-3 h-3 text-[#D4B895]" />
+                          Total Unidades (Casas/Deptos):
+                        </label>
+                        <input
+                          type="number"
+                          value={proposalConfig.targetUnits}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetUnits: e.target.value })}
+                          placeholder="60"
+                          className="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-bold placeholder-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-[#D4B895]"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10.5px] font-bold text-emerald-100 flex items-center gap-1">
+                          <DollarSign className="w-3 h-3 text-[#D4B895]" />
+                          Honorario Mensual Estimado:
+                        </label>
+                        <input
+                          type="number"
+                          value={proposalConfig.proposedMonthlyFee}
+                          onChange={(e) => setProposalConfig({ ...proposalConfig, proposedMonthlyFee: e.target.value })}
+                          placeholder="850000"
+                          className="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-mono font-bold placeholder-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-[#D4B895]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. LOS 4 PASOS ESTRATÉGICOS DEL EMBUDO COMERCIAL */}
+                  <div className="space-y-4">
+                    {/* ========== PASO 1: PRIMER CONTACTO / CARTA DE VALOR ========== */}
+                    <div className="bg-white p-5 md:p-6 rounded-3xl border-2 border-emerald-700/30 shadow-xs hover:border-emerald-700/60 transition-all space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+                            1
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                Primer Contacto • Puerta en Frío
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-500">
+                                1 Página Canónica • Sin Precios
+                              </span>
+                            </div>
+                            <h4 className="text-base font-black text-slate-900 mt-0.5">
+                              Paso 1: Carta de Valor al Comité & Visita Inicial Gratuita
+                            </h4>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[11px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-1 rounded-xl">
+                            {proposalConfig.targetCondo || 'Comunidad'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        <strong>Cuándo usarlo:</strong> Para dejar en conserjería o enviar por WhatsApp/Correo al presidente o comité cuando aún no conoces la realidad del condominio. <strong>No incluye precios;</strong> presenta tu respaldo como Constructor Civil, ofrece una Visita Técnica Inicial Gratuita en terreno y la Suite Digital sin costo para abrir la puerta a una reunión.
+                      </p>
+
+                      {/* Botones de Acción Inmediata Paso 1 */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewColdLetterModal(true)}
+                          className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                          Ver / Descargar PDF
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePrintColdLetter}
+                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          Imprimir Carta
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareWhatsApp(1)}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          Enviar por WhatsApp
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareEmail(1)}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          Enviar por Correo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyStepMessage(1)}
+                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Copiar Mensaje
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedStepMsg(expandedStepMsg === 1 ? null : 1)}
+                          className="ml-auto text-[11px] font-bold text-[#0F3D2E] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          {expandedStepMsg === 1 ? 'Ocultar Texto Propuesto' : 'Ver Texto Propuesto'}
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedStepMsg === 1 ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+
+                      {/* Acordeón de Texto Propuesto Paso 1 */}
+                      {expandedStepMsg === 1 && (
+                        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs animate-in fade-in">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-700 text-[11px] uppercase tracking-wide">
+                              Mensaje Prediseñado para WhatsApp / Chat
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-mono">Personalizado con {proposalConfig.targetCondo || 'Comunidad'}</span>
+                          </div>
+                          <pre className="whitespace-pre-wrap font-sans text-slate-800 text-xs bg-white p-3 rounded-xl border border-slate-200 leading-relaxed max-h-48 overflow-y-auto">
+                            {getStepMessages(1).whatsapp}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ========== PASO 2: CITA PRESENCIAL & VISITA TÉCNICA (DOSSIER INTEGRAL) ========== */}
+                    <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0F3D2E]/40 transition-all space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+                            2
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                Reunión Presencial • En Terreno
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-500">
+                                Dossier Maestro 3 Páginas + Pauta Técnica
+                              </span>
+                            </div>
+                            <h4 className="text-base font-black text-slate-900 mt-0.5">
+                              Paso 2: Visita en Terreno con Dossier Integral & Pauta de Inspección
+                            </h4>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewInspectionModal(true)}
+                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                          >
+                            <HardHat className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                            Pauta de Terreno
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        <strong>Cuándo usarlo:</strong> Lleva este Dossier en mano o carpeta corporativa a la cita con el Comité. Compila tu ficha de Constructor Civil, certificados de antecedentes, cédula de identidad, títulos y cartas de recomendación. Durante la visita, anota con la Pauta Técnica el estado de bombas, tableros y necesidades reales.
+                      </p>
+
+                      {/* Botones de Acción Inmediata Paso 2 */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewDossierModal(true)}
+                          className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                          Ver Dossier Maestro
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePrintDossier}
+                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          Imprimir Dossier
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareWhatsApp(2)}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          Confirmar Cita WhatsApp
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareEmail(2)}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          Confirmar por Correo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyStepMessage(2)}
+                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Copiar Mensaje
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedStepMsg(expandedStepMsg === 2 ? null : 2)}
+                          className="ml-auto text-[11px] font-bold text-[#0F3D2E] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          {expandedStepMsg === 2 ? 'Ocultar Texto' : 'Ver Texto Propuesto'}
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedStepMsg === 2 ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+
+                      {/* Acordeón de Texto Propuesto Paso 2 */}
+                      {expandedStepMsg === 2 && (
+                        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs animate-in fade-in">
+                          <span className="font-bold text-slate-700 text-[11px] uppercase tracking-wide block">
+                            Mensaje para Confirmar Fecha y Hora de Visita en Terreno
+                          </span>
+                          <pre className="whitespace-pre-wrap font-sans text-slate-800 text-xs bg-white p-3 rounded-xl border border-slate-200 leading-relaxed max-h-48 overflow-y-auto">
+                            {getStepMessages(2).whatsapp}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ========== PASO 3: PROPUESTA FORMAL A MEDIDA & HONORARIOS ========== */}
+                    <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0F3D2E]/40 transition-all space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+                            3
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+                                Propuesta Económica • A Medida
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-500">
+                                {formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000)} / mes • {proposalConfig.targetUnits || '60'} Unidades
+                              </span>
+                            </div>
+                            <h4 className="text-base font-black text-slate-900 mt-0.5">
+                              Paso 3: Carta Formal de Postulación & Honorarios Ajustados
+                            </h4>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setPostulacionSection('calculadora')}
+                            className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                          >
+                            <Calculator className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                            Calculadora AGACECH
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        <strong>Cuándo usarlo:</strong> Una vez terminada la visita técnica y conociendo el número real de casas/departamentos y la dotación del condominio, redacta tu oferta con un valor fundamentado técnicamente (usando el modelo AGACECH y especificando tus visitas presenciales y SLA).
+                      </p>
+
+                      {/* Botones de Acción Inmediata Paso 3 */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewProposalModal(true)}
+                          className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                          Ver Carta con Valores
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePrintProposal}
+                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          Imprimir Carta
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareWhatsApp(3)}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          Enviar Propuesta WhatsApp
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareEmail(3)}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          Enviar por Correo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyStepMessage(3)}
+                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Copiar Mensaje
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedStepMsg(expandedStepMsg === 3 ? null : 3)}
+                          className="ml-auto text-[11px] font-bold text-[#0F3D2E] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          {expandedStepMsg === 3 ? 'Ocultar Texto' : 'Ver Texto Propuesto'}
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedStepMsg === 3 ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+
+                      {/* Acordeón de Texto Propuesto Paso 3 */}
+                      {expandedStepMsg === 3 && (
+                        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs animate-in fade-in">
+                          <span className="font-bold text-slate-700 text-[11px] uppercase tracking-wide block">
+                            Mensaje Formal para Entregar la Propuesta Económica
+                          </span>
+                          <pre className="whitespace-pre-wrap font-sans text-slate-800 text-xs bg-white p-3 rounded-xl border border-slate-200 leading-relaxed max-h-48 overflow-y-auto">
+                            {getStepMessages(3).whatsapp}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ========== PASO 4: CIERRE TECNOLÓGICO & DEMO EN VIVO CON QR ========== */}
+                    <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0F3D2E]/40 transition-all space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-purple-700 text-white flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+                            4
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-purple-800 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">
+                                Cierre Tecnológico • Tiro de Gracia
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-500">
+                                Brochure con Código QR + App en Vivo
+                              </span>
+                            </div>
+                            <h4 className="text-base font-black text-slate-900 mt-0.5">
+                              Paso 4: Brochure de la Suite & Demostración de App en Vivo
+                            </h4>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewComparisonModal(true)}
+                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                          >
+                            <Scale className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                            Cuadro Comparativo
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        <strong>Cuándo usarlo:</strong> El diferenciador decisivo frente a la competencia tradicional: entrega o proyecta el Brochure con código QR interactivo para que los integrantes del comité y copropietarios prueben la demo en vivo desde sus propios teléfonos móviles.
+                      </p>
+
+                      {/* Botones de Acción Inmediata Paso 4 */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewBrochureModal(true)}
+                          className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                          Ver Brochure con QR
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePrintBrochure}
+                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          Imprimir Brochure
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareWhatsApp(4)}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          Enviar Demo WhatsApp
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareEmail(4)}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          Enviar por Correo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyStepMessage(4)}
+                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Copiar Mensaje
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowPitchGuideModal(true)}
+                          className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Presentation className="w-3.5 h-3.5" />
+                          Pitch (10 Min)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedStepMsg(expandedStepMsg === 4 ? null : 4)}
+                          className="ml-auto text-[11px] font-bold text-[#0F3D2E] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          {expandedStepMsg === 4 ? 'Ocultar Texto' : 'Ver Texto Propuesto'}
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedStepMsg === 4 ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+
+                      {/* Acordeón de Texto Propuesto Paso 4 */}
+                      {expandedStepMsg === 4 && (
+                        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs animate-in fade-in">
+                          <span className="font-bold text-slate-700 text-[11px] uppercase tracking-wide block">
+                            Mensaje para Compartir la Demo en Vivo y Acceso Móvil
+                          </span>
+                          <pre className="whitespace-pre-wrap font-sans text-slate-800 text-xs bg-white p-3 rounded-xl border border-slate-200 leading-relaxed max-h-48 overflow-y-auto">
+                            {getStepMessages(4).whatsapp}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ==================== SECCIÓN 2: MIS ANTECEDENTES & TÍTULOS GUARDADOS ==================== */}
+              {postulacionSection === 'antecedentes' && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="p-5 rounded-3xl bg-emerald-50 border-2 border-emerald-600/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-bold text-xl shrink-0 shadow-xs">
+                        🛡️
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-white px-2 py-0.5 rounded border border-emerald-200">
+                            Bóveda Protegida & Vigente
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-800">
+                            {academicRecords.length} Títulos / Cursos • {accreditationDocs.length} Docs Legales
+                          </span>
+                        </div>
+                        <h4 className="text-base font-black text-slate-900 mt-0.5">
+                          Mis Antecedentes, Título de Constructor Civil & Documentos Oficiales
+                        </h4>
+                        <p className="text-xs text-slate-600">
+                          Todos los archivos que subas quedan salvaguardados permanentemente en tu plataforma y se integran como anexos al Dossier Integral de Licitación.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setShowUploadDiplomaModal(true)}
+                        className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
+                        + Subir Título o Diploma
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 1. TÍTULOS Y DIPLOMAS DE FORMACIÓN */}
+                  <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-5 h-5 text-[#0F3D2E]" />
+                        <h4 className="text-sm font-black text-slate-900">
+                          1. Título Profesional & Certificaciones Académicas
+                        </h4>
+                      </div>
+                      <span className="text-[11px] font-mono text-slate-500 font-bold">
+                        {academicRecords.filter(r => r.includeInProposal !== false).length} de {academicRecords.length} incluidos en Dossier
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {academicRecords.map((item) => (
+                        <div
+                          key={item.id}
+                          className="p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-[#0F3D2E]/40 transition-all space-y-3 flex flex-col justify-between"
+                        >
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                {item.category}
+                              </span>
+                              <span className="text-[9.5px] font-mono text-slate-500 font-bold">
+                                Año {item.year}
+                              </span>
+                            </div>
+                            <h5 className="font-black text-sm text-slate-900 leading-snug">
+                              {item.title}
+                            </h5>
+                            <p className="text-[11px] text-slate-500 font-semibold">
+                              {item.institution} • {item.status}
+                            </p>
+                            {item.relevance && (
+                              <p className="text-[10.5px] text-slate-600 leading-snug pt-1">
+                                {item.relevance}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5">
+                              {hasFile(item) ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded">
+                                  <FileCheck className="w-3 h-3 text-emerald-700" />
+                                  {item.fileName || 'Archivo Guardado'}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 italic">Sin PDF adjunto</span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {hasFile(item) && (
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveDiplomaPreview(item)}
+                                  className="text-[11px] font-bold text-[#0F3D2E] hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  Ver
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleIncludeInProposal(item.id)}
+                                className={`text-[10.5px] font-bold px-2 py-1 rounded-lg border transition-all cursor-pointer ${
+                                  item.includeInProposal !== false
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                    : 'bg-white text-slate-400 border-slate-200'
+                                }`}
+                              >
+                                {item.includeInProposal !== false ? '✓ En Dossier' : '+ Excluido'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. DOCUMENTOS LEGALES Y DE IDONEIDAD (BIBLIOTECA COMPLETA) */}
+                  <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-[#0F3D2E]" />
+                        <h4 className="text-sm font-black text-slate-900">
+                          2. Documentos de Idoneidad Legal, Registro Civil & MINVU (Ley 21.442)
+                        </h4>
+                      </div>
+                    </div>
+
+                    <DocumentLibraryPanel
+                      documents={accreditationDocs}
+                      setDocuments={setAccreditationDocs}
+                      showAlert={showAlert}
+                      showConfirm={showConfirm}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -2216,13 +3029,78 @@ export const CompanySettingsAndBackupModule = ({
               )}
 
               {/* SECCIÓN 3 (NUEVA): CALCULADORA DE PISO DE HONORARIOS MODELO AGACECH */}
-              {postulacionSection === 'calculadora' && (
-                <div className="animate-in fade-in">
+              {(postulacionSection === 'calculadora' || postulacionSection === 'herramientas') && (
+                <div className="space-y-6 animate-in fade-in">
+                  {/* Selector rápido de herramientas de apoyo */}
+                  <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
+                    <span className="text-[10px] font-black uppercase text-slate-500 px-2">Caja de Herramientas:</span>
+                    <button
+                      type="button"
+                      onClick={() => setPostulacionSection('calculadora')}
+                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
+                        postulacionSection === 'calculadora' || postulacionSection === 'herramientas'
+                          ? 'bg-[#0F3D2E] text-white shadow-xs'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Calculator className="w-3.5 h-3.5 text-[#D4B895]" />
+                      Calculadora AGACECH
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPostulacionSection('inspeccion')}
+                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
+                        postulacionSection === 'inspeccion'
+                          ? 'bg-[#0F3D2E] text-white shadow-xs'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <HardHat className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                      Pauta de Inspección
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPostulacionSection('comparativa')}
+                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
+                        postulacionSection === 'comparativa'
+                          ? 'bg-[#0F3D2E] text-white shadow-xs'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Scale className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                      Cuadro Comparativo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPostulacionSection('pitch')}
+                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
+                        postulacionSection === 'pitch'
+                          ? 'bg-[#0F3D2E] text-white shadow-xs'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <Presentation className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                      Libreto Pitch (10 Min)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPostulacionSection('preparacion')}
+                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
+                        postulacionSection === 'preparacion'
+                          ? 'bg-[#0F3D2E] text-white shadow-xs'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      <ClipboardCheck className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                      Semáforo de Preparación
+                    </button>
+                  </div>
+
                   <AgacechFeeCalculatorPanel
                     proposalConfig={proposalConfig}
                     setProposalConfig={setProposalConfig}
                     empresaForm={empresaForm}
-                    onApplyToDossier={() => setPostulacionSection('material')}
+                    onApplyToDossier={() => setPostulacionSection('flujo')}
                     showAlert={showAlert}
                   />
                 </div>
@@ -4220,7 +5098,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                     <div className="border-t-[1.5px] border-slate-800 pt-1.5">
                       <p className="font-black text-xs text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                      <p className="text-[9.5px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • Ley N° 21.442</p>
+                      <p className="text-[9.5px] text-slate-600 font-mono">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
                       <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
                         {empresaForm.adminRole} • Constructor Civil
                       </p>
@@ -5092,7 +5970,7 @@ export const CompanySettingsAndBackupModule = ({
                         </div>
                         <div className="border-t-[1.5px] border-slate-800 pt-1">
                           <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                          <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm.adminRut} • Ley N° 21.442</p>
+                          <p className="text-[9px] text-slate-600 font-mono">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
                           <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
                             {empresaForm.adminRole} • Constructor Civil
                           </p>
@@ -5683,6 +6561,68 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
+                {/* Demostración Interactiva en Vivo & Código QR para Probar la App */}
+                <div className="p-3.5 rounded-2xl bg-[#F5F4EF] border-2 border-[#0F3D2E] flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="inline-block px-2.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] text-[9px] font-bold font-mono uppercase">
+                      ★ Demo Interactiva en Vivo
+                    </div>
+                    <h4 className="text-xs md:text-sm font-black text-[#0F3D2E] leading-tight">
+                      Pruebe la experiencia de los residentes de {proposalConfig.targetCondo || 'su comunidad'}
+                    </h4>
+                    <p className="text-[10px] text-slate-700 leading-snug">
+                      Escanee este código QR con la cámara de su teléfono móvil o ingrese a <strong>{empresaForm.website || 'https://aranpro.cl'}</strong> para probar la plataforma en tiempo real: consulte colillas, respalde gastos con un clic y revise el libro de reclamos digital.
+                    </p>
+                    <div className="text-[9px] font-mono font-bold text-[#0F3D2E]">
+                      100% Gratuita para la comunidad • Cero costos de licencias o software
+                    </div>
+                  </div>
+                  <div className="shrink-0 p-2 bg-white rounded-xl border border-slate-300 shadow-sm text-center">
+                    <svg className="w-20 h-20 mx-auto" viewBox="0 0 100 100" fill="#0F3D2E">
+                      <rect x="5" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
+                      <rect x="10" y="10" width="15" height="15" fill="#ffffff" rx="1" />
+                      <rect x="14" y="14" width="7" height="7" fill="#0F3D2E" />
+
+                      <rect x="70" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
+                      <rect x="75" y="10" width="15" height="15" fill="#ffffff" rx="1" />
+                      <rect x="79" y="14" width="7" height="7" fill="#0F3D2E" />
+
+                      <rect x="5" y="70" width="25" height="25" fill="#0F3D2E" rx="3" />
+                      <rect x="10" y="75" width="15" height="15" fill="#ffffff" rx="1" />
+                      <rect x="14" y="79" width="7" height="7" fill="#0F3D2E" />
+
+                      <rect x="35" y="10" width="6" height="6" />
+                      <rect x="45" y="10" width="6" height="6" />
+                      <rect x="55" y="10" width="6" height="6" />
+                      <rect x="35" y="25" width="6" height="6" />
+                      <rect x="45" y="20" width="6" height="6" />
+                      <rect x="55" y="25" width="6" height="6" />
+                      <rect x="35" y="35" width="10" height="10" />
+                      <rect x="50" y="35" width="10" height="10" />
+                      <rect x="65" y="35" width="6" height="6" />
+                      <rect x="10" y="45" width="6" height="6" />
+                      <rect x="20" y="45" width="6" height="6" />
+                      <rect x="35" y="50" width="6" height="6" />
+                      <rect x="45" y="50" width="6" height="6" />
+                      <rect x="55" y="50" width="6" height="6" />
+                      <rect x="65" y="50" width="6" height="6" />
+                      <rect x="75" y="45" width="10" height="10" />
+                      <rect x="35" y="65" width="6" height="6" />
+                      <rect x="45" y="65" width="6" height="6" />
+                      <rect x="55" y="65" width="6" height="6" />
+                      <rect x="65" y="65" width="15" height="6" />
+                      <rect x="35" y="75" width="15" height="6" />
+                      <rect x="55" y="75" width="6" height="6" />
+                      <rect x="65" y="75" width="6" height="15" />
+                      <rect x="75" y="85" width="15" height="6" />
+                      <rect x="35" y="85" width="6" height="6" />
+                      <rect x="45" y="85" width="6" height="6" />
+                      <rect x="55" y="85" width="6" height="6" />
+                    </svg>
+                    <span className="text-[7.5px] font-mono font-bold text-slate-500 block mt-0.5 tracking-tight">ESCANEAR CON CELULAR</span>
+                  </div>
+                </div>
+
                 {/* Sello Circular Dorado + Firma del Administrador */}
                 <div className="pt-4 border-t border-slate-200 flex items-end justify-between gap-4">
                   <AranproOfficialSeal
@@ -5702,7 +6642,7 @@ export const CompanySettingsAndBackupModule = ({
                       )}
                     </div>
                     <span className="text-[10.5px] font-black text-slate-900 block border-t-[1.5px] border-slate-800 pt-1">{empresaForm.adminName}</span>
-                    <span className="text-[9px] text-slate-600 font-mono block">RUT: {empresaForm.adminRut} • Ley N° 21.442</span>
+                    <span className="text-[9px] text-slate-600 font-mono block">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</span>
                     <span className="text-[9px] text-[#0F3D2E] font-bold block">Constructor Civil • Administrador de Condominios</span>
                   </div>
                 </div>
