@@ -751,48 +751,6 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         </div>
       </div>
 
-      {/* 3. Sub-Navegación Interna */}
-      <div className="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap items-center gap-1.5">
-        {[
-          { id: 'nomina', label: '1. Nómina de Personal & Fichas DT', icon: Users, badge: `${staff.length}` },
-          { id: 'liquidaciones', label: '2. Cálculo Mensual & Liquidaciones DT', icon: FileSpreadsheet, badge: `${periodLabel}` },
-          { id: 'previred', label: '3. Planilla Previred & Leyes Sociales', icon: Landmark, badge: formatCLP(payrollConsolidated.totalPreviredLeyesSociales) },
-          { id: 'gastos_comunes', label: '4. Traspaso a Gastos Comunes', icon: DollarSign, badge: alreadyExportedToExpenses ? 'Registrado' : 'Pendiente' },
-          { id: 'contratos', label: '5. Contratos & Documentos DT', icon: FileText, badge: 'Ley 21.442' }
-        ].map((tab) => {
-          const IconC = tab.icon;
-          const isActive = currentSubTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setSubTab(tab.id)}
-              className={`flex-1 min-w-[170px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-2 cursor-pointer ${
-                isActive
-                  ? 'bg-[#0F3D2E] text-white shadow-xs font-black'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-2 truncate">
-                <IconC className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#D4B895]' : 'text-slate-400'}`} />
-                <span className="truncate">{tab.label}</span>
-              </div>
-              {tab.badge && (
-                <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono shrink-0 ${
-                    isActive
-                      ? 'bg-white/20 text-[#D4B895]'
-                      : 'bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}
-                >
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
       {/* ==================== SUB-PESTAÑA 1: NÓMINA DE PERSONAL & FICHAS DT ==================== */}
       {currentSubTab === 'nomina' && (
         <div className="space-y-4 animate-in fade-in duration-200">
@@ -1372,21 +1330,339 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         </div>
       )}
 
-      {/* ==================== SUB-PESTAÑA 5: CONTRATOS, VACACIONES & DOCUMENTOS LABORALES DT ==================== */}
+      {/* ==================== SUB-PESTAÑA 5: CONTRATOS DE TRABAJO DT ==================== */}
       {currentSubTab === 'contratos' && (
         <div className="space-y-4 animate-in fade-in duration-200">
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
-            {/* Cabecera del Centro Jurídico Laboral */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                  Centro Jurídico Laboral • Ley N° 21.442 & Código del Trabajo
+                  Contratos de Trabajo • Ley N° 21.442 & Código del Trabajo
                 </span>
                 <h3 className="text-base font-black text-slate-900 mt-1">
-                  Contratos, Feriado Legal, Finiquitos & Normativa DT
+                  Contratos Individuales de Trabajo DT
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Instrumentos laborales redactados con estándares de la Dirección del Trabajo (DT) para el personal de copropiedad.
+                  Contratos laborales de 2 páginas con descriptor de funciones, turnos, sigilo Ley 19.628 y acreditación RNAC.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                  {staff.length} Contratos Registrados
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <FileCheck className="w-4 h-4 text-[#0F3D2E] shrink-0" />
+                <span className="text-slate-600">
+                  Contratos individuales de trabajo de 2 páginas con cláusulas de conserjería, sigilo Ley 19.628, turnos y acreditación RNAC.
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-slate-700 shrink-0">
+                {staff.length} Contratos Registrados
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {staff.map((worker) => (
+                <div
+                  key={worker.id}
+                  className="p-5 rounded-2xl border border-slate-200 bg-[#FDFBF7] flex flex-col justify-between space-y-3"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">
+                      {worker.contractType}
+                    </span>
+                    <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
+                    <p className="text-xs text-slate-600">{worker.role}</p>
+                    <span className="text-[11px] text-slate-400 block font-mono">
+                      Ingreso: {worker.startDate} • {worker.weeklyHours || 44} hrs
+                    </span>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/80 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedWorkerForContract(worker);
+                        setShowContractModal(true);
+                      }}
+                      className="flex-1 py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Ver Contrato Detallado DT</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== SUB-PESTAÑA 6: FERIADO LEGAL & VACACIONES DT ==================== */}
+      {currentSubTab === 'vacaciones' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                  Feriado Legal Anual • Art. 67 Código del Trabajo
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-1">
+                  Control de Feriado Legal & Comprobantes DT
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Cálculo automático de días devengados (1.25 días/mes), registro de solicitudes y emisión de comprobantes firmados.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Palmtree className="w-5 h-5 text-emerald-700 shrink-0" />
+                <div>
+                  <strong className="block text-emerald-950 font-bold">
+                    Derecho Irrenunciable al Feriado Legal (Art. 67 Código del Trabajo)
+                  </strong>
+                  <span className="text-emerald-800 text-[11px]">
+                    Todo trabajador con más de un año de servicio tiene derecho a 15 días hábiles remunerados por año (1.25 días acumulados por mes). La DT exige comprobante firmado obligatorio.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {staff.map((worker) => {
+                const balance = calculateVacationBalance(worker.startDate, worker.vacationDaysTaken || 0);
+                return (
+                  <div
+                    key={worker.id}
+                    className="p-5 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between space-y-3.5 shadow-2xs"
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">
+                          {worker.role}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                          {balance.daysRemaining} Días Saldo
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
+                      <span className="text-[11px] text-slate-500 block font-mono">
+                        RUT: {worker.rut} • Ingreso: {worker.startDate}
+                      </span>
+
+                      <div className="grid grid-cols-3 gap-2 pt-2 text-center text-[10px] border-t border-slate-100">
+                        <div className="bg-slate-50 p-1.5 rounded-lg">
+                          <span className="text-slate-400 block text-[9px]">Devengados</span>
+                          <strong className="text-slate-800 font-bold">{balance.daysAccrued} d</strong>
+                        </div>
+                        <div className="bg-slate-50 p-1.5 rounded-lg">
+                          <span className="text-slate-400 block text-[9px]">Tomados</span>
+                          <strong className="text-slate-800 font-bold">{balance.daysTaken} d</strong>
+                        </div>
+                        <div className="bg-emerald-50 p-1.5 rounded-lg border border-emerald-200">
+                          <span className="text-emerald-700 block text-[9px]">Disponibles</span>
+                          <strong className="text-emerald-900 font-black">{balance.daysRemaining} d</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedWorkerForVacation(worker);
+                        setVacationForm({
+                          startDate: new Date().toISOString().split('T')[0],
+                          endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                          returnDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                          daysTaken: Math.min(15, balance.daysRemaining || 15),
+                          periodLabel: `Periodo Ordinario ${new Date().getFullYear()}`,
+                          notes: 'Uso de feriado legal ordinario acordado de común acuerdo con la administración.'
+                        });
+                        setShowVacationModal(true);
+                      }}
+                      className="w-full py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                    >
+                      <Palmtree className="w-3.5 h-3.5" />
+                      <span>Tramitar Feriado & Comprobante DT</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== SUB-PESTAÑA 7: PACTOS DE HORAS EXTRAORDINARIAS ==================== */}
+      {currentSubTab === 'horas_extras' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                  Jornada Extraordinaria • Art. 32 Código del Trabajo
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-1">
+                  Pactos de Horas Extraordinarias del Personal
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Acuerdos escritos trimestrales obligatorios para atender necesidades temporales o imprevistas en la copropiedad.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-amber-700 shrink-0" />
+                <div>
+                  <strong className="block text-amber-950 font-bold">
+                    Pacto Bilateral Escrito Obligatorio (Art. 32 Código del Trabajo)
+                  </strong>
+                  <span className="text-amber-800 text-[11px]">
+                    Para pagar horas extraordinarias sin contingencias laborales con la DT, la ley exige firmar previamente un pacto con vigencia máxima de 3 meses. Recargo legal del 50% sobre el sueldo base.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {staff.map((worker) => (
+                <div
+                  key={worker.id}
+                  className="p-5 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between space-y-3.5 shadow-2xs"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">
+                      Turno: {worker.shift || 'Rotativo'}
+                    </span>
+                    <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
+                    <p className="text-xs text-slate-600">{worker.role}</p>
+                    <span className="text-[11px] text-slate-500 block font-mono">
+                      Valor Hora Extra 50%: {formatCLP(calculateOvertimeHourValue(worker.baseSalary, worker.weeklyHours || 44))}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedWorkerForOvertimePact(worker);
+                      setShowOvertimePactModal(true);
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Ver / Emitir Pacto Horas Extras DT</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== SUB-PESTAÑA 8: FINIQUITOS & TÉRMINO LABORAL ==================== */}
+      {currentSubTab === 'finiquitos' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                  Término Laboral • Art. 159, 160 y 161 Código del Trabajo
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-1">
+                  Simulador de Finiquitos & Notificaciones de Término
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Cálculo legal de indemnizaciones por años de servicio, preaviso, feriado proporcional y cartas formales con Ley Bustos.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-100 rounded-2xl border border-slate-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <UserMinus className="w-5 h-5 text-slate-700 shrink-0" />
+                <div>
+                  <strong className="block text-slate-900 font-bold">
+                    Finiquitos Laborales & Notificaciones de Término (Art. 159, 160 y 161)
+                  </strong>
+                  <span className="text-slate-600 text-[11px]">
+                    Calcula indemnizaciones por años de servicio, preaviso, feriado proporcional y genera el Finiquito Notarial y la Carta Certificada DT.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {staff.map((worker) => (
+                <div
+                  key={worker.id}
+                  className="p-5 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between space-y-3.5 shadow-2xs"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">
+                        {worker.contractType}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                        {worker.status || 'ACTIVO'}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
+                    <p className="text-xs text-slate-600">{worker.role}</p>
+                    <span className="text-[11px] text-slate-400 block font-mono">
+                      Ingreso: {worker.startDate} • Sueldo: {formatCLP(worker.baseSalary)}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const vac = calculateVacationBalance(worker.startDate, worker.vacationDaysTaken || 0);
+                      setSelectedWorkerForSeverance(worker);
+                      setSeveranceForm({
+                        terminationDate: new Date().toISOString().split('T')[0],
+                        causeId: '161_1',
+                        noticeGiven: false,
+                        vacationDaysPending: vac.daysRemaining || 10,
+                        workedDaysInMonth: 15,
+                        afcBalanceDeduction: 0,
+                        reasonDetail: 'Reestructuración y racionalización de turnos del personal de copropiedad acordada por el Comité de Administración.'
+                      });
+                      setShowSeveranceModal(true);
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-slate-900 text-amber-200 hover:bg-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <Scale className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Simular Finiquito & Cartas DT</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== SUB-PESTAÑA 9: RIOHS & PROTOCOLO LEY KARIN ==================== */}
+      {(currentSubTab === 'riohs' || currentSubTab === 'riohs_karin') && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                  Normativa de Orden, Higiene & Seguridad • Ley N° 21.442, Ley N° 16.744 y Ley N° 21.643
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-1">
+                  Reglamento Interno (RIOHS) & Protocolo Ley Karin
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Instrumentos normativos oficiales exigibles por la Inspección del Trabajo y la Seremi de Salud.
                 </p>
               </div>
 
@@ -1412,343 +1688,55 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
             </div>
 
-            {/* Pestañas internas de navegación jurídica */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
-              {[
-                { id: 'contratos', label: '1. Contratos de Trabajo DT', icon: FileText, count: staff.length },
-                { id: 'vacaciones', label: '2. Feriado Legal & Vacaciones DT', icon: Palmtree, count: `${staff.length} Fichas` },
-                { id: 'horas_extras', label: '3. Pactos Horas Extras (Art. 32)', icon: Clock, count: '3 Meses' },
-                { id: 'finiquitos', label: '4. Finiquitos & Término Laboral', icon: UserMinus, count: 'DT & Notaría' },
-                { id: 'riohs_karin', label: '5. RIOHS & Protocolo Ley Karin', icon: Shield, count: 'Obligatorio' }
-              ].map((sec) => {
-                const SecIcon = sec.icon;
-                const isSecActive = docSection === sec.id;
-                return (
-                  <button
-                    key={sec.id}
-                    type="button"
-                    onClick={() => setDocSection(sec.id)}
-                    className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                      isSecActive
-                        ? 'bg-[#0F3D2E] text-white shadow-xs font-black'
-                        : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/80'
-                    }`}
-                  >
-                    <SecIcon className={`w-3.5 h-3.5 ${isSecActive ? 'text-[#D4B895]' : 'text-slate-400'}`} />
-                    <span>{sec.label}</span>
-                    <span
-                      className={`text-[9.5px] px-1.5 py-0.2 rounded font-mono ${
-                        isSecActive ? 'bg-white/20 text-[#D4B895]' : 'bg-slate-200 text-slate-600'
-                      }`}
-                    >
-                      {sec.count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* SECCIÓN 1: CONTRATOS DE TRABAJO */}
-            {docSection === 'contratos' && (
-              <div className="space-y-4">
-                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <FileCheck className="w-4 h-4 text-[#0F3D2E] shrink-0" />
-                    <span className="text-slate-600">
-                      Contratos individuales de trabajo de 2 páginas con cláusulas de conserjería, sigilo Ley 19.628, turnos y acreditación RNAC.
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-700 shrink-0">
-                    {staff.length} Contratos Registrados
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Tarjeta RIOHS */}
+              <div className="p-6 rounded-3xl bg-[#FDFBF7] border border-slate-200 space-y-4 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase text-[#0F3D2E] bg-emerald-100 px-2 py-0.5 rounded">
+                    Normativa de Orden e Higiene
                   </span>
+                  <h4 className="text-base font-black text-slate-900">
+                    Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Instrumento normativo completo de 2 páginas adaptado a la Ley N° 21.442 de Copropiedad Inmobiliaria, Ley N° 16.744 sobre Accidentes del Trabajo y Código del Trabajo.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {staff.map((worker) => (
-                    <div
-                      key={worker.id}
-                      className="p-5 rounded-2xl border border-slate-200 bg-[#FDFBF7] flex flex-col justify-between space-y-3"
-                    >
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase block">
-                          {worker.contractType}
-                        </span>
-                        <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
-                        <p className="text-xs text-slate-600">{worker.role}</p>
-                        <span className="text-[11px] text-slate-400 block font-mono">
-                          Ingreso: {worker.startDate} • {worker.weeklyHours || 44} hrs
-                        </span>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-200/80 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedWorkerForContract(worker);
-                            setShowContractModal(true);
-                          }}
-                          className="flex-1 py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Ver Contrato Detallado DT</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRiohsModal(true)}
+                  className="py-2.5 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                >
+                  <ScrollText className="w-4 h-4" />
+                  <span>Ver / Imprimir RIOHS Completo (PDF)</span>
+                </button>
               </div>
-            )}
 
-            {/* SECCIÓN 2: CONTROL DE VACACIONES & FERIADO LEGAL */}
-            {docSection === 'vacaciones' && (
-              <div className="space-y-4">
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <Palmtree className="w-5 h-5 text-emerald-700 shrink-0" />
-                    <div>
-                      <strong className="block text-emerald-950 font-bold">
-                        Derecho Irrenunciable al Feriado Legal (Art. 67 Código del Trabajo)
-                      </strong>
-                      <span className="text-emerald-800 text-[11px]">
-                        Todo trabajador con más de un año de servicio tiene derecho a 15 días hábiles remunerados por año (1.25 días acumulados por mes). La DT exige comprobante firmado obligatorio.
-                      </span>
-                    </div>
-                  </div>
+              {/* Tarjeta Ley Karin */}
+              <div className="p-6 rounded-3xl bg-rose-50/50 border border-rose-200 space-y-4 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase text-rose-700 bg-rose-100 px-2 py-0.5 rounded">
+                    Obligatorio Ley N° 21.643
+                  </span>
+                  <h4 className="text-base font-black text-slate-900">
+                    Protocolo de Prevención & Denuncias Ley Karin
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Protocolo formal de resguardo frente al acoso laboral, acoso sexual y violencia en el trabajo en copropiedades, canales formales ante la Administración y plazos de derivación a la DT.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {staff.map((worker) => {
-                    const balance = calculateVacationBalance(worker.startDate, worker.vacationDaysTaken || 0);
-                    return (
-                      <div
-                        key={worker.id}
-                        className="p-5 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between space-y-3.5 shadow-2xs"
-                      >
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">
-                              {worker.role}
-                            </span>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                              {balance.daysRemaining} Días Saldo
-                            </span>
-                          </div>
-                          <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
-                          <span className="text-[11px] text-slate-500 block font-mono">
-                            RUT: {worker.rut} • Ingreso: {worker.startDate}
-                          </span>
-
-                          <div className="grid grid-cols-3 gap-2 pt-2 text-center text-[10px] border-t border-slate-100">
-                            <div className="bg-slate-50 p-1.5 rounded-lg">
-                              <span className="text-slate-400 block text-[9px]">Devengados</span>
-                              <strong className="text-slate-800 font-bold">{balance.daysAccrued} d</strong>
-                            </div>
-                            <div className="bg-slate-50 p-1.5 rounded-lg">
-                              <span className="text-slate-400 block text-[9px]">Tomados</span>
-                              <strong className="text-slate-800 font-bold">{balance.daysTaken} d</strong>
-                            </div>
-                            <div className="bg-emerald-50 p-1.5 rounded-lg border border-emerald-200">
-                              <span className="text-emerald-700 block text-[9px]">Disponibles</span>
-                              <strong className="text-emerald-900 font-black">{balance.daysRemaining} d</strong>
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedWorkerForVacation(worker);
-                            setVacationForm({
-                              startDate: new Date().toISOString().split('T')[0],
-                              endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                              returnDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                              daysTaken: Math.min(15, balance.daysRemaining || 15),
-                              periodLabel: `Periodo Ordinario ${new Date().getFullYear()}`,
-                              notes: 'Uso de feriado legal ordinario acordado de común acuerdo con la administración.'
-                            });
-                            setShowVacationModal(true);
-                          }}
-                          className="w-full py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                        >
-                          <Palmtree className="w-3.5 h-3.5" />
-                          <span>Tramitar Feriado & Comprobante DT</span>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowKarinModal(true)}
+                  className="py-2.5 px-4 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-black flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>Ver / Imprimir Protocolo Ley Karin (PDF)</span>
+                </button>
               </div>
-            )}
-
-            {/* SECCIÓN 3: PACTOS DE HORAS EXTRAORDINARIAS (ART. 32) */}
-            {docSection === 'horas_extras' && (
-              <div className="space-y-4">
-                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-amber-700 shrink-0" />
-                    <div>
-                      <strong className="block text-amber-950 font-bold">
-                        Pacto Bilateral Escrito Obligatorio (Art. 32 Código del Trabajo)
-                      </strong>
-                      <span className="text-amber-800 text-[11px]">
-                        Para pagar horas extraordinarias sin contingencias laborales con la DT, la ley exige firmar previamente un pacto con vigencia máxima de 3 meses. Recargo legal del 50% sobre el sueldo base.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {staff.map((worker) => (
-                    <div
-                      key={worker.id}
-                      className="p-5 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between space-y-3.5 shadow-2xs"
-                    >
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase block">
-                          Turno: {worker.shift || 'Rotativo'}
-                        </span>
-                        <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
-                        <p className="text-xs text-slate-600">{worker.role}</p>
-                        <span className="text-[11px] text-slate-500 block font-mono">
-                          Valor Hora Extra 50%: {formatCLP(calculateOvertimeHourValue(worker.baseSalary, worker.weeklyHours || 44))}
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedWorkerForOvertimePact(worker);
-                          setShowOvertimePactModal(true);
-                        }}
-                        className="w-full py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                      >
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Ver / Emitir Pacto Horas Extras DT</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* SECCIÓN 4: FINIQUITOS & TÉRMINO LABORAL */}
-            {docSection === 'finiquitos' && (
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-100 rounded-2xl border border-slate-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <UserMinus className="w-5 h-5 text-slate-700 shrink-0" />
-                    <div>
-                      <strong className="block text-slate-900 font-bold">
-                        Finiquitos Laborales & Notificaciones de Término (Art. 159, 160 y 161)
-                      </strong>
-                      <span className="text-slate-600 text-[11px]">
-                        Calcula indemnizaciones por años de servicio, preaviso, feriado proporcional y genera el Finiquito Notarial y la Carta Certificada DT.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {staff.map((worker) => (
-                    <div
-                      key={worker.id}
-                      className="p-5 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between space-y-3.5 shadow-2xs"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-slate-500 uppercase">
-                            {worker.contractType}
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                            {worker.status || 'ACTIVO'}
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
-                        <p className="text-xs text-slate-600">{worker.role}</p>
-                        <span className="text-[11px] text-slate-400 block font-mono">
-                          Ingreso: {worker.startDate} • Sueldo: {formatCLP(worker.baseSalary)}
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const vac = calculateVacationBalance(worker.startDate, worker.vacationDaysTaken || 0);
-                          setSelectedWorkerForSeverance(worker);
-                          setSeveranceForm({
-                            terminationDate: new Date().toISOString().split('T')[0],
-                            causeId: '161_1',
-                            noticeGiven: false,
-                            vacationDaysPending: vac.daysRemaining || 10,
-                            workedDaysInMonth: 15,
-                            afcBalanceDeduction: 0,
-                            reasonDetail: 'Reestructuración y racionalización de turnos del personal de copropiedad acordada por el Comité de Administración.'
-                          });
-                          setShowSeveranceModal(true);
-                        }}
-                        className="w-full py-2 px-3 rounded-xl bg-slate-900 text-amber-200 hover:bg-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                      >
-                        <Scale className="w-3.5 h-3.5 text-amber-300" />
-                        <span>Simular Finiquito & Cartas DT</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* SECCIÓN 5: RIOHS & LEY KARIN */}
-            {docSection === 'riohs_karin' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* Tarjeta RIOHS */}
-                <div className="p-6 rounded-3xl bg-[#FDFBF7] border border-slate-200 space-y-4 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase text-[#0F3D2E] bg-emerald-100 px-2 py-0.5 rounded">
-                      Normativa de Orden e Higiene
-                    </span>
-                    <h4 className="text-base font-black text-slate-900">
-                      Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Instrumento normativo completo de 2 páginas adaptado a la Ley N° 21.442 de Copropiedad Inmobiliaria, Ley N° 16.744 sobre Accidentes del Trabajo y Código del Trabajo.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowRiohsModal(true)}
-                    className="py-2.5 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
-                  >
-                    <ScrollText className="w-4 h-4" />
-                    <span>Ver / Imprimir RIOHS Completo (PDF)</span>
-                  </button>
-                </div>
-
-                {/* Tarjeta Ley Karin */}
-                <div className="p-6 rounded-3xl bg-rose-50/50 border border-rose-200 space-y-4 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase text-rose-700 bg-rose-100 px-2 py-0.5 rounded">
-                      Obligatorio Ley N° 21.643
-                    </span>
-                    <h4 className="text-base font-black text-slate-900">
-                      Protocolo de Prevención & Denuncias Ley Karin
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Protocolo formal de resguardo frente al acoso laboral, acoso sexual y violencia en el trabajo en copropiedades, canales formales ante la Administración y plazos de derivación a la DT.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowKarinModal(true)}
-                    className="py-2.5 px-4 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-black flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
-                  >
-                    <ShieldAlert className="w-4 h-4" />
-                    <span>Ver / Imprimir Protocolo Ley Karin (PDF)</span>
-                  </button>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}

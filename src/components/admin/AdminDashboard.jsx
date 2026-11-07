@@ -19,13 +19,13 @@ import { PwaInstallButton } from '../layout/PwaPrompt';
 import { 
   Building2, Plus, Trash2, Edit3, ExternalLink, Users, 
   DollarSign, FileText, CheckCircle2, AlertCircle, Copy, 
-  Check, ArrowRight, Shield, Settings, Sliders, Eye, Save, X, RefreshCw,
+  Check, ArrowRight, ArrowLeft, Shield, Settings, Sliders, Eye, Save, X, RefreshCw,
   Download, Printer, MessageCircle, MessageSquare, Megaphone, FolderOpen, Repeat, Archive,
   Menu, ChevronLeft, ChevronRight, Home, BarChart3, LogOut, Globe, Upload, Store,
   Mail, Send, MoreVertical, Car, Package, BookOpen, ClipboardList, Filter, Dog, FileCheck,
   Search, Clock, FileSpreadsheet, ShieldAlert, Receipt, ShieldCheck, CheckSquare,
   Briefcase, Phone, CreditCard, Landmark, Wrench, BadgeCheck, Sparkles,
-  History, Calendar, FilePlus, ArrowUpDown,
+  History, Calendar, FilePlus, ArrowUpDown, Palmtree, UserMinus,
   AlertTriangle, Zap, Droplets, Lock, Unlock, CalendarClock,
   TrendingUp, Calculator, CalendarRange, PieChart, Scale, RotateCcw,
   Smartphone, Activity, TrendingDown, Layers, Bell, PenTool, HardHat, Key, KeyRound
@@ -2948,7 +2948,7 @@ _Administración ARANPRO_`;
         </div>
 
         {(!sidebarCollapsed || isMobile) && (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {onSwitchCommunityWorkspace && (
               <button
                 type="button"
@@ -2956,56 +2956,32 @@ _Administración ARANPRO_`;
                   if (isMobile) setMobileSidebarOpen(false);
                   onSwitchCommunityWorkspace();
                 }}
-                className="w-full py-2 px-3 bg-[#D4B895] hover:bg-[#c5a67f] text-[#0F3D2E] text-[11px] font-black rounded-xl flex items-center justify-between shadow-2xs transition-colors cursor-pointer"
-                title="Volver al Panel Central de Mi Empresa Administradora, Postulaciones, Metas y Comunidades"
+                className="w-full py-2 px-3 bg-[#D4B895] hover:bg-[#c5a67f] text-[#0F3D2E] text-xs font-black rounded-xl flex items-center justify-between shadow-2xs transition-all cursor-pointer group"
+                title="Volver al Panel Central de Mi Empresa Administradora (Multi-Comunidad)"
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  <Briefcase className="w-3.5 h-3.5 shrink-0" />
-                  <span>← Panel Mi Empresa</span>
+                  <ArrowLeft className="w-4 h-4 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+                  <span>Panel Mi Empresa</span>
                 </span>
-                <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895]">
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895]">
                   Inicio
                 </span>
               </button>
             )}
 
-            <select
-              value={selectedCommunityId || ''}
-              onChange={(e) => {
-                const newId = e.target.value;
-                if (newId !== selectedCommunityId) {
-                  setPendingCommunitySwitch(newId);
-                }
-              }}
-              className="w-full bg-[#0A291F] text-white text-xs font-bold px-2.5 py-2 rounded-xl border border-[#D4B895]/40 focus:outline-hidden focus:ring-2 focus:ring-[#D4B895]"
-            >
-              {communities.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.type} • {c.totalUnits} Casas)
-                </option>
-              ))}
-            </select>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => {
-                  setMobileSidebarOpen(false);
-                  setShowNewCommModal(true);
-                }}
-                className="flex-1 py-1.5 px-2.5 bg-white/10 hover:bg-white/20 text-[#D4B895] border border-[#D4B895]/30 text-[11px] font-bold rounded-xl flex items-center justify-center shadow-2xs transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                Nueva Comunidad
-              </button>
-              {currentCommunity && (
-                <span
-                  className="px-2 py-1.5 text-[10px] font-bold bg-[#0A291F]/90 text-[#D4B895] border border-white/10 rounded-xl truncate max-w-[115px]"
-                  title={`${currentCommunity.address}, ${currentCommunity.city}`}
-                >
-                  {currentCommunity.totalUnits} Casas
+            {currentCommunity && (
+              <div className="px-3 py-2 bg-[#0A291F] rounded-xl border border-[#D4B895]/20 flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Building2 className="w-3.5 h-3.5 text-[#D4B895] shrink-0" />
+                  <span className="text-[11px] font-black text-white truncate" title={currentCommunity.name}>
+                    {currentCommunity.name}
+                  </span>
+                </div>
+                <span className="text-[9.5px] font-bold px-1.5 py-0.5 bg-[#D4B895]/20 text-[#D4B895] rounded-md shrink-0">
+                  {currentCommunity.totalUnits} {currentCommunity.type || 'Casas'}
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -3352,6 +3328,7 @@ _Administración ARANPRO_`;
               {/* SUB-ÍNDICES DE RR.HH. & REMUNERACIONES EN LA BARRA LATERAL */}
               {tab.id === 'remuneraciones' && (!sidebarCollapsed || isMobile) && (
                 <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'remuneraciones' ? 'block' : 'hidden'}`}>
+                  {/* 1. Nómina Personal */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3379,6 +3356,7 @@ _Administración ARANPRO_`;
                     </span>
                   </button>
 
+                  {/* 2. Liquidaciones DT */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3406,6 +3384,7 @@ _Administración ARANPRO_`;
                     </span>
                   </button>
 
+                  {/* 3. Planilla & TXT Previred */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3433,33 +3412,35 @@ _Administración ARANPRO_`;
                     </span>
                   </button>
 
+                  {/* 4. Feriado Legal & Vacaciones DT */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setActiveTab('remuneraciones');
-                      setRemuneracionesSubTab('gastos_comunes');
+                      setRemuneracionesSubTab('vacaciones');
                       if (isMobile) setMobileSidebarOpen(false);
                     }}
                     className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes'
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'vacaciones'
                         ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
                         : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
                     }`}
                   >
                     <div className="flex items-center space-x-1.5 min-w-0">
-                      <DollarSign className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">4. Traspaso a Gastos</span>
+                      <Palmtree className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'vacaciones' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">4. Feriado Legal DT</span>
                     </div>
                     <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
-                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes'
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'vacaciones'
                         ? 'bg-[#0F3D2E] text-white'
                         : 'bg-slate-100 text-slate-600'
                     }`}>
-                      1-Clic
+                      Saldos
                     </span>
                   </button>
 
+                  {/* 5. Contratos de Trabajo DT */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3484,6 +3465,118 @@ _Administración ARANPRO_`;
                         : 'bg-slate-100 text-slate-600'
                     }`}>
                       Leyes
+                    </span>
+                  </button>
+
+                  {/* 6. Pactos Horas Extras (Art. 32) */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('horas_extras');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'horas_extras'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Clock className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'horas_extras' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">6. Pactos H. Extras</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'horas_extras'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      Art. 32
+                    </span>
+                  </button>
+
+                  {/* 7. Finiquitos & Término Laboral */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('finiquitos');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'finiquitos'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <UserMinus className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'finiquitos' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">7. Finiquitos & Término</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'finiquitos'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      Cálculo
+                    </span>
+                  </button>
+
+                  {/* 8. RIOHS & Protocolo Ley Karin */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('riohs');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'riohs'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <ShieldAlert className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'riohs' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">8. RIOHS & Ley Karin</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'riohs'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      Norma
+                    </span>
+                  </button>
+
+                  {/* 9. Traspaso a Gastos Comunes */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('remuneraciones');
+                      setRemuneracionesSubTab('gastos_comunes');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <DollarSign className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">9. Traspaso a Gastos</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'remuneraciones' && remuneracionesSubTab === 'gastos_comunes'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      1-Clic
                     </span>
                   </button>
                 </div>
@@ -4197,9 +4290,20 @@ _Administración ARANPRO_`;
             <Menu className="w-5 h-5" />
           </button>
           <div className="truncate">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] block leading-tight truncate">
-              {currentCommunity?.name || 'Comunidad'}
-            </span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="relative flex h-1.5 w-1.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#D4B895] truncate">
+                {currentCommunity?.name || 'Comunidad'}
+              </span>
+              {currentCommunity && (
+                <span className="text-[8.5px] font-bold px-1 py-0.2 bg-white/10 text-white/90 rounded">
+                  {currentCommunity.totalUnits}u
+                </span>
+              )}
+            </div>
             <span className="text-xs font-black text-white truncate block">
               {activeTabObj.label}
             </span>
@@ -4257,21 +4361,28 @@ _Administración ARANPRO_`;
         {/* BARRA SUPERIOR EXCLUSIVA DEL SOFTWARE DE ADMINISTRACIÓN (Sin menú de la web pública) */}
         <header className="hidden lg:flex sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E9EBE8] px-6 h-16 items-center justify-between gap-4 shadow-2xs">
           
-          {/* Izquierda: Pestaña Activa y Comunidad */}
+          {/* Izquierda: Pestaña Activa y Chip Distintivo de la Comunidad */}
           <div className="flex items-center space-x-3 min-w-0">
-            <span className="text-sm font-black text-[#0F3D2E] truncate">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500 truncate">
               {activeTabObj.label}
             </span>
             {currentCommunity && (
-              <>
-                <span className="text-slate-300">•</span>
-                <span className="text-xs font-semibold text-slate-600 truncate">
+              <div className="flex items-center gap-2.5 px-3 py-1.5 bg-gradient-to-r from-[#0F3D2E] to-[#144736] text-white rounded-xl shadow-xs border border-[#D4B895]/40 transition-all">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                </span>
+                <Building2 className="w-3.5 h-3.5 text-[#D4B895] shrink-0" />
+                <span className="text-xs font-black text-[#F5F4EF] tracking-wide truncate max-w-[220px]" title={currentCommunity.name}>
                   {currentCommunity.name}
                 </span>
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895]/40 rounded-md shrink-0">
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#D4B895] text-[#0F3D2E] shrink-0">
+                  {currentCommunity.totalUnits} {currentCommunity.type || 'Casas'}
+                </span>
+                <span className="text-[10px] font-bold text-[#D4B895] border-l border-white/20 pl-2 shrink-0">
                   Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}
                 </span>
-              </>
+              </div>
             )}
           </div>
 
