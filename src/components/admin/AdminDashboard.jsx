@@ -14033,7 +14033,7 @@ _Administración ARANPRO_`;
                             Administrador Titular
                           </div>
                           <div className="text-[9px] font-mono text-slate-500">
-                            RUT: {companySettings?.adminRut || '14.882.140-K'}
+                            RUT: {(companySettings?.adminRut && companySettings.adminRut !== '14.882.140-K') ? companySettings.adminRut : '16.012.871-2'}
                           </div>
                           <div className="text-[8.5px] font-bold text-[#0F3D2E]">
                             RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
@@ -16607,7 +16607,7 @@ _Administración ARANPRO_`;
                     {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}
                   </div>
                   <div className="text-[10px] text-slate-500 font-mono">
-                    RUT: {companySettings?.adminRut || '14.882.140-K'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                    RUT: {(companySettings?.adminRut && companySettings.adminRut !== '14.882.140-K') ? companySettings.adminRut : '16.012.871-2'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
                   </div>
                   <div className="text-[10px] font-bold text-[#0F3D2E]">
                     Administrador Titular • {companySettings?.brandName || 'ARANPRO'}

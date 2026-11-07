@@ -142,7 +142,7 @@ export const CompanySettingsAndBackupModule = ({
     website: companySettings?.website || 'https://aranpro.cl',
     // Representante Legal / Firmante
     adminName: companySettings?.adminName || 'John Andrés Arancibia Maureira',
-    adminRut: companySettings?.adminRut || '16.012.871-2',
+    adminRut: (companySettings?.adminRut && companySettings.adminRut !== '14.882.140-K') ? companySettings.adminRut : '16.012.871-2',
     adminRole: companySettings?.adminRole || 'Administrador Titular & Representante Legal',
     rnacNumber: (companySettings?.rnacNumber && companySettings.rnacNumber !== '48.912') ? companySettings.rnacNumber : '',
     rnacCategory: companySettings?.rnacCategory || 'Persona Natural (En trámite Ley 21.442)',
@@ -4316,223 +4316,234 @@ export const CompanySettingsAndBackupModule = ({
             </div>
 
             {/* CONTENEDOR DE LA CARTA DE VALOR IMPRIMIBLE TAMAÑO CARTA (GARANTIZADO EN 1 SOLA PÁGINA) */}
-            <div className="overflow-y-auto flex-1 pr-1">
-              <div
-                id="printable-cold-value-letter"
-                data-pdf-style={pdfStyle}
-                className="bg-white p-4 md:p-6 pl-7 md:pl-9 max-w-3xl mx-auto space-y-2 text-slate-900"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
-                <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                  <div className="flex items-center space-x-3">
-                    <AranproLogo variant="principal" className="h-11 w-auto" />
-                    <div className="space-y-0.5 border-l border-slate-300 pl-3">
-                      <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
-                        {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
+            <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl">
+              <div id="printable-cold-value-letter" className="space-y-6 print-area">
+                <div
+                  data-pdf-style={pdfStyle}
+                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
+                  style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+                >
+                  {/* SECCIÓN SUPERIOR: MEMBRETE, PROTOCOLO, TÍTULO, INTRO PROFUNDA, 3 PILARES, BENEFICIOS */}
+                  <div className="space-y-3">
+                    {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
+                    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
+                      <div className="flex items-center space-x-3">
+                        <AranproLogo variant="principal" className="h-11 w-auto" />
+                        <div className="space-y-0.5 border-l border-slate-300 pl-3">
+                          <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
+                            {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
+                          </div>
+                          <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
+                            RUT Empresa: {empresaForm.companyRut || '76.999.888-8'} • Ley N° 21.442 de Copropiedad Inmobiliaria
+                          </p>
+                          <p className="text-[9px] text-slate-500">
+                            {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'La Serena, Chile'}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                        RUT Empresa: {empresaForm.companyRut || '76.999.888-8'} • Ley N° 21.442 de Copropiedad Inmobiliaria
-                      </p>
-                      <p className="text-[9px] text-slate-500">
-                        {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'La Serena, Chile'}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="text-right space-y-0.5 shrink-0">
-                    <span className="inline-block px-2 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9px] font-mono font-bold rounded whitespace-nowrap">
-                      PRESENTACIÓN INSTITUCIONAL {new Date().getFullYear()}
-                    </span>
-                    <p className="text-[10px] font-bold text-slate-800">
-                      Carta de Presentación & Propuesta de Servicios
-                    </p>
-                    <p className="text-[9px] text-slate-500 font-semibold">
-                      Para el Comité de Administración
-                    </p>
-                  </div>
-                </div>
-
-                {/* Encabezado Protocolar */}
-                <div className="text-[10.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
-                  <p>
-                    <strong>Dirigido cordialmente a:</strong>{' '}
-                    {proposalConfig.leaveRecipientBlank ? (
-                      <span className="font-mono text-slate-400">__________________________________________________________________</span>
-                    ) : (
-                      <strong className="text-slate-900">Señores Integrantes del Comité de Administración</strong>
-                    )}
-                  </p>
-                  {proposalConfig.targetCondo?.trim() ? (
-                    <p>
-                      <strong>Comunidad / Condominio:</strong>{' '}
-                      <strong className="text-[#0F3D2E] uppercase">{proposalConfig.targetCondo}</strong>
-                    </p>
-                  ) : proposalConfig.leaveRecipientBlank ? (
-                    <p>
-                      <strong>Comunidad / Condominio:</strong>{' '}
-                      <span className="font-mono text-slate-400">__________________________________________________________</span>
-                    </p>
-                  ) : (
-                    <p>
-                      <strong>Comunidad / Condominio:</strong>{' '}
-                      <span className="font-semibold text-slate-800">Comunidad de Copropietarios • {empresaForm.city}</span>
-                    </p>
-                  )}
-                  <p>
-                    <strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)
-                  </p>
-                  <p>
-                    <strong>Materia:</strong> Presentación de Servicios de Administración Profesional & Propuesta Operativa Integral
-                  </p>
-                </div>
-
-                {/* Título de Alto Impacto */}
-                <div className="text-center py-0.5">
-                  <h1 className="text-xs md:text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
-                    Administración Profesional, Criterio Constructor Civil & Plataforma Digital 100% Gratuita
-                  </h1>
-                  <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
-                </div>
-
-                {/* Cuerpo Consultivo (Garantizado en 1 página exacta sin desbordes) */}
-                <div className="text-justify text-[10.5px] text-slate-800 leading-snug space-y-1.5">
-                  <p>
-                    <strong>Estimadas y estimados integrantes del Comité de Administración:</strong> Junto con saludarles cordialmente y reconociendo el compromiso que dedican a su comunidad, me dirijo a ustedes para presentar los servicios de <strong>ARANPRO Gestión Integral</strong> y poner a su consideración nuestra administración para {proposalConfig.targetCondo?.trim() ? <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong> : <strong>su comunidad</strong>}. Nos interesa conocer en profundidad las prioridades y necesidades actuales de su comunidad y presentarles una propuesta formal que detalle con total claridad el alcance del servicio, la forma de trabajo y los honorarios.
-                  </p>
-                  <p>
-                    Nuestra gestión se fundamenta en <strong>tres pilares operativos</strong> diseñados para entregar tranquilidad, control y valorización continua a su condominio:
-                  </p>
-
-                  {/* 3 Pilares Solicitados */}
-                  <div className="grid grid-cols-1 gap-1.5 pt-0.5">
-                    {/* Pilar 1: Gestión financiera, rendición de cuentas y plataforma gratuita */}
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
-                        1
-                      </span>
-                      <div>
-                        <strong className="text-[#0F3D2E] block text-[11px]">
-                          Gestión financiera, rendición de cuentas & Plataforma digital 100% gratuita
-                        </strong>
-                        <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
-                          Preparación y seguimiento del presupuesto, gestión de gastos comunes y morosidad, revisión de pagos y organización de respaldos. <strong>La plataforma digital y app móvil de ARANPRO se entrega 100% gratuita para toda la comunidad</strong>, facilitando la consulta de la información de gestión las 24 horas, con accesos definidos según las funciones del comité y de los residentes.
+                      <div className="text-right space-y-0.5 shrink-0">
+                        <span className="inline-block px-2 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9px] font-mono font-bold rounded whitespace-nowrap">
+                          PRESENTACIÓN INSTITUCIONAL {new Date().getFullYear()}
+                        </span>
+                        <p className="text-[10px] font-bold text-slate-800">
+                          Carta de Presentación & Propuesta de Servicios
+                        </p>
+                        <p className="text-[9px] text-slate-500 font-semibold">
+                          Para el Comité de Administración
                         </p>
                       </div>
                     </div>
 
-                    {/* Pilar 2: Mantención y evaluación de proveedores */}
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
-                        2
-                      </span>
-                      <div>
-                        <strong className="text-[#0F3D2E] block text-[11px]">
-                          Mantención y evaluación de proveedores (Criterio Constructor Civil)
-                        </strong>
-                        <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
-                          Revisión en terreno de las necesidades de la comunidad con formación profesional de Constructor Civil, programación de mantenciones preventivas y seguimiento de reparaciones. Al comparar cotizaciones, revisamos alcances, cantidades, exclusiones y condiciones de ejecución para apoyar decisiones fundamentadas del comité y controlar el cumplimiento de los trabajos contratados.
+                    {/* Encabezado Protocolar */}
+                    <div className="text-[10.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
+                      <p>
+                        <strong>Dirigido cordialmente a:</strong>{' '}
+                        {proposalConfig.leaveRecipientBlank ? (
+                          <span className="font-mono text-slate-400">__________________________________________________________________</span>
+                        ) : (
+                          <strong className="text-slate-900">Señores Integrantes del Comité de Administración</strong>
+                        )}
+                      </p>
+                      {proposalConfig.targetCondo?.trim() ? (
+                        <p>
+                          <strong>Comunidad / Condominio:</strong>{' '}
+                          <strong className="text-[#0F3D2E] uppercase">{proposalConfig.targetCondo}</strong>
                         </p>
-                      </div>
-                    </div>
-
-                    {/* Pilar 3: Personal, acuerdos y organización de la comunidad */}
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
-                        3
-                      </span>
-                      <div>
-                        <strong className="text-[#0F3D2E] block text-[11px]">
-                          Personal, acuerdos y organización de la comunidad
-                        </strong>
-                        <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
-                          Gestión documental del personal, coordinación de turnos y seguimiento de obligaciones laborales y preventivas (Ley Karin y RIOHS). Apoyo en la preparación de asambleas, registro y ejecución de acuerdos y coordinación de proveedores, con responsables y plazos que permitan al comité conocer el avance de la gestión.
+                      ) : proposalConfig.leaveRecipientBlank ? (
+                        <p>
+                          <strong>Comunidad / Condominio:</strong>{' '}
+                          <span className="font-mono text-slate-400">__________________________________________________________</span>
                         </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* BENEFICIOS 100% GRATUITOS: PLATAFORMA DIGITAL PARA LA COMUNIDAD + VISITA INICIAL */}
-                  <div
-                    className="p-2.5 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-1"
-                    style={{ backgroundColor: '#f0fdf4', borderColor: '#0F3D2E' }}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-[#0F3D2E]">
-                        ★ VALOR Y BENEFICIOS 100% GRATUITOS PARA {proposalConfig.targetCondo?.trim() ? proposalConfig.targetCondo.toUpperCase() : 'SU COMUNIDAD'}
-                      </span>
-                      <span
-                        className="text-[8.5px] font-bold px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
-                        style={{ backgroundColor: '#0F3D2E', color: '#D4B895' }}
-                      >
-                        100% Gratuito e Incluido
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-[10px] text-slate-800 leading-snug">
-                      <p>
-                        <strong>• Plataforma Digital & App Móvil 100% Gratuita para la Comunidad:</strong> Toda la comunidad (copropietarios y residentes) y el Comité cuentan con acceso ilimitado a nuestra suite digital 24/7 para consultar gastos comunes, cartolas bancarias, respaldos de facturas, libro de reclamos y votaciones, <strong>sin costos de licencias ni cobros de software para el condominio</strong>.
-                      </p>
-                      <p>
-                        <strong>• Reunión de Presentación y Visita Inicial Sin Costo ni Compromiso:</strong> Les propongo coordinar una visita inicial en terreno para conocer las instalaciones críticas (sala de bombas, tableros, cubiertas), dotación y prioridades del comité, y preparar una propuesta formal que precise las funciones asumidas, la modalidad de atención, los reportes, las prioridades de inicio y los honorarios.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sello Oficial y Firma del Administrador (Estándar Oficial ARANPRO • Sello al lado de la firma) */}
-                <div className="pt-2 flex items-end justify-between gap-4 border-t border-slate-200">
-                  {/* Lado Izquierdo: Sello Oficial con RUT Empresa y Canales Directos */}
-                  <div className="flex items-center gap-3">
-                    <AranproOfficialSeal
-                      variant="integral"
-                      size="sm"
-                      companyRut={empresaForm.companyRut || '76.999.888-8'}
-                      rnacNumber=""
-                      showCaption={true}
-                    />
-                    <div className="text-[9.5px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
-                      <p>
-                        <strong>Fono / WhatsApp:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone}</span>
-                      </p>
-                      <p>
-                        <strong>Correo:</strong> <span className="font-mono">{empresaForm.email}</span>
-                      </p>
-                      <p>
-                        <strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Lado Derecho: Firma Manuscrita sobre Línea + Datos Profesionales */}
-                  <div className="text-center min-w-[240px]">
-                    <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
-                      {signatureImage ? (
-                        <img
-                          src={signatureImage}
-                          alt="Firma Administrador"
-                          className="h-12 max-h-14 w-auto max-w-[230px] object-contain mx-auto"
-                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                        />
                       ) : (
-                        <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
+                        <p>
+                          <strong>Comunidad / Condominio:</strong>{' '}
+                          <span className="font-semibold text-slate-800">Comunidad de Copropietarios • {empresaForm.city}</span>
+                        </p>
                       )}
+                      <p>
+                        <strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)
+                      </p>
+                      <p>
+                        <strong>Materia:</strong> Presentación de Servicios de Administración Profesional & Propuesta Operativa Integral
+                      </p>
                     </div>
-                    <div className="border-t-[1.5px] border-[#0F3D2E] pt-1">
-                      <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                      <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
-                        Constructor Civil • Administrador de Condominios
+
+                    {/* Título de Alto Impacto */}
+                    <div className="text-center py-0.5">
+                      <h1 className="text-xs md:text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
+                        Administración Profesional, Criterio Constructor Civil & Plataforma Digital 100% Gratuita
+                      </h1>
+                      <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
+                    </div>
+
+                    {/* Cuerpo Consultivo: Presentación Institucional y Diagnóstico Empático con el Comité */}
+                    <div className="text-justify text-[10.5px] text-slate-800 leading-snug space-y-1.5">
+                      <p>
+                        <strong>Estimadas y estimados integrantes del Comité de Administración:</strong> Junto con saludarles muy cordialmente, nos dirigimos a ustedes reconociendo y valorando con la mayor consideración el enorme compromiso, tiempo y dedicación personal que entregan día a día a su comunidad para resguardar la seguridad, la armonía y el patrimonio de sus vecinos y familias. Sabemos por experiencia que liderar un condominio suele transformarse en una carga desgastante y solitaria cuando la administración no responde con la prontitud requerida, las rendiciones de cuentas carecen de respaldos oportunos o las mantenciones e imprevistos de infraestructura se encarecen por la ausencia de una supervisión técnica rigurosa en terreno.
                       </p>
-                      <p className="text-[9px] text-slate-600 font-mono">
-                        RUT: {empresaForm.adminRut || '16.012.871-2'} • Representante Legal ARANPRO
+                      <p>
+                        Con el firme propósito de ser el respaldo técnico y operativo que su directiva necesita para gobernar con tranquilidad, ponemos a su consideración los servicios de <strong>ARANPRO Gestión Integral</strong> para asumir la administración de {proposalConfig.targetCondo?.trim() ? <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong> : <strong>su comunidad</strong>}. Nuestro modelo de gestión integra cercanía humana, rendiciones de cuentas transparentes y verificables bajo la <strong>Ley N° 21.442</strong>, y la dirección técnica de un profesional <strong>Constructor Civil</strong> que supervisa directamente las instalaciones críticas y defiende el presupuesto comunitario frente a contratistas. Nos motiva conocer a fondo las prioridades de {proposalConfig.targetCondo?.trim() ? proposalConfig.targetCondo : 'su condominio'} y poner a su disposición una administración seria, transparente y comprometida con la plusvalía de su copropiedad.
                       </p>
+                      <p className="font-semibold text-[#0F3D2E]">
+                        Nuestra propuesta de valor se fundamenta en <strong>tres pilares operativos</strong> diseñados para entregar orden financiero, rigor técnico y tranquilidad total a su comunidad:
+                      </p>
+
+                      {/* 3 Pilares Solicitados */}
+                      <div className="grid grid-cols-1 gap-1.5 pt-0.5">
+                        {/* Pilar 1: Gestión financiera, rendición de cuentas y plataforma gratuita */}
+                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                          <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
+                            1
+                          </span>
+                          <div>
+                            <strong className="text-[#0F3D2E] block text-[11px]">
+                              Gestión financiera, rendición de cuentas & Plataforma digital 100% gratuita
+                            </strong>
+                            <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
+                              Preparación y seguimiento del presupuesto, gestión de gastos comunes y morosidad, revisión de pagos y organización de respaldos. <strong>La plataforma digital y app móvil de ARANPRO se entrega 100% gratuita para toda la comunidad</strong>, facilitando la consulta de la información de gestión las 24 horas, con accesos definidos según las funciones del comité y de los residentes.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Pilar 2: Mantención y evaluación de proveedores */}
+                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                          <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
+                            2
+                          </span>
+                          <div>
+                            <strong className="text-[#0F3D2E] block text-[11px]">
+                              Mantención y evaluación de proveedores (Criterio Constructor Civil)
+                            </strong>
+                            <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
+                              Revisión en terreno de las necesidades de la comunidad con formación profesional de Constructor Civil, programación de mantenciones preventivas y seguimiento de reparaciones. Al comparar cotizaciones, revisamos alcances, cantidades, exclusiones y condiciones de ejecución para apoyar decisiones fundamentadas del comité y controlar el cumplimiento de los trabajos contratados.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Pilar 3: Personal, acuerdos y organización de la comunidad */}
+                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                          <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
+                            3
+                          </span>
+                          <div>
+                            <strong className="text-[#0F3D2E] block text-[11px]">
+                              Personal, acuerdos y organización de la comunidad
+                            </strong>
+                            <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
+                              Gestión documental del personal, coordinación de turnos y seguimiento de obligaciones laborales y preventivas (Ley Karin y RIOHS). Apoyo en la preparación de asambleas, registro y ejecución de acuerdos y coordinación de proveedores, con responsables y plazos que permitan al comité conocer el avance de la gestión.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BENEFICIOS 100% GRATUITOS: PLATAFORMA DIGITAL PARA LA COMUNIDAD + VISITA INICIAL */}
+                      <div
+                        className="p-2.5 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-1"
+                        style={{ backgroundColor: '#f0fdf4', borderColor: '#0F3D2E' }}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-[#0F3D2E]">
+                            ★ VALOR Y BENEFICIOS 100% GRATUITOS PARA {proposalConfig.targetCondo?.trim() ? proposalConfig.targetCondo.toUpperCase() : 'SU COMUNIDAD'}
+                          </span>
+                          <span
+                            className="text-[8.5px] font-bold px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
+                            style={{ backgroundColor: '#0F3D2E', color: '#D4B895' }}
+                          >
+                            100% Gratuito e Incluido
+                          </span>
+                        </div>
+                        <div className="space-y-1 text-[10px] text-slate-800 leading-snug">
+                          <p>
+                            <strong>• Plataforma Digital & App Móvil 100% Gratuita para la Comunidad:</strong> Toda la comunidad (copropietarios y residentes) y el Comité cuentan con acceso ilimitado a nuestra suite digital 24/7 para consultar gastos comunes, cartolas bancarias, respaldos de facturas, libro de reclamos y votaciones, <strong>sin costos de licencias ni cobros de software para el condominio</strong>.
+                          </p>
+                          <p>
+                            <strong>• Reunión de Presentación y Visita Inicial Sin Costo ni Compromiso:</strong> Les propongo coordinar una visita inicial en terreno para conocer las instalaciones críticas (sala de bombas, tableros, cubiertas), dotación y prioridades del comité, y preparar una propuesta formal que precise las funciones asumidas, la modalidad de atención, los reportes, las prioridades de inicio y los honorarios.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Pie de Página Maestro */}
-                <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                  <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                  <div>Presentación Oficial para Comités de Administración • Ley N° 21.442 (Pág. 1 de 1)</div>
+                  {/* SECCIÓN INFERIOR ANCLADA AL FONDO (CANON ARANPRO): FIRMAS, SELLO Y FOOTER */}
+                  <div className="mt-auto pt-3.5 space-y-2.5">
+                    {/* Sello Oficial y Firma del Administrador (Estándar Oficial ARANPRO • Sello al lado de la firma) */}
+                    <div className="pt-2 flex items-end justify-between gap-4 border-t border-slate-200">
+                      {/* Lado Izquierdo: Sello Oficial con RUT Empresa y Canales Directos */}
+                      <div className="flex items-center gap-3">
+                        <AranproOfficialSeal
+                          variant="integral"
+                          size="sm"
+                          companyRut={empresaForm.companyRut || '76.999.888-8'}
+                          rnacNumber=""
+                          showCaption={true}
+                        />
+                        <div className="text-[9.5px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
+                          <p>
+                            <strong>Fono / WhatsApp:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone || '+56 9 5811 8504'}</span>
+                          </p>
+                          <p>
+                            <strong>Correo:</strong> <span className="font-mono">{empresaForm.email || 'contacto@aranpro.cl'}</span>
+                          </p>
+                          <p>
+                            <strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website || 'https://aranpro.cl'}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Lado Derecho: Firma Manuscrita sobre Línea + Datos Profesionales */}
+                      <div className="text-center min-w-[240px]">
+                        <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
+                          {signatureImage ? (
+                            <img
+                              src={signatureImage}
+                              alt="Firma Administrador"
+                              className="h-12 max-h-14 w-auto max-w-[230px] object-contain mx-auto"
+                              style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                            />
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
+                          )}
+                        </div>
+                        <div className="border-t-[1.5px] border-[#0F3D2E] pt-1">
+                          <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
+                          <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
+                            Constructor Civil • Administrador de Condominios
+                          </p>
+                          <p className="text-[9px] text-slate-600 font-mono">
+                            RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Representante Legal ARANPRO
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pie de Página Canónico Maestro */}
+                    <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                      <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
+                      <div className="font-bold text-[#0F3D2E]">Presentación Oficial para Comités de Administración • Ley N° 21.442 (Pág. 1 de 1)</div>
+                      <div>La Serena, Chile</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

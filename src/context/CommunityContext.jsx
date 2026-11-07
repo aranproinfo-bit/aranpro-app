@@ -147,7 +147,7 @@ export const CommunityProvider = ({ children }) => {
           provisionalName: parsed.provisionalName?.includes('ARANPRO') ? parsed.provisionalName : initialCompanySettings.provisionalName,
           administratorName: parsed.administratorName || parsed.adminName || initialCompanySettings.administratorName,
           adminName: parsed.adminName || parsed.administratorName || initialCompanySettings.administratorName,
-          adminRut: parsed.adminRut || '16.012.871-2',
+          adminRut: (parsed.adminRut && parsed.adminRut !== '14.882.140-K') ? parsed.adminRut : '16.012.871-2',
           adminRole: (parsed.adminRole && !/técnico/i.test(parsed.adminRole)) ? parsed.adminRole : 'Representante Legal y Administrador Titular',
           rnacNumber: (parsed.rnacNumber && parsed.rnacNumber !== '48.912') ? parsed.rnacNumber : '',
           companyRut: (parsed.companyRut && parsed.companyRut !== '76.999.888-1') ? parsed.companyRut : '76.999.888-8',

@@ -440,7 +440,7 @@ export const CommitteeMeetingsAndLogModule = ({
               <div class="sig-line"></div>
               <div style="font-weight: bold; color: #0F172A; font-size: 10.5px;">${companySettings?.adminName || minute.adminName || 'John Andrés Arancibia Maureira'}</div>
               <div style="color: #64748B; font-size: 9px; font-weight: 600;">Administrador Titular (RNAC N° ${companySettings?.rnacNumber || '48.912'})</div>
-              <div style="font-family: monospace; font-size: 8.5px; color: #64748B;">RUT: ${companySettings?.adminRut || '14.882.140-K'}</div>
+              <div style="font-family: monospace; font-size: 8.5px; color: #64748B;">RUT: ${(companySettings?.adminRut && companySettings.adminRut !== '14.882.140-K') ? companySettings.adminRut : '16.012.871-2'}</div>
             </td>
           </tr>
         </table>

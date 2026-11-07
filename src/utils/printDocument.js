@@ -127,10 +127,17 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
   }
 
   const activePdfStyle = getActivePdfStyle(options, targetEl);
-  let hasDossierPages = contentHtml.includes('dossier-page') || Boolean(targetEl?.classList?.contains('dossier-page'));
+  const isDossierDoc =
+    contentHtml.includes('dossier-page') ||
+    Boolean(targetEl?.classList?.contains('dossier-page')) ||
+    ['printable-cold-value-letter', 'printable-commercial-proposal', 'printable-full-dossier'].includes(elementOrId);
 
-  if (targetEl?.classList?.contains('dossier-page') && !contentHtml.includes('dossier-page')) {
-    contentHtml = `<div class="${targetEl.className}">${contentHtml}</div>`;
+  let hasDossierPages = isDossierDoc;
+
+  if (isDossierDoc && !contentHtml.includes('dossier-page')) {
+    const existingClasses = targetEl?.className || 'dossier-page page-1';
+    const finalClass = existingClasses.includes('dossier-page') ? existingClasses : `dossier-page page-1 ${existingClasses}`;
+    contentHtml = `<div class="${finalClass}">${contentHtml}</div>`;
     hasDossierPages = true;
   }
 

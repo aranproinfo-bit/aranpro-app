@@ -871,9 +871,9 @@ export const AgacechFeeCalculatorPanel = ({
               </div>
               <div className="border-t-[1.5px] border-slate-800 pt-1">
                 <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm?.adminName || 'John Andrés Arancibia Maureira'}</p>
-                <p className="text-[9px] text-slate-600 font-mono">RUT: {empresaForm?.adminRut || '14.882.140-K'} • RNAC Minvu N° {empresaForm?.rnacNumber || '48.912'}</p>
+                <p className="text-[9px] text-slate-600 font-mono">RUT: {(empresaForm?.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
                 <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                  Técnico en Construcción • Construcción Civil
+                  Constructor Civil • Administrador de Condominios
                 </p>
               </div>
             </div>
