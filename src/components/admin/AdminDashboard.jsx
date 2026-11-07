@@ -4140,18 +4140,17 @@ _Administración ARANPRO_`;
                 )}
               </div>
 
-              {/* Grilla de 2 Filas x 2 Columnas */}
-              <div className="grid grid-cols-2 gap-1.5">
+              {/* Barra Compacta de 1 Fila de Acciones Rápidas (36px - Libera 100px verticales) */}
+              <div className="flex items-center gap-1.5 p-1 bg-[#F5F4EF] rounded-xl border border-slate-200">
                 <button
                   onClick={() => {
                     setMobileSidebarOpen(false);
                     setShowCommitteeReportModal(true);
                   }}
-                  className="px-2 py-2 text-[11px] font-bold bg-[#0F3D2E] hover:bg-[#0A291F] text-[#F5F4EF] rounded-xl transition-colors flex items-center justify-center shadow-2xs"
+                  className="flex-1 py-1.5 px-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] rounded-lg transition-all flex items-center justify-center shadow-2xs cursor-pointer"
                   title="Generar Balance Comité en PDF"
                 >
-                  <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895] shrink-0" />
-                  <span className="truncate">Balance PDF</span>
+                  <Printer className="w-3.5 h-3.5" />
                 </button>
 
                 <button
@@ -4159,28 +4158,21 @@ _Administración ARANPRO_`;
                     setMobileSidebarOpen(false);
                     openEditCommunityModal();
                   }}
-                  className="px-2 py-2 text-[11px] font-bold bg-white hover:bg-slate-50 text-[#0F3D2E] border border-[#D4B895] rounded-xl transition-colors flex items-center justify-center"
-                  title="Editar datos y cuenta bancaria"
+                  className="flex-1 py-1.5 px-2 bg-white hover:bg-slate-100 text-[#0F3D2E] border border-slate-200 rounded-lg transition-all flex items-center justify-center cursor-pointer"
+                  title="Editar Datos de Comunidad y Cuenta Bancaria"
                 >
-                  <Edit3 className="w-3.5 h-3.5 mr-1.5 text-[#0F3D2E] shrink-0" />
-                  <span className="truncate">Datos y Banco</span>
+                  <Edit3 className="w-3.5 h-3.5" />
                 </button>
 
                 <button
                   onClick={() => copyLink(currentCommunity.slug)}
-                  className="px-2 py-2 text-[11px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl transition-colors flex items-center justify-center"
-                  title={`Copiar enlace para vecinos (?c=${currentCommunity.slug})`}
+                  className="flex-1 py-1.5 px-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg transition-all flex items-center justify-center cursor-pointer"
+                  title={`Copiar Enlace para Vecinos (?c=${currentCommunity.slug})`}
                 >
                   {copiedSlug === currentCommunity.slug ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600 mr-1 shrink-0" />
-                      <span className="text-emerald-700 truncate">¡Copiado!</span>
-                    </>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
                   ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 mr-1.5 text-slate-500 shrink-0" />
-                      <span className="truncate">Copiar Link</span>
-                    </>
+                    <Copy className="w-3.5 h-3.5 text-slate-500" />
                   )}
                 </button>
 
@@ -4189,11 +4181,10 @@ _Administración ARANPRO_`;
                     setMobileSidebarOpen(false);
                     onSelectCommunityView(currentCommunity.slug);
                   }}
-                  className="px-2 py-2 text-[11px] font-bold bg-white hover:bg-[#D4B895]/20 text-[#0F3D2E] border border-slate-200 rounded-xl transition-colors flex items-center justify-center"
-                  title="Ver portal como vecino de esta comunidad"
+                  className="flex-1 py-1.5 px-2 bg-white hover:bg-[#D4B895]/20 text-[#0F3D2E] border border-slate-200 rounded-lg transition-all flex items-center justify-center cursor-pointer"
+                  title="Ver Portal como Vecino de esta Comunidad"
                 >
-                  <Eye className="w-3.5 h-3.5 mr-1.5 text-[#0F3D2E] shrink-0" />
-                  <span className="truncate">Ver Vecino</span>
+                  <Eye className="w-3.5 h-3.5 text-[#0F3D2E]" />
                 </button>
               </div>
             </>
@@ -4343,25 +4334,22 @@ _Administración ARANPRO_`;
         {/* BARRA SUPERIOR EXCLUSIVA DEL SOFTWARE DE ADMINISTRACIÓN (Sin menú de la web pública) */}
         <header className="hidden lg:flex sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E9EBE8] px-6 h-16 items-center justify-between gap-4 shadow-2xs">
           
-          {/* Izquierda: Pestaña Activa y Chip Distintivo de la Comunidad */}
-          <div className="flex items-center space-x-3 min-w-0">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-500 truncate">
-              {activeTabObj.label}
-            </span>
+          {/* Izquierda: Chip Distintivo de la Comunidad Activa (Sin texto redundante de pestaña) */}
+          <div className="flex items-center min-w-0">
             {currentCommunity && (
-              <div className="flex items-center gap-2.5 px-3 py-1.5 bg-gradient-to-r from-[#0F3D2E] to-[#144736] text-white rounded-xl shadow-xs border border-[#D4B895]/40 transition-all">
-                <span className="relative flex h-2 w-2">
+              <div className="flex items-center gap-2.5 px-3.5 py-1.5 bg-gradient-to-r from-[#0F3D2E] to-[#144736] text-white rounded-xl shadow-xs border border-[#D4B895]/40 transition-all shrink-0">
+                <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                 </span>
                 <Building2 className="w-3.5 h-3.5 text-[#D4B895] shrink-0" />
-                <span className="text-xs font-black text-[#F5F4EF] tracking-wide truncate max-w-[220px]" title={currentCommunity.name}>
+                <span className="text-xs font-black text-[#F5F4EF] tracking-wide whitespace-nowrap" title={currentCommunity.name}>
                   {currentCommunity.name}
                 </span>
-                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#D4B895] text-[#0F3D2E] shrink-0">
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#D4B895] text-[#0F3D2E] shrink-0 whitespace-nowrap">
                   {currentCommunity.totalUnits} {currentCommunity.type || 'Casas'}
                 </span>
-                <span className="text-[10px] font-bold text-[#D4B895] border-l border-white/20 pl-2 shrink-0">
+                <span className="text-[10px] font-bold text-[#D4B895] border-l border-white/20 pl-2 shrink-0 whitespace-nowrap">
                   Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}
                 </span>
               </div>
