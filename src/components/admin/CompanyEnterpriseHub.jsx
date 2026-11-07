@@ -11,7 +11,7 @@ import {
   CheckCircle2, Phone, Mail, ExternalLink, LogOut, Sparkles, Printer,
   Trash2, Check, Key, PenTool, HardHat, Scale, Landmark, DollarSign,
   Menu, X, ChevronLeft, ChevronRight, Globe, Shield, Database, Calculator,
-  FolderOpen, Eye, ClipboardCheck, Presentation, QrCode
+  FolderOpen, Eye, ClipboardCheck, Presentation, QrCode, Send
 } from 'lucide-react';
 
 const DEFAULT_OFFICE_WORKERS = [
