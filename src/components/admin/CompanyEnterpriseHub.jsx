@@ -10,7 +10,7 @@ import {
   TrendingUp, Target, GraduationCap, Handshake, Wrench, FileText,
   CheckCircle2, Phone, Mail, ExternalLink, LogOut, Sparkles, Printer,
   Trash2, Check, Key, PenTool, HardHat, Scale, Landmark, DollarSign,
-  Menu, X, ChevronLeft, ChevronRight, Globe, Shield, Database, Calculator,
+  Menu, X, ChevronLeft, ChevronRight, ChevronDown, Globe, Shield, Database, Calculator,
   FolderOpen, Eye, ClipboardCheck, Presentation, QrCode, Send
 } from 'lucide-react';
 
@@ -146,6 +146,7 @@ export const CompanyEnterpriseHub = ({
   const [postulacionSection, setPostulacionSection] = useState('flujo'); // 'flujo' | 'antecedentes' | 'material' | 'pipeline' | 'herramientas'
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [toolboxExpanded, setToolboxExpanded] = useState(true);
 
   // Meta referencial
   const ufValue = Number(companySettings?.ufReferenceValue) || 38650;
@@ -390,17 +391,27 @@ export const CompanyEnterpriseHub = ({
     }
   ];
 
-  // Submenús dedicados para el proceso comercial guiado y todas sus herramientas operativas
+  const TOOLBOX_ITEMS = [
+    { id: 'calculadora', label: 'Calculadora AGACECH', icon: Calculator },
+    { id: 'inspeccion', label: 'Pauta Inspección Inicial', icon: HardHat },
+    { id: 'comparativa', label: 'Cuadro Comparativo', icon: Scale },
+    { id: 'demo', label: 'Demo en Vivo & QR', icon: QrCode },
+    { id: 'pitch', label: 'Libreto Pitch (10 Min)', icon: Presentation },
+    { id: 'preparacion', label: 'Checklist & Semáforo', icon: ClipboardCheck },
+  ];
+
+  // Submenús organizados jerárquicamente para Postulaciones & CRM
   const POSTULACION_SUB_ITEMS = [
     { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send },
     { id: 'material', label: '2. Documentos & Cartas PDF', icon: FileText },
     { id: 'pipeline', label: '3. CRM de Postulaciones', icon: Briefcase },
-    { id: 'inspeccion', label: '4. Inspección Técnica Inicial', icon: HardHat },
-    { id: 'comparativa', label: '5. Cuadro Comparativo', icon: Scale },
-    { id: 'calculadora', label: '6. Calculadora AGACECH', icon: Calculator },
-    { id: 'demo', label: '7. Demo en Vivo & QR', icon: QrCode },
-    { id: 'pitch', label: '8. Libreto Pitch (10 Min)', icon: Presentation },
-    { id: 'preparacion', label: '9. Checklist & Semáforo', icon: ClipboardCheck },
+    {
+      id: 'herramientas',
+      label: '4. Caja de Herramientas',
+      icon: Calculator,
+      isGroup: true,
+      subItems: TOOLBOX_ITEMS
+    }
   ];
 
   const EMPRESA_SUB_ITEMS = [
@@ -548,11 +559,89 @@ export const CompanyEnterpriseHub = ({
                 )}
               </button>
 
-              {/* Sub-menú para Postulaciones & CRM */}
+              {/* Sub-menú para Postulaciones & CRM (Organizado con Acordeón Anidado para Herramientas) */}
               {isActive && tab.id === 'postulaciones' && (!sidebarCollapsed || isMobile) && (
                 <div className="ml-3 pl-2.5 py-1 space-y-0.5 border-l-2 border-[#D4B895]/40 animate-in fade-in duration-150">
                   {POSTULACION_SUB_ITEMS.map((sub) => {
                     const SubIcon = sub.icon;
+
+                    // Grupo Anidado (4. Caja de Herramientas)
+                    if (sub.isGroup) {
+                      const isToolboxChildActive = ['herramientas', 'calculadora', 'inspeccion', 'comparativa', 'demo', 'pitch', 'preparacion'].includes(postulacionSection);
+                      const isGroupOpen = toolboxExpanded || isToolboxChildActive;
+
+                      return (
+                        <div key={sub.id} className="space-y-0.5 pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isGroupOpen && !isToolboxChildActive) {
+                                setToolboxExpanded(false);
+                              } else {
+                                setToolboxExpanded(true);
+                                if (!isToolboxChildActive) {
+                                  setPostulacionSection('calculadora');
+                                }
+                              }
+                            }}
+                            className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold text-left transition-all cursor-pointer ${
+                              isToolboxChildActive
+                                ? 'bg-[#0A291F] text-[#D4B895] font-black shadow-2xs border border-[#D4B895]/40'
+                                : 'text-white/80 hover:text-white hover:bg-white/10'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <SubIcon
+                                className={`w-3.5 h-3.5 shrink-0 ${
+                                  isToolboxChildActive ? 'text-[#D4B895]' : 'text-[#D4B895]/70'
+                                }`}
+                              />
+                              <span className="truncate">{sub.label}</span>
+                            </div>
+                            <ChevronDown
+                              className={`w-3.5 h-3.5 shrink-0 text-[#D4B895] transition-transform duration-200 ${
+                                isGroupOpen ? 'rotate-0' : '-rotate-90'
+                              }`}
+                            />
+                          </button>
+
+                          {/* Sub-herramientas anidadas dentro de Caja de Herramientas */}
+                          {isGroupOpen && (
+                            <div className="ml-2.5 pl-2 py-0.5 space-y-0.5 border-l-2 border-[#D4B895]/25 animate-in fade-in duration-150">
+                              {sub.subItems.map((tool) => {
+                                const ToolIcon = tool.icon;
+                                const isToolActive =
+                                  postulacionSection === tool.id ||
+                                  (tool.id === 'calculadora' && postulacionSection === 'herramientas');
+                                return (
+                                  <button
+                                    key={tool.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setPostulacionSection(tool.id);
+                                      if (isMobile) setMobileSidebarOpen(false);
+                                    }}
+                                    className={`w-full flex items-center gap-2 px-2 py-1 rounded-md text-[10.5px] font-bold text-left transition-all cursor-pointer ${
+                                      isToolActive
+                                        ? 'bg-[#D4B895] text-[#0F3D2E] font-black shadow-xs'
+                                        : 'text-white/70 hover:text-[#D4B895] hover:bg-white/10'
+                                    }`}
+                                  >
+                                    <ToolIcon
+                                      className={`w-3 h-3 shrink-0 ${
+                                        isToolActive ? 'text-[#0F3D2E]' : 'text-[#D4B895]/60'
+                                      }`}
+                                    />
+                                    <span className="truncate">{tool.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
                     const isSubActive = postulacionSection === sub.id;
                     return (
                       <button
@@ -947,7 +1036,7 @@ export const CompanyEnterpriseHub = ({
                 setPostulacionSection={setPostulacionSection}
                 hideHeader={true}
                 hideNavBar={true}
-                hidePostulacionSubNav={false}
+                hidePostulacionSubNav={true}
               />
             </div>
           )}

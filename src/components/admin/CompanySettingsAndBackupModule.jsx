@@ -1227,6 +1227,55 @@ export const CompanySettingsAndBackupModule = ({
     showAlert('✓ Guion Copiado', 'El libreto maestro de 10 minutos se ha copiado al portapapeles.', 'success');
   };
 
+  // Barra de herramientas contextual unificada para la Caja de Herramientas
+  const renderToolboxNavbar = () => (
+    <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-100 rounded-2xl border border-slate-200 mb-2 animate-in fade-in">
+      <div className="flex items-center gap-2 px-1">
+        <span className="w-7 h-7 rounded-xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-bold text-xs shadow-xs">
+          🧰
+        </span>
+        <div>
+          <span className="text-[10.5px] font-black uppercase text-[#0F3D2E] tracking-wider block leading-tight">
+            Caja de Herramientas de Licitación
+          </span>
+          <span className="text-[9.5px] text-slate-500 font-medium leading-none">
+            Instrumentos técnicos de apoyo para ganar la administración
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {[
+          { id: 'calculadora', label: 'Calculadora AGACECH', icon: Calculator },
+          { id: 'inspeccion', label: 'Pauta Inspección', icon: HardHat },
+          { id: 'comparativa', label: 'Cuadro Comparativo', icon: Scale },
+          { id: 'demo', label: 'Demo en Vivo & QR', icon: QrCode },
+          { id: 'pitch', label: 'Libreto Pitch (10 Min)', icon: Presentation },
+          { id: 'preparacion', label: 'Checklist & Semáforo', icon: ClipboardCheck },
+        ].map((tool) => {
+          const ToolIcon = tool.icon;
+          const isSelected =
+            postulacionSection === tool.id ||
+            (tool.id === 'calculadora' && postulacionSection === 'herramientas');
+          return (
+            <button
+              key={tool.id}
+              type="button"
+              onClick={() => setPostulacionSection(tool.id)}
+              className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all ${
+                isSelected
+                  ? 'bg-[#0F3D2E] text-white shadow-xs'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-[#0F3D2E]'
+              }`}
+            >
+              <ToolIcon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#D4B895]' : 'text-slate-500'}`} />
+              <span>{tool.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   // Manejo de Archivo de Diploma (PDF o Imagen en Data URL)
   const handleDiplomaFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -3002,7 +3051,8 @@ export const CompanySettingsAndBackupModule = ({
 
               {/* SECCIÓN 1: CHECKLIST & SEMÁFORO DE PREPARACIÓN */}
               {postulacionSection === 'preparacion' && (
-                <div className="animate-in fade-in">
+                <div className="space-y-4 animate-in fade-in">
+                  {renderToolboxNavbar()}
                   <ReadinessPanel
                     readiness={readinessReport}
                     onAction={handleReadinessAction}
@@ -3026,71 +3076,8 @@ export const CompanySettingsAndBackupModule = ({
 
               {/* SECCIÓN 3 (NUEVA): CALCULADORA DE PISO DE HONORARIOS MODELO AGACECH */}
               {(postulacionSection === 'calculadora' || postulacionSection === 'herramientas') && (
-                <div className="space-y-6 animate-in fade-in">
-                  {/* Selector rápido de herramientas de apoyo */}
-                  <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
-                    <span className="text-[10px] font-black uppercase text-slate-500 px-2">Caja de Herramientas:</span>
-                    <button
-                      type="button"
-                      onClick={() => setPostulacionSection('calculadora')}
-                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
-                        postulacionSection === 'calculadora' || postulacionSection === 'herramientas'
-                          ? 'bg-[#0F3D2E] text-white shadow-xs'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Calculator className="w-3.5 h-3.5 text-[#D4B895]" />
-                      Calculadora AGACECH
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPostulacionSection('inspeccion')}
-                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
-                        postulacionSection === 'inspeccion'
-                          ? 'bg-[#0F3D2E] text-white shadow-xs'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      <HardHat className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                      Pauta de Inspección
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPostulacionSection('comparativa')}
-                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
-                        postulacionSection === 'comparativa'
-                          ? 'bg-[#0F3D2E] text-white shadow-xs'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Scale className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                      Cuadro Comparativo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPostulacionSection('pitch')}
-                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
-                        postulacionSection === 'pitch'
-                          ? 'bg-[#0F3D2E] text-white shadow-xs'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      <Presentation className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                      Libreto Pitch (10 Min)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPostulacionSection('preparacion')}
-                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer ${
-                        postulacionSection === 'preparacion'
-                          ? 'bg-[#0F3D2E] text-white shadow-xs'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      <ClipboardCheck className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                      Semáforo de Preparación
-                    </button>
-                  </div>
+                <div className="space-y-4 animate-in fade-in">
+                  {renderToolboxNavbar()}
 
                   <AgacechFeeCalculatorPanel
                     proposalConfig={proposalConfig}
@@ -3684,7 +3671,8 @@ export const CompanySettingsAndBackupModule = ({
 
               {/* SECCIÓN 4: INSPECCIÓN TÉCNICA INICIAL DE ENTRADA (CHECKLIST GRATUITO) */}
               {postulacionSection === 'inspeccion' && (
-                <div className="space-y-6 animate-in fade-in">
+                <div className="space-y-4 animate-in fade-in">
+                  {renderToolboxNavbar()}
                   <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50/40 border border-emerald-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F3D2E] block">
@@ -3818,7 +3806,8 @@ export const CompanySettingsAndBackupModule = ({
 
               {/* SECCIÓN 3: CUADRO COMPARATIVO (TRADICIONAL VS ARANPRO) */}
               {postulacionSection === 'comparativa' && (
-                <div className="space-y-6 animate-in fade-in">
+                <div className="space-y-4 animate-in fade-in">
+                  {renderToolboxNavbar()}
                   <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F3D2E] block">
@@ -3911,7 +3900,8 @@ export const CompanySettingsAndBackupModule = ({
 
               {/* SECCIÓN 4: LIBRETO DE PITCH (10 MINUTOS) */}
               {postulacionSection === 'pitch' && (
-                <div className="space-y-6 animate-in fade-in">
+                <div className="space-y-4 animate-in fade-in">
+                  {renderToolboxNavbar()}
                   <div className="p-5 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] block">
@@ -3995,7 +3985,8 @@ export const CompanySettingsAndBackupModule = ({
 
               {/* SECCIÓN 5: DEMO EN VIVO & CÓDIGO QR */}
               {postulacionSection === 'demo' && (
-                <div className="space-y-6 animate-in fade-in">
+                <div className="space-y-4 animate-in fade-in">
+                  {renderToolboxNavbar()}
                   <div className="p-5 rounded-3xl bg-gradient-to-r from-[#0F3D2E] to-[#165540] text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] block">
