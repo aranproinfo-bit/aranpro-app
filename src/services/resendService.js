@@ -10,9 +10,9 @@ const getResendApiKey = () => {
 };
 
 const getResendEndpoints = (path = '/emails') => {
-  // En navegador siempre usamos el proxy local del servidor para no sufrir bloqueos de CORS
+  // En navegador intentamos primero el proxy local del gateway y como fallback la API directa
   if (typeof window !== 'undefined') {
-    return [`/api/mail-gateway${path}`];
+    return [`/api/mail-gateway${path}`, `https://api.resend.com${path}`];
   }
   return [`https://api.resend.com${path}`];
 };
