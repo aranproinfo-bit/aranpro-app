@@ -203,7 +203,7 @@ export const detectPlaceholders = ({ empresaForm = {}, adminPin = '' } = {}) => 
   return list;
 };
 
-/** "Técnico en Construcción • Estudiante de Construcción Civil" derivado de los registros reales. */
+/** "Constructor Civil" derivado de los registros reales. */
 export const buildProfileLine = (records = []) => {
   const included = records.filter((r) => r.includeInProposal !== false);
   const clean = (t) => String(t || '').replace(/\s*\(.*?\)\s*/g, ' ').trim();

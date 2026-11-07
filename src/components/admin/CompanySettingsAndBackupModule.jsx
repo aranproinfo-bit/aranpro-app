@@ -4390,7 +4390,7 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Título de Alto Impacto */}
                 <div className="text-center py-0.5">
                   <h1 className="text-xs md:text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
-                    Administración Profesional, Criterio Constructivo & Gestión Integral
+                    Administración Profesional, Criterio Constructor Civil & Plataforma Digital 100% Gratuita
                   </h1>
                   <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
                 </div>
@@ -4406,17 +4406,17 @@ export const CompanySettingsAndBackupModule = ({
 
                   {/* 3 Pilares Solicitados */}
                   <div className="grid grid-cols-1 gap-1.5 pt-0.5">
-                    {/* Pilar 1: Gestión financiera y rendición de cuentas */}
+                    {/* Pilar 1: Gestión financiera, rendición de cuentas y plataforma gratuita */}
                     <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
                       <span className="w-5 h-5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black text-[10.5px] flex items-center justify-center shrink-0 mt-0.5">
                         1
                       </span>
                       <div>
                         <strong className="text-[#0F3D2E] block text-[11px]">
-                          Gestión financiera y rendición de cuentas
+                          Gestión financiera, rendición de cuentas & Plataforma digital 100% gratuita
                         </strong>
                         <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
-                          Preparación y seguimiento del presupuesto, gestión de gastos comunes y morosidad, revisión de pagos y organización de respaldos. La plataforma digital de ARANPRO facilita la consulta de la información de gestión, con accesos definidos según las funciones del comité y de los residentes.
+                          Preparación y seguimiento del presupuesto, gestión de gastos comunes y morosidad, revisión de pagos y organización de respaldos. <strong>La plataforma digital y app móvil de ARANPRO se entrega 100% gratuita para toda la comunidad</strong>, facilitando la consulta de la información de gestión las 24 horas, con accesos definidos según las funciones del comité y de los residentes.
                         </p>
                       </div>
                     </div>
@@ -4431,7 +4431,7 @@ export const CompanySettingsAndBackupModule = ({
                           Mantención y evaluación de proveedores (Criterio Constructor Civil)
                         </strong>
                         <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
-                          Revisión en terreno de las necesidades de la comunidad, programación de mantenciones y seguimiento de reparaciones. Al comparar cotizaciones, revisamos alcances, cantidades, exclusiones y condiciones de ejecución para apoyar decisiones fundamentadas del comité y controlar el cumplimiento de los trabajos contratados.
+                          Revisión en terreno de las necesidades de la comunidad con formación profesional de Constructor Civil, programación de mantenciones preventivas y seguimiento de reparaciones. Al comparar cotizaciones, revisamos alcances, cantidades, exclusiones y condiciones de ejecución para apoyar decisiones fundamentadas del comité y controlar el cumplimiento de los trabajos contratados.
                         </p>
                       </div>
                     </div>
@@ -4452,25 +4452,30 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* Cierre / Llamado a la Acción */}
+                  {/* BENEFICIOS 100% GRATUITOS: PLATAFORMA DIGITAL PARA LA COMUNIDAD + VISITA INICIAL */}
                   <div
-                    className="p-2 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-0.5"
+                    className="p-2.5 rounded-xl bg-emerald-50/80 border-2 border-[#0F3D2E] space-y-1"
                     style={{ backgroundColor: '#f0fdf4', borderColor: '#0F3D2E' }}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-[#0F3D2E]">
-                        ★ UNA PROPUESTA AJUSTADA A {proposalConfig.targetCondo?.trim() ? proposalConfig.targetCondo.toUpperCase() : 'SU COMUNIDAD'}
+                        ★ VALOR Y BENEFICIOS 100% GRATUITOS PARA {proposalConfig.targetCondo?.trim() ? proposalConfig.targetCondo.toUpperCase() : 'SU COMUNIDAD'}
                       </span>
                       <span
                         className="text-[8.5px] font-bold px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
                         style={{ backgroundColor: '#0F3D2E', color: '#D4B895' }}
                       >
-                        Reunión & Visita Sin Costo
+                        100% Gratuito e Incluido
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-800 leading-snug">
-                      Les propongo coordinar una <strong>reunión de presentación</strong> y una <strong>visita inicial sin costo ni compromiso</strong>. Esta instancia permitirá conocer las instalaciones, la dotación, los servicios contratados y las prioridades del comité, y preparar una propuesta que precise las funciones asumidas, la modalidad de atención, los reportes, las prioridades de inicio y los honorarios.
-                    </p>
+                    <div className="space-y-1 text-[10px] text-slate-800 leading-snug">
+                      <p>
+                        <strong>• Plataforma Digital & App Móvil 100% Gratuita para la Comunidad:</strong> Toda la comunidad (copropietarios y residentes) y el Comité cuentan con acceso ilimitado a nuestra suite digital 24/7 para consultar gastos comunes, cartolas bancarias, respaldos de facturas, libro de reclamos y votaciones, <strong>sin costos de licencias ni cobros de software para el condominio</strong>.
+                      </p>
+                      <p>
+                        <strong>• Reunión de Presentación y Visita Inicial Sin Costo ni Compromiso:</strong> Les propongo coordinar una visita inicial en terreno para conocer las instalaciones críticas (sala de bombas, tableros, cubiertas), dotación y prioridades del comité, y preparar una propuesta formal que precise las funciones asumidas, la modalidad de atención, los reportes, las prioridades de inicio y los honorarios.
+                      </p>
+                    </div>
                   </div>
                 </div>
 

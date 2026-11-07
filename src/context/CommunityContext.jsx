@@ -148,13 +148,20 @@ export const CommunityProvider = ({ children }) => {
           administratorName: parsed.administratorName || parsed.adminName || initialCompanySettings.administratorName,
           adminName: parsed.adminName || parsed.administratorName || initialCompanySettings.administratorName,
           adminRut: parsed.adminRut || '16.012.871-2',
+          adminRole: (parsed.adminRole && !/técnico/i.test(parsed.adminRole)) ? parsed.adminRole : 'Representante Legal y Administrador Titular',
           rnacNumber: (parsed.rnacNumber && parsed.rnacNumber !== '48.912') ? parsed.rnacNumber : '',
           companyRut: (parsed.companyRut && parsed.companyRut !== '76.999.888-1') ? parsed.companyRut : '76.999.888-8',
           phone: (parsed.phone && parsed.phone !== '+56 9 4183 2711') ? parsed.phone : '+56958118504',
           signatureDataUrl: parsed.signatureDataUrl || parsed.signature || parsed.digitalSignature || '',
           signature: parsed.signatureDataUrl || parsed.signature || parsed.digitalSignature || '',
           digitalSignature: parsed.signatureDataUrl || parsed.signature || parsed.digitalSignature || '',
-          title: parsed.title || initialCompanySettings.title,
+          title: (parsed.title && !/técnico/i.test(parsed.title)) ? parsed.title : initialCompanySettings.title,
+          academicBackground: Array.isArray(parsed.academicBackground)
+            ? parsed.academicBackground.map(rec => ({
+                ...rec,
+                title: String(rec.title || '').replace(/Técnico en Construcción/gi, 'Constructor Civil')
+              }))
+            : undefined,
           experienceSince: parsed.experienceSince || initialCompanySettings.experienceSince,
           accreditations: initialCompanySettings.accreditations
         };
