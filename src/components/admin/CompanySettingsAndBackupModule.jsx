@@ -477,6 +477,16 @@ export const CompanySettingsAndBackupModule = ({
     const paragraphs = (msg.email || '')
       .split('\n\n')
       .filter(Boolean)
+      .filter(p => {
+        const trimmed = p.trim();
+        if (trimmed.includes(admin) && (trimmed.includes('Constructor Civil') || trimmed.includes('ARANPRO') || trimmed.startsWith('Atentamente') || trimmed.startsWith('Saludos'))) {
+          return false;
+        }
+        if (trimmed === 'Saludos cordiales,' || trimmed === 'Atentamente,') {
+          return false;
+        }
+        return true;
+      })
       .map(p => `<p style="margin: 0 0 14px 0; color: #334155; line-height: 1.65; font-size: 14px;">${p.replace(/\n/g, '<br/>')}</p>`)
       .join('');
 
@@ -605,11 +615,9 @@ export const CompanySettingsAndBackupModule = ({
               </span>
             </td>
             <td valign="middle" align="right" style="border-left: 1px solid #cbd5e1; padding-left: 16px;">
-              <div style="font-family: Georgia, serif; font-style: italic; font-weight: bold; font-size: 17px; color: #0F3D2E; margin-bottom: 4px;">
-                John Arancibia M.
-              </div>
-              <strong style="font-size: 13px; color: #0f172a; display: block; border-top: 1.5px solid #0f172a; padding-top: 4px;">${admin}</strong>
-              <span style="font-size: 11px; color: #0F3D2E; font-weight: 700; display: block;">Constructor Civil • Administrador</span>
+              <strong style="font-size: 13.5px; color: #0f172a; display: block;">${admin}</strong>
+              <span style="font-size: 11px; color: #0F3D2E; font-weight: 700; display: block; margin-top: 2px;">Constructor Civil • Administrador de Condominios</span>
+              <span style="font-size: 10.5px; color: #475569; display: block; margin-top: 2px;">RUT: ${adminRut} • Ley N° 21.442</span>
               <span style="font-size: 10.5px; color: #64748b; display: block; margin-top: 3px;">
                 Fono: <strong>${phone}</strong> | <a href="https://aranpro.cl" style="color: #0F3D2E; text-decoration: underline;">aranpro.cl</a>
               </span>

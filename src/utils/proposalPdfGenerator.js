@@ -483,11 +483,20 @@ export const generateStepPdfAttachment = async ({
     const drawH = sigImg.height * ratio;
     ctx.drawImage(sigImg, sigBoxX + (sigBoxW - drawW) / 2, sigLineY - drawH - 4, drawW, drawH);
   } else {
+    // Trazo caligráfico manuscrito limpio sin repetir el nombre impreso
     ctx.save();
-    ctx.fillStyle = '#0F3D2E';
-    ctx.font = 'italic bold 28px Georgia, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('John Arancibia M.', sigBoxX + sigBoxW / 2, sigLineY - 18);
+    ctx.strokeStyle = '#0F3D2E';
+    ctx.lineWidth = 2.8;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const cx = sigBoxX + sigBoxW / 2 - 45;
+    const cy = sigLineY - 26;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 12);
+    ctx.bezierCurveTo(cx + 15, cy - 28, cx + 35, cy + 18, cx + 52, cy - 12);
+    ctx.bezierCurveTo(cx + 68, cy - 34, cx + 82, cy + 14, cx + 108, cy - 6);
+    ctx.bezierCurveTo(cx + 122, cy - 16, cx + 135, cy + 6, cx + 152, cy - 4);
+    ctx.stroke();
     ctx.restore();
   }
 
