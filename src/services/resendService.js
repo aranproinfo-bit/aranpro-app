@@ -10,9 +10,9 @@ const getResendApiKey = () => {
 };
 
 const getResendEndpoints = (path = '/emails') => {
-  // En navegador intentamos primero el endpoint con proxy local para evitar bloqueo CORS
+  // En navegador siempre usamos el proxy local del servidor para no sufrir bloqueos de CORS
   if (typeof window !== 'undefined') {
-    return [`/api-resend${path}`, `https://api.resend.com${path}`];
+    return [`/api/mail-gateway${path}`];
   }
   return [`https://api.resend.com${path}`];
 };
@@ -50,12 +50,12 @@ export const resendMailService = {
 
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.message || `Error HTTP ${response.status} en servidor Resend`);
+          throw new Error(data.message || `Error HTTP ${response.status}: ${data.name || 'Servidor Resend rechazó el envío'}`);
         }
         return { success: true, id: data.id, data };
       } catch (err) {
         lastError = err;
-        console.warn(`Intento de envío fallido con ${url}:`, err.message);
+        console.error(`Error enviando correo vía ${url}:`, err);
       }
     }
 

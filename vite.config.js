@@ -10,11 +10,22 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api-resend': {
+      '/api/mail-gateway': {
         target: 'https://api.resend.com',
         changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api-resend/, '')
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api\/mail-gateway/, ''),
+        configure: (proxy) => {
+          proxy.on('error', (err, req, res) => {
+            console.error('[MAIL PROXY ERROR]', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('[MAIL PROXY REQ]', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log('[MAIL PROXY RES]', proxyRes.statusCode, req.url);
+          });
+        }
       }
     }
   }
