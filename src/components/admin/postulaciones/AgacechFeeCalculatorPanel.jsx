@@ -234,7 +234,7 @@ export const AgacechFeeCalculatorPanel = ({
     printDocumentDirectly('printable-agacech-fee-sheet', `ARANPRO_Estudio_Honorarios_AGACECH_${cleanName}`, {
       pageSize: 'letter portrait',
       fitPage: true,
-      margin: '6mm 8mm 6mm 8mm'
+      margin: '4mm 6mm 4mm 6mm'
     });
   };
 
@@ -748,140 +748,147 @@ export const AgacechFeeCalculatorPanel = ({
         </div>
       </div>
 
-      {/* PLANTILLA IMPRIMIBLE OCULTA EN PANTALLA PERO LISTA EN DOM PARA IMPRESIÓN DIRECTA */}
+      {/* PLANTILLA IMPRIMIBLE LISTA EN DOM PARA IMPRESIÓN DIRECTA CANÓNICA (1 PÁG. CARTA) */}
       <div className="hidden">
         <div
           id="printable-agacech-fee-sheet"
           data-pdf-style={pdfStyle}
-          className="bg-white p-7 pl-10 max-w-3xl mx-auto space-y-4 text-slate-900"
+          className="dossier-page page-1 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed"
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-          <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3.5">
-            <div className="flex items-center space-x-3.5">
-              <AranproLogo variant="principal" className="h-12 w-auto" />
-              <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
-                <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
-                  ESTUDIO TÉCNICO DE HONORARIOS • MODELO AGACECH
+          {/* SECCIÓN SUPERIOR */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
+              <div className="flex items-center space-x-3.5">
+                <AranproLogo variant="principal" className="h-11 w-auto" />
+                <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
+                  <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
+                    ESTUDIO TÉCNICO DE HONORARIOS • MODELO AGACECH
+                  </span>
+                  <h2 className="text-base font-black text-[#0F3D2E] uppercase">
+                    {empresaForm?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
+                  </h2>
+                  <p className="text-[10px] text-slate-600 font-mono font-semibold">
+                    RUT: {empresaForm?.companyRut || '76.999.888-8'} • {empresaForm?.rnacNumber && empresaForm?.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad'}
+                  </p>
+                  <p className="text-[9.5px] text-slate-500 font-mono">
+                    {empresaForm?.email || 'contacto@aranpro.cl'} • {empresaForm?.phone || '+56 9 5811 8504'}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right text-xs">
+                <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[10px] font-mono font-bold">
+                  MEMORIA DE CÁLCULO
                 </span>
-                <h2 className="text-base font-black text-[#0F3D2E] uppercase">
-                  {empresaForm?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
-                </h2>
-                <p className="text-[10px] text-slate-600 font-mono font-semibold">
-                  RUT: {empresaForm?.companyRut || '76.999.888-8'} • RNAC Minvu N° {empresaForm?.rnacNumber || '48.912'}
-                </p>
-                <p className="text-[9.5px] text-slate-500 font-mono">
-                  {empresaForm?.email || 'contacto@aranpro.cl'} • {empresaForm?.phone || '+56 9 5811 8504'}
-                </p>
+                <p className="font-bold text-slate-800 mt-1">{calc.condoName || 'Comunidad en Evaluación'}</p>
+                <p className="text-[10px] text-slate-500">{result.units} Unidades • UF Ref: {formatCLP(result.ufCLP)}</p>
               </div>
             </div>
-            <div className="text-right text-xs">
-              <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[10px] font-mono font-bold">
-                MEMORIA DE CÁLCULO
-              </span>
-              <p className="font-bold text-slate-800 mt-1">{calc.condoName || 'Comunidad en Evaluación'}</p>
-              <p className="text-[10px] text-slate-500">{result.units} Unidades • UF Ref: {formatCLP(result.ufCLP)}</p>
-            </div>
-          </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
-            <div className="font-black text-[#0F3D2E] uppercase text-[11px]">
-              1. Metodología Gremial Aplicada (Estándar AGACECH & Ley N° 21.442)
-            </div>
-            <p className="text-slate-600 text-[11px] leading-relaxed">
-              El honorario de administración profesional se determina objetivamente en función de la escala de unidades, el equipamiento crítico que requiere inspección técnica en terreno (Técnico en Construcción / Construcción Civil), la dotación de trabajadores contratados y el factor de antigüedad de las instalaciones.
-            </p>
-            <div className="p-2 bg-white rounded-lg border border-slate-200 font-mono text-[10.5px] text-[#0F3D2E] font-bold text-center">
-              Honorario Final = máx( Piso Mínimo {result.minFloorUF} UF , [ Tarifa Base + Equipamiento + RRHH ] × Factor Antigüedad )
-            </div>
-          </div>
-
-          <table className="w-full text-xs border border-slate-200 rounded-xl overflow-hidden">
-            <thead className="bg-[#0F3D2E] text-white">
-              <tr>
-                <th className="text-left p-2.5">Componente Evaluado</th>
-                <th className="text-left p-2.5">Parámetro de la Comunidad</th>
-                <th className="text-right p-2.5">Ponderación (UF)</th>
-                <th className="text-right p-2.5">Equivalente (CLP)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              <tr>
-                <td className="p-2.5 font-bold">1. Base por Unidades</td>
-                <td className="p-2.5 text-slate-600">{result.units} unidades ({result.activeTier.label} • {result.activeTier.rateUF} UF/u)</td>
-                <td className="p-2.5 text-right font-mono font-bold">{result.baseUF.toFixed(2)} UF</td>
-                <td className="p-2.5 text-right font-mono">{formatCLP(Math.round(result.baseUF * result.ufCLP))}</td>
-              </tr>
-              <tr>
-                <td className="p-2.5 font-bold">2. Equipamiento Crítico</td>
-                <td className="p-2.5 text-slate-600">
-                  {[
-                    calc.elevatorsCount > 0 ? `${calc.elevatorsCount} ascensor(es)` : null,
-                    calc.hasBoiler ? 'Caldera central' : null,
-                    calc.hasPumpRoom ? 'Sala de bombas' : null,
-                    calc.hasPoolClubhouse ? 'Piscina / áreas comunes' : null,
-                    calc.hasCctvFence ? 'CCTV y cerco perimetral' : null
-                  ].filter(Boolean).join(', ') || 'Estándar'}
-                </td>
-                <td className="p-2.5 text-right font-mono font-bold">+{result.equipmentUF.toFixed(2)} UF</td>
-                <td className="p-2.5 text-right font-mono">{formatCLP(Math.round(result.equipmentUF * result.ufCLP))}</td>
-              </tr>
-              <tr>
-                <td className="p-2.5 font-bold">3. Carga Laboral RRHH</td>
-                <td className="p-2.5 text-slate-600">
-                  {calc.directEmployees} trabajador(es) en nómina directa (+0.30 UF c/u)
-                </td>
-                <td className="p-2.5 text-right font-mono font-bold">+{result.hrUF.toFixed(2)} UF</td>
-                <td className="p-2.5 text-right font-mono">{formatCLP(Math.round(result.hrUF * result.ufCLP))}</td>
-              </tr>
-              <tr className="bg-slate-50">
-                <td className="p-2.5 font-bold">4. Factor de Antigüedad</td>
-                <td className="p-2.5 text-slate-600">{result.ageObj.label} — {result.ageObj.title}</td>
-                <td className="p-2.5 text-right font-mono font-bold">× {result.ageObj.multiplier.toFixed(2)}</td>
-                <td className="p-2.5 text-right font-mono">{formatCLP(Math.round(result.afterAgeUF * result.ufCLP))}</td>
-              </tr>
-              <tr className="bg-emerald-50 font-black text-[#0F3D2E]">
-                <td className="p-3">HONORARIO MENSUAL FINAL</td>
-                <td className="p-3">
-                  Prorrateo estimado: {formatCLP(result.feePerUnitCLP)} / depto ({result.feePerUnitUF.toFixed(3)} UF)
-                </td>
-                <td className="p-3 text-right font-mono text-sm">{result.finalMonthlyUF.toFixed(2)} UF</td>
-                <td className="p-3 text-right font-mono text-sm">{formatCLP(result.finalMonthlyCLP)}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div className="pt-3 border-t border-slate-200 flex items-end justify-between gap-4">
-            <AranproOfficialSeal
-              size="sm"
-              companyRut={empresaForm?.companyRut || '76.999.888-8'}
-              rnacNumber={empresaForm?.rnacNumber || '48.912'}
-            />
-            <div className="text-center min-w-[240px]">
-              <div className="h-16 flex items-end justify-center pb-0.5 overflow-visible">
-                {signatureImage ? (
-                  <img
-                    src={signatureImage}
-                    alt="Firma Administrador"
-                    className="h-14 max-h-16 w-auto max-w-[240px] object-contain mx-auto"
-                    style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                  />
-                ) : (
-                  <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
-                )}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
+              <div className="font-black text-[#0F3D2E] uppercase text-[10.5px]">
+                1. Metodología Gremial Aplicada (Estándar AGACECH & Ley N° 21.442)
               </div>
-              <div className="border-t-[1.5px] border-slate-800 pt-1">
-                <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm?.adminName || 'John Andrés Arancibia Maureira'}</p>
-                <p className="text-[9px] text-slate-600 font-mono">RUT: {(empresaForm?.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
-                <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                  Constructor Civil • Administrador de Condominios
-                </p>
+              <p className="text-slate-600 text-[10.5px] leading-snug">
+                El honorario de administración profesional se determina objetivamente en función de la escala de unidades, el equipamiento crítico que requiere inspección técnica en terreno (Constructor Civil), la dotación de trabajadores contratados y el factor de antigüedad de las instalaciones.
+              </p>
+              <div className="p-1.5 bg-white rounded-lg border border-slate-200 font-mono text-[10px] text-[#0F3D2E] font-bold text-center">
+                Honorario Final = máx( Piso Mínimo {result.minFloorUF} UF , [ Tarifa Base + Equipamiento + RRHH ] × Factor Antigüedad )
               </div>
             </div>
+
+            <table className="w-full text-xs border border-slate-200 rounded-xl overflow-hidden">
+              <thead className="bg-[#0F3D2E] text-white">
+                <tr>
+                  <th className="text-left p-2">Componente Evaluado</th>
+                  <th className="text-left p-2">Parámetro de la Comunidad</th>
+                  <th className="text-right p-2">Ponderación (UF)</th>
+                  <th className="text-right p-2">Equivalente (CLP)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 text-[11px]">
+                <tr>
+                  <td className="p-2 font-bold">1. Base por Unidades</td>
+                  <td className="p-2 text-slate-600">{result.units} unidades ({result.activeTier.label} • {result.activeTier.rateUF} UF/u)</td>
+                  <td className="p-2 text-right font-mono font-bold">{result.baseUF.toFixed(2)} UF</td>
+                  <td className="p-2 text-right font-mono">{formatCLP(Math.round(result.baseUF * result.ufCLP))}</td>
+                </tr>
+                <tr>
+                  <td className="p-2 font-bold">2. Equipamiento Crítico</td>
+                  <td className="p-2 text-slate-600">
+                    {[
+                      calc.elevatorsCount > 0 ? `${calc.elevatorsCount} ascensor(es)` : null,
+                      calc.hasBoiler ? 'Caldera central' : null,
+                      calc.hasPumpRoom ? 'Sala de bombas' : null,
+                      calc.hasPoolClubhouse ? 'Piscina / áreas comunes' : null,
+                      calc.hasCctvFence ? 'CCTV y cerco perimetral' : null
+                    ].filter(Boolean).join(', ') || 'Estándar'}
+                  </td>
+                  <td className="p-2 text-right font-mono font-bold">+{result.equipmentUF.toFixed(2)} UF</td>
+                  <td className="p-2 text-right font-mono">{formatCLP(Math.round(result.equipmentUF * result.ufCLP))}</td>
+                </tr>
+                <tr>
+                  <td className="p-2 font-bold">3. Carga Laboral RRHH</td>
+                  <td className="p-2 text-slate-600">
+                    {calc.directEmployees} trabajador(es) en nómina directa (+0.30 UF c/u)
+                  </td>
+                  <td className="p-2 text-right font-mono font-bold">+{result.hrUF.toFixed(2)} UF</td>
+                  <td className="p-2 text-right font-mono">{formatCLP(Math.round(result.hrUF * result.ufCLP))}</td>
+                </tr>
+                <tr className="bg-slate-50">
+                  <td className="p-2 font-bold">4. Factor de Antigüedad</td>
+                  <td className="p-2 text-slate-600">{result.ageObj.label} — {result.ageObj.title}</td>
+                  <td className="p-2 text-right font-mono font-bold">× {result.ageObj.multiplier.toFixed(2)}</td>
+                  <td className="p-2 text-right font-mono">{formatCLP(Math.round(result.afterAgeUF * result.ufCLP))}</td>
+                </tr>
+                <tr className="bg-emerald-50 font-black text-[#0F3D2E]">
+                  <td className="p-2.5">HONORARIO MENSUAL FINAL</td>
+                  <td className="p-2.5">
+                    Prorrateo estimado: {formatCLP(result.feePerUnitCLP)} / depto ({result.feePerUnitUF.toFixed(3)} UF)
+                  </td>
+                  <td className="p-2.5 text-right font-mono text-xs">{result.finalMonthlyUF.toFixed(2)} UF</td>
+                  <td className="p-2.5 text-right font-mono text-xs">{formatCLP(result.finalMonthlyCLP)}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-500 font-mono">
-            <div>ARANPRO Gestión Integral • {empresaForm?.website || 'https://aranpro.cl'}</div>
-            <div>Estudio Técnico de Honorarios • Estándar AGACECH & Ley N° 21.442</div>
+          {/* SECCIÓN INFERIOR ANCLADA AL PIE */}
+          <div className="mt-auto pt-2 space-y-2">
+            <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
+              <AranproOfficialSeal
+                size="sm"
+                companyRut={empresaForm?.companyRut || '76.999.888-8'}
+                rnacNumber=""
+              />
+              <div className="text-center min-w-[240px]">
+                <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
+                  {signatureImage ? (
+                    <img
+                      src={signatureImage}
+                      alt="Firma Administrador"
+                      className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
+                      style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                    />
+                  ) : (
+                    <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
+                  )}
+                </div>
+                <div className="border-t-[1.5px] border-slate-800 pt-1">
+                  <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm?.adminName || 'John Andrés Arancibia Maureira'}</p>
+                  <p className="text-[9px] text-slate-600 font-mono">RUT: {(empresaForm?.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
+                  <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
+                    Constructor Civil • Administrador de Condominios
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+              <div>ARANPRO Gestión Integral • {empresaForm?.website || 'https://aranpro.cl'}</div>
+              <div className="font-bold text-[#0F3D2E]">Estudio Técnico de Honorarios • Estándar AGACECH & Ley N° 21.442 (Pág. 1 de 1)</div>
+              <div>Chile</div>
+            </div>
           </div>
         </div>
       </div>

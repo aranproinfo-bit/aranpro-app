@@ -130,7 +130,15 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
   const isDossierDoc =
     contentHtml.includes('dossier-page') ||
     Boolean(targetEl?.classList?.contains('dossier-page')) ||
-    ['printable-cold-value-letter', 'printable-commercial-proposal', 'printable-full-dossier'].includes(elementOrId);
+    [
+      'printable-cold-value-letter',
+      'printable-commercial-proposal',
+      'printable-full-dossier',
+      'printable-app-brochure',
+      'printable-technical-inspection',
+      'printable-comparison-matrix',
+      'printable-agacech-fee-sheet'
+    ].includes(elementOrId);
 
   let hasDossierPages = isDossierDoc;
 
@@ -179,7 +187,9 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
         page-break-inside: avoid !important;
         break-after: avoid !important;
         break-inside: avoid !important;
-        max-height: 252mm !important;
+        height: 270mm !important;
+        min-height: 270mm !important;
+        max-height: 271mm !important;
         overflow: hidden !important;
       }
       @page {
@@ -205,7 +215,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
           <style>
             @page {
               size: ${options.pageSize || 'letter portrait'};
-              margin: ${options.margin || '5mm 6mm 5mm 6mm'};
+              margin: ${options.margin || '4mm 6mm 4mm 6mm'};
             }
             * {
               -webkit-print-color-adjust: exact !important;
@@ -275,15 +285,15 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
               background: transparent !important;
             }
 
-            /* Estructura de páginas del Dossier: exactamente 1 hoja Carta por cada .dossier-page, SIN cuadro gigante cerrado */
+            /* Estructura canónica ARANPRO: exactamente 1 hoja Carta por cada .dossier-page (270mm), ocupando toda la hoja sin cortes ni blancos al final */
             .dossier-page {
               position: relative;
               z-index: 1;
               box-sizing: border-box !important;
               width: 100% !important;
-              min-height: 0 !important;
-              height: 250mm !important;
-              max-height: 252mm !important;
+              min-height: 270mm !important;
+              height: 270mm !important;
+              max-height: 271mm !important;
               display: flex !important;
               flex-direction: column !important;
               justify-content: space-between !important;
@@ -291,7 +301,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
               break-after: page !important;
               page-break-inside: avoid !important;
               break-inside: avoid !important;
-              padding: 5mm 4mm 4mm 16mm !important;
+              padding: 4mm 4mm 3mm 16mm !important;
               margin: 0 !important;
               border: none !important;
               border-radius: 0 !important;
@@ -302,11 +312,6 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             .dossier-page:last-child {
               page-break-after: avoid !important;
               break-after: avoid !important;
-            }
-            .space-y-4 > :not([hidden]) ~ :not([hidden]),
-            .space-y-5 > :not([hidden]) ~ :not([hidden]),
-            .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-              margin-top: 0 !important;
             }
 
             /* Quitar contenedores cerrados de TODOS los 32 documentos imprimibles del sistema */
