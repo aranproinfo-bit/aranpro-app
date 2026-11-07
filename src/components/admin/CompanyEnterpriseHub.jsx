@@ -390,13 +390,18 @@ export const CompanyEnterpriseHub = ({
     }
   ];
 
-  // Submenús dedicados para el proceso comercial guiado y amigable
+  // Submenús dedicados para el proceso comercial guiado y todas sus herramientas operativas
   const POSTULACION_SUB_ITEMS = [
     { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send },
     { id: 'antecedentes', label: '2. Mis Antecedentes & Títulos', icon: Award },
     { id: 'material', label: '3. Documentos & Cartas PDF', icon: FileText },
     { id: 'pipeline', label: '4. CRM de Postulaciones', icon: Briefcase },
-    { id: 'herramientas', label: '5. Caja de Herramientas (AGACECH)', icon: Calculator },
+    { id: 'inspeccion', label: '5. Inspección Técnica Inicial', icon: HardHat },
+    { id: 'comparativa', label: '6. Cuadro Comparativo', icon: Scale },
+    { id: 'calculadora', label: '7. Calculadora AGACECH', icon: Calculator },
+    { id: 'demo', label: '8. Demo en Vivo & QR', icon: QrCode },
+    { id: 'pitch', label: '9. Libreto Pitch (10 Min)', icon: Presentation },
+    { id: 'preparacion', label: '10. Checklist & Semáforo', icon: ClipboardCheck },
   ];
 
   const EMPRESA_SUB_ITEMS = [
@@ -930,7 +935,7 @@ export const CompanyEnterpriseHub = ({
                 setPostulacionSection={setPostulacionSection}
                 hideHeader={true}
                 hideNavBar={true}
-                hidePostulacionSubNav={true}
+                hidePostulacionSubNav={false}
               />
             </div>
           )}
