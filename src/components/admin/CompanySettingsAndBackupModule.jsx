@@ -11,6 +11,7 @@ import { AgacechFeeCalculatorPanel } from './postulaciones/AgacechFeeCalculatorP
 import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
+import { generateStepPdfAttachment } from '../../utils/proposalPdfGenerator';
 import {
   Building2, UserCheck, ShieldCheck, Award, FileText, CheckCircle2,
   AlertTriangle, Printer, Download, Share2, Search, Filter, Plus,
@@ -463,19 +464,34 @@ export const CompanySettingsAndBackupModule = ({
 
   const [sendingEmailStep, setSendingEmailStep] = useState(null);
 
-  // Genera la plantilla de correo en formato HTML corporativo ARANPRO
-  const buildProposalEmailHtml = (stepNumber, msg, pConfig, empForm) => {
+  // Genera la plantilla de correo en formato HTML corporativo ARANPRO con Logo Oficial en cabecera y Timbre Circular en pie
+  const buildProposalEmailHtml = (stepNumber, msg, pConfig, empForm, attachedFilename = '') => {
     const condo = pConfig.targetCondo?.trim() || 'su Comunidad';
     const recipient = pConfig.targetRecipient?.trim() || 'Señores Miembros del Comité de Administración';
     const admin = empForm.adminName || 'John Andrés Arancibia Maureira';
+    const adminRut = (empForm.adminRut && empForm.adminRut !== '14.882.140-K') ? empForm.adminRut : '16.012.871-2';
     const phone = empForm.phone || '+56 9 5811 8504';
-    const email = empForm.email || 'contacto@aranpro.cl';
+    const logoHeaderUrl = 'https://aranpro-app.pages.dev/brand/email_logo_oscuro.png';
+    const sealFooterUrl = 'https://aranpro-app.pages.dev/brand/email_sello_circular.png';
 
     const paragraphs = (msg.email || '')
       .split('\n\n')
       .filter(Boolean)
-      .map(p => `<p style="margin: 0 0 14px 0; color: #334155; line-height: 1.6; font-size: 14px;">${p.replace(/\n/g, '<br/>')}</p>`)
+      .map(p => `<p style="margin: 0 0 14px 0; color: #334155; line-height: 1.65; font-size: 14px;">${p.replace(/\n/g, '<br/>')}</p>`)
       .join('');
+
+    const attachmentBanner = attachedFilename
+      ? `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 18px 0 8px 0; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px 16px;">
+          <tr>
+            <td style="font-size: 12px; color: #0F3D2E; line-height: 1.5;">
+              <strong>📎 Documento Oficial PDF Adjunto:</strong> <span style="font-family: monospace; color: #334155;">${attachedFilename}</span><br/>
+              <span style="font-size: 11px; color: #64748b;">Se adjunta en este correo el documento oficial en formato PDF A4 con firma y timbre institucional listo para visualizar, descargar o presentar al Comité.</span>
+            </td>
+          </tr>
+        </table>
+      `
+      : '';
 
     return `
 <!DOCTYPE html>
@@ -486,21 +502,27 @@ export const CompanySettingsAndBackupModule = ({
   <title>${msg.subject || 'Presentación Oficial'}</title>
 </head>
 <body style="margin: 0; padding: 24px 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; margin: auto;">
+  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 640px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 2px solid #0F3D2E; margin: auto;">
     <tr>
-      <td style="background-color: #0F3D2E; padding: 28px 32px; text-align: left; border-bottom: 3px solid #D4B895;">
+      <td style="background-color: #0F3D2E; padding: 22px 28px; text-align: left; border-bottom: 3px solid #D4B895;">
         <table width="100%" border="0" cellpadding="0" cellspacing="0">
           <tr>
-            <td>
+            <td valign="middle" width="90" style="padding-right: 16px;">
+              <img src="${logoHeaderUrl}" alt="Logo Oficial ARANPRO" height="64" style="height: 64px; width: auto; max-width: 110px; display: block; border: 0;" />
+            </td>
+            <td valign="middle">
               <span style="display: inline-block; font-size: 20px; font-weight: 900; letter-spacing: 2px; color: #ffffff;">
                 ARAN<span style="color: #D4B895;">PRO</span>
               </span>
-              <span style="display: block; font-size: 11px; font-weight: 700; color: #D4B895; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;">
+              <span style="display: block; font-size: 11px; font-weight: 700; color: #D4B895; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px;">
                 Gestión Integral de Condominios • Ley N° 21.442
               </span>
+              <span style="display: block; font-size: 10px; color: #cbd5e1; margin-top: 2px;">
+                Registro Nacional MINVU: En trámite (Sol. PN-27583)
+              </span>
             </td>
-            <td align="right">
-              <span style="display: inline-block; background-color: rgba(212, 184, 149, 0.15); border: 1px solid #D4B895; color: #D4B895; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: bold;">
+            <td align="right" valign="middle">
+              <span style="display: inline-block; background-color: rgba(212, 184, 149, 0.15); border: 1px solid #D4B895; color: #D4B895; padding: 5px 11px; border-radius: 8px; font-size: 11px; font-weight: bold; white-space: nowrap;">
                 Constructor Civil
               </span>
             </td>
@@ -516,7 +538,7 @@ export const CompanySettingsAndBackupModule = ({
               Comunidad Objetivo: <strong style="color: #0F3D2E;">${condo}</strong>
             </td>
             <td align="right" style="font-size: 11px; color: #0F3D2E; font-weight: bold;">
-              Paso ${stepNumber} de 4
+              Paso ${stepNumber} de 4 • Documento Oficial Adjunto
             </td>
           </tr>
         </table>
@@ -535,7 +557,7 @@ export const CompanySettingsAndBackupModule = ({
 
         ${paragraphs}
 
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 24px 0 20px 0; background-color: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 8px; padding: 14px 18px;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 24px 0 18px 0; background-color: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 8px; padding: 14px 18px;">
           <tr>
             <td>
               <strong style="color: #14532d; font-size: 13px; display: block; margin-bottom: 6px;">
@@ -550,7 +572,9 @@ export const CompanySettingsAndBackupModule = ({
           </tr>
         </table>
 
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 26px 0 12px 0;">
+        ${attachmentBanner}
+
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 24px 0 12px 0;">
           <tr>
             <td align="center">
               <a href="https://wa.me/56958118504?text=${encodeURIComponent('Hola John, recibimos su presentación para ' + condo)}"
@@ -563,18 +587,31 @@ export const CompanySettingsAndBackupModule = ({
       </td>
     </tr>
     <tr>
-      <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+      <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 2px solid #e2e8f0;">
         <table width="100%" border="0" cellpadding="0" cellspacing="0">
           <tr>
-            <td>
-              <strong style="font-size: 14px; color: #0f172a; display: block;">${admin}</strong>
-              <span style="font-size: 12px; color: #475569; display: block;">Constructor Civil • Administrador de Condominios</span>
-              <span style="font-size: 12px; color: #0F3D2E; font-weight: 700; display: block; margin-top: 2px;">ARANPRO Gestión Integral</span>
-              <span style="font-size: 11px; color: #64748b; display: block; margin-top: 6px;">
-                Fono / WhatsApp: <strong>${phone}</strong> &nbsp;|&nbsp; Correo: <strong>contacto@aranpro.cl</strong>
+            <td valign="middle" width="76" style="padding-right: 14px;">
+              <img src="${sealFooterUrl}" alt="Timbre Oficial ARANPRO" width="68" height="68" style="width: 68px; height: 68px; display: block; border: 0;" />
+            </td>
+            <td valign="middle" style="padding-right: 12px;">
+              <strong style="font-size: 11px; color: #0F3D2E; text-transform: uppercase; letter-spacing: 0.5px; display: block;">
+                Sello Oficial de Administración
+              </strong>
+              <span style="font-size: 11px; color: #334155; font-weight: 600; display: block; margin-top: 2px;">
+                ARANPRO Gestión Integral • RUT: ${adminRut}
               </span>
-              <span style="font-size: 11px; color: #64748b; display: block; margin-top: 2px;">
-                Portal Oficial: <a href="https://aranpro.cl" style="color: #0F3D2E; text-decoration: underline;">https://aranpro.cl</a>
+              <span style="font-size: 10.5px; color: #64748b; display: block; margin-top: 1px;">
+                Registro MINVU: En trámite (Sol. PN-27583) • Ley N° 21.442
+              </span>
+            </td>
+            <td valign="middle" align="right" style="border-left: 1px solid #cbd5e1; padding-left: 16px;">
+              <div style="font-family: Georgia, serif; font-style: italic; font-weight: bold; font-size: 17px; color: #0F3D2E; margin-bottom: 4px;">
+                John Arancibia M.
+              </div>
+              <strong style="font-size: 13px; color: #0f172a; display: block; border-top: 1.5px solid #0f172a; padding-top: 4px;">${admin}</strong>
+              <span style="font-size: 11px; color: #0F3D2E; font-weight: 700; display: block;">Constructor Civil • Administrador</span>
+              <span style="font-size: 10.5px; color: #64748b; display: block; margin-top: 3px;">
+                Fono: <strong>${phone}</strong> | <a href="https://aranpro.cl" style="color: #0F3D2E; text-decoration: underline;">aranpro.cl</a>
               </span>
             </td>
           </tr>
@@ -582,7 +619,7 @@ export const CompanySettingsAndBackupModule = ({
       </td>
     </tr>
     <tr>
-      <td style="padding: 14px 32px; background-color: #0F3D2E; text-align: center; color: #94a3b8; font-size: 10px;">
+      <td style="padding: 14px 32px; background-color: #0F3D2E; text-align: center; color: #94a3b8; font-size: 10px; border-top: 2px solid #D4B895;">
         Despachado formalmente desde <strong>contacto@aranpro.cl</strong> mediante la Suite ARANPRO • Copropiedad Inmobiliaria Ley N° 21.442
       </td>
     </tr>
@@ -592,7 +629,7 @@ export const CompanySettingsAndBackupModule = ({
     `;
   };
 
-  // Envío directo automatizado de correos desde contacto@aranpro.cl vía Resend
+  // Envío directo automatizado de correos desde contacto@aranpro.cl vía Resend con PDF adjunto
   const handleShareEmail = async (stepNumber) => {
     const targetEmail = (proposalConfig.targetEmail || '').trim();
     if (!targetEmail) {
@@ -618,19 +655,41 @@ export const CompanySettingsAndBackupModule = ({
     const condo = proposalConfig.targetCondo?.trim() || 'su Comunidad';
     const senderName = empresaForm.tradeName || 'ARANPRO Gestión Integral';
     const senderEmail = 'contacto@aranpro.cl';
-    const html = buildProposalEmailHtml(stepNumber, msg, proposalConfig, empresaForm);
 
     setSendingEmailStep(stepNumber);
     let sentDirectly = false;
+    let pdfAttachment = null;
 
     try {
+      try {
+        pdfAttachment = await generateStepPdfAttachment({
+          stepNumber,
+          proposalConfig,
+          empresaForm,
+          signatureImage: signatureImage || companySettings?.signatureDataUrl || ''
+        });
+      } catch (pdfErr) {
+        console.warn('No se pudo generar el adjunto PDF automático:', pdfErr);
+      }
+
+      const html = buildProposalEmailHtml(
+        stepNumber,
+        msg,
+        proposalConfig,
+        empresaForm,
+        pdfAttachment?.filename || ''
+      );
+
       const res = await resendMailService.sendSingleEmail({
         from: `${senderName} <${senderEmail}>`,
         to: targetEmail,
         replyTo: empresaForm.email || 'contacto@aranpro.cl',
         subject: msg.subject,
         html: html,
-        text: msg.email
+        text: msg.email,
+        attachments: pdfAttachment
+          ? [{ filename: pdfAttachment.filename, content: pdfAttachment.contentBase64 }]
+          : undefined
       });
 
       if (res && res.success) {
@@ -651,7 +710,7 @@ export const CompanySettingsAndBackupModule = ({
         if (p.condoName?.toLowerCase() === condoName.toLowerCase()) {
           return {
             ...p,
-            nextAction: `Paso ${stepNumber} enviado a ${targetEmail}`,
+            nextAction: `Paso ${stepNumber} + PDF enviado a ${targetEmail}`,
             updatedAt: new Date().toISOString().slice(0, 10)
           };
         }
@@ -661,8 +720,8 @@ export const CompanySettingsAndBackupModule = ({
 
     if (sentDirectly) {
       showAlert(
-        '✓ Correo Despachado Exitosamente',
-        `La carta oficial para ${condo} fue enviada con éxito desde contacto@aranpro.cl a "${targetEmail}".`,
+        '✓ Correo y PDF Oficial Despachados',
+        `La presentación para ${condo} fue enviada con éxito desde contacto@aranpro.cl a "${targetEmail}" con el logo institucional, timbre oficial y el documento PDF adjunto (${pdfAttachment?.filename || 'Propuesta_ARANPRO.pdf'}).`,
         'success'
       );
     } else {

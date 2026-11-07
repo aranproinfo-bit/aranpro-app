@@ -26,9 +26,9 @@ const getResendEndpoints = (type = 'single') => {
 
 export const resendMailService = {
   /**
-   * Envía un correo individual
+   * Envía un correo individual (con soporte para archivos adjuntos PDF en Base64)
    */
-  async sendSingleEmail({ from, to, replyTo, subject, html, text }) {
+  async sendSingleEmail({ from, to, replyTo, subject, html, text, attachments }) {
     const apiKey = getResendApiKey();
     if (!apiKey) {
       return { success: false, error: 'Falta configurar VITE_RESEND_API_KEY' };
@@ -36,6 +36,18 @@ export const resendMailService = {
 
     const endpoints = getResendEndpoints('single');
     let lastError = null;
+
+    const payloadObj = {
+      from,
+      to: Array.isArray(to) ? to : [to],
+      reply_to: replyTo || 'contacto@aranpro.cl',
+      subject,
+      html,
+      text
+    };
+    if (Array.isArray(attachments) && attachments.length > 0) {
+      payloadObj.attachments = attachments;
+    }
 
     for (const url of endpoints) {
       try {
@@ -45,14 +57,7 @@ export const resendMailService = {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            from,
-            to: Array.isArray(to) ? to : [to],
-            reply_to: replyTo || 'contacto@aranpro.cl',
-            subject,
-            html,
-            text
-          })
+          body: JSON.stringify(payloadObj)
         });
 
         const data = await response.json().catch(() => ({}));
