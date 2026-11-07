@@ -2910,20 +2910,20 @@ _Administración ARANPRO_`;
 
   const renderSidebarContent = (isMobile = false) => (
     <div className="flex flex-col h-full bg-white border-r border-[#E9EBE8]">
-      {/* 1. Cabecera Oscura del Panel Lateral:Al Tope de la Página */}
-      <div className="bg-[#0F3D2E] text-white p-3.5 border-b border-[#D4B895]/25 space-y-2.5">
+      {/* 1. Cabecera Oscura del Panel Lateral: Al Tope de la Página */}
+      <div className="bg-[#0F3D2E] text-white p-3.5 border-b border-[#D4B895]/25">
         <div className="flex items-center justify-between gap-2">
           {(!sidebarCollapsed || isMobile) && (
-            <div className="flex items-center space-x-2 min-w-0">
+            <div className="flex items-center space-x-2.5 min-w-0">
               <div className="w-7 h-7 rounded-lg bg-[#D4B895]/20 border border-[#D4B895]/40 flex items-center justify-center text-[#D4B895] shrink-0">
                 <Shield className="w-3.5 h-3.5" />
               </div>
               <div className="truncate">
                 <span className="text-[9px] font-bold tracking-wider uppercase text-[#D4B895] block leading-none">
-                  Panel Multi-Comunidad
+                  Gestión de Comunidad
                 </span>
                 <h1 className="text-xs font-black text-white truncate mt-0.5">
-                  Administrador General
+                  Módulos Operativos
                 </h1>
               </div>
             </div>
@@ -2947,42 +2947,24 @@ _Administración ARANPRO_`;
           )}
         </div>
 
-        {(!sidebarCollapsed || isMobile) && (
-          <div className="space-y-2">
-            {onSwitchCommunityWorkspace && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (isMobile) setMobileSidebarOpen(false);
-                  onSwitchCommunityWorkspace();
-                }}
-                className="w-full py-2 px-3 bg-[#D4B895] hover:bg-[#c5a67f] text-[#0F3D2E] text-xs font-black rounded-xl flex items-center justify-between shadow-2xs transition-all cursor-pointer group"
-                title="Volver al Panel Central de Mi Empresa Administradora (Multi-Comunidad)"
-              >
-                <span className="flex items-center gap-1.5 truncate">
-                  <ArrowLeft className="w-4 h-4 shrink-0 transition-transform group-hover:-translate-x-0.5" />
-                  <span>Panel Mi Empresa</span>
-                </span>
-                <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895]">
-                  Inicio
-                </span>
-              </button>
-            )}
-
-            {currentCommunity && (
-              <div className="px-3 py-2 bg-[#0A291F] rounded-xl border border-[#D4B895]/20 flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Building2 className="w-3.5 h-3.5 text-[#D4B895] shrink-0" />
-                  <span className="text-[11px] font-black text-white truncate" title={currentCommunity.name}>
-                    {currentCommunity.name}
-                  </span>
-                </div>
-                <span className="text-[9.5px] font-bold px-1.5 py-0.5 bg-[#D4B895]/20 text-[#D4B895] rounded-md shrink-0">
-                  {currentCommunity.totalUnits} {currentCommunity.type || 'Casas'}
-                </span>
-              </div>
-            )}
-          </div>
+        {/* Solo en vista móvil se ofrece acceso directo al Panel Mi Empresa dentro del drawer */}
+        {isMobile && onSwitchCommunityWorkspace && (
+          <button
+            type="button"
+            onClick={() => {
+              setMobileSidebarOpen(false);
+              onSwitchCommunityWorkspace();
+            }}
+            className="w-full mt-2.5 py-2 px-3 bg-[#D4B895] hover:bg-[#c5a67f] text-[#0F3D2E] text-xs font-black rounded-xl flex items-center justify-between shadow-2xs transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-1.5">
+              <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+              <span>← Panel Mi Empresa</span>
+            </span>
+            <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895]">
+              Inicio
+            </span>
+          </button>
         )}
       </div>
 
