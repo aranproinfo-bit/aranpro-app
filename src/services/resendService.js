@@ -9,6 +9,14 @@ const getResendApiKey = () => {
          ['re', '9R3DLwdJ', 'DQ3tvi8VSNB6iFyRTnQZDPwx'].join('_');
 };
 
+const getResendEndpoints = (path = '/emails') => {
+  // En navegador intentamos primero el endpoint con proxy local para evitar bloqueo CORS
+  if (typeof window !== 'undefined') {
+    return [`/api-resend${path}`, `https://api.resend.com${path}`];
+  }
+  return [`https://api.resend.com${path}`];
+};
+
 export const resendMailService = {
   /**
    * Envía un correo individual
@@ -19,32 +27,39 @@ export const resendMailService = {
       return { success: false, error: 'Falta configurar VITE_RESEND_API_KEY' };
     }
 
-    try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from,
-          to: Array.isArray(to) ? to : [to],
-          reply_to: replyTo || 'contacto@aranpro.cl',
-          subject,
-          html,
-          text
-        })
-      });
+    const endpoints = getResendEndpoints('/emails');
+    let lastError = null;
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Error en servidor Resend');
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from,
+            to: Array.isArray(to) ? to : [to],
+            reply_to: replyTo || 'contacto@aranpro.cl',
+            subject,
+            html,
+            text
+          })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.message || `Error HTTP ${response.status} en servidor Resend`);
+        }
+        return { success: true, id: data.id, data };
+      } catch (err) {
+        lastError = err;
+        console.warn(`Intento de envío fallido con ${url}:`, err.message);
       }
-      return { success: true, id: data.id, data };
-    } catch (err) {
-      console.error('Error enviando correo vía Resend:', err);
-      return { success: false, error: err.message };
     }
+
+    return { success: false, error: lastError?.message || 'Error de conexión con servidor de correo' };
   },
 
   /**
@@ -70,20 +85,37 @@ export const resendMailService = {
 
       const results = [];
       for (const chunk of chunks) {
-        const response = await fetch('https://api.resend.com/emails/batch', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(chunk)
-        });
+        const endpoints = getResendEndpoints('/emails/batch');
+        let chunkSent = false;
+        let chunkError = null;
 
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || 'Error en despacho por lote Resend');
+        for (const url of endpoints) {
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(chunk)
+            });
+
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error(data.message || 'Error en despacho por lote Resend');
+            }
+            results.push(...(data.data || []));
+            chunkSent = true;
+            break;
+          } catch (err) {
+            chunkError = err;
+            console.warn(`Intento batch fallido con ${url}:`, err.message);
+          }
         }
-        results.push(...(data.data || []));
+
+        if (!chunkSent) {
+          throw chunkError || new Error('No se pudo enviar el lote de correos');
+        }
       }
 
       return { success: true, count: results.length, data: results };

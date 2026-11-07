@@ -8,5 +8,15 @@ export default defineConfig({
     tailwindcss(),
     react()
   ],
+  server: {
+    proxy: {
+      '/api-resend': {
+        target: 'https://api.resend.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api-resend/, '')
+      }
+    }
+  }
 })
 
