@@ -464,225 +464,45 @@ export const CompanySettingsAndBackupModule = ({
 
   const [sendingEmailStep, setSendingEmailStep] = useState(null);
 
-  // Genera la plantilla de correo en formato HTML replicando 1:1 el documento canónico oficial (Alt 4)
+  // Genera la plantilla de correo ejecutiva ARANPRO (mensaje de presentación en el cuerpo + PDF oficial adjunto)
   const buildProposalEmailHtml = (stepNumber, msg, pConfig, empForm, attachedFilename = '') => {
-    const condo = pConfig.targetCondo?.trim() || 'Valle de la Florida IV';
-    const recipient = pConfig.targetRecipient?.trim() || 'Señores Integrantes del Comité de Administración';
+    const condo = pConfig.targetCondo?.trim() || 'su Comunidad';
+    const recipient = pConfig.targetRecipient?.trim() || 'Señores Miembros del Comité de Administración';
     const admin = empForm.adminName || 'John Andrés Arancibia Maureira';
     const adminRut = (empForm.adminRut && empForm.adminRut !== '14.882.140-K') ? empForm.adminRut : '16.012.871-2';
-    const companyRut = empForm.companyRut || '76.999.888-8';
     const phone = empForm.phone || '+56 9 5811 8504';
-    const email = empForm.email || 'contacto@aranpro.cl';
-    const city = empForm.city || 'La Serena, Coquimbo';
-    const website = empForm.website || 'https://aranpro.cl';
-    const year = new Date().getFullYear();
-
-    const logoPrincipalUrl = 'https://aranpro-app.pages.dev/brand/email_logo_claro.png';
+    const logoHeaderUrl = 'https://aranpro-app.pages.dev/brand/email_logo_oscuro.png';
     const sealFooterUrl = 'https://aranpro-app.pages.dev/brand/email_sello_circular.png';
     const signatureUrl = 'https://aranpro-app.pages.dev/brand/email_firma_admin.png';
 
-    const headerBadges = {
-      1: `PRESENTACIÓN INSTITUCIONAL ${year}`,
-      2: `DOSSIER OFICIAL ${year}`,
-      3: `PROPUESTA LICITACIÓN ${year}`,
-      4: `ACCESO 24/7 EN LÍNEA`
-    };
-    const headerDocTitles = {
-      1: 'Carta de Presentación & Propuesta de Servicios',
-      2: 'Propuesta Integral de Gestión',
-      3: 'Carta Formal de Postulación',
-      4: 'Portal Web & App Móvil ARANPRO'
-    };
-    const headerSubTitles = {
-      1: 'Para el Comité de Administración',
-      2: condo,
-      3: condo,
-      4: condo
-    };
-    const materias = {
-      1: 'Presentación de Servicios de Administración Profesional & Propuesta Operativa Integral',
-      2: 'Postulación Integral a la Administración y Custodia Técnica del Condominio',
-      3: 'Postulación Formal a la Administración y Custodia Patrimonial del Condominio',
-      4: 'Habilitación Gratuita de Suite Digital Web & Aplicación Móvil para Copropietarios'
-    };
-    const mainTitles = {
-      1: 'ADMINISTRACIÓN PROFESIONAL, CRITERIO CONSTRUCTOR CIVIL & PLATAFORMA DIGITAL 100% GRATUITA',
-      2: 'DOSSIER DE PRESENTACIÓN, FICHA TÉCNICA CONSTRUCTIVA & CUMPLIMIENTO LEY N° 21.442',
-      3: 'PROPUESTA FORMAL DE ADMINISTRACIÓN, RIGOR CONSTRUCTIVO & TRANSPARENCIA DIGITAL',
-      4: 'SUITE DIGITAL ARANPRO: TRANSPARENCIA FINANCIERA Y GESTIÓN MÓVIL 24/7'
-    };
-    const footerCaptions = {
-      1: 'Presentación Oficial para Comités de Administración • Ley N° 21.442 (Pág. 1 de 1)',
-      2: 'Dossier Oficial de Licitación • Ley N° 21.442 (Pág. 1 de 1)',
-      3: 'Carta Formal de Postulación a Licitación • Ley N° 21.442 (Pág. 1 de 1)',
-      4: 'Brochure Tecnológico • Suite Web & App Móvil • Ley N° 21.442 (Pág. 1 de 1)'
-    };
+    const paragraphs = (msg.email || '')
+      .split('\n\n')
+      .filter(Boolean)
+      .filter(p => {
+        const trimmed = p.trim();
+        if (trimmed.includes(admin) && (trimmed.includes('Constructor Civil') || trimmed.includes('ARANPRO') || trimmed.startsWith('Atentamente') || trimmed.startsWith('Saludos'))) {
+          return false;
+        }
+        if (trimmed === 'Saludos cordiales,' || trimmed === 'Atentamente,') {
+          return false;
+        }
+        return true;
+      })
+      .map(p => `<p style="margin: 0 0 14px 0; color: #334155; line-height: 1.65; font-size: 14px;">${p.replace(/\n/g, '<br/>')}</p>`)
+      .join('');
 
-    const feeNum = Number(pConfig.proposedMonthlyFee) || 850000;
-    const unitsNum = Math.max(1, Number(pConfig.targetUnits) || 60);
-    const feeFormatted = `$${feeNum.toLocaleString('es-CL')} / mes`;
-    const perUnitFormatted = `$${Math.round(feeNum / unitsNum).toLocaleString('es-CL')} / unidad`;
-
-    let bodyContentHtml = '';
-
-    if (stepNumber === 1) {
-      bodyContentHtml = `
-        <p style="margin: 0 0 10px 0; color: #1e293b; font-size: 13px; line-height: 1.55; text-align: justify;">
-          <strong style="color: #0f172a;">Estimadas y estimados integrantes del Comité de Administración:</strong> Junto con saludarles muy cordialmente, nos dirigimos a ustedes reconociendo y valorando con la mayor consideración el enorme compromiso, tiempo y dedicación personal que entregan día a día a su comunidad para resguardar la seguridad, la armonía y el patrimonio de sus vecinos y familias. Sabemos por experiencia que liderar un condominio suele transformarse en una carga desgastante y solitaria cuando la administración no responde con la prontitud requerida, las rendiciones de cuentas carecen de respaldos oportunos o las mantenciones e imprevistos de infraestructura se encarecen por la ausencia de una supervisión técnica rigurosa en terreno.
-        </p>
-        <p style="margin: 0 0 10px 0; color: #1e293b; font-size: 13px; line-height: 1.55; text-align: justify;">
-          Con el firme propósito de ser el respaldo técnico y operativo que su directiva necesita para gobernar con tranquilidad, ponemos a su consideración los servicios de <strong style="color: #0f172a;">ARANPRO Gestión Integral</strong> para asumir la administración de <strong style="color: #0F3D2E;">${condo}</strong>. Nuestro modelo de gestión integra cercanía humana, rendiciones de cuentas transparentes y verificables bajo la <strong style="color: #0f172a;">Ley N° 21.442</strong>, y la dirección técnica de un profesional <strong style="color: #0f172a;">Constructor Civil</strong> que supervisa directamente las instalaciones críticas y defiende el presupuesto comunitario frente a contratistas. Nos motiva conocer a fondo las prioridades de ${condo} y poner a su disposición una administración seria, transparente y comprometida con la plusvalía de su copropiedad.
-        </p>
-        <p style="margin: 0 0 10px 0; color: #0F3D2E; font-size: 13px; font-weight: 600; line-height: 1.5;">
-          Nuestra propuesta de valor se fundamenta en <strong>tres pilares operativos</strong> diseñados para entregar orden financiero, rigor técnico y tranquilidad total a su comunidad:
-        </p>
-
-        <!-- Pilar 1 -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 8px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px;">
+    const attachmentBanner = attachedFilename
+      ? `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 18px 0 8px 0; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px 16px;">
           <tr>
-            <td valign="top" width="32" style="padding-right: 10px; padding-top: 2px;">
-              <div style="width: 24px; height: 24px; line-height: 24px; border-radius: 6px; background-color: #0F3D2E; color: #D4B895; font-weight: 900; font-size: 12px; text-align: center;">1</div>
-            </td>
-            <td valign="top">
-              <strong style="color: #0F3D2E; font-size: 13px; display: block; margin-bottom: 3px;">
-                Gestión financiera, rendición de cuentas &amp; Plataforma digital 100% gratuita
-              </strong>
-              <span style="color: #475569; font-size: 12px; line-height: 1.45; display: block;">
-                Preparación y seguimiento del presupuesto, gestión de gastos comunes y morosidad, revisión de pagos y organización de respaldos. <strong style="color: #1e293b;">La plataforma digital y app móvil de ARANPRO se entrega 100% gratuita para toda la comunidad</strong>, facilitando la consulta de la información de gestión las 24 horas, con accesos definidos según las funciones del comité y de los residentes.
-              </span>
+            <td style="font-size: 12px; color: #0F3D2E; line-height: 1.5;">
+              <strong>📎 Documento Oficial PDF Adjunto:</strong> <span style="font-family: monospace; color: #334155;">${attachedFilename}</span><br/>
+              <span style="font-size: 11px; color: #64748b;">Se adjunta en este correo el documento oficial en formato PDF A4 con firma y timbre institucional listo para visualizar, descargar o presentar al Comité.</span>
             </td>
           </tr>
         </table>
-
-        <!-- Pilar 2 -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 8px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px;">
-          <tr>
-            <td valign="top" width="32" style="padding-right: 10px; padding-top: 2px;">
-              <div style="width: 24px; height: 24px; line-height: 24px; border-radius: 6px; background-color: #0F3D2E; color: #D4B895; font-weight: 900; font-size: 12px; text-align: center;">2</div>
-            </td>
-            <td valign="top">
-              <strong style="color: #0F3D2E; font-size: 13px; display: block; margin-bottom: 3px;">
-                Mantención y evaluación de proveedores (Criterio Constructor Civil)
-              </strong>
-              <span style="color: #475569; font-size: 12px; line-height: 1.45; display: block;">
-                Revisión en terreno de las necesidades de la comunidad con formación profesional de Constructor Civil, programación de mantenciones preventivas y seguimiento de reparaciones. Al comparar cotizaciones, revisamos alcances, cantidades, exclusiones y condiciones de ejecución para apoyar decisiones fundamentadas del comité y controlar el cumplimiento de los trabajos contratados.
-              </span>
-            </td>
-          </tr>
-        </table>
-
-        <!-- Pilar 3 -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px;">
-          <tr>
-            <td valign="top" width="32" style="padding-right: 10px; padding-top: 2px;">
-              <div style="width: 24px; height: 24px; line-height: 24px; border-radius: 6px; background-color: #0F3D2E; color: #D4B895; font-weight: 900; font-size: 12px; text-align: center;">3</div>
-            </td>
-            <td valign="top">
-              <strong style="color: #0F3D2E; font-size: 13px; display: block; margin-bottom: 3px;">
-                Personal, acuerdos y organización de la comunidad
-              </strong>
-              <span style="color: #475569; font-size: 12px; line-height: 1.45; display: block;">
-                Gestión documental del personal, coordinación de turnos y seguimiento de obligaciones laborales y preventivas (Ley Karin y RIOHS). Apoyo en la preparación de asambleas, registro y ejecución de acuerdos y coordinación de proveedores, con responsables y plazos que permitan al comité conocer el avance de la gestión.
-              </span>
-            </td>
-          </tr>
-        </table>
-
-        <!-- Recuadro Verde: ★ VALOR Y BENEFICIOS 100% GRATUITOS -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #f0fdf4; border: 2px solid #0F3D2E; border-radius: 12px; padding: 12px 16px;">
-          <tr>
-            <td>
-              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 6px;">
-                <tr>
-                  <td style="font-family: 'Courier New', Courier, monospace; font-size: 11.5px; font-weight: 900; color: #0F3D2E; text-transform: uppercase;">
-                    ★ VALOR Y BENEFICIOS 100% GRATUITOS PARA ${condo.toUpperCase()}
-                  </td>
-                  <td align="right">
-                    <span style="display: inline-block; background-color: #0F3D2E; color: #D4B895; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; white-space: nowrap;">
-                      100% Gratuito e Incluido
-                    </span>
-                  </td>
-                </tr>
-              </table>
-              <p style="margin: 0 0 6px 0; font-size: 12px; color: #1e293b; line-height: 1.45;">
-                <strong>• Plataforma Digital &amp; App Móvil 100% Gratuita para la Comunidad:</strong> Toda la comunidad (copropietarios y residentes) y el Comité cuentan con acceso ilimitado a nuestra suite digital 24/7 para consultar gastos comunes, cartolas bancarias, respaldos de facturas, libro de reclamos y votaciones, <strong>sin costos de licencias ni cobros de software para el condominio</strong>.
-              </p>
-              <p style="margin: 0; font-size: 12px; color: #1e293b; line-height: 1.45;">
-                <strong>• Reunión de Presentación y Visita Inicial Sin Costo ni Compromiso:</strong> Les propongo coordinar una visita inicial en terreno para conocer las instalaciones críticas (sala de bombas, tableros, cubiertas), dotación y prioridades del comité, y preparar una propuesta formal que precise las funciones asumidas, la modalidad de atención, los reportes, las prioridades de inicio y los honorarios.
-              </p>
-            </td>
-          </tr>
-        </table>
-      `;
-    } else if (stepNumber === 3) {
-      bodyContentHtml = `
-        <p style="margin: 0 0 10px 0; color: #1e293b; font-size: 13px; line-height: 1.55;">
-          <strong>Estimados ${recipient}:</strong>
-        </p>
-        <p style="margin: 0 0 10px 0; color: #1e293b; font-size: 13px; line-height: 1.55; text-align: justify;">
-          Por medio de la presente, tengo el agrado de presentar a ustedes la postulación formal de <strong>${empForm.provisionalName || 'ARANPRO Gestión Integral'}</strong> para asumir la administración, gestión operativa y resguardo patrimonial de <strong>${condo}</strong> conforme a las disposiciones de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
-        </p>
-        <p style="margin: 0 0 12px 0; color: #1e293b; font-size: 13px; line-height: 1.55; text-align: justify;">
-          ${empForm.presentationText || ''}
-        </p>
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px;">
-          <tr>
-            <td style="font-size: 12px; color: #334155; line-height: 1.55;">
-              <strong style="color: #0F3D2E; display: block; margin-bottom: 6px; text-transform: uppercase;">Nuestras 4 Fortalezas y Ventajas Competitivas:</strong>
-              • <strong>Solvencia Técnica Constructor Civil:</strong> Diagnósticos directos en bombas, tableros eléctricos, sellos y cubiertas sin sobrecostos de contratistas externos.<br/>
-              • <strong>Transparencia Contable Digital 24/7:</strong> Portal y app móvil gratuita donde cada vecino audita con 1 clic las facturas, boletas y cartolas bancarias.<br/>
-              • <strong>Cumplimiento Ley 21.442:</strong> Administración titular respaldada bajo las exigencias legales vigentes.<br/>
-              • <strong>Cobranza Asistida &amp; Fe Notarial:</strong> Emisión formal de certificados de no deuda, convenios de pago y control riguroso de morosidad (Art. 36°).
-            </td>
-          </tr>
-        </table>
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F5F4EF; border: 1.5px solid #D4B895; border-radius: 12px; padding: 12px 16px;">
-          <tr>
-            <td>
-              <strong style="color: #0F3D2E; font-size: 12px; text-transform: uppercase; display: block; margin-bottom: 8px;">
-                Propuesta Económica &amp; Honorarios de Administración (Ley N° 21.442)
-              </strong>
-              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
-                <tr>
-                  <td width="33%" align="center" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
-                    <span style="font-size: 9.5px; color: #64748b; text-transform: uppercase; font-weight: bold; display: block;">Honorario Mensual</span>
-                    <strong style="font-size: 14px; color: #0F3D2E;">${feeFormatted}</strong>
-                  </td>
-                  <td width="33%" align="center" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
-                    <span style="font-size: 9.5px; color: #64748b; text-transform: uppercase; font-weight: bold; display: block;">Costo / Unidad</span>
-                    <strong style="font-size: 14px; color: #0f172a;">${perUnitFormatted}</strong>
-                  </td>
-                  <td width="33%" align="center" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
-                    <span style="font-size: 9.5px; color: #64748b; text-transform: uppercase; font-weight: bold; display: block;">Comunidad Evaluada</span>
-                    <strong style="font-size: 14px; color: #0f172a;">${unitsNum} Unidades</strong>
-                  </td>
-                </tr>
-              </table>
-              <span style="font-size: 11.5px; color: #475569;">
-                <strong>Incluye sin costo adicional:</strong> ${pConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}, Suite Web &amp; App Móvil ARANPRO 24/7 para todos los copropietarios, y auditoría de traspaso inicial.
-              </span>
-            </td>
-          </tr>
-        </table>
-      `;
-    } else {
-      const cleanParagraphs = (msg.email || '')
-        .split('\n\n')
-        .filter(Boolean)
-        .filter(p => {
-          const trimmed = p.trim();
-          if (trimmed.includes(admin) && (trimmed.includes('Constructor Civil') || trimmed.includes('ARANPRO') || trimmed.startsWith('Atentamente') || trimmed.startsWith('Saludos'))) {
-            return false;
-          }
-          if (trimmed === 'Saludos cordiales,' || trimmed === 'Atentamente,') {
-            return false;
-          }
-          return true;
-        })
-        .map(p => `<p style="margin: 0 0 12px 0; color: #1e293b; line-height: 1.55; font-size: 13px; text-align: justify;">${p.replace(/\n/g, '<br/>')}</p>`)
-        .join('');
-      bodyContentHtml = cleanParagraphs;
-    }
+      `
+      : '';
 
     return `
 <!DOCTYPE html>
@@ -690,112 +510,131 @@ export const CompanySettingsAndBackupModule = ({
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${msg.subject || 'Presentación Oficial ARANPRO'}</title>
+  <title>${msg.subject || 'Presentación Oficial'}</title>
 </head>
-<body style="margin: 0; padding: 20px 8px; background-color: #f1f5f9; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <!-- Hoja Canónica Alternativa 4 con Doble Filete Lateral Izquierdo (#0F3D2E + #D4B895) -->
-  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 760px; background-color: #ffffff; box-shadow: 0 4px 18px rgba(15,23,42,0.08); border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; border-left: 4px solid #0F3D2E; margin: auto;">
+<body style="margin: 0; padding: 24px 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 640px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 2px solid #0F3D2E; margin: auto;">
     <tr>
-      <!-- Segundo filete dorado lateral izquierdo -->
-      <td width="3" style="background-color: #ffffff; border-right: 2px solid #D4B895; font-size: 1px; line-height: 1px;">&nbsp;</td>
-      <td style="padding: 26px 28px 20px 24px;">
-        <!-- 1. MEMBRETE CORPORATIVO MAESTRO ARANPRO -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-bottom: 2.5px solid #0F3D2E; padding-bottom: 12px; margin-bottom: 14px;">
+      <td style="background-color: #0F3D2E; padding: 22px 28px; text-align: left; border-bottom: 3px solid #D4B895;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
           <tr>
-            <td valign="middle" width="82" style="padding-right: 14px;">
-              <img src="${logoPrincipalUrl}" alt="ARANPRO Gestión Integral" height="56" style="height: 56px; width: auto; display: block; border: 0;" />
+            <td valign="middle" width="90" style="padding-right: 16px;">
+              <img src="${logoHeaderUrl}" alt="Logo Oficial ARANPRO" height="64" style="height: 64px; width: auto; max-width: 110px; display: block; border: 0;" />
             </td>
-            <td valign="middle" style="border-left: 1.5px solid #cbd5e1; padding-left: 14px;">
-              <div style="font-size: 14px; font-weight: 900; color: #0F3D2E; text-transform: uppercase; letter-spacing: -0.2px;">
-                ARANPRO • GESTIÓN INTEGRAL
-              </div>
-              <div style="font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: 600; color: #475569; margin-top: 2px;">
-                RUT Empresa: ${companyRut} • Ley N° 21.442 de Copropiedad Inmobiliaria
-              </div>
-              <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">
-                ${email} • ${phone} • ${city}
-              </div>
-            </td>
-            <td valign="middle" align="right">
-              <span style="display: inline-block; background-color: #F5F4EF; border: 1px solid #D4B895; color: #0F3D2E; font-family: 'Courier New', Courier, monospace; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; white-space: nowrap;">
-                ${headerBadges[stepNumber] || headerBadges[1]}
+            <td valign="middle">
+              <span style="display: inline-block; font-size: 20px; font-weight: 900; letter-spacing: 2px; color: #ffffff;">
+                ARAN<span style="color: #D4B895;">PRO</span>
               </span>
-              <div style="font-size: 11.5px; font-weight: bold; color: #1e293b; margin-top: 4px;">
-                ${headerDocTitles[stepNumber] || headerDocTitles[1]}
-              </div>
-              <div style="font-size: 10.5px; font-weight: 600; color: #64748b; margin-top: 1px;">
-                ${headerSubTitles[stepNumber] || headerSubTitles[1]}
-              </div>
+              <span style="display: block; font-size: 11px; font-weight: 700; color: #D4B895; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px;">
+                Gestión Integral de Condominios • Ley N° 21.442
+              </span>
+              <span style="display: block; font-size: 10px; color: #cbd5e1; margin-top: 2px;">
+                Registro Nacional MINVU: En trámite (Sol. PN-27583)
+              </span>
+            </td>
+            <td align="right" valign="middle">
+              <span style="display: inline-block; background-color: rgba(212, 184, 149, 0.15); border: 1px solid #D4B895; color: #D4B895; padding: 5px 11px; border-radius: 8px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                Constructor Civil
+              </span>
             </td>
           </tr>
         </table>
-
-        <!-- 2. ENCABEZADO PROTOCOLAR -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;">
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color: #f8fafc; padding: 12px 32px; border-bottom: 1px solid #e2e8f0;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
           <tr>
-            <td style="font-size: 12px; color: #334155; line-height: 1.6;">
-              <div><strong>Dirigido cordialmente a:</strong> <strong style="color: #0f172a;">${recipient}</strong></div>
-              <div><strong>Comunidad / Condominio:</strong> <strong style="color: #0F3D2E; text-transform: uppercase;">${condo}</strong></div>
-              <div><strong>Presentado por:</strong> <strong style="color: #0f172a;">${admin}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)</div>
-              <div><strong>Materia:</strong> ${materias[stepNumber] || materias[1]}</div>
+            <td style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+              Comunidad Objetivo: <strong style="color: #0F3D2E;">${condo}</strong>
+            </td>
+            <td align="right" style="font-size: 11px; color: #0F3D2E; font-weight: bold;">
+              Paso ${stepNumber} de 4 • Documento Oficial Adjunto
             </td>
           </tr>
         </table>
-
-        <!-- 3. TÍTULO CENTRAL + BARRA DORADA -->
-        <div style="text-align: center; margin-bottom: 14px;">
-          <div style="font-size: 14px; font-weight: 900; color: #0F3D2E; text-transform: uppercase; letter-spacing: -0.2px;">
-            ${mainTitles[stepNumber] || mainTitles[1]}
-          </div>
-          <div style="width: 68px; height: 3px; background-color: #D4B895; margin: 5px auto 0 auto; border-radius: 2px;"></div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 32px 32px 20px 32px;">
+        <div style="margin-bottom: 20px;">
+          <span style="font-size: 11px; font-weight: bold; color: #0F3D2E; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">
+            Dirigido a:
+          </span>
+          <strong style="font-size: 15px; color: #0f172a; display: block;">
+            ${recipient}
+          </strong>
         </div>
 
-        <!-- 4. CUERPO DEL DOCUMENTO -->
-        ${bodyContentHtml}
+        ${paragraphs}
 
-        <!-- 5. SECCIÓN INFERIOR CANÓNICA: SELLO OFICIAL + CONTACTO + FIRMA MANUSCRITA REAL -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 18px; padding-top: 14px; border-top: 1.5px solid #e2e8f0;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 24px 0 18px 0; background-color: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 8px; padding: 14px 18px;">
           <tr>
-            <td valign="bottom" width="62" style="padding-right: 10px;">
-              <img src="${sealFooterUrl}" alt="Sello Oficial ARANPRO" width="56" height="56" style="width: 56px; height: 56px; display: block; border: 0;" />
+            <td>
+              <strong style="color: #14532d; font-size: 13px; display: block; margin-bottom: 6px;">
+                Pilares Operativos ARANPRO para ${condo}:
+              </strong>
+              <span style="color: #166534; font-size: 12px; line-height: 1.6; display: block;">
+                ✓ <strong>Suite Web &amp; App Móvil 100% Gratuita</strong> para copropietarios y comité (cero cobro de licencias).<br/>
+                ✓ <strong>Supervisión Técnica en Terreno</strong> con criterio de Constructor Civil (bombas, tableros, techumbres).<br/>
+                ✓ <strong>Transparencia Financiera Total</strong> y gestión de personal bajo Ley N° 21.442 y Ley Karin.
+              </span>
             </td>
-            <td valign="bottom" style="padding-right: 12px;">
-              <div style="font-size: 10.5px; font-weight: 800; color: #0F3D2E; text-transform: uppercase; letter-spacing: 0.3px;">
+          </tr>
+        </table>
+
+        ${attachmentBanner}
+
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 24px 0 12px 0;">
+          <tr>
+            <td align="center">
+              <a href="https://wa.me/56958118504?text=${encodeURIComponent('Hola John, recibimos su presentación para ' + condo)}"
+                 style="display: inline-block; background-color: #0F3D2E; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: bold; padding: 13px 26px; border-radius: 12px; border: 1px solid #D4B895; box-shadow: 0 2px 6px rgba(15,61,46,0.2);">
+                Coordinar Visita Técnica Gratuita por WhatsApp
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 2px solid #e2e8f0;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td valign="middle" width="76" style="padding-right: 14px;">
+              <img src="${sealFooterUrl}" alt="Timbre Oficial ARANPRO" width="68" height="68" style="width: 68px; height: 68px; display: block; border: 0;" />
+            </td>
+            <td valign="middle" style="padding-right: 12px;">
+              <strong style="font-size: 11px; color: #0F3D2E; text-transform: uppercase; letter-spacing: 0.5px; display: block;">
                 Sello Oficial de Administración
-              </div>
-              <div style="font-family: 'Courier New', Courier, monospace; font-size: 10px; font-weight: 600; color: #475569; margin-top: 2px;">
-                RUT Empresa: ${companyRut}
-              </div>
-              <div style="font-size: 9.5px; font-weight: bold; color: #64748b; margin-top: 1px;">
-                Ley N° 21.442 de Copropiedad Inmobiliaria
-              </div>
+              </strong>
+              <span style="font-size: 11px; color: #334155; font-weight: 600; display: block; margin-top: 2px;">
+                ARANPRO Gestión Integral • RUT: ${adminRut}
+              </span>
+              <span style="font-size: 10.5px; color: #64748b; display: block; margin-top: 1px;">
+                Registro MINVU: En trámite (Sol. PN-27583) • Ley N° 21.442
+              </span>
             </td>
-            <td valign="bottom" style="border-left: 1px solid #e2e8f0; padding-left: 12px; padding-right: 12px; font-size: 10.5px; color: #475569; line-height: 1.55;">
-              <div><strong>Fono / WhatsApp:</strong> <span style="font-family: monospace; font-weight: bold; color: #0F3D2E;">${phone}</span></div>
-              <div><strong>Correo:</strong> <span style="font-family: monospace;">${email}</span></div>
-              <div><strong>Sitio Web:</strong> <a href="${website}" style="font-family: monospace; font-weight: bold; color: #0F3D2E; text-decoration: none;">${website}</a></div>
-            </td>
-            <td valign="bottom" align="center" width="240">
-              <div style="height: 52px; text-align: center; padding-bottom: 2px;">
-                <img src="${signatureUrl}" alt="Firma Representante Legal" height="48" style="height: 48px; width: auto; max-width: 190px; display: inline-block; border: 0;" />
+            <td valign="middle" align="right" style="border-left: 1px solid #cbd5e1; padding-left: 16px;">
+              <div style="text-align: right; margin-bottom: 2px;">
+                <img src="${signatureUrl}" alt="Firma Representante Legal" height="42" style="height: 42px; width: auto; max-width: 160px; display: inline-block; border: 0;" />
               </div>
-              <div style="border-top: 1.5px solid #0F3D2E; padding-top: 4px; text-align: center;">
-                <div style="font-size: 12px; font-weight: 900; color: #0f172a; line-height: 1.25;">${admin}</div>
-                <div style="font-size: 10.5px; font-weight: bold; color: #0F3D2E; line-height: 1.25; margin-top: 1px;">Constructor Civil • Administrador de Condominios</div>
-                <div style="font-family: 'Courier New', Courier, monospace; font-size: 9.5px; color: #475569; margin-top: 1px;">RUT: ${adminRut} • Representante Legal ARANPRO</div>
+              <div style="border-top: 1px solid #0F3D2E; padding-top: 4px;">
+                <strong style="font-size: 13.5px; color: #0f172a; display: block;">${admin}</strong>
+                <span style="font-size: 11px; color: #0F3D2E; font-weight: 700; display: block; margin-top: 2px;">Constructor Civil • Administrador de Condominios</span>
+                <span style="font-size: 10.5px; color: #475569; display: block; margin-top: 2px;">RUT: ${adminRut} • Ley N° 21.442</span>
+                <span style="font-size: 10.5px; color: #64748b; display: block; margin-top: 3px;">
+                  Fono: <strong>${phone}</strong> | <a href="https://aranpro.cl" style="color: #0F3D2E; text-decoration: underline;">aranpro.cl</a>
+                </span>
               </div>
             </td>
           </tr>
         </table>
-
-        <!-- 6. PIE DE PÁGINA CANÓNICO MAESTRO -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-family: 'Courier New', Courier, monospace; font-size: 9.5px; color: #94a3b8;">
-          <tr>
-            <td align="left">ARANPRO Gestión Integral • ${website}</td>
-            <td align="center" style="font-weight: bold; color: #0F3D2E;">${footerCaptions[stepNumber] || footerCaptions[1]}</td>
-            <td align="right">La Serena, Chile</td>
-          </tr>
-        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 14px 32px; background-color: #0F3D2E; text-align: center; color: #94a3b8; font-size: 10px; border-top: 2px solid #D4B895;">
+        Despachado formalmente desde <strong>contacto@aranpro.cl</strong> mediante la Suite ARANPRO • Copropiedad Inmobiliaria Ley N° 21.442
       </td>
     </tr>
   </table>
