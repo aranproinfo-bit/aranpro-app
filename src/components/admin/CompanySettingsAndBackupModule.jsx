@@ -10,6 +10,7 @@ import { PipelinePanel } from './postulaciones/PipelinePanel';
 import { AgacechFeeCalculatorPanel } from './postulaciones/AgacechFeeCalculatorPanel';
 import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
+import { resendMailService } from '../../services/resendService';
 import {
   Building2, UserCheck, ShieldCheck, Award, FileText, CheckCircle2,
   AlertTriangle, Printer, Download, Share2, Search, Filter, Plus,
@@ -460,12 +461,210 @@ export const CompanySettingsAndBackupModule = ({
     window.open(url, '_blank');
   };
 
-  const handleShareEmail = (stepNumber) => {
+  const [sendingEmailStep, setSendingEmailStep] = useState(null);
+
+  // Genera la plantilla de correo en formato HTML corporativo ARANPRO
+  const buildProposalEmailHtml = (stepNumber, msg, pConfig, empForm) => {
+    const condo = pConfig.targetCondo?.trim() || 'su Comunidad';
+    const recipient = pConfig.targetRecipient?.trim() || 'Señores Miembros del Comité de Administración';
+    const admin = empForm.adminName || 'John Andrés Arancibia Maureira';
+    const phone = empForm.phone || '+56 9 5811 8504';
+    const email = empForm.email || 'contacto@aranpro.cl';
+
+    const paragraphs = (msg.email || '')
+      .split('\n\n')
+      .filter(Boolean)
+      .map(p => `<p style="margin: 0 0 14px 0; color: #334155; line-height: 1.6; font-size: 14px;">${p.replace(/\n/g, '<br/>')}</p>`)
+      .join('');
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${msg.subject || 'Presentación Oficial'}</title>
+</head>
+<body style="margin: 0; padding: 24px 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; margin: auto;">
+    <tr>
+      <td style="background-color: #0F3D2E; padding: 28px 32px; text-align: left; border-bottom: 3px solid #D4B895;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <span style="display: inline-block; font-size: 20px; font-weight: 900; letter-spacing: 2px; color: #ffffff;">
+                ARAN<span style="color: #D4B895;">PRO</span>
+              </span>
+              <span style="display: block; font-size: 11px; font-weight: 700; color: #D4B895; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;">
+                Gestión Integral de Condominios • Ley N° 21.442
+              </span>
+            </td>
+            <td align="right">
+              <span style="display: inline-block; background-color: rgba(212, 184, 149, 0.15); border: 1px solid #D4B895; color: #D4B895; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: bold;">
+                Constructor Civil
+              </span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color: #f8fafc; padding: 12px 32px; border-bottom: 1px solid #e2e8f0;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+              Comunidad Objetivo: <strong style="color: #0F3D2E;">${condo}</strong>
+            </td>
+            <td align="right" style="font-size: 11px; color: #0F3D2E; font-weight: bold;">
+              Paso ${stepNumber} de 4
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 32px 32px 20px 32px;">
+        <div style="margin-bottom: 20px;">
+          <span style="font-size: 11px; font-weight: bold; color: #0F3D2E; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">
+            Dirigido a:
+          </span>
+          <strong style="font-size: 15px; color: #0f172a; display: block;">
+            ${recipient}
+          </strong>
+        </div>
+
+        ${paragraphs}
+
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 24px 0 20px 0; background-color: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 8px; padding: 14px 18px;">
+          <tr>
+            <td>
+              <strong style="color: #14532d; font-size: 13px; display: block; margin-bottom: 6px;">
+                Pilares Operativos ARANPRO para ${condo}:
+              </strong>
+              <span style="color: #166534; font-size: 12px; line-height: 1.6; display: block;">
+                ✓ <strong>Suite Web & App Móvil 100% Gratuita</strong> para copropietarios y comité (cero cobro de licencias).<br/>
+                ✓ <strong>Supervisión Técnica en Terreno</strong> con criterio de Constructor Civil (bombas, tableros, techumbres).<br/>
+                ✓ <strong>Transparencia Financiera Total</strong> y gestión de personal bajo Ley N° 21.442 y Ley Karin.
+              </span>
+            </td>
+          </tr>
+        </table>
+
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin: 26px 0 12px 0;">
+          <tr>
+            <td align="center">
+              <a href="https://wa.me/56958118504?text=${encodeURIComponent('Hola John, recibimos su presentación para ' + condo)}"
+                 style="display: inline-block; background-color: #0F3D2E; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: bold; padding: 13px 26px; border-radius: 12px; border: 1px solid #D4B895; box-shadow: 0 2px 6px rgba(15,61,46,0.2);">
+                Coordinar Visita Técnica Gratuita por WhatsApp
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <strong style="font-size: 14px; color: #0f172a; display: block;">${admin}</strong>
+              <span style="font-size: 12px; color: #475569; display: block;">Constructor Civil • Administrador de Condominios</span>
+              <span style="font-size: 12px; color: #0F3D2E; font-weight: 700; display: block; margin-top: 2px;">ARANPRO Gestión Integral</span>
+              <span style="font-size: 11px; color: #64748b; display: block; margin-top: 6px;">
+                Fono / WhatsApp: <strong>${phone}</strong> &nbsp;|&nbsp; Correo: <strong>contacto@aranpro.cl</strong>
+              </span>
+              <span style="font-size: 11px; color: #64748b; display: block; margin-top: 2px;">
+                Portal Oficial: <a href="https://aranpro.cl" style="color: #0F3D2E; text-decoration: underline;">https://aranpro.cl</a>
+              </span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 14px 32px; background-color: #0F3D2E; text-align: center; color: #94a3b8; font-size: 10px;">
+        Despachado formalmente desde <strong>contacto@aranpro.cl</strong> mediante la Suite ARANPRO • Copropiedad Inmobiliaria Ley N° 21.442
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+  };
+
+  // Envío directo automatizado de correos desde contacto@aranpro.cl vía Resend
+  const handleShareEmail = async (stepNumber) => {
+    const targetEmail = (proposalConfig.targetEmail || '').trim();
+    if (!targetEmail) {
+      showAlert(
+        'Falta Correo del Comité',
+        'Por favor completa el campo "Correo Electrónico Comité" en la barra verde superior de configuración antes de enviar.',
+        'warning'
+      );
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(targetEmail)) {
+      showAlert(
+        'Correo Inválido',
+        `El correo ingresado "${targetEmail}" no parece válido. Por favor verifícalo en la barra de configuración.`,
+        'warning'
+      );
+      return;
+    }
+
     const msg = getStepMessages(stepNumber);
-    const email = proposalConfig.targetEmail || '';
-    const subject = encodeURIComponent(msg.subject);
-    const body = encodeURIComponent(msg.email);
-    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    const condo = proposalConfig.targetCondo?.trim() || 'su Comunidad';
+    const senderName = empresaForm.tradeName || 'ARANPRO Gestión Integral';
+    const senderEmail = 'contacto@aranpro.cl';
+    const html = buildProposalEmailHtml(stepNumber, msg, proposalConfig, empresaForm);
+
+    try {
+      setSendingEmailStep(stepNumber);
+      const res = await resendMailService.sendSingleEmail({
+        from: `${senderName} <${senderEmail}>`,
+        to: targetEmail,
+        replyTo: empresaForm.email || 'contacto@aranpro.cl',
+        subject: msg.subject,
+        html: html,
+        text: msg.email
+      });
+
+      if (res.success) {
+        // Actualizar en el pipeline CRM si la comunidad ya fue registrada
+        try {
+          const condoName = proposalConfig.targetCondo?.trim() || 'Nuevo Condominio';
+          setPostulationPipeline(prev => prev.map(p => {
+            if (p.condoName?.toLowerCase() === condoName.toLowerCase()) {
+              return {
+                ...p,
+                nextAction: `Paso ${stepNumber} enviado a ${targetEmail}`,
+                updatedAt: new Date().toISOString().slice(0, 10)
+              };
+            }
+            return p;
+          }));
+        } catch (e) {}
+
+        showAlert(
+          '✓ Correo Despachado Exitosamente',
+          `La carta oficial para ${condo} fue enviada con éxito desde contacto@aranpro.cl a "${targetEmail}".`,
+          'success'
+        );
+      } else {
+        throw new Error(res.error || 'No se pudo despachar el correo');
+      }
+    } catch (err) {
+      console.error('Error al enviar correo de postulación:', err);
+      showAlert(
+        'Error al Enviar Correo',
+        `Hubo un problema al despachar el correo: ${err.message}. Puedes verificar tu conexión o usar el botón "Copiar Mensaje".`,
+        'error'
+      );
+    } finally {
+      setSendingEmailStep(null);
+    }
   };
 
   const handleCopyStepMessage = (stepNumber) => {
@@ -2252,80 +2451,43 @@ export const CompanySettingsAndBackupModule = ({
             </div>
           )}
 
-          {/* ==================== SUB-PESTAÑA 4: POSTULACIONES & DOSSIER DE LICITACIÓN ==================== */}
+          {/* ==================== SUB-PESTAÑA: POSTULACIONES & DOSSIER DE LICITACIÓN ==================== */}
           {activeSubTab === 'postulaciones' && (
             <div className="space-y-6">
-              <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <span className="text-[10px] font-bold text-[#D4B895] uppercase tracking-wider block">
-                    Centro Comercial & Licitaciones • Carta Fuerte ARANPRO
-                  </span>
-                  <h3 className="text-lg font-black text-slate-900">
-                    4. Postulaciones, Auditoría de Preparación, CRM & Dossier Ejecutivo
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Verifica que cumples el 100% de los requisitos legales y técnicos, haz seguimiento a tus postulaciones en curso y genera propuestas económicas y técnicas listas para adjudicar.
-                  </p>
-                </div>
+              {!hideHeader && (
+                <div className="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] font-bold text-[#D4B895] uppercase tracking-wider block">
+                      Centro Comercial & Licitaciones • Carta Fuerte ARANPRO
+                    </span>
+                    <h3 className="text-lg font-black text-slate-900">
+                      Postulaciones, CRM & Dossier Ejecutivo
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Verifica que cumples el 100% de los requisitos legales y técnicos, haz seguimiento a tus postulaciones en curso y genera propuestas económicas y técnicas listas para adjudicar.
+                    </p>
+                  </div>
 
-                <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDossierModal(true)}
-                    className="px-4 py-2.5 rounded-2xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
-                  >
-                    <Eye className="w-4 h-4 text-[#D4B895]" />
-                    Ver Dossier Maestro
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveAllSettings}
-                    className="px-3.5 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E] border border-emerald-200 font-bold text-xs transition-all flex items-center gap-1"
-                  >
-                    <Check className="w-4 h-4 text-emerald-700" />
-                    Guardar
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewDossierModal(true)}
+                      className="px-4 py-2.5 rounded-2xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+                    >
+                      <Eye className="w-4 h-4 text-[#D4B895]" />
+                      Ver Dossier Maestro
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveAllSettings}
+                      className="px-3.5 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E] border border-emerald-200 font-bold text-xs transition-all flex items-center gap-1"
+                    >
+                      <Check className="w-4 h-4 text-emerald-700" />
+                      Guardar
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              {/* RESUMEN DE EXPERIENCIA Y PREPARACIÓN EN CIFRAS */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                <div
-                  onClick={() => setPostulacionSection('preparacion')}
-                  className="bg-gradient-to-br from-[#0F3D2E] to-[#165540] text-white p-3.5 rounded-2xl border border-emerald-900/40 text-center cursor-pointer hover:brightness-110 transition-all"
-                >
-                  <span className="text-[10px] font-bold uppercase text-[#D4B895] block">Índice Preparación</span>
-                  <span className="text-xl font-black text-white">{readinessReport.score}/100</span>
-                  <span className="text-[9px] text-emerald-100 block">{readinessReport.level?.label || 'Auditado'}</span>
-                </div>
-                <div
-                  onClick={() => setPostulacionSection('pipeline')}
-                  className="bg-slate-50 hover:bg-slate-100 p-3.5 rounded-2xl border border-slate-200 text-center cursor-pointer transition-all"
-                >
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block">En Licitación</span>
-                  <span className="text-xl font-black text-[#0F3D2E]">
-                    {postulationPipeline.filter(p => !['ganada', 'perdida', 'adjudicada', 'no_adjudicada'].includes(p.stage)).length} Condominios
-                  </span>
-                  <span className="text-[9px] text-slate-500 block">CRM de seguimiento</span>
-                </div>
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Trayectoria</span>
-                  <span className="text-xl font-black text-slate-900">{portfolioStats.yearsExp} Años</span>
-                  <span className="text-[9px] text-slate-500 block">Desde {empresaForm.startYear}</span>
-                </div>
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Unidades Activas</span>
-                  <span className="text-xl font-black text-slate-900">{portfolioStats.totalUnits} Deptos/Casas</span>
-                  <span className="text-[9px] text-slate-500 block">En {portfolioStats.totalComms} comunidad(es)</span>
-                </div>
-                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center col-span-2 md:col-span-1">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Respaldos en Dossier</span>
-                  <span className="text-xl font-black text-[#0F3D2E]">
-                    {accreditationDocs.filter(d => d.includeInDossier !== false).length + academicRecords.filter(r => r.includeInProposal !== false).length} Docs
-                  </span>
-                  <span className="text-[9px] text-slate-500 block">Legales + Títulos</span>
-                </div>
-              </div>
+              )}
 
               {/* SELECTOR MODULAR PRINCIPAL (4 PESTAÑAS ESTRUCTURADAS Y AMIGABLES) */}
               {!hidePostulacionSubNav && (
@@ -2368,6 +2530,39 @@ export const CompanySettingsAndBackupModule = ({
               {/* ==================== SECCIÓN 1: GUÍA PASO A PASO (EL EMBUDO COMERCIAL ARANPRO) ==================== */}
               {postulacionSection === 'flujo' && (
                 <div className="space-y-6 animate-in fade-in">
+                  {/* CABECERA EJECUTIVA Y FOCALIZADA DE LA GUÍA PASO A PASO */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+                    <div>
+                      <span className="text-[10px] font-bold text-[#0F3D2E] uppercase tracking-wider block">
+                        Embudo Comercial de Captación • Paso a Paso
+                      </span>
+                      <h2 className="text-base font-black text-slate-900">
+                        Guía Paso a Paso: Postulación a Condominios
+                      </h2>
+                      <p className="text-xs text-slate-500">
+                        Configura la comunidad objetivo y despacha en orden sus 4 cartas y documentos oficiales.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewDossierModal(true)}
+                        className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                        Ver Dossier Maestro
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveAllSettings}
+                        className="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E] border border-emerald-200 font-bold text-xs transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <Check className="w-3.5 h-3.5 text-emerald-700" />
+                        Guardar
+                      </button>
+                    </div>
+                  </div>
+
                   {/* 1. TARJETA DE CONTROL: CONDOMINIO OBJETIVO A POSTULAR (EN VIVO) */}
                   <div className="bg-gradient-to-br from-[#0F3D2E] via-[#144D3A] to-[#0A291F] text-white p-5 md:p-6 rounded-3xl shadow-lg border border-emerald-900/40 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-800/60 pb-3">
@@ -2605,10 +2800,20 @@ export const CompanySettingsAndBackupModule = ({
                         <button
                           type="button"
                           onClick={() => handleShareEmail(1)}
-                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                          disabled={sendingEmailStep === 1}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          <Mail className="w-3.5 h-3.5" />
-                          Enviar por Correo
+                          {sendingEmailStep === 1 ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              Enviando...
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="w-3.5 h-3.5" />
+                              Enviar por Correo
+                            </>
+                          )}
                         </button>
                         <button
                           type="button"
@@ -2756,10 +2961,20 @@ export const CompanySettingsAndBackupModule = ({
                         <button
                           type="button"
                           onClick={() => handleShareEmail(2)}
-                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                          disabled={sendingEmailStep === 2}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          <Mail className="w-3.5 h-3.5" />
-                          Confirmar por Correo
+                          {sendingEmailStep === 2 ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              Enviando...
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="w-3.5 h-3.5" />
+                              Confirmar por Correo
+                            </>
+                          )}
                         </button>
                         <button
                           type="button"
@@ -2889,10 +3104,20 @@ export const CompanySettingsAndBackupModule = ({
                         <button
                           type="button"
                           onClick={() => handleShareEmail(3)}
-                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                          disabled={sendingEmailStep === 3}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          <Mail className="w-3.5 h-3.5" />
-                          Enviar por Correo
+                          {sendingEmailStep === 3 ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              Enviando...
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="w-3.5 h-3.5" />
+                              Enviar por Correo
+                            </>
+                          )}
                         </button>
                         <button
                           type="button"
@@ -3000,10 +3225,20 @@ export const CompanySettingsAndBackupModule = ({
                         <button
                           type="button"
                           onClick={() => handleShareEmail(4)}
-                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                          disabled={sendingEmailStep === 4}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          <Mail className="w-3.5 h-3.5" />
-                          Enviar por Correo
+                          {sendingEmailStep === 4 ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              Enviando...
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="w-3.5 h-3.5" />
+                              Enviar por Correo
+                            </>
+                          )}
                         </button>
                         <button
                           type="button"
@@ -3064,7 +3299,69 @@ export const CompanySettingsAndBackupModule = ({
 
               {/* SECCIÓN 2: CRM & PIPELINE DE POSTULACIONES */}
               {postulacionSection === 'pipeline' && (
-                <div className="animate-in fade-in">
+                <div className="space-y-6 animate-in fade-in">
+                  {/* CABECERA EJECUTIVA DEL CRM */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+                    <div>
+                      <span className="text-[10px] font-bold text-[#0F3D2E] uppercase tracking-wider block">
+                        Centro Comercial & Licitaciones
+                      </span>
+                      <h2 className="text-base font-black text-slate-900">
+                        CRM de Postulaciones & Pipeline Comercial
+                      </h2>
+                      <p className="text-xs text-slate-500">
+                        Seguimiento integral a licitaciones en curso, métricas de cartera y auditoría legal de postulaciones.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewDossierModal(true)}
+                        className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                        Ver Dossier Maestro
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* RESUMEN DE EXPERIENCIA Y PREPARACIÓN EN CIFRAS */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div
+                      onClick={() => setPostulacionSection('preparacion')}
+                      className="bg-gradient-to-br from-[#0F3D2E] to-[#165540] text-white p-3.5 rounded-2xl border border-emerald-900/40 text-center cursor-pointer hover:brightness-110 transition-all shadow-xs"
+                      title="Ver Checklist y Auditoría de Preparación"
+                    >
+                      <span className="text-[10px] font-bold uppercase text-[#D4B895] block">Índice Preparación</span>
+                      <span className="text-xl font-black text-white">{readinessReport.score}/100</span>
+                      <span className="text-[9px] text-emerald-100 block">{readinessReport.level?.label || 'Auditado'}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">En Licitación</span>
+                      <span className="text-xl font-black text-[#0F3D2E]">
+                        {postulationPipeline.filter(p => !['ganada', 'perdida', 'adjudicada', 'no_adjudicada'].includes(p.stage)).length} Condominios
+                      </span>
+                      <span className="text-[9px] text-slate-500 block">En pipeline activo</span>
+                    </div>
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">Trayectoria</span>
+                      <span className="text-xl font-black text-slate-900">{portfolioStats.yearsExp} Años</span>
+                      <span className="text-[9px] text-slate-500 block">Desde {empresaForm.startYear}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">Unidades Activas</span>
+                      <span className="text-xl font-black text-slate-900">{portfolioStats.totalUnits} Deptos/Casas</span>
+                      <span className="text-[9px] text-slate-500 block">En {portfolioStats.totalComms} comunidad(es)</span>
+                    </div>
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-center col-span-2 md:col-span-1">
+                      <span className="text-[10px] font-bold uppercase text-slate-400 block">Respaldos en Dossier</span>
+                      <span className="text-xl font-black text-[#0F3D2E]">
+                        {accreditationDocs.filter(d => d.includeInDossier !== false).length + academicRecords.filter(r => r.includeInProposal !== false).length} Docs
+                      </span>
+                      <span className="text-[9px] text-slate-500 block">Legales + Títulos</span>
+                    </div>
+                  </div>
+
                   <PipelinePanel
                     items={postulationPipeline}
                     onChange={setPostulationPipeline}
