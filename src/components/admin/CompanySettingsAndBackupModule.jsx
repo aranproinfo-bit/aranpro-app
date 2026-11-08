@@ -5978,20 +5978,32 @@ export const CompanySettingsAndBackupModule = ({
         </div>
 
       {/* ==================== MODAL DE VISTA PREVIA DEL DOSSIER INTEGRAL DE LICITACIÓN (MULTI-PÁGINA) ==================== */}
-      {previewDossierModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-5xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col relative">
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200 mb-6">
-              <div className="flex items-center gap-2">
+      <div
+        className={
+          previewDossierModal
+            ? 'fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto'
+            : 'fixed top-0 left-0 w-[850px] -z-[9999] opacity-1 pointer-events-none'
+        }
+      >
+        <div
+          className={
+            previewDossierModal
+              ? 'bg-white rounded-3xl max-w-5xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col relative'
+              : 'w-[850px] bg-white'
+          }
+        >
+          {previewDossierModal && (
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200 mb-4">
+              <div className="flex items-center gap-2.5">
                 <span className="w-9 h-9 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-bold text-base shadow-sm">
                   📚
                 </span>
                 <div>
                   <h4 className="text-base font-black text-slate-900">
-                    Dossier Integral de Postulación a Licitaciones de Condominios
+                    Dossier Integral de Postulación & Ficha Técnica Constructiva
                   </h4>
                   <p className="text-[11px] text-slate-500 font-mono">
-                    Compilación Ejecutiva • Carta + Ficha Constructiva + Diplomas + Referencias
+                    Documento Maestro de 3 Páginas • Especialidades Constructivas • Plan 30 Días • Suite Digital & Acreditaciones
                   </p>
                 </div>
               </div>
@@ -6012,9 +6024,11 @@ export const CompanySettingsAndBackupModule = ({
                 </button>
               </div>
             </div>
+          )}
 
-            {/* BARRA DE AJUSTE RÁPIDO DE DESTINATARIO DEL DOSSIER */}
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs mb-2">
+          {previewDossierModal && (
+            /* BARRA DE AJUSTE RÁPIDO DE DESTINATARIO DEL DOSSIER */
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs mb-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold text-slate-700">Condominio a Postular:</span>
                 <input
@@ -6047,503 +6061,675 @@ export const CompanySettingsAndBackupModule = ({
               </div>
               <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
             </div>
+          )}
 
-            {/* CONTENEDOR DEL DOSSIER INTEGRAL IMPRIMIBLE */}
-            <div className="overflow-y-auto flex-1 pr-1 space-y-6">
+          {/* CONTENEDOR DEL DOSSIER INTEGRAL IMPRIMIBLE */}
+          <div className={previewDossierModal ? "overflow-y-auto flex-1 pr-1 space-y-6" : "w-[850px]"}>
+            <div
+              id="printable-full-dossier"
+              data-pdf-style={pdfStyle}
+              className="bg-slate-100 p-0 max-w-4xl mx-auto space-y-6 text-slate-900"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+            >
+              {/* ==================== PÁGINA 1: PORTADA & CARTA EJECUTIVA DE PRESENTACIÓN ==================== */}
               <div
-                id="printable-full-dossier"
                 data-pdf-style={pdfStyle}
-                className="bg-slate-100 p-0 max-w-4xl mx-auto space-y-6 text-slate-900"
+                className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
-                {/* ==================== PÁGINA 1: PORTADA & CARTA DE PRESENTACIÓN ==================== */}
-                <div className="dossier-page page-1 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md leading-relaxed">
-                  <div className="space-y-2.5">
-                    {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
-                    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
-                      <div className="flex items-center space-x-3.5">
-                        <AranproLogo variant="principal" className="h-11 w-auto" />
-                        <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                          <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
-                            {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
-                          </div>
-                          <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                            {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
-                          </p>
-                          <p className="text-[9px] text-slate-500">
-                            {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'La Serena, Chile'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right space-y-0.5 shrink-0">
-                        <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded-md">
-                          DOSSIER OFICIAL {new Date().getFullYear()}
-                        </span>
-                        <p className="text-[10.5px] font-bold text-slate-800">
-                          Propuesta Integral de Gestión
-                        </p>
-                        <p className="text-[9.5px] text-slate-500 font-semibold">
-                          {proposalConfig.targetCondo || 'Comunidad de Copropietarios'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Encabezado Formal Protocolar */}
-                    <div className="text-[10.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
-                      <p>
-                        <strong>Dirigido cordialmente a:</strong>{' '}
-                        {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim() ? (
-                          <span className="font-mono text-slate-400">__________________________________________________________________</span>
-                        ) : (
-                          <strong className="text-slate-900">{proposalConfig.targetRecipient}</strong>
-                        )}
-                      </p>
-                      {proposalConfig.targetCondo?.trim() ? (
-                        <p>
-                          <strong>Condominio / Edificio:</strong>{' '}
-                          <strong className="text-[#0F3D2E] uppercase">{proposalConfig.targetCondo}</strong>
-                        </p>
-                      ) : (
-                        proposalConfig.leaveRecipientBlank && (
-                          <p>
-                            <strong>Condominio / Edificio:</strong>{' '}
-                            <span className="font-mono text-slate-400">__________________________________________________________</span>
-                          </p>
-                        )
-                      )}
-                      <p><strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)</p>
-                      <p>
-                        <strong>Fecha:</strong>{' '}
-                        {proposalConfig.proposalDate
-                          ? new Date(proposalConfig.proposalDate + 'T12:00:00').toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })
-                          : new Date().toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })}
-                        {proposalConfig.targetCity?.trim() ? ` • ${proposalConfig.targetCity}` : ` • ${empresaForm.city}`}
-                      </p>
-                      <p><strong>Materia:</strong> Postulación Integral a la Administración y Custodia Técnica del Condominio</p>
-                    </div>
-
-                    {/* Título de la Propuesta */}
-                    <div className="text-center py-0.5">
-                      <h1 className="text-xs md:text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
-                        Dossier de Presentación & Propuesta de Administración
-                      </h1>
-                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
-                        Solvencia Técnica en Construcción • Transparencia Digital • Acreditación Minvu Ley N° 21.442
-                      </p>
-                      <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
-                    </div>
-
-                    {/* Carta de Presentación */}
-                    <div className="text-justify text-[10.5px] text-slate-800 leading-snug space-y-1.5">
-                      <p>
-                        {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim()
-                          ? 'Estimados señores miembros del Comité de Administración y vecinos copropietarios:'
-                          : `Estimados ${proposalConfig.targetRecipient}:`}
-                      </p>
-                      <p>
-                        Junto con saludarles muy cordialmente, nos es muy grato presentar a su distinguida comunidad el dossier de postulación
-                        de <strong>{empresaForm.provisionalName}</strong> para asumir la administración profesional y resguardo patrimonial de{' '}
-                        {proposalConfig.targetCondo?.trim() ? (
-                          <strong>{proposalConfig.targetCondo}</strong>
-                        ) : (
-                          <strong>su comunidad</strong>
-                        )}{' '}
-                        bajo las estrictas exigencias de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
-                      </p>
-                      <p>
-                        {empresaForm.presentationText}
-                      </p>
-                      <p>
-                        Complementamos nuestro rigor constructivo en terreno con una plataforma digital de última generación en la nube y aplicación móvil para residentes, garantizando que cada gasto, comprobante bancario, colilla legal y rendición de cuentas quede disponible las 24 horas para libre revisión del Comité y los copropietarios.
-                      </p>
-                    </div>
-
-                    {/* Resumen de Respaldo y Acreditación en Cifras */}
-                    <div className="pt-0.5">
-                      <div className="text-center mb-1">
-                        <span className="text-[9.5px] font-black uppercase text-[#0F3D2E] tracking-wider">Respaldo Profesional & Cartera Activa Acreditada</span>
-                      </div>
-                      <div className="grid grid-cols-4 gap-1.5 text-center">
-                        <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
-                          <span className="text-[8.5px] font-bold text-slate-500 uppercase block">Acreditación Oficial</span>
-                          <strong className="text-[11px] font-black text-[#0F3D2E]">{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442'}</strong>
-                        </div>
-                        <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
-                          <span className="text-[8.5px] font-bold text-slate-500 uppercase block">Experiencia</span>
-                          <strong className="text-[11px] font-black text-[#0F3D2E]">{portfolioStats.yearsExp} Años Acreditados</strong>
-                        </div>
-                        <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
-                          <span className="text-[8.5px] font-bold text-slate-500 uppercase block">Cartera Base Activa</span>
-                          <strong className="text-[11px] font-black text-[#0F3D2E]">{portfolioStats.totalComms} Condominio(s)</strong>
-                        </div>
-                        <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
-                          <span className="text-[8.5px] font-bold text-slate-500 uppercase block">Especialidad</span>
-                          <strong className="text-[11px] font-black text-[#0F3D2E]">Construcción Civil</strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Propuesta Económica y Alcance del Servicio (Opcional) */}
-                    {proposalConfig.includeEconomicInDossier !== false && Number(proposalConfig.proposedMonthlyFee) > 0 && (
-                      <div className="p-2.5 rounded-xl bg-slate-50 border-2 border-[#0F3D2E]/20 space-y-1 text-xs">
-                        <div className="flex items-center justify-between border-b border-slate-200 pb-1">
-                          <span className="font-black text-[#0F3D2E] uppercase text-[10px]">
-                            Resumen de Propuesta Económica para la Comunidad Evaluada (SLA)
-                          </span>
-                          <span className="font-mono font-bold text-[9px] text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2 py-0.5 rounded">
-                            {proposalConfig.taxModality || 'Factura Exenta / Boleta'}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-center py-0.5">
-                          <div className="bg-white p-1.5 rounded-lg border border-slate-200">
-                            <span className="text-[8px] text-slate-500 uppercase block font-bold">Honorario Mensual Propuesto</span>
-                            <strong className="text-xs font-black text-[#0F3D2E]">
-                              {formatCLP(Number(proposalConfig.proposedMonthlyFee) || 0)} / mes
-                            </strong>
-                          </div>
-                          <div className="bg-white p-1.5 rounded-lg border border-slate-200">
-                            <span className="text-[8px] text-slate-500 uppercase block font-bold">Costo Estimado por Unidad</span>
-                            <strong className="text-xs font-black text-slate-800">
-                              {formatCLP(
-                                Math.round(
-                                  (Number(proposalConfig.proposedMonthlyFee) || 0) /
-                                    Math.max(1, Number(proposalConfig.targetUnits) || 1)
-                                )
-                              )}{' '}
-                              / unidad
-                            </strong>
-                          </div>
-                          <div className="bg-white p-1.5 rounded-lg border border-slate-200">
-                            <span className="text-[8px] text-slate-500 uppercase block font-bold">Dotación Comunidad Postulada</span>
-                            <strong className="text-xs font-black text-slate-800">
-                              {proposalConfig.targetUnits || '60'} Unidades
-                            </strong>
-                          </div>
-                        </div>
-                        <p className="text-[9px] text-slate-600 leading-snug">
-                          <strong>Incluye sin costo adicional:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}, Suite Web & App Móvil ARANPRO 24/7 para todos los residentes, auditoría contable de traspaso inicial y diagnóstico constructivo preventivo.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Pie de Página Institucional Página 1 */}
-                  <div className="mt-auto pt-2 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                    <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Página 1 de 3 • Carta de Presentación Oficial • Ley N° 21.442</div>
-                    <div>Fono Directo: {empresaForm.phone}</div>
-                  </div>
+                {/* Filete doble izquierdo Alternativa 4 */}
+                <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
+                  <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
+                  <div className="w-[2px] h-full bg-transparent" />
+                  <div className="w-[1px] h-full bg-[#D4B895]" />
                 </div>
 
-                {/* ==================== PÁGINA 2: SECCIÓN 1 - FICHA TÉCNICA CONSTRUCTIVA & METODOLOGÍA ==================== */}
-                <div className="dossier-page page-2 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md leading-relaxed">
-                  <div className="space-y-2.5">
-                    {/* Membrete de Continuidad ARANPRO */}
-                    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                      <div className="flex items-center space-x-3">
-                        <AranproLogo variant="principal" className="h-10 w-auto" />
-                        <div className="border-l border-slate-300 pl-3">
-                          <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">{empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}</span>
-                          <span className="text-[9px] text-slate-500 font-mono">Auditoría Constructiva & Administración Ley N° 21.442</span>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                          SECCIÓN TÉCNICA • PÁG. 2 DE 3
-                        </span>
-                      </div>
-                    </div>
+                {/* Sello de agua central sutil */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 opacity-[0.035]"
+                  aria-hidden="true"
+                >
+                  <img
+                    src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                    alt=""
+                    className="w-[420px] h-[420px] object-contain"
+                  />
+                </div>
 
-                    {/* Título Sección 1 */}
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
-                        1
-                      </div>
-                      <div>
-                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                          Ficha Técnica Constructiva: Auditoría & Prevención de Daños
-                        </h2>
-                        <p className="text-[9.5px] text-slate-500 leading-tight">
-                          La ventaja diferencial del perfil profesional de Constructor Civil
+                <div className="space-y-3 relative z-10">
+                  {/* Membrete Corporativo Maestro ARANPRO */}
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3">
+                    <div className="flex items-center space-x-3.5">
+                      <AranproLogo variant="principal" className="h-11 w-auto" />
+                      <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
+                        <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
+                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
+                        </div>
+                        <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
+                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
+                        </p>
+                        <p className="text-[9px] text-slate-500">
+                          {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'La Serena / Coquimbo, Chile'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Grid de 4 Especialidades Constructivas */}
+                    <div className="text-right space-y-0.5 shrink-0">
+                      <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded-md">
+                        DOSSIER OFICIAL EJECUTIVO
+                      </span>
+                      <p className="text-[10.5px] font-bold text-slate-800">
+                        Propuesta Integral de Gestión & Auditoría Constructiva
+                      </p>
+                      <p className="text-[9.5px] text-slate-500 font-semibold">
+                        {proposalConfig.targetCondo || 'Comunidad de Copropietarios'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Encabezado Formal Protocolar */}
+                  <div className="text-[10.5px] text-slate-700 space-y-1 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200">
+                    <p>
+                      <strong>Dirigido cordialmente a:</strong>{' '}
+                      {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim() ? (
+                        <span className="font-mono text-slate-400">__________________________________________________________________</span>
+                      ) : (
+                        <strong className="text-slate-900">{proposalConfig.targetRecipient}</strong>
+                      )}
+                    </p>
+                    <p>
+                      <strong>Condominio / Edificio:</strong>{' '}
+                      {proposalConfig.targetCondo?.trim() ? (
+                        <strong className="text-[#0F3D2E] uppercase">{proposalConfig.targetCondo}</strong>
+                      ) : (
+                        <span className="font-mono text-slate-400">__________________________________________________________</span>
+                      )}
+                    </p>
+                    <p>
+                      <strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)
+                    </p>
+                    <p>
+                      <strong>Fecha y Lugar:</strong>{' '}
+                      {proposalConfig.proposalDate
+                        ? new Date(proposalConfig.proposalDate + 'T12:00:00').toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })
+                        : new Date().toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {proposalConfig.targetCity?.trim() ? ` • ${proposalConfig.targetCity}` : ` • ${empresaForm.city || 'La Serena'}`}
+                    </p>
+                    <p>
+                      <strong>Materia:</strong> Postulación Integral a la Administración, Auditoría Constructiva y Custodia Patrimonial
+                    </p>
+                  </div>
+
+                  {/* Título de la Propuesta */}
+                  <div className="text-center py-1">
+                    <h1 className="text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
+                      Dossier Integral de Gestión & Respaldo Técnico Constructivo
+                    </h1>
+                    <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                      Solvencia Técnica en Terreno • Transparencia Contable 24/7 • Cumplimiento Normativo Ley N° 21.442
+                    </p>
+                    <div className="w-20 h-0.5 bg-[#D4B895] mx-auto mt-1 rounded-full"></div>
+                  </div>
+
+                  {/* Carta Ejecutiva y Diagnóstico Argumentado */}
+                  <div className="text-justify text-[10.5px] text-slate-800 leading-relaxed space-y-2">
+                    <p>
+                      {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim()
+                        ? 'Estimados señores miembros del Comité de Administración y vecinos copropietarios:'
+                        : `Estimados ${proposalConfig.targetRecipient}:`}
+                    </p>
+                    <p>
+                      Junto con saludarles cordialmente y reconociendo el gran compromiso que dedican a su comunidad, me dirijo a ustedes para presentar formalmente los servicios de <strong>{empresaForm.provisionalName || 'ARANPRO Gestión Integral'}</strong> y postular a la administración profesional y custodia patrimonial de{' '}
+                      {proposalConfig.targetCondo?.trim() ? (
+                        <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong>
+                      ) : (
+                        <strong>su comunidad</strong>
+                      )}{' '}
+                      bajo el marco de excelencia de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
+                    </p>
+                    <p>
+                      Sabemos que la principal frustración de los comités de administración radica en la <strong>falta de presencia física en terreno</strong> de administraciones tradicionales de escritorio, el <strong>desconocimiento técnico</strong> para inspeccionar salas de bombas, cubiertas o tableros eléctricos, y la <strong>indefensión ante contratistas externos</strong> que cobran sobreprecios o inventan fallas que nadie sabe auditar.
+                    </p>
+                    <p>
+                      Nuestra propuesta rompe definitivamente con ese paradigma: como <strong>Constructor Civil</strong>, asumo personalmente la supervisión técnica directa de la infraestructura del condominio, auditando cada mantención electromecánica, cubicando presupuestos de proveedores y evitando reparaciones innecesarias o sobrevaloradas. Complementamos este rigor en terreno con una <strong>Suite Digital Gratuita en la nube</strong> y aplicación móvil para residentes, garantizando que cada factura, cartola bancaria, comprobante de egreso y colilla legal quede a la vista de los copropietarios las 24 horas del día.
+                    </p>
+                  </div>
+
+                  {/* Los 4 Pilares Estratégicos ARANPRO */}
+                  <div className="pt-1">
+                    <div className="text-center mb-1.5">
+                      <span className="text-[9.5px] font-black uppercase text-[#0F3D2E] tracking-wider">
+                        Los 4 Pilares Estratégicos de Nuestra Gestión Integral
+                      </span>
+                    </div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
-                          <span className="text-emerald-600">✓</span>
-                          Salas de Bombas e Hidroneumáticos
+                          <span className="text-emerald-700">🏗️</span>
+                          Supervisión Constructiva en Terreno
                         </div>
-                        <p className="text-slate-600 text-[9.5px] leading-snug">
-                          Verificación experta de presión de impulsión, estanques de acumulación, tableros de alternancia, sellos mecánicos y válvulas de retención sin depender de diagnósticos falsos de terceros.
+                        <p className="text-slate-600 text-[9px] leading-snug">
+                          Inspección periódica directa a salas de bombas, techumbres, impermeabilizaciones y tableros con criterio de Constructor Civil.
                         </p>
                       </div>
 
                       <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
-                          <span className="text-emerald-600">✓</span>
-                          Cubiertas, Techumbres y Filtraciones
+                          <span className="text-emerald-700">💎</span>
+                          Transparencia Contable Total 24/7
                         </div>
-                        <p className="text-slate-600 text-[9.5px] leading-snug">
-                          Detección precoz del origen de filtraciones (juntas de dilatación, bajadas de aguas lluvia, membranas asfálticas), garantizando que las reparaciones sean definitivas.
+                        <p className="text-slate-600 text-[9px] leading-snug">
+                          Conciliación bancaria diaria, respaldos digitalizados de cada factura y rendición mensual de cuentas documentada ante el Comité.
                         </p>
                       </div>
 
                       <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
-                          <span className="text-emerald-600">✓</span>
-                          Fiscalización Experta de Contratistas
+                          <span className="text-emerald-700">📐</span>
+                          Cubicación & Control de Contratistas
                         </div>
-                        <p className="text-slate-600 text-[9.5px] leading-snug">
-                          Revisión rigurosa de especificaciones técnicas y cubicaciones de presupuestos externos, frenando sobreprecios en pinturas, pavimentos y mantención de ascensores.
+                        <p className="text-slate-600 text-[9px] leading-snug">
+                          Elaboración de bases técnicas y revisión de cotizaciones ítem por ítem, frenando sobrecostos en pinturas, pavimentos y mantenciones.
                         </p>
                       </div>
 
                       <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
-                          <span className="text-emerald-600">✓</span>
-                          Portal & Aplicación Móvil 100% Transparente
+                          <span className="text-emerald-700">⚖️</span>
+                          Régimen Laboral & Ley N° 21.442
                         </div>
-                        <p className="text-slate-600 text-[9.5px] leading-snug">
-                          Cada factura, boleta, cartola bancaria y comprobante de egreso queda publicado en línea con respaldo digital para libre auditoría de los copropietarios las 24 horas.
+                        <p className="text-slate-600 text-[9px] leading-snug">
+                          Cumplimiento estricto de protocolos Ley Karin, contratos de conserjería, pagos F30-1 y pólizas de seguro colectivo (Art. 43°).
                         </p>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Plan Maestro de Implementación (Primeros 30 Días) */}
-                    <div className="space-y-1.5 pt-0.5">
+                  {/* Resumen de Respaldo y Acreditación en Cifras */}
+                  <div className="pt-0.5">
+                    <div className="grid grid-cols-4 gap-1.5 text-center">
+                      <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Especialidad</span>
+                        <strong className="text-[10.5px] font-black text-[#0F3D2E]">Construcción Civil</strong>
+                      </div>
+                      <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Acreditación Oficial</span>
+                        <strong className="text-[10.5px] font-black text-[#0F3D2E]">{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442'}</strong>
+                      </div>
+                      <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Experiencia & Cartera</span>
+                        <strong className="text-[10.5px] font-black text-[#0F3D2E]">{portfolioStats.totalComms} Condominio(s) Base</strong>
+                      </div>
+                      <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Régimen en Terreno</span>
+                        <strong className="text-[10.5px] font-black text-[#0F3D2E]">Semanal + 24/7</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Propuesta Económica Opcional */}
+                  {proposalConfig.includeEconomicInDossier !== false && Number(proposalConfig.proposedMonthlyFee) > 0 && (
+                    <div className="p-2.5 rounded-xl bg-slate-50 border-2 border-[#0F3D2E]/20 space-y-1 text-xs">
                       <div className="flex items-center justify-between border-b border-slate-200 pb-1">
-                        <h4 className="text-[11px] font-black text-[#0F3D2E] uppercase tracking-wide">
-                          Plan Maestro de Traspaso & Despliegue Inicial (Primeros 30 Días)
-                        </h4>
-                        <span className="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          Sin Costo Adicional para la Comunidad
+                        <span className="font-black text-[#0F3D2E] uppercase text-[10px]">
+                          Resumen de Propuesta Económica para la Comunidad Evaluada
+                        </span>
+                        <span className="font-mono font-bold text-[9px] text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2 py-0.5 rounded">
+                          {proposalConfig.taxModality || 'Factura Exenta / Boleta'}
                         </span>
                       </div>
-
-                      <div className="space-y-1.5 text-xs">
-                        <div className="p-2 rounded-xl border border-slate-200 bg-white flex items-start gap-2.5">
-                          <span className="px-1.5 py-0.5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
-                            DÍAS 1 - 10
-                          </span>
-                          <div>
-                            <strong className="text-slate-900 block text-[10.5px]">Auditoría Contable de Traspaso & Conciliación Bancaria</strong>
-                            <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
-                              Recepción formal de cuentas bancarias, arqueo del Fondo de Reserva Legal (Art. 39° Ley N° 21.442), verificación de nómina de copropietarios y pólizas vigentes de seguro colectivo contra incendio (Art. 43°).
-                            </p>
-                          </div>
+                      <div className="grid grid-cols-3 gap-2 text-center py-0.5">
+                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                          <span className="text-[8px] text-slate-500 uppercase block font-bold">Honorario Mensual Propuesto</span>
+                          <strong className="text-xs font-black text-[#0F3D2E]">
+                            {formatCLP(Number(proposalConfig.proposedMonthlyFee) || 0)} / mes
+                          </strong>
                         </div>
-
-                        <div className="p-2 rounded-xl border border-slate-200 bg-white flex items-start gap-2.5">
-                          <span className="px-1.5 py-0.5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
-                            DÍAS 11 - 20
-                          </span>
-                          <div>
-                            <strong className="text-slate-900 block text-[10.5px]">Levantamiento Técnico de Infraestructura & Seguridad</strong>
-                            <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
-                              Inspección visual técnica en terreno de sala de bombas, generadores de emergencia, tableros eléctricos certificados SEC, red húmeda/seca y contratos vigentes de proveedores.
-                            </p>
-                          </div>
+                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                          <span className="text-[8px] text-slate-500 uppercase block font-bold">Costo Estimado por Unidad</span>
+                          <strong className="text-xs font-black text-slate-800">
+                            {formatCLP(
+                              Math.round(
+                                (Number(proposalConfig.proposedMonthlyFee) || 0) /
+                                  Math.max(1, Number(proposalConfig.targetUnits) || 1)
+                              )
+                            )}{' '}
+                            / unidad
+                          </strong>
                         </div>
-
-                        <div className="p-2 rounded-xl border border-slate-200 bg-white flex items-start gap-2.5">
-                          <span className="px-1.5 py-0.5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
-                            DÍAS 21 - 30
-                          </span>
-                          <div>
-                            <strong className="text-slate-900 block text-[10.5px]">Habilitación de la Suite Digital & Primera Rendición al Comité</strong>
-                            <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
-                              Entrega de accesos a la App ARANPRO para todos los copropietarios, habilitación del libro oficial de reclamos foliado (Art. 20°) y presentación del informe diagnóstico inicial al Comité.
-                            </p>
-                          </div>
+                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                          <span className="text-[8px] text-slate-500 uppercase block font-bold">Dotación Evaluada</span>
+                          <strong className="text-xs font-black text-slate-800">
+                            {proposalConfig.targetUnits || '60'} Unidades
+                          </strong>
                         </div>
                       </div>
+                      <p className="text-[9px] text-slate-600 leading-snug">
+                        <strong>Incluye sin costo adicional:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}, Suite Web & App Móvil ARANPRO 24/7 para todos los residentes, auditoría contable de traspaso inicial y diagnóstico constructivo preventivo.
+                      </p>
                     </div>
+                  )}
+                </div>
 
-                    {/* Recuadro Normativo Minvu */}
-                    <div className="p-2.5 rounded-xl bg-gradient-to-r from-[#0F3D2E]/10 via-[#0F3D2E]/5 to-transparent border-l-4 border-[#0F3D2E] text-xs">
-                      <strong className="text-[#0F3D2E] block text-[10.5px]">Garantía de Cumplimiento Legal • Ley N° 21.442</strong>
-                      <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
-                        Administrador debidamente acreditado conforme a las exigencias de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>, sin anotaciones negativas, sanciones ni reclamos. Sujeto a rendición documentada mensual ante el Comité de Administración.
+                {/* Pie de Página Institucional Página 1 */}
+                <div className="mt-auto pt-3 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
+                  <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
+                  <div className="font-bold text-[#0F3D2E]">Página 1 de 3 • Carta de Presentación Oficial • Ley N° 21.442</div>
+                  <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
+                </div>
+              </div>
+
+              {/* ==================== PÁGINA 2: FICHA TÉCNICA CONSTRUCTIVA & PLAN DE TRASPASO 30 DÍAS ==================== */}
+              <div
+                data-pdf-style={pdfStyle}
+                className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {/* Filete doble izquierdo Alternativa 4 */}
+                <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
+                  <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
+                  <div className="w-[2px] h-full bg-transparent" />
+                  <div className="w-[1px] h-full bg-[#D4B895]" />
+                </div>
+
+                {/* Sello de agua central sutil */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 opacity-[0.035]"
+                  aria-hidden="true"
+                >
+                  <img
+                    src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                    alt=""
+                    className="w-[420px] h-[420px] object-contain"
+                  />
+                </div>
+
+                <div className="space-y-3 relative z-10">
+                  {/* Membrete de Continuidad ARANPRO */}
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
+                    <div className="flex items-center space-x-3">
+                      <AranproLogo variant="principal" className="h-10 w-auto" />
+                      <div className="border-l border-slate-300 pl-3">
+                        <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">
+                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
+                        </span>
+                        <span className="text-[9px] text-slate-500 font-mono">
+                          Auditoría Constructiva, Supervisión Electromecánica y Gestión de Activos • Ley N° 21.442
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
+                        SECCIÓN TÉCNICA EN TERRENO • PÁG. 2 DE 3
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Título Sección 1 */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
+                      1
+                    </div>
+                    <div>
+                      <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                        Ficha Técnica Constructiva: Auditoría en Terreno & Prevención Patrimonial
+                      </h2>
+                      <p className="text-[9.5px] text-slate-500 leading-tight">
+                        El valor diferencial de la formación como Constructor Civil aplicado a la vida diaria del condominio
                       </p>
                     </div>
                   </div>
 
-                  {/* Pie de Página Institucional Página 2 */}
-                  <div className="mt-auto pt-2 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                    <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Página 2 de 3 • Ficha Técnica & Metodología Constructiva</div>
-                    <div>Fono Directo: {empresaForm.phone}</div>
+                  {/* Grid de 4 Especialidades Constructivas Detalladas */}
+                  <div className="grid grid-cols-2 gap-2.5 text-xs">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
+                        <span className="text-emerald-700">✓</span>
+                        Salas de Bombas, Hidroneumáticos & Matrices
+                      </div>
+                      <p className="text-slate-600 text-[9.5px] leading-relaxed">
+                        Inspección periódica de presiones de impulsión manométrica, estanques de acumulación, tableros de alternancia, sellos mecánicos, estanques de expansión y válvulas check. Eliminación de intermediarios y diagnósticos falsos de empresas externas.
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
+                        <span className="text-emerald-700">✓</span>
+                        Cubiertas, Techumbres y Detección de Filtraciones
+                      </div>
+                      <p className="text-slate-600 text-[9.5px] leading-relaxed">
+                        Inspección técnica de mantos asfálticos, bajadas de aguas lluvia, juntas de dilatación estructural, sellos perimetrales y hojalaterías. Detección precoz del origen exacto de la humedad antes de que cause daños estructurales o inhabitabilidad.
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
+                        <span className="text-emerald-700">✓</span>
+                        Seguridad Eléctrica, Grupo Electrógeno & Incendio
+                      </div>
+                      <p className="text-slate-600 text-[9.5px] leading-relaxed">
+                        Fiscalización de tableros TGBT certificados bajo normativa SEC, pruebas periódicas de transferencia automática del generador con carga real, presurización de cajas de escalas, redes húmedas/secas y vigencia de extintores (D.S. N° 594).
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
+                        <span className="text-emerald-700">✓</span>
+                        Cubicación, Licitaciones & Control de Contratistas
+                      </div>
+                      <p className="text-slate-600 text-[9.5px] leading-relaxed">
+                        Confección de especificaciones técnicas objetivas antes de licitar. Revisión exhaustiva de cubicaciones de presupuestos externos para evitar sobreprecios en pinturas de fachadas, pavimentos o ascensores. Recepción conforme antes de autorizar pagos.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Plan Maestro de Implementación (Primeros 30 Días) */}
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-1">
+                      <h4 className="text-[11px] font-black text-[#0F3D2E] uppercase tracking-wide">
+                        Plan Maestro de Traspaso & Despliegue Inicial (Primeros 30 Días)
+                      </h4>
+                      <span className="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        Sin Costo Adicional para la Comunidad
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div className="p-2.5 rounded-xl border border-slate-200 bg-white flex items-start gap-3 shadow-xs">
+                        <span className="px-2 py-1 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
+                          DÍAS 1 - 10
+                        </span>
+                        <div>
+                          <strong className="text-slate-900 block text-[10.5px]">Auditoría Contable de Traspaso, Conciliación Bancaria y Legal</strong>
+                          <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
+                            Recepción formal de cuentas bancarias y libros contables. Arqueo del Fondo de Reserva Legal (Art. 39° Ley N° 21.442), conciliación de nómina de copropietarios y estado de cobranza, revisión de pólizas de seguro colectivo de incendio (Art. 43°) y actualización de firmas bancarias.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl border border-slate-200 bg-white flex items-start gap-3 shadow-xs">
+                        <span className="px-2 py-1 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
+                          DÍAS 11 - 20
+                        </span>
+                        <div>
+                          <strong className="text-slate-900 block text-[10.5px]">Levantamiento Técnico de Infraestructura & Auditoría Laboral</strong>
+                          <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
+                            Inspección técnica exhaustiva en terreno de salas de máquinas, bombas, calderas, techumbres y áreas comunes. Revisión de carpetas del personal de conserjería: contratos de trabajo, cumplimiento Ley Karin, libro de asistencia digital y certificados de cotizaciones previsionales F30-1.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl border border-slate-200 bg-white flex items-start gap-3 shadow-xs">
+                        <span className="px-2 py-1 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
+                          DÍAS 21 - 30
+                        </span>
+                        <div>
+                          <strong className="text-slate-900 block text-[10.5px]">Habilitación de la Suite Digital & Primera Rendición al Comité</strong>
+                          <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
+                            Carga de la comunidad en la Suite ARANPRO y entrega de accesos a la App móvil para el 100% de los residentes. Habilitación del Libro Digital de Reclamos y Sugerencias foliado (Art. 20°) y entrega formal del Informe de Diagnóstico Técnico Inicial con prioridades y presupuesto preventivo.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recuadro de Compromiso de Régimen en Terreno & Emergencias */}
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-[#0F3D2E]/10 via-[#0F3D2E]/5 to-transparent border-l-4 border-[#0F3D2E] text-xs space-y-1">
+                    <strong className="text-[#0F3D2E] block text-[10.5px]">Compromiso Operativo: Régimen en Terreno & Atención de Urgencias 24/7</strong>
+                    <div className="grid grid-cols-2 gap-2 text-[9.5px] text-slate-700 pt-0.5">
+                      <div>
+                        <strong>• Visitas Presenciales Semanales:</strong> Inspección en terreno con registro obligatorio en bitácora de conserjería, fiscalización de aseo y mantenimiento preventivo.
+                      </div>
+                      <div>
+                        <strong>• Canal Prioritario WhatsApp 24/7:</strong> Atención directa e inmediata con el Administrador titular ante cortes de agua, fallas eléctricas o emergencias críticas.
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* ==================== PÁGINA 3: SECCIONES 2 & 3 - ACREDITACIONES, REFERENCIAS & FIRMA ==================== */}
-                <div className="dossier-page page-3 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md leading-relaxed">
-                  <div className="space-y-2">
-                    {/* Membrete de Continuidad ARANPRO */}
-                    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                      <div className="flex items-center space-x-3">
-                        <AranproLogo variant="principal" className="h-9 w-auto" />
-                        <div className="border-l border-slate-300 pl-3">
-                          <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">{empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}</span>
-                          <span className="text-[9px] text-slate-500 font-mono">Acreditación Técnica, Referencias Notariales y Firma Oficial • Ley N° 21.442</span>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                          ACREDITACIÓN & FIRMA • PÁG. 3 DE 3
+                {/* Pie de Página Institucional Página 2 */}
+                <div className="mt-auto pt-3 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
+                  <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
+                  <div className="font-bold text-[#0F3D2E]">Página 2 de 3 • Ficha Técnica & Plan Maestro de Despliegue</div>
+                  <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
+                </div>
+              </div>
+
+              {/* ==================== PÁGINA 3: SUITE DIGITAL GRATUITA, ACREDITACIONES, REFERENCIAS & FIRMA ==================== */}
+              <div
+                data-pdf-style={pdfStyle}
+                className="dossier-page page-3 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {/* Filete doble izquierdo Alternativa 4 */}
+                <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
+                  <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
+                  <div className="w-[2px] h-full bg-transparent" />
+                  <div className="w-[1px] h-full bg-[#D4B895]" />
+                </div>
+
+                {/* Sello de agua central sutil */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 opacity-[0.035]"
+                  aria-hidden="true"
+                >
+                  <img
+                    src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                    alt=""
+                    className="w-[420px] h-[420px] object-contain"
+                  />
+                </div>
+
+                <div className="space-y-2.5 relative z-10">
+                  {/* Membrete de Continuidad ARANPRO */}
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
+                    <div className="flex items-center space-x-3">
+                      <AranproLogo variant="principal" className="h-9 w-auto" />
+                      <div className="border-l border-slate-300 pl-3">
+                        <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">
+                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
+                        </span>
+                        <span className="text-[9px] text-slate-500 font-mono">
+                          Acreditación Profesional, Ecosistema Digital y Testimonios de Comités • Ley N° 21.442
                         </span>
                       </div>
                     </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
+                        ACREDITACIÓN & FIRMA • PÁG. 3 DE 3
+                      </span>
+                    </div>
+                  </div>
 
-                    {/* SECCIÓN 2: TÍTULOS, DIPLOMAS E ÍNDICE DE ACREDITACIONES LEGALES */}
-                    <div className="space-y-1.5">
+                  {/* SECCIÓN 2: ECOSISTEMA TECNOLÓGICO ARANPRO */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
                           2
                         </div>
                         <div>
                           <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                            Anexo de Títulos Profesionales, Diplomas & Acreditaciones Legales
+                            Ecosistema Tecnológico ARANPRO: Transparencia Total sin Costo de Software
                           </h2>
                           <p className="text-[9px] text-slate-500 leading-tight">
-                            Respaldos formales acreditados del Administrador Titular ({empresaForm.adminName})
+                            Ahorro anual directo de $500.000 a $1.200.000 para el condominio al no pagar licencias externas
                           </p>
                         </div>
                       </div>
-
-                      <div className="space-y-1 text-xs">
-                        {academicRecords.filter(r => r.includeInProposal !== false).map(item => (
-                          <div key={item.id} className="p-1.5 rounded-lg border border-slate-300 bg-slate-50/80 space-y-0.5 text-xs">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-black text-slate-900 text-[10.5px] leading-tight">{item.title}</span>
-                              <span className="px-2 py-0.5 rounded text-[8.5px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
-                                {item.status}
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap items-center justify-between gap-x-2 text-[9px] text-slate-500">
-                              <span>Institución: <strong className="text-slate-700">{item.institution}</strong> • Periodo: <strong className="text-slate-700">{item.year}</strong></span>
-                              <span className="text-[8px] text-emerald-800 font-mono font-bold">
-                                ✓ Folio: {item.fileName || 'Diploma_Acreditado.pdf'}
-                              </span>
-                            </div>
-                            <p className="text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 text-[9px] leading-snug">
-                              <strong>Aporte Técnico:</strong> {item.relevance}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Índice de Documentos Legales e Institucionales Acreditados */}
-                      {accreditationDocs.filter(d => d.includeInDossier !== false).length > 0 && (
-                        <div className="pt-0.5 space-y-1">
-                          <span className="text-[9px] font-black uppercase text-[#0F3D2E] block">
-                            Certificados Legales, Tributarios e Institucionales en Carpeta:
-                          </span>
-                          <div className="grid grid-cols-2 gap-1 text-[9px]">
-                            {accreditationDocs.filter(d => d.includeInDossier !== false).map((doc, idx) => (
-                              <div key={doc.id} className="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-between gap-1.5">
-                                <div className="min-w-0">
-                                  <strong className="text-slate-900 block leading-tight truncate text-[9.5px]">
-                                    Anexo {idx + 1}: {doc.name}
-                                  </strong>
-                                  <span className="text-[8px] text-slate-500 block truncate">
-                                    {doc.issuer || 'Institución Oficial'} {doc.folio ? `• Folio ${doc.folio}` : ''}
-                                  </span>
-                                </div>
-                                <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold text-[8px] shrink-0 whitespace-nowrap">
-                                  ✓ Vigente
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <span className="text-[8.5px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        100% Incluido
+                      </span>
                     </div>
 
-                    {/* SECCIÓN 3: REFERENCIAS DE COMITÉS */}
-                    <div className="space-y-1 pt-0.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
-                          3
-                        </div>
-                        <div>
-                          <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                            Referencias Comprobables de Comités de Administración
-                          </h2>
-                          <p className="text-[9px] text-slate-500 leading-tight">
-                            Testimonios directos de dirigentes comunitarios que avalan nuestra gestión
-                          </p>
-                        </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                        <strong className="text-[#0F3D2E] text-[10px] block font-bold">📲 Portal Web & App Móvil</strong>
+                        <p className="text-[9px] text-slate-600 leading-snug">
+                          Avisos de cobro descargables, pago de gastos comunes en línea, reserva de quinchos/salas y asambleas digitales.
+                        </p>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
-                        {committeeReferences.map(ref => (
-                          <div key={ref.id} className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 space-y-0.5">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="font-black text-slate-900 text-[10px]">{ref.contactName}</span>
-                              <span className="text-[8.5px] font-bold text-[#0F3D2E] text-right">{ref.role} • {ref.communityName}</span>
-                            </div>
-                            <p className="text-slate-500 text-[8px] font-mono">Fono Contacto: {ref.phone}</p>
-                            <blockquote className="text-slate-700 italic bg-white px-1.5 py-0.5 rounded border border-slate-200 text-[8.5px] leading-snug">
-                              "{ref.quote}"
-                            </blockquote>
-                          </div>
-                        ))}
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                        <strong className="text-[#0F3D2E] text-[10px] block font-bold">🛡️ Módulo Comité 24/7</strong>
+                        <p className="text-[9px] text-slate-600 leading-snug">
+                          Auditoría libre de cartolas bancarias, respaldos digitales de cada egreso y aprobación de pagos a proveedores en un clic.
+                        </p>
+                      </div>
+
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                        <strong className="text-[#0F3D2E] text-[10px] block font-bold">📖 Libro Digital Foliado</strong>
+                        <p className="text-[9px] text-slate-600 leading-snug">
+                          Registro inalterable de reclamos y sugerencias según Art. 20° Ley N° 21.442, con trazabilidad y plazos garantizados.
+                        </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* SECCIÓN DE SELLO CIRCULAR DORADO + FIRMA Y FOOTER ANCLADOS AL PIE */}
-                  <div className="mt-auto pt-2 space-y-2">
-                    <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
-                      <AranproOfficialSeal
-                        size="sm"
-                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                        rnacNumber=""
-                        showCaption={true}
-                      />
-                      <div className="text-center space-y-0.5 min-w-[240px]">
-                        <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
-                          {signatureImage ? (
-                            <img
-                              src={signatureImage}
-                              alt="Firma Administrador"
-                              className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
-                              style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                            />
-                          ) : (
-                            <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
-                          )}
-                        </div>
-                        <div className="border-t-[1.5px] border-slate-800 pt-1">
-                          <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                          <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                            Constructor Civil • Administrador de Condominios
-                          </p>
-                          <p className="text-[9px] text-slate-600 font-mono">
-                            RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442
-                          </p>
-                        </div>
+                  {/* SECCIÓN 3: TÍTULOS, DIPLOMAS E ÍNDICE DE ACREDITACIONES LEGALES */}
+                  <div className="space-y-1.5 pt-0.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
+                        3
+                      </div>
+                      <div>
+                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                          Acreditaciones Académicas, Antecedentes y Respaldos Legales
+                        </h2>
+                        <p className="text-[9px] text-slate-500 leading-tight">
+                          Respaldos formales acreditados del Administrador Titular ({empresaForm.adminName})
+                        </p>
                       </div>
                     </div>
 
-                    {/* Pie de Página Institucional Página 3 */}
-                    <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                      <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                      <div className="font-bold text-[#0F3D2E]">Página 3 de 3 • Acreditaciones, Referencias y Firma Oficial</div>
-                      <div>{empresaForm.city || 'La Serena, Chile'}</div>
+                    <div className="space-y-1 text-xs">
+                      {academicRecords.filter(r => r.includeInProposal !== false).map(item => (
+                        <div key={item.id} className="p-1.5 rounded-lg border border-slate-300 bg-slate-50/80 space-y-0.5 text-xs">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-black text-slate-900 text-[10.5px] leading-tight">{item.title}</span>
+                            <span className="px-2 py-0.5 rounded text-[8.5px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
+                              {item.status}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-between gap-x-2 text-[9px] text-slate-500">
+                            <span>Institución: <strong className="text-slate-700">{item.institution}</strong> • Periodo: <strong className="text-slate-700">{item.year}</strong></span>
+                            <span className="text-[8px] text-emerald-800 font-mono font-bold">
+                              ✓ Folio: {item.fileName || 'Diploma_Acreditado.pdf'}
+                            </span>
+                          </div>
+                          <p className="text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 text-[9px] leading-snug">
+                            <strong>Aporte Técnico:</strong> {item.relevance}
+                          </p>
+                        </div>
+                      ))}
                     </div>
+
+                    {/* Índice de Documentos Legales e Institucionales Acreditados */}
+                    {accreditationDocs.filter(d => d.includeInDossier !== false).length > 0 && (
+                      <div className="pt-0.5 space-y-1">
+                        <span className="text-[9px] font-black uppercase text-[#0F3D2E] block">
+                          Certificados Legales, Tributarios e Institucionales en Carpeta:
+                        </span>
+                        <div className="grid grid-cols-2 gap-1 text-[9px]">
+                          {accreditationDocs.filter(d => d.includeInDossier !== false).map((doc, idx) => (
+                            <div key={doc.id} className="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-between gap-1.5">
+                              <div className="min-w-0">
+                                <strong className="text-slate-900 block leading-tight truncate text-[9.5px]">
+                                  Anexo {idx + 1}: {doc.name}
+                                </strong>
+                                <span className="text-[8px] text-slate-500 block truncate">
+                                  {doc.issuer || 'Institución Oficial'} {doc.folio ? `• Folio ${doc.folio}` : ''}
+                                </span>
+                              </div>
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold text-[8px] shrink-0 whitespace-nowrap">
+                                ✓ Vigente
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SECCIÓN 4: REFERENCIAS DE COMITÉS */}
+                  <div className="space-y-1 pt-0.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
+                        4
+                      </div>
+                      <div>
+                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                          Referencias Comprobables de Comités de Administración
+                        </h2>
+                        <p className="text-[9px] text-slate-500 leading-tight">
+                          Testimonios directos de dirigentes comunitarios que avalan nuestra gestión
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
+                      {committeeReferences.map(ref => (
+                        <div key={ref.id} className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 space-y-0.5">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-black text-slate-900 text-[10px]">{ref.contactName}</span>
+                            <span className="text-[8.5px] font-bold text-[#0F3D2E] text-right">{ref.role} • {ref.communityName}</span>
+                          </div>
+                          <p className="text-slate-500 text-[8px] font-mono">Fono Contacto: {ref.phone}</p>
+                          <blockquote className="text-slate-700 italic bg-white px-1.5 py-0.5 rounded border border-slate-200 text-[8.5px] leading-snug">
+                            "{ref.quote}"
+                          </blockquote>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECCIÓN DE SELLO CIRCULAR DORADO + FIRMA Y FOOTER ANCLADOS AL PIE */}
+                <div className="mt-auto pt-2 space-y-2 relative z-10">
+                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
+                    <AranproOfficialSeal
+                      size="sm"
+                      companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
+                      rnacNumber=""
+                      showCaption={true}
+                    />
+                    <div className="text-center space-y-0.5 min-w-[240px]">
+                      <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
+                        {signatureImage ? (
+                          <img
+                            src={signatureImage}
+                            alt="Firma Administrador"
+                            className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
+                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
+                          />
+                        ) : (
+                          <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
+                        )}
+                      </div>
+                      <div className="border-t-[1.5px] border-slate-800 pt-1">
+                        <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
+                        <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
+                          Constructor Civil • Administrador de Condominios
+                        </p>
+                        <p className="text-[9px] text-slate-600 font-mono">
+                          RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pie de Página Institucional Página 3 */}
+                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                    <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
+                    <div className="font-bold text-[#0F3D2E]">Página 3 de 3 • Acreditaciones, Referencias y Firma Notarial Oficial</div>
+                    <div>{empresaForm.city || 'La Serena / Coquimbo, Chile'}</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* ==================== MODAL PARA AGREGAR / EDITAR REFERENCIA DE COMITÉ ==================== */}
       {showRefModal && (
