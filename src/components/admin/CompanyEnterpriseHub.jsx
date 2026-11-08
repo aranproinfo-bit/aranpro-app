@@ -1120,7 +1120,7 @@ export const CompanyEnterpriseHub = ({
                           {companySettings?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
                         </div>
                         <div className="text-[10px] font-mono text-slate-600 font-bold">
-                          RUT Empresa: {companySettings?.companyRut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                          {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
                         </div>
                         <div className="text-[9.5px] text-slate-500">
                           Departamento de Recursos Humanos Internos & Cumplimiento Previsional de Oficina

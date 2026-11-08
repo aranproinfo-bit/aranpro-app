@@ -465,7 +465,7 @@ RUT: __________________________________`;
                   />
                   <div className="border-l border-slate-300 pl-3">
                     <div className="text-[10px] font-black text-[#0F3D2E] uppercase tracking-wider">ARANPRO • Gestión Integral Inmobiliaria</div>
-                    <div className="text-[9px] text-slate-600 font-mono font-bold">RUT: 76.999.888-8 • RNAC MINVU N° 48.912</div>
+                    <div className="text-[9px] text-slate-600 font-mono font-bold">Ley N° 21.442 de Copropiedad Inmobiliaria</div>
                   </div>
                 </div>
                 <div className="text-right text-xs">

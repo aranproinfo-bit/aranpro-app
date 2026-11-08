@@ -854,7 +854,7 @@ export const SuggestionsAndComplaintsModule = ({ currentCommunity }) => {
                         Gestión Inmobiliaria Integral
                       </div>
                       <div className="text-[9px] text-slate-500 font-mono">
-                        RUT: 76.999.888-1 • RNAC MINVU N° 48.912 • Fono: +56 9 5811 8504
+                        {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 • Fono: {companySettings?.phone || '+56 9 5811 8504'}
                       </div>
                     </div>
                   </div>
@@ -1003,7 +1003,7 @@ export const SuggestionsAndComplaintsModule = ({ currentCommunity }) => {
                     </div>
                     <div className="border-t border-slate-400 pt-1">
                       <strong className="block text-slate-900">Administración General ARANPRO</strong>
-                      <span className="text-[10px] text-slate-500">RUT: 76.999.888-1 • Reg. MINVU N° 44.201</span>
+                      <span className="text-[10px] text-slate-500">{companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad</span>
                     </div>
                   </div>
 
@@ -1035,7 +1035,7 @@ export const SuggestionsAndComplaintsModule = ({ currentCommunity }) => {
                 <AranproLogo className="h-10 w-auto" />
                 <div className="border-l border-slate-300 pl-3 space-y-0.5">
                   <div className="text-[10px] font-black text-[#0F3D2E] uppercase">Gestión Inmobiliaria Integral</div>
-                  <div className="text-[9px] text-slate-500 font-mono">RUT: 76.999.888-1 • RNAC MINVU N° 48.912 • Fono: +56 9 5811 8504</div>
+                  <div className="text-[9px] text-slate-500 font-mono">{companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 • Fono: {companySettings?.phone || '+56 9 5811 8504'}</div>
                 </div>
               </div>
               <div className="text-right text-xs">
@@ -1089,7 +1089,7 @@ export const SuggestionsAndComplaintsModule = ({ currentCommunity }) => {
                 <div className="border-t border-slate-400 pt-1">
                   <strong>{companySettings?.adminName || companySettings?.administratorName || 'Administración General ARANPRO'}</strong>
                   <span className="block text-[10px] text-slate-500">
-                    RUT: {companySettings?.companyRut || '76.999.888-1'} • RNAC N° {companySettings?.rnacNumber || '48.912'}
+                    {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad
                   </span>
                 </div>
               </div>

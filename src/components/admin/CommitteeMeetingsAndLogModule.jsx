@@ -327,7 +327,7 @@ export const CommitteeMeetingsAndLogModule = ({
                 <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
                 <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
                   <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
-                  <div class="brand-sub">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+                  <div class="brand-sub">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
                   <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 3px;">
                     Condominio: ${communityName}
                   </div>
@@ -586,7 +586,7 @@ export const CommitteeMeetingsAndLogModule = ({
                 <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
                 <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
                   <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
-                  <div style="font-size: 9.5px; color: #64748B; font-weight: 600; font-family: monospace;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+                  <div style="font-size: 9.5px; color: #64748B; font-weight: 600; font-family: monospace;">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
                   <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 3px;">
                     ${communityName}
                   </div>

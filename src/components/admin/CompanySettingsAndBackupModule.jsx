@@ -136,7 +136,7 @@ export const CompanySettingsAndBackupModule = ({
   const [empresaForm, setEmpresaForm] = useState({
     brandName: companySettings?.brandName || 'ARANPRO',
     provisionalName: companySettings?.provisionalName || 'ARANPRO • Gestión Integral de Condominios',
-    companyRut: (companySettings?.companyRut && companySettings.companyRut !== '76.999.888-1') ? companySettings.companyRut : '76.999.888-8',
+    companyRut: (companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888')) ? companySettings.companyRut : '',
     address: companySettings?.address || 'Av. Cuatro Esquinas 1520, Of. 402',
     city: companySettings?.city || 'La Serena, Coquimbo',
     country: 'Chile',
@@ -1836,23 +1836,28 @@ export const CompanySettingsAndBackupModule = ({
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      RUT *
+                      RUT EMPRESA (OPCIONAL — SE OCULTA EN DOCUMENTOS SI ESTÁ VACÍO)
                     </label>
                     <div className="relative">
                       <input
                         type="text"
                         value={empresaForm.companyRut}
                         onChange={(e) => setEmpresaForm({ ...empresaForm, companyRut: e.target.value })}
-                        placeholder="Ej: 76.999.888-1"
+                        placeholder="Dejar vacío hasta constituir la sociedad (Ej: 76.123.456-7)"
                         className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                        required
                       />
                       <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-0.5 rounded border ${
-                        validateRut(empresaForm.companyRut)
+                        !empresaForm.companyRut?.trim()
+                          ? 'text-slate-500 bg-slate-100 border-slate-200'
+                          : validateRut(empresaForm.companyRut)
                           ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
                           : 'text-amber-700 bg-amber-50 border-amber-200'
                       }`}>
-                        {validateRut(empresaForm.companyRut) ? '✓ RUT válido' : '⚠️ RUT a verificar'}
+                        {!empresaForm.companyRut?.trim()
+                          ? 'Oculto en documentos'
+                          : validateRut(empresaForm.companyRut)
+                          ? '✓ RUT válido'
+                          : '⚠️ RUT a verificar'}
                       </span>
                     </div>
                   </div>
@@ -5405,7 +5410,7 @@ export const CompanySettingsAndBackupModule = ({
                           {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                         </div>
                         <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                          RUT: {empresaForm.companyRut || '76.999.888-8'} • {empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
+                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
                         </p>
                         <p className="text-[9px] text-slate-500">
                           {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'La Serena, Chile'}
@@ -5556,7 +5561,7 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center gap-3">
                       <AranproOfficialSeal
                         size="sm"
-                        companyRut={empresaForm.companyRut || '76.999.888-8'}
+                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
                         rnacNumber=""
                         showCaption={true}
                       />
@@ -5700,7 +5705,7 @@ export const CompanySettingsAndBackupModule = ({
                             {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                           </div>
                           <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                            RUT Empresa: {empresaForm.companyRut || '76.999.888-8'} • Ley N° 21.442 de Copropiedad Inmobiliaria
+                            {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
                           </p>
                           <p className="text-[9px] text-slate-500">
                             {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'La Serena, Chile'}
@@ -5860,7 +5865,7 @@ export const CompanySettingsAndBackupModule = ({
                         <AranproOfficialSeal
                           variant="integral"
                           size="sm"
-                          companyRut={empresaForm.companyRut || '76.999.888-8'}
+                          companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
                           rnacNumber=""
                           showCaption={true}
                         />
@@ -6008,7 +6013,7 @@ export const CompanySettingsAndBackupModule = ({
                             {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                           </div>
                           <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                            RUT: {empresaForm.companyRut || '76.999.888-8'} • {empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
+                            {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
                           </p>
                           <p className="text-[9px] text-slate-500">
                             {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'La Serena, Chile'}
@@ -6442,7 +6447,7 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
                       <AranproOfficialSeal
                         size="sm"
-                        companyRut={empresaForm.companyRut || '76.999.888-8'}
+                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
                         rnacNumber=""
                         showCaption={true}
                       />
@@ -7000,7 +7005,7 @@ export const CompanySettingsAndBackupModule = ({
                           Portal Web & App Móvil ARANPRO
                         </h2>
                         <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                          RUT: {empresaForm.companyRut || '76.999.888-8'} • {empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
+                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
                         </p>
                         <p className="text-[9px] text-slate-500 font-mono">
                           {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.website || 'https://aranpro.cl'}
@@ -7129,7 +7134,7 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center gap-3">
                       <AranproOfficialSeal
                         size="sm"
-                        companyRut={empresaForm.companyRut || '76.999.888-8'}
+                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
                         rnacNumber=""
                         showCaption={true}
                       />
@@ -7236,7 +7241,7 @@ export const CompanySettingsAndBackupModule = ({
                           Informe de Diagnóstico Técnico Inicial
                         </h2>
                         <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                          RUT: {empresaForm.companyRut || '76.999.888-8'} • Ley N° 21.442 de Copropiedad • Fono: {empresaForm.phone || '+56 9 5811 8504'}
+                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad • Fono: {empresaForm.phone || '+56 9 5811 8504'}
                         </p>
                       </div>
                     </div>
@@ -7300,7 +7305,7 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center gap-3 max-w-md">
                       <AranproOfficialSeal
                         size="sm"
-                        companyRut={empresaForm.companyRut || '76.999.888-8'}
+                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
                         rnacNumber=""
                         showCaption={true}
                       />
@@ -7409,7 +7414,7 @@ export const CompanySettingsAndBackupModule = ({
                           ¿Por qué elegir la Gestión Integral de ARANPRO?
                         </h2>
                         <p className="text-[9.5px] text-slate-600 font-mono">
-                          RUT: {empresaForm.companyRut || '76.999.888-8'} • {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'}
+                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'}
                         </p>
                       </div>
                     </div>
@@ -7454,7 +7459,7 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center gap-3">
                       <AranproOfficialSeal
                         size="sm"
-                        companyRut={empresaForm.companyRut || '76.999.888-8'}
+                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
                         rnacNumber=""
                         showCaption={true}
                       />

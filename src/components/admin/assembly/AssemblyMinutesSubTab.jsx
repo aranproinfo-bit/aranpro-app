@@ -300,7 +300,7 @@ export const AssemblyMinutesSubTab = ({ currentCommunity }) => {
                       ARANPRO • Gestión Integral Inmobiliaria
                     </div>
                     <div className="text-[9px] text-slate-600 font-mono font-bold">
-                      RUT: 76.999.888-8 • RNAC MINVU N° 48.912 • Fono: +56 9 5811 8504
+                      Ley N° 21.442 de Copropiedad Inmobiliaria • Fono: +56 9 5811 8504
                     </div>
                   </div>
                 </div>

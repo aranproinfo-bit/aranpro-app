@@ -101,7 +101,7 @@ export const AranproOfficialSeal = ({
   size = 'md',
   showCaption = true,
   showText = true,
-  companyRut = '76.999.888-8',
+  companyRut = '',
   rnacNumber = '',
   className = ''
 }) => {
@@ -114,6 +114,8 @@ export const AranproOfficialSeal = ({
     variant === 'ap'
       ? '/brand/ARANPRO_sello_circular_ap_transparente.png'
       : '/brand/ARANPRO_sello_circular_integral_transparente.png';
+
+  const cleanCompanyRut = companyRut && !String(companyRut).includes('76.999.888') ? String(companyRut).trim() : '';
 
   const cleanRnacText = () => {
     if (!rnacNumber || rnacNumber === '48.912') {
@@ -146,9 +148,11 @@ export const AranproOfficialSeal = ({
           <div className="text-[9.5px] font-extrabold uppercase tracking-wider text-[#0F3D2E]">
             Sello Oficial de Administración
           </div>
-          <div className="text-[9px] font-mono font-semibold text-slate-600">
-            RUT Empresa: {companyRut}
-          </div>
+          {cleanCompanyRut && (
+            <div className="text-[9px] font-mono font-semibold text-slate-600">
+              RUT Empresa: {cleanCompanyRut}
+            </div>
+          )}
           <div className="text-[8.5px] font-bold text-slate-500">
             {cleanRnacText()}
           </div>

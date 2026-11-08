@@ -310,7 +310,7 @@ export const MuralAndComplaintsModule = ({
                   <img src="${logoUrl}" alt="ARANPRO" style="height: 54px; width: auto; object-fit: contain;" />
                   <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
                     <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
-                    <div style="font-size: 9.5px; font-weight: bold; color: #64748B; font-family: monospace;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+                    <div style="font-size: 9.5px; font-weight: bold; color: #64748B; font-family: monospace;">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
                     <div style="font-size: 13px; font-weight: 800; color: ${primaryColor}; margin-top: 2px;">
                       Comunidad: ${communityName}
                     </div>
@@ -491,7 +491,7 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                 <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
                 <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
                   <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
-                  <div style="font-size: 9.5px; color: #64748B; font-weight: 600; font-family: monospace;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+                  <div style="font-size: 9.5px; color: #64748B; font-weight: 600; font-family: monospace;">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
                   <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 2px;">
                     Condominio: ${communityName}
                   </div>

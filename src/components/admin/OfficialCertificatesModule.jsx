@@ -396,7 +396,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
     if (cert.type.includes('Estado de Deuda')) {
       const debtFormatted = Number(cert.debtAmount || 0).toLocaleString('es-CL');
       return `CLÁUSULA DÉCIMO PRIMERA (DEUDA POR GASTOS COMUNES Y RETENCIÓN NOTARIAL):\n` +
-        `Las partes comparecientes declaran expresamente conocer el Certificado Oficial de Estado de Deuda y Liquidación Morosa Folio N° ${folio} (Cód. Hash ${hash}), emitido con fecha ${dateFormatted} por la Administración del "${communityName}" (RUT ${companySettings?.companyRut || '76.999.888-1'}, RNAC Minvu N° ${rnacNum}), conforme a los Artículos 20° y 36° de la Ley N° 21.442 de Copropiedad Inmobiliaria. En dicho instrumento se certifica que la Unidad correspondiente a la Casa/Departamento N° ${unit}, perteneciente a don(a) ${applicantName} (RUT ${rut}), mantiene una deuda líquida y exigible por concepto de gastos comunes que asciende a la suma total de $${debtFormatted} pesos chilenos.\n\n` +
+        `Las partes comparecientes declaran expresamente conocer el Certificado Oficial de Estado de Deuda y Liquidación Morosa Folio N° ${folio} (Cód. Hash ${hash}), emitido con fecha ${dateFormatted} por la Administración del "${communityName}"${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? ` (RUT ${companySettings.companyRut})` : ''}, conforme a los Artículos 20° y 36° de la Ley N° 21.442 de Copropiedad Inmobiliaria. En dicho instrumento se certifica que la Unidad correspondiente a la Casa/Departamento N° ${unit}, perteneciente a don(a) ${applicantName} (RUT ${rut}), mantiene una deuda líquida y exigible por concepto de gastos comunes que asciende a la suma total de $${debtFormatted} pesos chilenos.\n\n` +
         `En cumplimiento del Artículo 36° de la Ley N° 21.442 —conforme al cual la obligación por los gastos comunes sigue siempre al dominio del inmueble, aun respecto de los devengados con anterioridad a su adquisición—, las partes acuerdan e instruyen expresamente al Notario Público autorizante retener del precio de venta la suma de $${debtFormatted} mediante Vale Vista Bancario emitido nominativamente a nombre de "${communityName}". Dicho documento será entregado a la Administración del condominio contra entrega del respectivo comprobante oficial de cancelación definitiva, liberando al nuevo adquirente de toda responsabilidad pecuniaria precedente.`;
     }
 
@@ -1286,7 +1286,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                         {companySettings?.companyName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
                       </div>
                       <p className="text-[10px] text-slate-500 font-mono">
-                        RUT: {companySettings?.companyRut || companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                        {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
                       </p>
                       <p className="text-[10px] text-slate-500">
                         {companySettings?.email || 'contacto@aranpro.cl'} • {companySettings?.phone || '+56 9 5811 8504'} • {companySettings?.website || 'www.aranpro.cl'}

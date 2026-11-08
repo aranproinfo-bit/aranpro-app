@@ -300,7 +300,8 @@ const drawCanonicalFrame = ({
   ctx.stroke();
 
   const infoX = logoEndX + 18;
-  const companyRut = empresaForm.companyRut || '76.999.888-8';
+  const rawCompanyRut = String(empresaForm.companyRut || '').trim();
+  const companyRut = rawCompanyRut && !rawCompanyRut.includes('76.999.888') ? rawCompanyRut : '';
   const email = empresaForm.email || 'contacto@aranpro.cl';
   const phone = empresaForm.phone || '+56 9 5811 8504';
   const city = empresaForm.city || 'La Serena, Coquimbo';
@@ -314,7 +315,13 @@ const drawCanonicalFrame = ({
 
   ctx.fillStyle = '#475569';
   ctx.font = '600 13px "Courier New", Courier, monospace';
-  ctx.fillText(`RUT Empresa: ${companyRut} • Ley N° 21.442 de Copropiedad Inmobiliaria`, infoX, curY + 45);
+  ctx.fillText(
+    companyRut
+      ? `RUT Empresa: ${companyRut} • Ley N° 21.442 de Copropiedad Inmobiliaria`
+      : 'Administración Profesional • Ley N° 21.442 de Copropiedad Inmobiliaria',
+    infoX,
+    curY + 45
+  );
 
   ctx.fillStyle = '#64748B';
   ctx.font = '12.5px system-ui, -apple-system, Arial, sans-serif';
@@ -373,17 +380,27 @@ const drawCanonicalFrame = ({
   }
 
   const sealTextX = padL + sealSize + 14;
-  ctx.fillStyle = '#0F3D2E';
-  ctx.font = '800 13px system-ui, -apple-system, Arial, sans-serif';
-  ctx.fillText('SELLO OFICIAL DE ADMINISTRACIÓN', sealTextX, sealY + 24);
+  if (companyRut) {
+    ctx.fillStyle = '#0F3D2E';
+    ctx.font = '800 13px system-ui, -apple-system, Arial, sans-serif';
+    ctx.fillText('SELLO OFICIAL DE ADMINISTRACIÓN', sealTextX, sealY + 24);
 
-  ctx.fillStyle = '#475569';
-  ctx.font = 'bold 12.5px "Courier New", Courier, monospace';
-  ctx.fillText(`RUT Empresa: ${companyRut}`, sealTextX, sealY + 44);
+    ctx.fillStyle = '#475569';
+    ctx.font = 'bold 12.5px "Courier New", Courier, monospace';
+    ctx.fillText(`RUT Empresa: ${companyRut}`, sealTextX, sealY + 44);
 
-  ctx.fillStyle = '#64748B';
-  ctx.font = 'bold 12px system-ui, -apple-system, Arial, sans-serif';
-  ctx.fillText('Ley N° 21.442 de Copropiedad Inmobiliaria', sealTextX, sealY + 63);
+    ctx.fillStyle = '#64748B';
+    ctx.font = 'bold 12px system-ui, -apple-system, Arial, sans-serif';
+    ctx.fillText('Ley N° 21.442 de Copropiedad Inmobiliaria', sealTextX, sealY + 63);
+  } else {
+    ctx.fillStyle = '#0F3D2E';
+    ctx.font = '800 13px system-ui, -apple-system, Arial, sans-serif';
+    ctx.fillText('SELLO OFICIAL DE ADMINISTRACIÓN', sealTextX, sealY + 32);
+
+    ctx.fillStyle = '#64748B';
+    ctx.font = 'bold 12px system-ui, -apple-system, Arial, sans-serif';
+    ctx.fillText('Ley N° 21.442 de Copropiedad Inmobiliaria', sealTextX, sealY + 53);
+  }
 
   // Separador vertical central-izquierdo + Canales Directos
   const contactDivX = sealTextX + 275;

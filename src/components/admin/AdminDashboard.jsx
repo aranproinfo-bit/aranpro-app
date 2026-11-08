@@ -1353,7 +1353,7 @@ _Administración ARANPRO_`;
             <img src="${logoUrl}" alt="ARANPRO" style="height: 46px; width: auto; object-fit: contain;" />
             <div style="border-left: 1px solid #cbd5e1; padding-left: 12px;">
               <div style="font-size: 11px; font-weight: 900; color: #0F3D2E; text-transform: uppercase;">${companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL INMOBILIARIA</div>
-              <div style="font-size: 9px; color: #64748b; font-family: monospace;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+              <div style="font-size: 9px; color: #64748b; font-family: monospace;">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
               <div style="font-size: 8.5px; color: #64748b;">${companySettings?.email || 'administracion@aranpro.cl'} • ${companySettings?.phone || '+56 9 5811 8504'}</div>
             </div>
           </div>
@@ -1569,7 +1569,7 @@ _Administración ARANPRO_`;
       <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
       <div style="border-left: 1px solid #cbd5e1; padding-left: 14px;">
         <div class="logo-title">${companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL INMOBILIARIA</div>
-        <div style="font-size: 9.5px; color: #64748b; font-family: monospace; margin-top: 1px;">RUT: ${companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° ${companySettings?.rnacNumber || '48.912'}</div>
+        <div style="font-size: 9.5px; color: #64748b; font-family: monospace; margin-top: 1px;">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
         <div class="logo-sub">Planilla General de Emisión, Prorrateo & Cobro de Gastos Comunes</div>
         <div style="font-size: 10.5px; color: #334155; margin-top: 3px;">
           <strong>${currentCommunity.name}</strong> • RUT: ${currentCommunity.rut || '65.123.456-7'} • ${currentCommunity.address || 'Av. Los Pajaritos 1234'} (${currentCommunity.city || 'La Serena / Coquimbo'})
@@ -12645,7 +12645,7 @@ _Administración ARANPRO_`;
                       Administración Profesional de Condominios • Ley N° 21.442
                     </div>
                     <div className="text-[9px] text-slate-400">
-                      RUT: {companySettings.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings.rnacNumber || '48.912'} • Fono: {companySettings.phone || '+56 9 5811 8504'}
+                      {companySettings.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 • Fono: {companySettings.phone || '+56 9 5811 8504'}
                     </div>
                   </div>
                 </div>
@@ -13792,7 +13792,7 @@ _Administración ARANPRO_`;
                           ARANPRO • Gestión Integral Inmobiliaria
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">
-                          RUT: {companySettings?.rut || '76.999.888-8'} • Reg. Nacional MINVU N° {companySettings?.rnacNumber || '48.912'}
+                          {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
                         </div>
                         <div className="text-[10px] text-slate-500">
                           administracion@aranpro.cl • www.aranpro.cl
@@ -14344,7 +14344,7 @@ _Administración ARANPRO_`;
                       <AranproOfficialSeal size="sm" />
                       <div>
                         <strong className="text-[#0F3D2E] block">Administración ARANPRO • Gestión Integral</strong>
-                        <span>RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}</span>
+                        <span>{companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</span>
                       </div>
                     </div>
                     <div className="text-right">
@@ -16528,7 +16528,7 @@ _Administración ARANPRO_`;
                     Balance Financiero Mensual — {currentCommunity.name}
                   </h3>
                   <p className="text-[10.5px] text-slate-600 font-mono mt-0.5">
-                    Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year} • RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                    Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}{companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? ` • RUT Empresa: ${companySettings.companyRut}` : ''} • Ley N° 21.442
                   </p>
                 </div>
               </div>
@@ -17669,7 +17669,7 @@ _Administración ARANPRO_`;
                         {companySettings.brandName} • {companySettings.subtitle}
                       </span>
                       <p className="text-[10px] uppercase font-bold tracking-widest text-[#D4B895]">
-                        RUT: {companySettings.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings.rnacNumber || '48.912'}
+                        {companySettings.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
                       </p>
                       <p className="text-[11px] text-slate-600 font-medium">
                         Administrador: <strong>{companySettings.administratorName}</strong> • {companySettings.email} • {companySettings.phone}
@@ -18348,7 +18348,7 @@ _Administración ARANPRO_`;
                                 {companySettings.brandName} • {companySettings.subtitle}
                               </span>
                               <span className="text-[10px] font-mono text-slate-500 block mt-0.5">
-                                RUT: {companySettings.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings.rnacNumber || '48.912'}
+                                {companySettings.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
                               </span>
                             </div>
                             <p className="text-[11px] text-slate-600 font-medium">

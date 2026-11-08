@@ -150,7 +150,7 @@ export const CommunityProvider = ({ children }) => {
           adminRut: (parsed.adminRut && parsed.adminRut !== '14.882.140-K') ? parsed.adminRut : '16.012.871-2',
           adminRole: (parsed.adminRole && !/técnico/i.test(parsed.adminRole)) ? parsed.adminRole : 'Representante Legal y Administrador Titular',
           rnacNumber: (parsed.rnacNumber && parsed.rnacNumber !== '48.912') ? parsed.rnacNumber : '',
-          companyRut: (parsed.companyRut && parsed.companyRut !== '76.999.888-1') ? parsed.companyRut : '76.999.888-8',
+          companyRut: (parsed.companyRut && !String(parsed.companyRut).includes('76.999.888')) ? parsed.companyRut : '',
           phone: (parsed.phone && parsed.phone !== '+56 9 4183 2711') ? parsed.phone : '+56958118504',
           signatureDataUrl: parsed.signatureDataUrl || parsed.signature || parsed.digitalSignature || '',
           signature: parsed.signatureDataUrl || parsed.signature || parsed.digitalSignature || '',

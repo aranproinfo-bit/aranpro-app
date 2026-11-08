@@ -1103,7 +1103,7 @@ export const initialCompanySettings = {
   adminName: 'John Andrés Arancibia Maureira',
   adminRut: '16.012.871-2',
   adminRole: 'Representante Legal y Administrador Titular',
-  companyRut: '76.999.888-8',
+  companyRut: '',
   rnacNumber: '',
   signatureDataUrl: '',
   title: 'Constructor Civil • Administrador Profesional de Condominios',

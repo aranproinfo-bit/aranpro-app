@@ -489,7 +489,10 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             ADMINISTRACIÓN PROFESIONAL DE CONDOMINIOS • LEY N° 21.442
           </div>
           <div className="text-[9px] text-slate-500">
-            RUT Empresa: <strong>{companySettings?.companyRut || '76.999.888-8'}</strong> • Reg. MINVU: <strong>RNAC N° {companySettings?.rnacNumber || '48.912'}</strong>
+            {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? (
+              <>RUT Empresa: <strong>{companySettings.companyRut}</strong> • </>
+            ) : null}
+            Ley N° 21.442 de Copropiedad Inmobiliaria
           </div>
         </div>
       </div>
@@ -536,7 +539,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             {companySettings?.brandName || 'ARANPRO'} • {companySettings?.subtitle || 'Gestión Integral'}
           </div>
           <div className="text-[8.5px] text-slate-500 font-mono">
-            RUT: {companySettings?.companyRut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+            {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
           </div>
         </div>
       </div>
@@ -562,8 +565,8 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
             <AranproOfficialSeal
               size="sm"
               showText={true}
-              companyRut={companySettings?.rut || '76.999.888-8'}
-              rnacNumber={companySettings?.rnacNumber || '48.912'}
+              companyRut={companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? companySettings.companyRut : ''}
+              rnacNumber={companySettings?.rnacNumber || ''}
             />
           </div>
 

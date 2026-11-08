@@ -904,7 +904,7 @@ export const PreventiveMaintenanceModule = ({ currentCommunity }) => {
                         {companySettings?.brandName || 'ARANPRO'} • Gestión Inmobiliaria Integral
                       </div>
                       <div className="text-[9.5px] text-slate-500 font-mono">
-                        RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
+                        {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
                       </div>
                     </div>
                   </div>
@@ -1049,7 +1049,7 @@ export const PreventiveMaintenanceModule = ({ currentCommunity }) => {
                     </div>
                     <div className="border-t-2 border-[#0F3D2E] pt-1">
                       <strong className="block text-slate-900">{companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}</strong>
-                      <span className="text-[10px] text-slate-500">RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}</span>
+                      <span className="text-[10px] text-slate-500">RUT: {companySettings?.adminRut || '16.012.871-2'} • Ley N° 21.442</span>
                     </div>
                   </div>
 

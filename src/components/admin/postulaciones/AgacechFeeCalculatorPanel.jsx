@@ -769,7 +769,7 @@ export const AgacechFeeCalculatorPanel = ({
                     {empresaForm?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                   </h2>
                   <p className="text-[10px] text-slate-600 font-mono font-semibold">
-                    RUT: {empresaForm?.companyRut || '76.999.888-8'} • {empresaForm?.rnacNumber && empresaForm?.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad'}
+                    {empresaForm?.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm?.rnacNumber && empresaForm?.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad'}
                   </p>
                   <p className="text-[9.5px] text-slate-500 font-mono">
                     {empresaForm?.email || 'contacto@aranpro.cl'} • {empresaForm?.phone || '+56 9 5811 8504'}
@@ -858,7 +858,7 @@ export const AgacechFeeCalculatorPanel = ({
             <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
               <AranproOfficialSeal
                 size="sm"
-                companyRut={empresaForm?.companyRut || '76.999.888-8'}
+                companyRut={empresaForm?.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
                 rnacNumber=""
               />
               <div className="text-center min-w-[240px]">

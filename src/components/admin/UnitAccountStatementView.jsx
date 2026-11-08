@@ -343,7 +343,9 @@ export const UnitAccountStatementView = ({
               </div>
               <div className="text-right text-[10px]">
                 <p className="font-bold text-slate-900">{companySettings?.brandName || 'ARANPRO'}</p>
-                <p className="text-slate-600 font-mono">RUT: {companySettings?.companyRut || companySettings?.rut || '76.999.888-8'}</p>
+                {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') && (
+                  <p className="text-slate-600 font-mono">RUT Empresa: {companySettings.companyRut}</p>
+                )}
                 <p className="text-slate-500">Fecha Emisión: {new Date().toLocaleDateString('es-CL')}</p>
               </div>
             </div>

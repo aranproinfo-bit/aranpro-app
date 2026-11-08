@@ -324,7 +324,7 @@ export const ExpenseReportModal = ({
                         Gestión Inmobiliaria Integral
                       </div>
                       <div className="text-[8.5px] text-slate-500 font-mono">
-                        RUT: {companySettings?.rut || '76.999.888-8'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'} • Fono: {companySettings?.phone || '+56 9 5811 8504'}
+                        {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 • Fono: {companySettings?.phone || '+56 9 5811 8504'}
                       </div>
                     </div>
                   </div>
