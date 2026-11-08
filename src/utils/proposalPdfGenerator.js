@@ -1,11 +1,12 @@
 /**
  * Generador Canónico de PDF para Postulaciones ARANPRO
- * Replica 1:1 el diseño oficial de ARANPRO_Carta_Valor_Comite, Carta Formal de Postulación,
- * Dossier Integral y Brochure Tecnológico (Alternativa 4: Doble Filete Lateral Izquierdo
- * Verde #0F3D2E + Dorado #D4B895, Membrete con Logo Vertical Principal, Encabezado Protocolar,
- * Cuerpo Consultivo, 3 Pilares Numerados, Recuadro de Beneficios 100% Gratuitos,
- * Sello Circular Dorado, Firma Manuscrita Real y Pie de Página Canónico).
+ * Exporta 1:1 el documento maestro del DOM generado por la aplicación
+ * (ARANPRO_Carta_Valor_Comite, Carta Formal de Postulación, Dossier Integral y Brochure)
+ * asegurando la misma tipografía, tamaños, doble filete y distribución de página.
  */
+
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const loadImage = (src) => {
   return new Promise((resolve) => {
@@ -19,6 +20,55 @@ const loadImage = (src) => {
     img.onerror = () => resolve(null);
     img.src = src;
   });
+};
+
+/**
+ * Captura un elemento o contenedor del DOM y genera un PDF estándar Carta (612 x 792 pt)
+ * en Base64 idéntico al documento maestro que se imprime o descarga desde la aplicación.
+ */
+export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => {
+  const targetEl = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+  if (!targetEl) {
+    throw new Error(`Elemento #${typeof elementOrId === 'string' ? elementOrId : 'desconocido'} no encontrado en el DOM`);
+  }
+
+  // Si tiene páginas hijas con clase .dossier-page, capturamos cada página por separado (multi-página)
+  const rawPages = Array.from(targetEl.querySelectorAll('.dossier-page'));
+  const pages = rawPages.length > 0 ? rawPages : [targetEl];
+
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'pt',
+    format: 'letter' // 612 x 792 pt (Carta oficial)
+  });
+
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
+
+    // Captura con html2canvas en escala 2 para máxima resolución y nitidez tipográfica
+    const canvas = await html2canvas(page, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: 850
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+    if (i > 0) {
+      pdf.addPage('letter', 'portrait');
+    }
+
+    // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt)
+    pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792, undefined, 'FAST');
+  }
+
+  const dataUri = pdf.output('datauristring');
+  return dataUri.split(',')[1];
 };
 
 /**
@@ -529,6 +579,8 @@ const drawProtocolBox = (ctx, x, y, w, rows) => {
 
 /**
  * Genera el PDF Canónico exacto para el paso indicado (1, 2, 3 o 4)
+ * Prioridad 1: Captura directa 1:1 del documento maestro en el DOM oficial de la aplicación.
+ * Respaldo: Motor gráfico canónico integrado en caso de ejecutarse fuera de la interfaz.
  */
 export const generateStepPdfAttachment = async ({
   stepNumber = 1,
@@ -536,6 +588,45 @@ export const generateStepPdfAttachment = async ({
   empresaForm = {},
   signatureImage = ''
 }) => {
+  const targetClean = (proposalConfig.targetCondo || 'Comite_Administracion').replace(/[^a-zA-Z0-9]/g, '_');
+  const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
+
+  let elementId = 'printable-cold-value-letter';
+  let defaultFilename = `ARANPRO_Carta_Valor_Comite_${targetClean}_${dateClean}.pdf`;
+
+  if (stepNumber === 1) {
+    elementId = 'printable-cold-value-letter';
+    defaultFilename = `ARANPRO_Carta_Valor_Comite_${targetClean}_${dateClean}.pdf`;
+  } else if (stepNumber === 2) {
+    elementId = 'printable-full-dossier';
+    defaultFilename = `ARANPRO_Dossier_Integral_${targetClean}_${dateClean}.pdf`;
+  } else if (stepNumber === 3) {
+    elementId = 'printable-commercial-proposal';
+    defaultFilename = `ARANPRO_Carta_Formal_Postulacion_${targetClean}_${dateClean}.pdf`;
+  } else if (stepNumber === 4) {
+    elementId = 'printable-app-brochure';
+    defaultFilename = `ARANPRO_Brochure_App_${targetClean}_${dateClean}.pdf`;
+  }
+
+  // ===== PRIORIDAD 1: EXPORTACIÓN DIRECTA DEL DOCUMENTO MAESTRO EN EL DOM =====
+  try {
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById(elementId);
+      if (el) {
+        const contentBase64 = await exportDomElementToPdfBase64(el, { filename: defaultFilename });
+        if (contentBase64 && contentBase64.length > 200) {
+          return {
+            filename: defaultFilename,
+            contentBase64
+          };
+        }
+      }
+    }
+  } catch (domErr) {
+    console.warn(`[generateStepPdfAttachment] No se pudo capturar #${elementId} del DOM, ejecutando respaldo canónico:`, domErr);
+  }
+
+  // ===== RESPALDO CANÓNICO VÍA CANVAS =====
   // Tamaño Carta en alta resolución (150 DPI: 1275 x 1650 px -> proporción exacta Letter 8.5 x 11")
   const W = 1275;
   const H = 1650;
@@ -554,8 +645,6 @@ export const generateStepPdfAttachment = async ({
   const recipient = proposalConfig.targetRecipient?.trim() || 'Señores Integrantes del Comité de Administración';
   const adminName = empresaForm.adminName || 'John Andrés Arancibia Maureira';
   const year = new Date().getFullYear();
-  const targetClean = (proposalConfig.targetCondo || 'Comite_Administracion').replace(/[^a-zA-Z0-9]/g, '_');
-  const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
 
   const baseFont = '14px system-ui, -apple-system, Arial, sans-serif';
   const boldFont = 'bold 14px system-ui, -apple-system, Arial, sans-serif';

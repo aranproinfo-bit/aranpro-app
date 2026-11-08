@@ -620,8 +620,7 @@ export const CompanySettingsAndBackupModule = ({
                 <img src="${signatureUrl}" alt="Firma Representante Legal" height="42" style="height: 42px; width: auto; max-width: 160px; display: inline-block; border: 0;" />
               </div>
               <div style="border-top: 1px solid #0F3D2E; padding-top: 4px;">
-                <strong style="font-size: 13.5px; color: #0f172a; display: block;">${admin}</strong>
-                <span style="font-size: 11px; color: #0F3D2E; font-weight: 700; display: block; margin-top: 2px;">Constructor Civil • Administrador de Condominios</span>
+                <span style="font-size: 11.5px; color: #0F3D2E; font-weight: 700; display: block;">Constructor Civil • Administrador de Condominios</span>
                 <span style="font-size: 10.5px; color: #475569; display: block; margin-top: 2px;">RUT: ${adminRut} • Ley N° 21.442</span>
                 <span style="font-size: 10.5px; color: #64748b; display: block; margin-top: 3px;">
                   Fono: <strong>${phone}</strong> | <a href="https://aranpro.cl" style="color: #0F3D2E; text-decoration: underline;">aranpro.cl</a>
@@ -5321,9 +5320,21 @@ export const CompanySettingsAndBackupModule = ({
         </div>
 
       {/* ==================== MODAL DE VISTA PREVIA DE CARTA DE POSTULACIÓN (PDF CARTA) ==================== */}
-      {previewProposalModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col relative">
+      <div
+        className={
+          previewProposalModal
+            ? 'fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto'
+            : 'fixed top-0 left-0 w-[850px] -z-[9999] opacity-1 pointer-events-none'
+        }
+      >
+        <div
+          className={
+            previewProposalModal
+              ? 'bg-white rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col relative'
+              : 'w-[850px] bg-white'
+          }
+        >
+          {previewProposalModal && (
             <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200 mb-6">
               <div className="flex items-center gap-2">
                 <span className="w-8 h-8 rounded-xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-bold text-sm">
@@ -5355,8 +5366,10 @@ export const CompanySettingsAndBackupModule = ({
                 </button>
               </div>
             </div>
+          )}
 
-            {/* BARRA DE AJUSTE RÁPIDO DE DESTINATARIO */}
+          {previewProposalModal && (
+            /* BARRA DE AJUSTE RÁPIDO DE DESTINATARIO */
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs mb-4">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold text-slate-700">Condominio a Postular:</span>
@@ -5390,15 +5403,30 @@ export const CompanySettingsAndBackupModule = ({
               </div>
               <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
             </div>
+          )}
 
-            {/* CONTENEDOR DE LA CARTA IMPRIMIBLE TAMAÑO CARTA (CANÓNICA 1 PÁGINA) */}
-            <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl">
-              <div
-                id="printable-commercial-proposal"
-                data-pdf-style={pdfStyle}
-                className="dossier-page page-1 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
+          {/* CONTENEDOR DE LA CARTA IMPRIMIBLE TAMAÑO CARTA (CANÓNICA 1 PÁGINA) */}
+          <div className={previewProposalModal ? "overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl" : "w-[850px]"}>
+            <div
+              id="printable-commercial-proposal"
+              data-pdf-style={pdfStyle}
+              className="dossier-page page-1 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+            >
+              {/* Filete doble izquierdo Alternativa 4 */}
+              <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
+                <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
+                <div className="w-[2px] h-full bg-transparent" />
+                <div className="w-[1.5px] h-full bg-[#D4B895]" />
+              </div>
+
+              {/* Sello circular como marca de agua central sutil */}
+              <img
+                src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                alt=""
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 object-contain opacity-[0.035] pointer-events-none select-none z-0"
+                aria-hidden="true"
+              />
                 {/* SECCIÓN SUPERIOR: MEMBRETE, PROTOCOLO, TÍTULO, CUERPO, FORTALEZAS Y PROPUESTA ECONÓMICA */}
                 <div className="space-y-2.5">
                   {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
@@ -5608,12 +5636,23 @@ export const CompanySettingsAndBackupModule = ({
             </div>
           </div>
         </div>
-      )}
 
-      {/* ==================== MODAL: CARTA DE VALOR & PRESENTACIÓN ESPONTÁNEA AL COMITÉ (PUERTA EN FRÍO / CONSERJERÍA) ==================== */}
-      {previewColdLetterModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col relative">
+      {/* ==================== CARTA DE VALOR (MODAL DE VISTA PREVIA Y DOCUMENTO MAESTRO PERMANENTE) ==================== */}
+      <div
+        className={
+          previewColdLetterModal
+            ? 'fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto'
+            : 'fixed top-0 left-0 w-[850px] -z-[9999] opacity-1 pointer-events-none'
+        }
+      >
+        <div
+          className={
+            previewColdLetterModal
+              ? 'bg-white rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col relative'
+              : 'w-[850px] bg-white'
+          }
+        >
+          {previewColdLetterModal && (
             <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200 mb-4">
               <div className="flex items-center gap-2.5">
                 <span className="w-9 h-9 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-bold text-base shadow-sm">
@@ -5645,8 +5684,10 @@ export const CompanySettingsAndBackupModule = ({
                 </button>
               </div>
             </div>
+          )}
 
-            {/* BARRA RÁPIDA: MODO ENTREGA MASIVA EN CONSERJERÍA O CON NOMBRE DEL EDIFICIO */}
+          {previewColdLetterModal && (
+            /* BARRA RÁPIDA: MODO ENTREGA MASIVA EN CONSERJERÍA O CON NOMBRE DEL EDIFICIO */
             <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 flex flex-wrap items-center justify-between gap-2.5 text-xs mb-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold text-[#0F3D2E]">Modalidad de Entrega:</span>
@@ -5685,15 +5726,30 @@ export const CompanySettingsAndBackupModule = ({
               </div>
               <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
             </div>
+          )}
 
-            {/* CONTENEDOR DE LA CARTA DE VALOR IMPRIMIBLE TAMAÑO CARTA (GARANTIZADO EN 1 SOLA PÁGINA) */}
-            <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl">
-              <div id="printable-cold-value-letter" className="space-y-6 print-area">
-                <div
-                  data-pdf-style={pdfStyle}
-                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
-                  style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-                >
+          {/* CONTENEDOR DE LA CARTA DE VALOR IMPRIMIBLE TAMAÑO CARTA (GARANTIZADO EN 1 SOLA PÁGINA) */}
+          <div className={previewColdLetterModal ? "overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl" : "w-[850px]"}>
+            <div id="printable-cold-value-letter" className="space-y-6 print-area">
+              <div
+                data-pdf-style={pdfStyle}
+                className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {/* Filete doble izquierdo Alternativa 4 */}
+                <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
+                  <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
+                  <div className="w-[2px] h-full bg-transparent" />
+                  <div className="w-[1.5px] h-full bg-[#D4B895]" />
+                </div>
+
+                {/* Sello circular como marca de agua central sutil */}
+                <img
+                  src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                  alt=""
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 object-contain opacity-[0.035] pointer-events-none select-none z-0"
+                  aria-hidden="true"
+                />
                   {/* SECCIÓN SUPERIOR: MEMBRETE, PROTOCOLO, TÍTULO, INTRO PROFUNDA, 3 PILARES, BENEFICIOS */}
                   <div className="space-y-3">
                     {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
@@ -5920,7 +5976,6 @@ export const CompanySettingsAndBackupModule = ({
             </div>
           </div>
         </div>
-      )}
 
       {/* ==================== MODAL DE VISTA PREVIA DEL DOSSIER INTEGRAL DE LICITACIÓN (MULTI-PÁGINA) ==================== */}
       {previewDossierModal && (
