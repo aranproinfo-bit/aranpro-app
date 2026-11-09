@@ -42,29 +42,65 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     format: 'letter' // 612 x 792 pt (Carta oficial)
   });
 
-  for (let i = 0; i < pages.length; i++) {
-    const page = pages[i];
+  // Host de captura temporal en el DOM (aislado, z-index superior, visible pero no interactivo)
+  const captureHost = document.createElement('div');
+  captureHost.setAttribute('id', 'aranpro-pdf-capture-host');
+  captureHost.style.position = 'fixed';
+  captureHost.style.left = '0';
+  captureHost.style.top = '0';
+  captureHost.style.width = '850px';
+  captureHost.style.zIndex = '999999';
+  captureHost.style.backgroundColor = '#ffffff';
+  captureHost.style.overflow = 'visible';
+  captureHost.style.pointerEvents = 'none';
+  captureHost.style.opacity = '1';
+  captureHost.style.transform = 'none';
+  document.body.appendChild(captureHost);
 
-    // Captura con html2canvas en escala 2 para máxima resolución y nitidez tipográfica
-    const canvas = await html2canvas(page, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: 850
-    });
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      const pageClone = page.cloneNode(true);
+      pageClone.style.margin = '0';
+      pageClone.style.transform = 'none';
+      pageClone.style.position = 'static';
+      pageClone.style.width = '850px';
+      pageClone.style.boxSizing = 'border-box';
+      pageClone.style.display = 'flex';
+      pageClone.style.visibility = 'visible';
+      pageClone.style.opacity = '1';
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      captureHost.innerHTML = '';
+      captureHost.appendChild(pageClone);
 
-    if (i > 0) {
-      pdf.addPage('letter', 'portrait');
+      // Breve pausa para asegurar renderizado de tipografías y fuentes en el DOM
+      await new Promise(r => setTimeout(r, 60));
+
+      // Captura con html2canvas en escala 2 para máxima resolución y nitidez tipográfica
+      const canvas = await html2canvas(pageClone, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: 850
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+      if (i > 0) {
+        pdf.addPage('letter', 'portrait');
+      }
+
+      // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt)
+      pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792, undefined, 'FAST');
     }
-
-    // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt)
-    pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792, undefined, 'FAST');
+  } finally {
+    if (captureHost && captureHost.parentNode) {
+      captureHost.parentNode.removeChild(captureHost);
+    }
   }
 
   const dataUri = pdf.output('datauristring');
@@ -1221,7 +1257,7 @@ export const generateStepPdfAttachment = async ({
 
   const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.92);
   return {
-    filename: `ARANPRO_Dossier_Integral_Licitacion_${targetClean}_${dateClean}.pdf`,
+    filename: `ARANPRO_Dossier_Integral_${targetClean}_${dateClean}.pdf`,
     contentBase64: pagesJpegToPdfBase64([jpegDataUrl], W, H)
   };
 };

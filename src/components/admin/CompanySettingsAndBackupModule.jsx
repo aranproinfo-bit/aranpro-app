@@ -16,7 +16,7 @@ import { generateStepPdfAttachment } from '../../utils/proposalPdfGenerator';
 import {
   Building2, UserCheck, ShieldCheck, Award, FileText, CheckCircle2,
   AlertTriangle, Printer, Download, Share2, Search, Filter, Plus,
-  X, ExternalLink, Clock, DollarSign, AlertCircle, Trash2, Eye,
+  X, ExternalLink, Clock, Calendar, DollarSign, AlertCircle, Trash2, Eye,
   Send, Home, Briefcase, Copy, Sparkles, Check, Key, Shield,
   HardHat, BookOpen, FileCheck, Upload, RefreshCw, PenTool,
   HelpCircle, Settings, Smartphone, Layers, CheckSquare, MessageCircle,
@@ -530,7 +530,9 @@ export const CompanySettingsAndBackupModule = ({
     taxModality: companySettings?.lastProposalConfig?.taxModality || 'Factura Exenta / Boleta de Honorarios Profesional',
     contractDuration: companySettings?.lastProposalConfig?.contractDuration || '12 meses renovables (con evaluación de conformidad a los 90 días)',
     includeEconomicInDossier: companySettings?.lastProposalConfig?.includeEconomicInDossier !== false,
-    visitFrequency: companySettings?.lastProposalConfig?.visitFrequency || '2 visitas técnicas presenciales por semana + atención de emergencias 24/7'
+    visitFrequency: companySettings?.lastProposalConfig?.visitFrequency || '2 visitas técnicas presenciales por semana + atención de emergencias 24/7',
+    step2Mode: companySettings?.lastProposalConfig?.step2Mode || 'con_visita',
+    visitDateTime: companySettings?.lastProposalConfig?.visitDateTime || 'Jueves 12 de Noviembre a las 18:30 hrs'
   });
 
   // Sección activa dentro de Postulaciones ('flujo' | 'antecedentes' | 'material' | 'pipeline' | 'herramientas')
@@ -557,13 +559,26 @@ export const CompanySettingsAndBackupModule = ({
           whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\nJunto con saludarles muy cordialmente, les escribe *${admin}*, Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442.\n\nNos dirigimos a ustedes para presentarles los servicios de *ARANPRO Gestión Integral*. Reconociendo la enorme dedicación y tiempo que entregan a sus vecinos, ponemos a su disposición un modelo de gestión basado en supervisión técnica en terreno, cuentas 100% transparentes y *plataforma digital + app móvil 100% gratuita para toda la comunidad* (sin cobro de software ni licencias).\n\nNos encantaría coordinar una breve reunión de presentación y una *visita inicial de diagnóstico técnico sin costo ni compromiso* para conocer sus instalaciones críticas y prioridades.\n\nLes comparto adjunta nuestra Carta Oficial de Presentación. Quedo muy atento a su grata respuesta.\n\nAtentamente,\n*${admin}*\nConstructor Civil • Administrador de Condominios\nFono / WhatsApp: ${phone}\nSitio Web: https://aranpro.cl`,
           email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nJunto con saludarles cordialmente y reconociendo el importante compromiso y tiempo que dedican a su comunidad, me dirijo a ustedes para presentar los servicios de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\nNuestra propuesta se fundamenta en tres pilares operativos:\n1. Gestión Financiera & Plataforma Digital 100% Gratuita para el Comité y residentes (sin costos de licencias ni cobros de software para el condominio).\n2. Mantención Técnica en Terreno con Criterio de Constructor Civil (supervisión directa de salas de bombas, tableros y contratos de contratistas para frenar sobrecostos).\n3. Gestión Documental de Personal bajo Ley Karin, RIOHS y normativa de la Dirección del Trabajo.\n\nLes propongo coordinar una visita inicial en terreno y reunión de presentación sin costo ni compromiso para conocer sus prioridades.\n\nAdjunto nuestra Carta Oficial de Presentación.\n\nSaludos cordiales,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
-      case 2:
+      case 2: {
+        const mode = proposalConfig.step2Mode || 'con_visita';
+        const visitTime = (proposalConfig.visitDateTime || '').trim() || 'fecha y hora por coordinar';
+
+        if (mode === 'sin_visita') {
+          return {
+            title: 'Paso 2: Presentación Oficial de Dossier Integral (Para Motivar Visita)',
+            subject: `Dossier Integral de Gestión & Presentación de Administración • ARANPRO para ${condo}`,
+            whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\nJunto con saludarles cordialmente, les escribe *${admin}*, Especialista Constructor Civil y Administrador de Condominios (Ley N° 21.442).\n\nPonemos a su disposición nuestro *Dossier Integral de Gestión y Presentación Institucional*, diseñado para transparentar nuestra metodología de trabajo, acreditaciones profesionales, cartas de recomendación y el estándar técnico que aplicamos en el cuidado de los bienes comunes.\n\nNuestra propuesta para ${condo} contempla:\n• *Supervisión Técnica en Terreno:* Criterio de Constructor Civil en bombas, tableros eléctricos, cubiertas y contratos de contratistas.\n• *Transparencia Total 24/7:* Cartolas bancarias y facturas visibles con 1 clic para el Comité y copropietarios.\n• *Suite Digital & App Móvil 100% Gratuita:* Cero costos de licencias ni cobros de software para el condominio.\n• *Período de Transición:* Homologación al honorario vigente durante los primeros 3 meses de diagnóstico inicial.\n\nNos encantaría coordinar una *visita técnica de diagnóstico inicial sin costo ni compromiso* a sus instalaciones para conocer en detalle sus prioridades.\n\nLes comparto adjunto nuestro Dossier Integral en PDF. Quedamos a su entera disposición.\n\nAtentamente,\n*${admin}*\nConstructor Civil • Administrador de Condominios\nFono / WhatsApp: ${phone}\nSitio Web: https://aranpro.cl`,
+            email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nJunto con saludarles cordialmente, me dirijo a ustedes para presentarles formalmente el Dossier Institucional de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\nComo Especialista Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442, nuestro enfoque combina orden financiero, presencia en terreno y herramientas digitales gratuitas para que el Comité pueda decidir con antecedentes claros y sin sobrecostos.\n\nPuntos centrales de nuestra gestión:\n1. Supervisión Técnica de Especialista: Fiscalización directa de salas de bombas, grupos electrógenos, tableros eléctricos y techumbres, con revisión rigurosa de cotizaciones y contratos.\n2. Rendición de Cuentas en Línea: Conciliaciones bancarias al día, libros abiertos y acceso permanente a facturas y comprobantes respaldados.\n3. Suite Digital ARANPRO sin costo: Plataforma web y app móvil para residentes y comité 100% gratuita (sin licencias de software para la comunidad).\n4. Transición de 3 meses: Nos ajustamos al valor actual de honorarios de la comunidad mientras realizamos el diagnóstico real y estructuramos la propuesta definitiva con el Comité.\n\nCon el fin de evaluar sus instalaciones y conocer sus principales inquietudes, les propongo coordinar una visita técnica de diagnóstico en terreno sin costo ni compromiso alguno.\n\nAdjunto a este correo encontrarán nuestro Dossier Integral oficial (Ficha Técnica Constructiva, Títulos, Acreditaciones y referencias).\n\nQuedo a su disposición para coordinar nuestra reunión.\n\nAtentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
+          };
+        }
+
         return {
-          title: 'Paso 2: Cita Presencial & Visita de Diagnóstico Técnico (Dossier Integral)',
+          title: 'Paso 2: Confirmación de Visita Técnica en Terreno & Entrega de Dossier',
           subject: `Confirmación de Visita Técnica en Terreno & Dossier Integral • ${condo}`,
-          whatsapp: `Estimados integrantes del Comité de *${condo}*:\n\nMuchas gracias por la excelente disposición a reunirnos. Confirmamos nuestra *visita técnica inicial de diagnóstico* a las instalaciones de su condominio para este [Indicar Fecha y Hora].\n\nLlevaremos en mano nuestro *Dossier Integral de Presentación* con nuestras credenciales de Constructor Civil, pauta de inspección preventiva de bombas, tableros y techumbres, certificados legales y cartas de recomendación de otros comités de administración.\n\n¡Nos vemos pronto en terreno!\n\n*${admin}* • ARANPRO (${phone})`,
-          email: `Estimado Comité de Administración de ${condo}:\n\nJunto con agradecer su disposición a reunirnos, confirmamos nuestra visita técnica y reunión de diagnóstico para el día [Fecha / Hora].\n\nDurante la visita realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos) y llevaremos una copia impresa de nuestro Dossier Integral de Postulación (Ficha Técnica Constructiva, Título Profesional, Acreditaciones Legales y Referencias Comprobables).\n\nQuedamos a su disposición ante cualquier coordinación previa.\n\nAtentamente,\n${admin} • ARANPRO Gestión Integral\n${phone} | https://aranpro.cl`
+          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\nMuchas gracias por la excelente disposición a reunirnos. Confirmamos nuestra *visita técnica inicial de diagnóstico* a las instalaciones de su condominio para el día *${visitTime}*.\n\nDurante el recorrido realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos). Asimismo, les haremos entrega de nuestro *Dossier Integral de Presentación* con nuestras credenciales de Constructor Civil, certificaciones legales, referencias comprobables y las credenciales de prueba de nuestra Suite Digital.\n\n¡Nos vemos en terreno!\n\nAtentamente,\n*${admin}*\nConstructor Civil • ARANPRO (${phone})\nSitio Web: https://aranpro.cl`,
+          email: `Estimado Comité de Administración de ${condo}:\n\nJunto con agradecer su disposición a reunirnos, confirmamos formalmente nuestra visita técnica y reunión de diagnóstico para el día ${visitTime}.\n\nDurante la visita realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos) y revisaremos en conjunto las principales prioridades de mantenimiento de la comunidad. Llevaremos una copia de nuestro Dossier Integral de Postulación (Ficha Técnica Constructiva, Título Profesional, Acreditaciones Legales y Referencias Comprobables).\n\nAdjuntamos en este correo el Dossier Integral en formato PDF para su conocimiento previo.\n\nQuedamos a su entera disposición ante cualquier coordinación previa.\n\nAtentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
+      }
       case 3:
         return {
           title: 'Paso 3: Propuesta Formal a Medida & Honorarios Mensuales',
@@ -3264,11 +3279,11 @@ export const CompanySettingsAndBackupModule = ({
                                 Reunión Presencial • En Terreno
                               </span>
                               <span className="text-[10px] font-bold text-slate-500">
-                                Dossier Maestro 3 Páginas + Pauta Técnica
+                                Dossier Maestro 4 Páginas + Pauta Técnica
                               </span>
                             </div>
                             <h4 className="text-base font-black text-slate-900 mt-0.5">
-                              Paso 2: Visita en Terreno con Dossier Integral & Pauta de Inspección
+                              Paso 2: Dossier Integral de Licitación & Visita de Diagnóstico
                             </h4>
                           </div>
                         </div>
@@ -3289,6 +3304,77 @@ export const CompanySettingsAndBackupModule = ({
                         <strong>Cuándo usarlo:</strong> Lleva este Dossier en mano o carpeta corporativa a la cita con el Comité. Compila tu ficha de Constructor Civil, certificados de antecedentes, cédula de identidad, títulos y cartas de recomendación. Durante la visita, anota con la Pauta Técnica el estado de bombas, tableros y necesidades reales.
                       </p>
 
+                      {/* SELECTOR DE MODALIDAD DEL PASO 2: CON VISITA AGENDADA vs. PRESENTACIÓN DOSSIER (PARA MOTIVAR VISITA) */}
+                      <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                            <span>🎯</span> Modalidad de Envío del Paso 2:
+                          </span>
+                          <div className="inline-flex p-1 bg-white border border-slate-200 rounded-xl shadow-xs text-xs font-bold">
+                            <button
+                              type="button"
+                              onClick={() => setProposalConfig(prev => ({ ...prev, step2Mode: 'con_visita' }))}
+                              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                                (proposalConfig.step2Mode || 'con_visita') === 'con_visita'
+                                  ? 'bg-[#0F3D2E] text-white shadow-xs'
+                                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                              }`}
+                            >
+                              <Calendar className="w-3.5 h-3.5 text-[#D4B895]" />
+                              Confirmar Visita Agendada
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setProposalConfig(prev => ({ ...prev, step2Mode: 'sin_visita' }))}
+                              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                                proposalConfig.step2Mode === 'sin_visita'
+                                  ? 'bg-[#0F3D2E] text-white shadow-xs'
+                                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                              }`}
+                            >
+                              <FileText className="w-3.5 h-3.5 text-[#D4B895]" />
+                              Presentar Dossier (Motivar Visita)
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Configuración específica según la modalidad elegida */}
+                        {(proposalConfig.step2Mode || 'con_visita') === 'con_visita' ? (
+                          <div className="bg-white p-3 rounded-xl border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                            <div className="space-y-0.5">
+                              <label className="font-black text-slate-800 flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                Fecha y Hora de la Visita Técnica Coordinada:
+                              </label>
+                              <p className="text-[11px] text-slate-500">
+                                Este dato se insertará automáticamente en el cuerpo del correo y en el mensaje de WhatsApp.
+                              </p>
+                            </div>
+                            <div className="w-full sm:w-72 shrink-0">
+                              <input
+                                type="text"
+                                placeholder="Ej: Jueves 12 de Noviembre a las 18:30 hrs"
+                                value={proposalConfig.visitDateTime || ''}
+                                onChange={(e) => setProposalConfig(prev => ({ ...prev, visitDateTime: e.target.value }))}
+                                className="w-full px-3 py-2 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl font-bold text-slate-900 text-xs focus:ring-2 focus:ring-[#0F3D2E] focus:outline-none transition-all shadow-xs"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 flex items-start gap-2 text-xs text-emerald-950">
+                            <span className="text-base shrink-0 mt-0.5">💡</span>
+                            <div>
+                              <strong className="block text-emerald-900 font-bold">
+                                Modalidad Prospección Consultiva (Entrega de Dossier sin Visita Previa)
+                              </strong>
+                              <p className="text-[11px] text-emerald-800 leading-snug mt-0.5">
+                                El correo y WhatsApp se enviarán presentando formalmente el Dossier Integral de 4 Páginas, destacando el perfil de Constructor Civil, la Suite Digital 100% gratuita y motivando al Comité a coordinar una visita técnica de diagnóstico en terreno sin costo.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       {/* Botones de Acción Inmediata Paso 2 */}
                       <div className="flex flex-wrap items-center gap-2 pt-1">
                         <button
@@ -3297,7 +3383,7 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
-                          Ver Dossier Maestro
+                          Ver Dossier Maestro (4 Pág)
                         </button>
                         <button
                           type="button"
@@ -3330,7 +3416,9 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
-                          Confirmar Cita WhatsApp
+                          {(proposalConfig.step2Mode || 'con_visita') === 'con_visita'
+                            ? 'Confirmar Cita WhatsApp'
+                            : 'Enviar Dossier WhatsApp'}
                         </button>
                         <button
                           type="button"
@@ -3346,7 +3434,9 @@ export const CompanySettingsAndBackupModule = ({
                           ) : (
                             <>
                               <Mail className="w-3.5 h-3.5" />
-                              Confirmar por Correo
+                              {(proposalConfig.step2Mode || 'con_visita') === 'con_visita'
+                                ? 'Confirmar Visita Correo'
+                                : 'Enviar Dossier Correo'}
                             </>
                           )}
                         </button>
@@ -3372,7 +3462,9 @@ export const CompanySettingsAndBackupModule = ({
                       {expandedStepMsg === 2 && (
                         <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs animate-in fade-in">
                           <span className="font-bold text-slate-700 text-[11px] uppercase tracking-wide block">
-                            Mensaje para Confirmar Fecha y Hora de Visita en Terreno
+                            {(proposalConfig.step2Mode || 'con_visita') === 'con_visita'
+                              ? `Mensaje para Confirmar Fecha y Hora de Visita en Terreno (${proposalConfig.visitDateTime || 'Sin fecha definida aún'})`
+                              : 'Mensaje Oficial de Entrega de Dossier Integral (Para Motivar Visita Técnica)'}
                           </span>
                           <pre className="whitespace-pre-wrap font-sans text-slate-800 text-xs bg-white p-3 rounded-xl border border-slate-200 leading-relaxed max-h-48 overflow-y-auto">
                             {getStepMessages(2).whatsapp}
@@ -6227,7 +6319,7 @@ export const CompanySettingsAndBackupModule = ({
         className={
           previewDossierModal
             ? 'fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto'
-            : 'fixed top-0 left-0 w-[850px] -z-[9999] opacity-1 pointer-events-none'
+            : 'fixed top-0 left-0 w-[850px] opacity-0 pointer-events-none'
         }
       >
         <div
@@ -6248,7 +6340,7 @@ export const CompanySettingsAndBackupModule = ({
                     Dossier Integral de Postulación & Ficha Técnica Constructiva
                   </h4>
                   <p className="text-[11px] text-slate-500 font-mono">
-                    Documento Maestro de 3 Páginas • Especialidades Constructivas • Plan 30 Días • Suite Digital & Acreditaciones
+                    Documento Maestro de 4 Páginas • Especialidades Constructivas • Plan 30 Días • Suite Digital & Acreditaciones
                   </p>
                 </div>
               </div>
