@@ -1130,6 +1130,131 @@ export const CompanySettingsAndBackupModule = ({
     portfolioStats
   ]);
 
+  // Portafolio de Certificaciones Técnicas y Acreditaciones Oficiales del Dossier
+  const dossierAcademicPortfolio = useMemo(() => {
+    const baseCerts = [
+      {
+        id: 'cert-1',
+        title: 'Técnico de Nivel Superior en Construcciones Civiles',
+        institution: 'CFT Santo Tomás',
+        status: 'Titulado',
+        year: '2018',
+        relevance: 'Inspección técnica en terreno de obras civiles, análisis de fallas constructivas, patologías de hormigón, redes sanitarias, cubicación de mantenciones y control de calidad de contratistas.',
+        fileName: '01_Titulo_Tecnico_Nivel_Superior_Construcciones_Civiles_Santo_Tomas.pdf'
+      },
+      {
+        id: 'cert-2',
+        title: 'Curso Oficial de Copropiedad Inmobiliaria (Ley N° 21.442)',
+        institution: 'Learning Group / OTEC Acreditada SENCE (Resolución MINVU)',
+        status: 'Aprobado y Certificado',
+        year: '2022',
+        relevance: 'Habilitación oficial obligatoria para administración de copropiedades, cumplimiento normativo Ley N° 21.442, gestión de fondos de reserva, seguros de incendio y asambleas.',
+        fileName: '08_CERTIFICADO ley 21442_JOHN_ARANCIBIA_M.pdf'
+      },
+      {
+        id: 'cert-3',
+        title: 'Inspección Técnica de Obras (ITO) & Plan de Calidad PAC',
+        institution: 'Normativa MOP / ISO 9001 (Control de Calidad)',
+        status: 'Certificado',
+        year: '2021',
+        relevance: 'Supervisión técnica rigurosa de contratistas, control de especificaciones técnicas, recepción conforme de faenas y auditoría de mantenciones de infraestructura.',
+        fileName: '02_Certificado_Inspeccion_Tecnica_de_Obras_ITO.pdf'
+      },
+      {
+        id: 'cert-4',
+        title: 'Instalador de Gas Clase 3 Autorizado SEC',
+        institution: 'Superintendencia de Electricidad y Combustibles (SEC)',
+        status: 'Licencia Vigente',
+        year: 'Vigente',
+        relevance: 'Supervisión técnica de matrices de gas licuado y natural, calderas comunitarias, certificación de sellos verdes y cumplimiento estricto del D.S. N° 66.',
+        fileName: '06_Certificado_SEC_Superintendencia_Electricidad_y_Combustibles.pdf'
+      },
+      {
+        id: 'cert-5',
+        title: 'Contabilidad General & Gestión Financiera de Condominios',
+        institution: 'TELEDUC • Pontificia Universidad Católica de Chile',
+        status: 'Certificado UC',
+        year: '2020',
+        relevance: 'Auditoría contable, conciliaciones bancarias al centavo, balances de gastos comunes, control presupuestario y rendición mensual de cuentas documentada.',
+        fileName: '06_Certificado_Curso_Contabilidad_General.pdf'
+      },
+      {
+        id: 'cert-6',
+        title: 'Gestión de Proyectos (Project Management) & Presupuestos',
+        institution: 'Google / Coursera & Instituto Profesional IPLACEX',
+        status: 'Certificación Profesional',
+        year: '2021',
+        relevance: 'Planificación de obras en Microsoft Project y Primavera P6, optimización de recursos comunitarios y análisis de precios unitarios para frenar sobrecostos.',
+        fileName: '05_Certificado_Internacional_Project_Management_Google_Coursera.pdf'
+      }
+    ];
+
+    const userCustom = (academicRecords || []).filter(r => {
+      if (r.includeInProposal === false) return false;
+      const txt = `${r.title || ''} ${r.status || ''} ${r.fileName || ''}`.toLowerCase();
+      if (txt.includes('alumno regular') || txt.includes('en curso') || txt.includes('estudios')) return false;
+      return !baseCerts.some(b => b.fileName === r.fileName || b.title.toLowerCase() === r.title?.toLowerCase());
+    });
+
+    return [...baseCerts, ...userCustom];
+  }, [academicRecords]);
+
+  const dossierAccreditationDocs = useMemo(() => {
+    const baseDocs = [
+      {
+        id: 'acc-1',
+        name: 'Comprobante de Inscripción Registro Nacional de Administradores (MINVU)',
+        issuer: 'Ministerio de Vivienda y Urbanismo (Minvu)',
+        folio: 'Ley N° 21.442 • En Trámite',
+        status: 'En trámite ★★★'
+      },
+      {
+        id: 'acc-2',
+        name: 'Certificado de Título Técnico de Nivel Superior en Construcciones Civiles',
+        issuer: 'CFT Santo Tomás',
+        folio: 'Registro Oficial N° 2018',
+        status: 'Vigente'
+      },
+      {
+        id: 'acc-3',
+        name: 'Certificado Oficial Aprobación Curso Copropiedad Inmobiliaria',
+        issuer: 'Learning Group / SENCE',
+        folio: 'Resolución Acreditada MINVU',
+        status: 'Vigente'
+      },
+      {
+        id: 'acc-4',
+        name: 'Licencia Instalador de Gas Clase 3 Autorizado SEC',
+        issuer: 'Superintendencia de Electricidad y Combustibles (SEC)',
+        folio: 'RUT 16.012.871-2',
+        status: 'Vigente'
+      },
+      {
+        id: 'acc-5',
+        name: 'Certificado de Inspección Técnica de Obras (ITO) & Aseguramiento PAC',
+        issuer: 'Organismo Certificador de Obras',
+        folio: 'Normativa MOP / ISO 9001',
+        status: 'Vigente'
+      },
+      {
+        id: 'acc-6',
+        name: 'Certificado de Antecedentes para Fines Especiales',
+        issuer: 'Servicio de Registro Civil e Identificación',
+        folio: 'RC-2026-8841',
+        status: 'Vigente'
+      }
+    ];
+
+    const userCustom = (accreditationDocs || []).filter(d => {
+      if (d.includeInDossier === false) return false;
+      const txt = `${d.name || ''} ${d.folio || ''} ${d.notes || ''}`.toLowerCase();
+      if (txt.includes('alumno regular') || txt.includes('en curso')) return false;
+      return !baseDocs.some(b => b.name.toLowerCase() === d.name?.toLowerCase());
+    });
+
+    return [...baseDocs, ...userCustom];
+  }, [accreditationDocs]);
+
   const packageFilesCount = useMemo(() => {
     return (
       accreditationDocs.filter(d => d.includeInDossier !== false && hasFile(d)).length +
@@ -6680,63 +6805,53 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    <div className="space-y-1 text-xs">
-                      {academicRecords
-                        .filter(r => {
-                          if (r.includeInProposal === false) return false;
-                          const txt = `${r.title || ''} ${r.status || ''} ${r.fileName || ''}`.toLowerCase();
-                          return !txt.includes('alumno regular') && !txt.includes('en curso') && !txt.includes('estudios');
-                        })
-                        .slice(0, 3)
-                        .map(item => (
-                          <div key={item.id} className="p-1.5 rounded-lg border border-slate-300 bg-slate-50/80 space-y-0.5 text-xs">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-black text-slate-900 text-[10.5px] leading-tight">{item.title}</span>
-                              <span className="px-2 py-0.5 rounded text-[8.5px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
+                    {/* Grilla de 6 Certificaciones Profesionales y Técnicas en 2 Columnas fijas */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {dossierAcademicPortfolio.slice(0, 6).map((item) => (
+                        <div key={item.id} className="p-2 rounded-xl border border-slate-300 bg-slate-50/90 space-y-1 shadow-2xs flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-start justify-between gap-1.5">
+                              <span className="font-black text-slate-900 text-[10px] leading-tight line-clamp-1">{item.title}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[7.5px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
                                 {item.status}
                               </span>
                             </div>
-                            <div className="flex flex-wrap items-center justify-between gap-x-2 text-[9px] text-slate-500">
-                              <span>Institución: <strong className="text-slate-700">{item.institution}</strong> • Periodo: <strong className="text-slate-700">{item.year}</strong></span>
-                              <span className="text-[8px] text-emerald-800 font-mono font-bold">
-                                ✓ Folio Acreditado: {item.fileName || 'Diploma_Acreditado.pdf'}
-                              </span>
+                            <div className="flex items-center justify-between text-[8px] text-slate-500 mt-0.5">
+                              <span className="truncate">Institución: <strong className="text-slate-700">{item.institution}</strong></span>
+                              <span className="shrink-0 font-mono font-bold text-slate-600 ml-1">{item.year}</span>
                             </div>
-                            <p className="text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 text-[9px] leading-snug">
-                              <strong>Aporte Técnico a la Comunidad:</strong> {item.relevance}
+                            <p className="text-slate-700 bg-white px-1.5 py-1 rounded border border-slate-200/80 text-[8px] leading-snug mt-1">
+                              <strong>Aporte Técnico:</strong> {item.relevance}
                             </p>
                           </div>
-                        ))}
+                          <div className="text-[7.5px] text-emerald-800 font-mono font-bold truncate pt-0.5 border-t border-slate-200/60">
+                            ✓ Folio: {item.fileName}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Índice de Documentos Legales y Técnicos Acreditados en Carpeta */}
+                    {/* Índice de Documentos Legales y Técnicos Acreditados en Carpeta Oficial */}
                     <div className="pt-0.5 space-y-1">
                       <span className="text-[9px] font-black uppercase text-[#0F3D2E] block">
                         Certificados Legales, Tributarios y de Especialidad Técnica en Carpeta Oficial:
                       </span>
-                      <div className="grid grid-cols-2 gap-1 text-[9px]">
-                        {accreditationDocs
-                          .filter(d => {
-                            if (d.includeInDossier === false) return false;
-                            const txt = `${d.name || ''} ${d.folio || ''} ${d.notes || ''}`.toLowerCase();
-                            return !txt.includes('alumno regular') && !txt.includes('en curso');
-                          })
-                          .slice(0, 6)
-                          .map((doc, idx) => (
-                            <div key={doc.id} className="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-between gap-1.5">
-                              <div className="min-w-0">
-                                <strong className="text-slate-900 block leading-tight truncate text-[9.5px]">
-                                  Anexo {idx + 1}: {doc.name}
-                                </strong>
-                                <span className="text-[8px] text-slate-500 block truncate">
-                                  {doc.issuer || 'Institución Oficial'} {doc.folio ? `• ${doc.folio}` : ''}
-                                </span>
-                              </div>
-                              <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold text-[8px] shrink-0 whitespace-nowrap">
-                                ✓ Vigente
+                      <div className="grid grid-cols-2 gap-1.5 text-[9px]">
+                        {dossierAccreditationDocs.slice(0, 6).map((doc, idx) => (
+                          <div key={doc.id} className="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-between gap-1.5 shadow-2xs">
+                            <div className="min-w-0">
+                              <strong className="text-slate-900 block leading-tight truncate text-[9.5px]">
+                                Anexo {idx + 1}: {doc.name}
+                              </strong>
+                              <span className="text-[8px] text-slate-500 block truncate">
+                                {doc.issuer || 'Institución Oficial'} {doc.folio ? `• ${doc.folio}` : ''}
                               </span>
                             </div>
-                          ))}
+                            <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold text-[8px] shrink-0 whitespace-nowrap">
+                              ✓ {doc.status || 'Vigente'}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
