@@ -6319,7 +6319,7 @@ export const CompanySettingsAndBackupModule = ({
         className={
           previewDossierModal
             ? 'fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto'
-            : 'fixed top-0 left-0 w-[850px] opacity-0 pointer-events-none'
+            : 'fixed top-0 left-0 w-[850px] -z-[9999] opacity-1 pointer-events-none'
         }
       >
         <div

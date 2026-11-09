@@ -42,67 +42,45 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     format: 'letter' // 612 x 792 pt (Carta oficial)
   });
 
-  // Host de captura temporal en el DOM (aislado, z-index superior, visible pero no interactivo)
-  const captureHost = document.createElement('div');
-  captureHost.setAttribute('id', 'aranpro-pdf-capture-host');
-  captureHost.style.position = 'fixed';
-  captureHost.style.left = '0';
-  captureHost.style.top = '0';
-  captureHost.style.width = '850px';
-  captureHost.style.zIndex = '999999';
-  captureHost.style.backgroundColor = '#ffffff';
-  captureHost.style.overflow = 'visible';
-  captureHost.style.pointerEvents = 'none';
-  captureHost.style.opacity = '1';
-  captureHost.style.transform = 'none';
-  document.body.appendChild(captureHost);
+  // Localizar el contenedor fijo superior si existe (para asegurar opacidad 1 y z-index temporal durante la captura)
+  const fixedContainer = targetEl.closest('.fixed') || targetEl.parentElement;
+  const prevZIndex = fixedContainer ? fixedContainer.style.zIndex : '';
+  const prevVisibility = fixedContainer ? fixedContainer.style.visibility : '';
+  const prevOpacity = fixedContainer ? fixedContainer.style.opacity : '';
+  const prevTop = fixedContainer ? fixedContainer.style.top : '';
+  const prevLeft = fixedContainer ? fixedContainer.style.left : '';
+  const prevTransform = fixedContainer ? fixedContainer.style.transform : '';
+
+  const originalDisplays = pages.map(p => p.style.display);
 
   try {
+    if (fixedContainer) {
+      fixedContainer.style.zIndex = '999999';
+      fixedContainer.style.visibility = 'visible';
+      fixedContainer.style.opacity = '1';
+      fixedContainer.style.top = '0px';
+      fixedContainer.style.left = '0px';
+      fixedContainer.style.transform = 'none';
+    }
+
     for (let i = 0; i < pages.length; i++) {
+      // Si hay múltiples páginas, mostramos ÚNICAMENTE la página actual para que ocupe la posición superior (y=0) sin desfasaje
+      if (pages.length > 1) {
+        pages.forEach((p, idx) => {
+          p.style.display = idx === i ? 'flex' : 'none';
+        });
+      }
+
       const page = pages[i];
-      const pageClone = page.cloneNode(true);
-      pageClone.style.margin = '0';
-      pageClone.style.transform = 'none';
-      pageClone.style.position = 'static';
-      pageClone.style.width = '850px';
-      pageClone.style.boxSizing = 'border-box';
-      pageClone.style.display = 'flex';
-      pageClone.style.visibility = 'visible';
-      pageClone.style.opacity = '1';
 
-      // Inlinear todas las imágenes dentro del clon a Base64 para eliminar cualquier bloqueo por CORS
-      const imgs = Array.from(pageClone.querySelectorAll('img'));
-      await Promise.all(
-        imgs.map(async (img) => {
-          const src = img.getAttribute('src');
-          if (!src || src.startsWith('data:')) return;
-          try {
-            const res = await fetch(src);
-            const blob = await res.blob();
-            const dataUrl = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = () => resolve('');
-              reader.readAsDataURL(blob);
-            });
-            if (dataUrl) img.src = dataUrl;
-          } catch {
-            // Continúa sin bloquear el proceso
-          }
-        })
-      );
-
-      captureHost.innerHTML = '';
-      captureHost.appendChild(pageClone);
-
-      // Breve pausa para asegurar renderizado de tipografías y fuentes en el DOM
+      // Breve pausa para asegurar renderizado de estilos en el DOM
       await new Promise(r => setTimeout(r, 60));
 
       // Captura con html2canvas en escala 2 para máxima resolución y nitidez tipográfica
-      const canvas = await html2canvas(pageClone, {
+      const canvas = await html2canvas(page, {
         scale: 2,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
         scrollX: 0,
@@ -120,8 +98,18 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
       pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792, undefined, 'FAST');
     }
   } finally {
-    if (captureHost && captureHost.parentNode) {
-      captureHost.parentNode.removeChild(captureHost);
+    if (fixedContainer) {
+      fixedContainer.style.zIndex = prevZIndex;
+      fixedContainer.style.visibility = prevVisibility;
+      fixedContainer.style.opacity = prevOpacity;
+      fixedContainer.style.top = prevTop;
+      fixedContainer.style.left = prevLeft;
+      fixedContainer.style.transform = prevTransform;
+    }
+    if (pages.length > 1) {
+      pages.forEach((p, idx) => {
+        p.style.display = originalDisplays[idx] || '';
+      });
     }
   }
 
