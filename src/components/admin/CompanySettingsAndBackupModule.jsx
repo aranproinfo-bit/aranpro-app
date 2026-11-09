@@ -4,6 +4,7 @@ import { formatDate, formatRut, formatCLP, validateRut } from '../../utils/forma
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { AranproLogo, AranproPdfStyleSelector, AranproOfficialSeal, useAranproPdfStyle } from '../common/MauranLogo';
+import { AranproQrCode } from '../common/AranproQrCode';
 import { DocumentLibraryPanel } from './postulaciones/DocumentLibraryPanel';
 import { ReadinessPanel } from './postulaciones/ReadinessPanel';
 import { PipelinePanel } from './postulaciones/PipelinePanel';
@@ -4692,51 +4693,13 @@ export const CompanySettingsAndBackupModule = ({
                         <p className="text-xs text-slate-500">Apunta la cámara de tu celular para abrir el portal de copropietarios en vivo.</p>
                       </div>
 
-                      {/* CÓDIGO QR SVG ESTILIZADO */}
+                      {/* CÓDIGO QR REAL ESCANEABLE */}
                       <div className="p-4 bg-white rounded-2xl border-2 border-dashed border-[#0F3D2E]/30 inline-block shadow-xs">
-                        <svg className="w-44 h-44 mx-auto" viewBox="0 0 100 100" fill="#0F3D2E">
-                          {/* QR Mockup estilizado */}
-                          <rect x="5" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
-                          <rect x="10" y="10" width="15" height="15" fill="#ffffff" rx="1" />
-                          <rect x="14" y="14" width="7" height="7" fill="#0F3D2E" />
-
-                          <rect x="70" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
-                          <rect x="75" y="10" width="15" height="15" fill="#ffffff" rx="1" />
-                          <rect x="79" y="14" width="7" height="7" fill="#0F3D2E" />
-
-                          <rect x="5" y="70" width="25" height="25" fill="#0F3D2E" rx="3" />
-                          <rect x="10" y="75" width="15" height="15" fill="#ffffff" rx="1" />
-                          <rect x="14" y="79" width="7" height="7" fill="#0F3D2E" />
-
-                          {/* Patrón central de datos */}
-                          <rect x="35" y="10" width="6" height="6" />
-                          <rect x="45" y="10" width="6" height="6" />
-                          <rect x="55" y="10" width="6" height="6" />
-                          <rect x="35" y="25" width="6" height="6" />
-                          <rect x="45" y="20" width="6" height="6" />
-                          <rect x="55" y="25" width="6" height="6" />
-                          <rect x="35" y="35" width="10" height="10" />
-                          <rect x="50" y="35" width="10" height="10" />
-                          <rect x="65" y="35" width="6" height="6" />
-                          <rect x="10" y="45" width="6" height="6" />
-                          <rect x="20" y="45" width="6" height="6" />
-                          <rect x="35" y="50" width="6" height="6" />
-                          <rect x="45" y="50" width="6" height="6" />
-                          <rect x="55" y="50" width="6" height="6" />
-                          <rect x="65" y="50" width="6" height="6" />
-                          <rect x="75" y="45" width="10" height="10" />
-                          <rect x="35" y="65" width="6" height="6" />
-                          <rect x="45" y="65" width="6" height="6" />
-                          <rect x="55" y="65" width="6" height="6" />
-                          <rect x="65" y="65" width="15" height="6" />
-                          <rect x="35" y="75" width="15" height="6" />
-                          <rect x="55" y="75" width="6" height="6" />
-                          <rect x="65" y="75" width="6" height="15" />
-                          <rect x="75" y="85" width="15" height="6" />
-                          <rect x="35" y="85" width="6" height="6" />
-                          <rect x="45" y="85" width="6" height="6" />
-                          <rect x="55" y="85" width="6" height="6" />
-                        </svg>
+                        <AranproQrCode 
+                          value="https://aranpro.cl/?demo=comunidad" 
+                          size={176} 
+                          alt="Código QR Demo Escaneable ARANPRO" 
+                        />
                       </div>
 
                       <div className="pt-2 space-y-2">
@@ -7049,48 +7012,12 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    <div className="shrink-0 p-2.5 bg-white rounded-xl border border-slate-300 shadow-xs text-center">
-                      <svg className="w-20 h-20 mx-auto" viewBox="0 0 100 100" fill="#0F3D2E">
-                        <rect x="5" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
-                        <rect x="10" y="10" width="15" height="15" fill="#ffffff" rx="1" />
-                        <rect x="14" y="14" width="7" height="7" fill="#0F3D2E" />
-
-                        <rect x="70" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
-                        <rect x="75" y="10" width="15" height="15" fill="#ffffff" rx="1" />
-                        <rect x="79" y="14" width="7" height="7" fill="#0F3D2E" />
-
-                        <rect x="5" y="70" width="25" height="25" fill="#0F3D2E" rx="3" />
-                        <rect x="10" y="75" width="15" height="15" fill="#ffffff" rx="1" />
-                        <rect x="14" y="79" width="7" height="7" fill="#0F3D2E" />
-
-                        <rect x="35" y="10" width="6" height="6" />
-                        <rect x="45" y="10" width="6" height="6" />
-                        <rect x="55" y="10" width="6" height="6" />
-                        <rect x="35" y="25" width="6" height="6" />
-                        <rect x="45" y="20" width="6" height="6" />
-                        <rect x="55" y="25" width="6" height="6" />
-                        <rect x="35" y="35" width="10" height="10" />
-                        <rect x="50" y="35" width="10" height="10" />
-                        <rect x="65" y="35" width="6" height="6" />
-                        <rect x="10" y="45" width="6" height="6" />
-                        <rect x="20" y="45" width="6" height="6" />
-                        <rect x="35" y="50" width="6" height="6" />
-                        <rect x="45" y="50" width="6" height="6" />
-                        <rect x="55" y="50" width="6" height="6" />
-                        <rect x="65" y="50" width="6" height="6" />
-                        <rect x="75" y="45" width="10" height="10" />
-                        <rect x="35" y="65" width="6" height="6" />
-                        <rect x="45" y="65" width="6" height="6" />
-                        <rect x="55" y="65" width="6" height="6" />
-                        <rect x="65" y="65" width="15" height="6" />
-                        <rect x="35" y="75" width="15" height="6" />
-                        <rect x="55" y="75" width="6" height="6" />
-                        <rect x="65" y="75" width="6" height="15" />
-                        <rect x="75" y="85" width="15" height="6" />
-                        <rect x="35" y="85" width="6" height="6" />
-                        <rect x="45" y="85" width="6" height="6" />
-                        <rect x="55" y="85" width="6" height="6" />
-                      </svg>
+                    <div className="shrink-0 p-2 bg-white rounded-xl border border-slate-300 shadow-xs text-center">
+                      <AranproQrCode 
+                        value="https://aranpro.cl/?demo=comunidad" 
+                        size={84} 
+                        alt="Código QR Demo Escaneable ARANPRO" 
+                      />
                       <span className="text-[7.5px] font-mono font-bold text-slate-500 block mt-1 tracking-tight">
                         ESCANEAR CON CELULAR
                       </span>
@@ -7737,47 +7664,11 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
                     <div className="shrink-0 p-2 bg-white rounded-xl border border-slate-300 shadow-sm text-center">
-                      <svg className="w-16 h-16 mx-auto" viewBox="0 0 100 100" fill="#0F3D2E">
-                        <rect x="5" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
-                        <rect x="10" y="10" width="15" height="15" fill="#ffffff" rx="1" />
-                        <rect x="14" y="14" width="7" height="7" fill="#0F3D2E" />
-
-                        <rect x="70" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
-                        <rect x="75" y="10" width="15" height="15" fill="#ffffff" rx="1" />
-                        <rect x="79" y="14" width="7" height="7" fill="#0F3D2E" />
-
-                        <rect x="5" y="70" width="25" height="25" fill="#0F3D2E" rx="3" />
-                        <rect x="10" y="75" width="15" height="15" fill="#ffffff" rx="1" />
-                        <rect x="14" y="79" width="7" height="7" fill="#0F3D2E" />
-
-                        <rect x="35" y="10" width="6" height="6" />
-                        <rect x="45" y="10" width="6" height="6" />
-                        <rect x="55" y="10" width="6" height="6" />
-                        <rect x="35" y="25" width="6" height="6" />
-                        <rect x="45" y="20" width="6" height="6" />
-                        <rect x="55" y="25" width="6" height="6" />
-                        <rect x="35" y="35" width="10" height="10" />
-                        <rect x="50" y="35" width="10" height="10" />
-                        <rect x="65" y="35" width="6" height="6" />
-                        <rect x="10" y="45" width="6" height="6" />
-                        <rect x="20" y="45" width="6" height="6" />
-                        <rect x="35" y="50" width="6" height="6" />
-                        <rect x="45" y="50" width="6" height="6" />
-                        <rect x="55" y="50" width="6" height="6" />
-                        <rect x="65" y="50" width="6" height="6" />
-                        <rect x="75" y="45" width="10" height="10" />
-                        <rect x="35" y="65" width="6" height="6" />
-                        <rect x="45" y="65" width="6" height="6" />
-                        <rect x="55" y="65" width="6" height="6" />
-                        <rect x="65" y="65" width="15" height="6" />
-                        <rect x="35" y="75" width="15" height="6" />
-                        <rect x="55" y="75" width="6" height="6" />
-                        <rect x="65" y="75" width="6" height="15" />
-                        <rect x="75" y="85" width="15" height="6" />
-                        <rect x="35" y="85" width="6" height="6" />
-                        <rect x="45" y="85" width="6" height="6" />
-                        <rect x="55" y="85" width="6" height="6" />
-                      </svg>
+                      <AranproQrCode 
+                        value="https://aranpro.cl/?demo=comunidad" 
+                        size={68} 
+                        alt="Código QR Demo Escaneable ARANPRO" 
+                      />
                       <span className="text-[7px] font-mono font-bold text-slate-500 block mt-0.5 tracking-tight">ESCANEAR CON CELULAR</span>
                     </div>
                   </div>

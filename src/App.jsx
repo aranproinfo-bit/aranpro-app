@@ -57,11 +57,23 @@ function MainApp() {
     setResidentLoginError('');
   };
 
-  // Leer parámetro ?c=slug de la URL (para accesos directos desde QR o WhatsApp)
+  // Leer parámetro ?c=slug o ?demo=... de la URL (para accesos directos desde QR o WhatsApp)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const commSlug = urlParams.get('c');
     const roleParam = urlParams.get('role');
+    const demoParam = urlParams.get('demo');
+
+    if (demoParam) {
+      setShowDemoAccordion(true);
+      if (demoParam === 'comite' || demoParam === '1') {
+        setResidentRutInput('15.420.312-4');
+        setResidentPasswordInput('1');
+      } else if (demoParam === 'residente' || demoParam === '6') {
+        setResidentRutInput('18.402.193-K');
+        setResidentPasswordInput('6');
+      }
+    }
 
     if (roleParam === 'admin') {
       if (currentUser?.role === 'admin') {
