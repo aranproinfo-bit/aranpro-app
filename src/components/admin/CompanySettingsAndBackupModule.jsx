@@ -6171,7 +6171,7 @@ export const CompanySettingsAndBackupModule = ({
               {/* ==================== PÁGINA 1: PORTADA & CARTA EJECUTIVA DE PRESENTACIÓN ==================== */}
               <div
                 data-pdf-style={pdfStyle}
-                className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                className="dossier-page page-1 bg-white p-7 pl-10 min-h-[1050px] max-h-[1080px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* Filete doble izquierdo Alternativa 4 */}
@@ -6195,7 +6195,7 @@ export const CompanySettingsAndBackupModule = ({
 
                 <div className="space-y-3 relative z-10">
                   {/* Membrete Corporativo Maestro ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3">
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
                     <div className="flex items-center space-x-3.5">
                       <AranproLogo variant="principal" className="h-11 w-auto" />
                       <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
@@ -6225,7 +6225,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Encabezado Formal Protocolar */}
-                  <div className="text-[10.5px] text-slate-700 space-y-1 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200">
+                  <div className="text-[10px] text-slate-700 space-y-0.5 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
                     <p>
                       <strong>Dirigido cordialmente a:</strong>{' '}
                       {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim() ? (
@@ -6258,18 +6258,18 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Título de la Propuesta */}
-                  <div className="text-center py-1">
+                  <div className="text-center py-0.5">
                     <h1 className="text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
                       Dossier Integral de Gestión & Respaldo Técnico Constructivo
                     </h1>
-                    <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                    <p className="text-[9.5px] text-slate-500 font-semibold mt-0.5">
                       Solvencia Técnica en Terreno • Transparencia Contable 24/7 • Cumplimiento Normativo Ley N° 21.442
                     </p>
-                    <div className="w-20 h-0.5 bg-[#D4B895] mx-auto mt-1 rounded-full"></div>
+                    <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-1 rounded-full"></div>
                   </div>
 
                   {/* Carta Ejecutiva y Diagnóstico Argumentado */}
-                  <div className="text-justify text-[10.5px] text-slate-800 leading-relaxed space-y-2">
+                  <div className="text-justify text-[10px] text-slate-800 leading-relaxed space-y-2">
                     <p>
                       {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim()
                         ? 'Estimados señores miembros del Comité de Administración y vecinos copropietarios:'
@@ -6292,72 +6292,22 @@ export const CompanySettingsAndBackupModule = ({
                     </p>
                   </div>
 
-                  {/* Los 4 Pilares Estratégicos ARANPRO */}
-                  <div className="pt-1">
-                    <div className="text-center mb-1.5">
-                      <span className="text-[9.5px] font-black uppercase text-[#0F3D2E] tracking-wider">
-                        Los 4 Pilares Estratégicos de Nuestra Gestión Integral
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
-                          <span className="text-emerald-700">🏗️</span>
-                          Supervisión Constructiva en Terreno
-                        </div>
-                        <p className="text-slate-600 text-[9px] leading-snug">
-                          Inspección periódica directa a salas de bombas, techumbres, impermeabilizaciones y tableros con criterio de Constructor Civil.
-                        </p>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
-                          <span className="text-emerald-700">💎</span>
-                          Transparencia Contable Total 24/7
-                        </div>
-                        <p className="text-slate-600 text-[9px] leading-snug">
-                          Conciliación bancaria diaria, respaldos digitalizados de cada factura y rendición mensual de cuentas documentada ante el Comité.
-                        </p>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
-                          <span className="text-emerald-700">📐</span>
-                          Cubicación & Control de Contratistas
-                        </div>
-                        <p className="text-slate-600 text-[9px] leading-snug">
-                          Elaboración de bases técnicas y revisión de cotizaciones ítem por ítem, frenando sobrecostos en pinturas, pavimentos y mantenciones.
-                        </p>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
-                          <span className="text-emerald-700">⚖️</span>
-                          Régimen Laboral & Ley N° 21.442
-                        </div>
-                        <p className="text-slate-600 text-[9px] leading-snug">
-                          Cumplimiento estricto de protocolos Ley Karin, contratos de conserjería, pagos F30-1 y pólizas de seguro colectivo (Art. 43°).
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Resumen de Respaldo y Acreditación en Cifras */}
+                  {/* Resumen de Respaldo y Acreditación en Cifras (4 Tarjetas fijas) */}
                   <div className="pt-0.5">
-                    <div className="grid grid-cols-4 gap-1.5 text-center">
-                      <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                      <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
                         <span className="text-[8px] font-bold text-slate-500 uppercase block">Especialidad</span>
                         <strong className="text-[10.5px] font-black text-[#0F3D2E]">Construcción Civil</strong>
                       </div>
-                      <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                      <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
                         <span className="text-[8px] font-bold text-slate-500 uppercase block">Acreditación Oficial</span>
                         <strong className="text-[10.5px] font-black text-[#0F3D2E]">{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442'}</strong>
                       </div>
-                      <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                      <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
                         <span className="text-[8px] font-bold text-slate-500 uppercase block">Experiencia & Cartera</span>
                         <strong className="text-[10.5px] font-black text-[#0F3D2E]">{portfolioStats.totalComms} Condominio(s) Base</strong>
                       </div>
-                      <div className="p-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                      <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
                         <span className="text-[8px] font-bold text-slate-500 uppercase block">Régimen en Terreno</span>
                         <strong className="text-[10.5px] font-black text-[#0F3D2E]">Semanal + 24/7</strong>
                       </div>
@@ -6366,72 +6316,73 @@ export const CompanySettingsAndBackupModule = ({
 
                   {/* POLÍTICA DE HONORARIOS DE TRANSICIÓN: CONTINUIDAD PRESUPUESTARIA & EVALUACIÓN TRIMESTRAL */}
                   <div className="p-3 rounded-2xl bg-gradient-to-br from-[#F5F4EF] via-white to-[#F5F4EF] border-2 border-[#0F3D2E]/25 space-y-2 text-xs shadow-xs">
-                    <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-[#0F3D2E]/15 pb-1.5">
+                    <div className="flex items-center justify-between border-b border-[#0F3D2E]/15 pb-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-mono font-bold text-[9px] uppercase tracking-wider">
-                          Garantía de Continuidad Presupuestaria
+                        <span className="px-2 py-0.5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-mono font-bold text-[8.5px] uppercase tracking-wider">
+                          Garantía de Continuidad
                         </span>
                         <span className="font-black text-[#0F3D2E] text-[10.5px] uppercase tracking-tight">
                           Política de Honorarios & Período de Transición (Primeros 3 Meses)
                         </span>
                       </div>
-                      <span className="font-mono font-bold text-[9px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2 py-0.5 rounded-md shadow-2xs">
+                      <span className="font-mono font-bold text-[8.5px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2 py-0.5 rounded-md shadow-2xs">
                         Sin Incremento Inicial en Gasto Común
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 py-0.5">
+                    {/* Grilla horizontal de 3 columnas fijas (sin clases md: que colapsen en vertical) */}
+                    <div className="grid grid-cols-3 gap-2.5 py-0.5">
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[10px]">
-                            <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[9px] font-black">1</span>
+                          <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[9.5px]">
+                            <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[8.5px] font-black">1</span>
                             Homologación Inmediata
                           </div>
-                          <p className="text-[9px] text-slate-600 leading-snug mt-1">
-                            Durante los <strong>primeros 3 meses</strong>, ARANPRO se <strong>ajusta y homologa al valor exacto</strong> que la comunidad cancela a su administración actual. Cero sobrecosto presupuestario en la etapa de traspaso.
+                          <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
+                            Durante los <strong>primeros 3 meses</strong>, ARANPRO se <strong>ajusta y homologa al valor exacto</strong> que la comunidad cancela a su administración actual. Cero sobrecosto presupuestario en la transición.
                           </p>
                         </div>
-                        <span className="mt-2 text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded text-center block">
+                        <span className="mt-2 text-[7.5px] font-mono font-bold text-emerald-800 bg-emerald-50 px-1 py-0.5 rounded text-center block">
                           Meses 1, 2 y 3: Mismo Valor Vigente
                         </span>
                       </div>
 
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[10px]">
-                            <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[9px] font-black">2</span>
+                          <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[9.5px]">
+                            <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[8.5px] font-black">2</span>
                             Auditoría & Diagnóstico Real
                           </div>
-                          <p className="text-[9px] text-slate-600 leading-snug mt-1">
-                            Levantamiento técnico exhaustivo por Constructor Civil: revisión de salas de bombas, techumbres, contratos de proveedores, regularización laboral y saneamiento contable de vicios ocultos.
+                          <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
+                            Levantamiento exhaustivo por Constructor Civil: revisión de salas de bombas, techumbres, contratos de proveedores, regularización laboral y saneamiento contable de vicios ocultos.
                           </p>
                         </div>
-                        <span className="mt-2 text-[8px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] px-1.5 py-0.5 rounded text-center block">
+                        <span className="mt-2 text-[7.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] px-1 py-0.5 rounded text-center block">
                           Auditoría Técnica en Terreno
                         </span>
                       </div>
 
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[10px]">
-                            <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[9px] font-black">3</span>
-                            Propuesta Definitiva al 3er Mes
+                          <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[9.5px]">
+                            <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[8.5px] font-black">3</span>
+                            Propuesta al 3er Mes
                           </div>
-                          <p className="text-[9px] text-slate-600 leading-snug mt-1">
+                          <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
                             Con la realidad operativa auditada y demostrando ahorros tangibles conseguidos, se presenta al Comité un <strong>informe formal de gestión y el honorario definitivo</strong> basado en hechos y trabajo comprobado.
                           </p>
                         </div>
-                        <span className="mt-2 text-[8px] font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-center block">
+                        <span className="mt-2 text-[7.5px] font-mono font-bold text-slate-700 bg-slate-100 px-1 py-0.5 rounded text-center block">
                           Acuerdo Bilateral Transparente
                         </span>
                       </div>
                     </div>
 
-                    <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-3 py-1.5 flex flex-wrap items-center justify-between text-[9px] text-emerald-950 gap-2">
+                    <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[8.5px] text-emerald-950 gap-2">
                       <span className="leading-snug">
                         <strong>Beneficios incluidos desde el Día 1 sin costo:</strong> Suite Web & App Móvil ARANPRO 24/7 para el 100% de residentes, visitas presenciales en terreno semanales, línea prioritaria de emergencias 24/7 y auditoría de traspaso.
                       </span>
-                      <span className="font-mono font-bold text-[8.5px] text-[#0F3D2E] bg-white px-2 py-0.5 rounded border border-[#D4B895] shrink-0">
+                      <span className="font-mono font-bold text-[8px] text-[#0F3D2E] bg-white px-1.5 py-0.5 rounded border border-[#D4B895] shrink-0">
                         {proposalConfig.taxModality || 'Factura Exenta / Boleta'}
                       </span>
                     </div>
@@ -6439,7 +6390,7 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* Pie de Página Institucional Página 1 */}
-                <div className="mt-auto pt-3 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
+                <div className="mt-auto pt-2.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
                   <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
                   <div className="font-bold text-[#0F3D2E]">Página 1 de 3 • Carta de Presentación Oficial • Ley N° 21.442</div>
                   <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
@@ -6806,7 +6757,7 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
                       {committeeReferences.map(ref => (
                         <div key={ref.id} className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 space-y-0.5">
                           <div className="flex items-center justify-between gap-1">
