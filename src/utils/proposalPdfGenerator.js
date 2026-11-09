@@ -32,9 +32,106 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     throw new Error(`Elemento #${typeof elementOrId === 'string' ? elementOrId : 'desconocido'} no encontrado en el DOM`);
   }
 
-  // Si tiene páginas hijas con clase .dossier-page, capturamos cada página por separado (multi-página)
-  const rawPages = Array.from(targetEl.querySelectorAll('.dossier-page'));
-  const pages = rawPages.length > 0 ? rawPages : [targetEl];
+  // 1. Obtener el HTML limpio del elemento
+  let contentHtml = targetEl.innerHTML;
+
+  // 2. Resolver rutas de imágenes relativas a absolutas para carga inmediata sin bloqueos
+  const origin = (typeof window !== 'undefined' && window.location?.origin) || '';
+  contentHtml = contentHtml
+    .replace(/src="\/brand\//g, `src="${origin}/brand/`)
+    .replace(/src="brand\//g, `src="${origin}/brand/`)
+    .replace(/src="\/certificaciones\//g, `src="${origin}/certificaciones/`);
+
+  // Extraer todas las hojas de estilo y estilos inline de la aplicación
+  const existingStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+    .map((el) => el.outerHTML)
+    .join('\n');
+
+  // 3. Crear o reutilizar un iframe invisible fuera de pantalla para aislamiento total
+  let iframe = document.getElementById('aranpro-pdf-export-iframe');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'aranpro-pdf-export-iframe';
+    iframe.style.position = 'fixed';
+    iframe.style.left = '-10000px';
+    iframe.style.top = '0';
+    iframe.style.width = '850px';
+    iframe.style.height = '1200px';
+    iframe.style.border = '0';
+    iframe.style.opacity = '1';
+    iframe.style.visibility = 'visible';
+    iframe.style.zIndex = '-99999';
+    document.body.appendChild(iframe);
+  }
+
+  const doc = iframe.contentWindow || iframe.contentDocument;
+  const iDoc = doc.document || doc;
+  iDoc.open();
+  iDoc.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8" />
+        <script src="https://cdn.tailwindcss.com"></script>
+        ${existingStyles}
+        <style>
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            width: 850px !important;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #0f172a;
+          }
+          .dossier-page {
+            width: 850px !important;
+            min-height: 1060px !important;
+            max-height: 1080px !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+          }
+          .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-xs, .shadow-2xs, .shadow-sm {
+            box-shadow: none !important;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="export-root" style="width: 850px; background: #ffffff;">
+          ${contentHtml}
+        </div>
+      </body>
+    </html>
+  `);
+  iDoc.close();
+
+  // Esperar a que el iframe compile estilos de Tailwind y renderice (~350ms)
+  await new Promise(r => setTimeout(r, 350));
+
+  // Esperar a que todas las imágenes del iframe carguen completamente
+  const iframeImgs = Array.from(iDoc.querySelectorAll('img'));
+  await Promise.all(
+    iframeImgs.map(img => {
+      if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve;
+        setTimeout(resolve, 800);
+      });
+    })
+  );
+
+  const rawPages = Array.from(iDoc.querySelectorAll('.dossier-page'));
+  const pages = rawPages.length > 0 ? rawPages : [iDoc.getElementById('export-root') || iDoc.body];
 
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -42,75 +139,30 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     format: 'letter' // 612 x 792 pt (Carta oficial)
   });
 
-  // Localizar el contenedor fijo superior si existe (para asegurar opacidad 1 y z-index temporal durante la captura)
-  const fixedContainer = targetEl.closest('.fixed') || targetEl.parentElement;
-  const prevZIndex = fixedContainer ? fixedContainer.style.zIndex : '';
-  const prevVisibility = fixedContainer ? fixedContainer.style.visibility : '';
-  const prevOpacity = fixedContainer ? fixedContainer.style.opacity : '';
-  const prevTop = fixedContainer ? fixedContainer.style.top : '';
-  const prevLeft = fixedContainer ? fixedContainer.style.left : '';
-  const prevTransform = fixedContainer ? fixedContainer.style.transform : '';
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
 
-  const originalDisplays = pages.map(p => p.style.display);
+    // Captura limpia del elemento dentro del iframe con escala 2 para nitidez
+    const canvas = await html2canvas(page, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: 850,
+      window: iframe.contentWindow
+    });
 
-  try {
-    if (fixedContainer) {
-      fixedContainer.style.zIndex = '999999';
-      fixedContainer.style.visibility = 'visible';
-      fixedContainer.style.opacity = '1';
-      fixedContainer.style.top = '0px';
-      fixedContainer.style.left = '0px';
-      fixedContainer.style.transform = 'none';
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+    if (i > 0) {
+      pdf.addPage('letter', 'portrait');
     }
 
-    for (let i = 0; i < pages.length; i++) {
-      // Si hay múltiples páginas, mostramos ÚNICAMENTE la página actual para que ocupe la posición superior (y=0) sin desfasaje
-      if (pages.length > 1) {
-        pages.forEach((p, idx) => {
-          p.style.display = idx === i ? 'flex' : 'none';
-        });
-      }
-
-      const page = pages[i];
-
-      // Breve pausa para asegurar renderizado de estilos en el DOM
-      await new Promise(r => setTimeout(r, 60));
-
-      // Captura con html2canvas en escala 2 para máxima resolución y nitidez tipográfica
-      const canvas = await html2canvas(page, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: 850
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-      if (i > 0) {
-        pdf.addPage('letter', 'portrait');
-      }
-
-      // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt)
-      pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792, undefined, 'FAST');
-    }
-  } finally {
-    if (fixedContainer) {
-      fixedContainer.style.zIndex = prevZIndex;
-      fixedContainer.style.visibility = prevVisibility;
-      fixedContainer.style.opacity = prevOpacity;
-      fixedContainer.style.top = prevTop;
-      fixedContainer.style.left = prevLeft;
-      fixedContainer.style.transform = prevTransform;
-    }
-    if (pages.length > 1) {
-      pages.forEach((p, idx) => {
-        p.style.display = originalDisplays[idx] || '';
-      });
-    }
+    // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt)
+    pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792, undefined, 'FAST');
   }
 
   const dataUri = pdf.output('datauristring');
@@ -1162,7 +1214,7 @@ export const generateStepPdfAttachment = async ({
     };
   }
 
-  // ==================== PASO 2: DOSSIER INTEGRAL DE LICITACIÓN (4 PÁGINAS CANÓNICAS) ====================
+  // ==================== PASO 2: DOSSIER INTEGRAL DE LICITACIÓN (4 PÁGINAS CANÓNICAS 1:1) ====================
   const dateFormatted = new Date().toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
 
   // -------------------- PÁGINA 1: PORTADA & CARTA EJECUTIVA DE PRESENTACIÓN --------------------
@@ -1179,8 +1231,8 @@ export const generateStepPdfAttachment = async ({
     sealImg,
     sigImg,
     empresaForm,
-    badgeText: `DOSSIER OFICIAL ${year}`,
-    docTypeTitle: 'Dossier Integral de Gestión',
+    badgeText: `DOSSIER INSTITUCIONAL DE GESTIÓN`,
+    docTypeTitle: 'Administración Cercana, Orden Financiero & Especialidad Constructiva',
     docSubTitle: condo,
     footerCenterText: 'Página 1 de 4 • Propuesta de Gestión & Cercanía Operativa • Ley N° 21.442'
   });
@@ -1189,94 +1241,149 @@ export const generateStepPdfAttachment = async ({
     { label: 'Dirigido cordialmente a:', value: recipient, valueColor: '#0F172A' },
     { label: 'Condominio / Edificio:', value: condo.toUpperCase(), valueColor: '#0F3D2E', valueFont: '900 14px system-ui, -apple-system, Arial, sans-serif' },
     { label: 'Presentado por:', value: `${adminName} — Especialista Constructor Civil • Administrador de Condominios (Ley N° 21.442)`, valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' },
-    { label: 'Fecha:', value: `${dateFormatted} • ${proposalConfig.targetCity || empresaForm.city || 'La Serena, Chile'}`, valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' },
+    { label: 'Fecha y Lugar:', value: `${dateFormatted} • ${proposalConfig.targetCity || empresaForm.city || 'La Serena, Región de Coquimbo'}`, valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' },
     { label: 'Materia:', value: 'Presentación de Metodología de Trabajo, Respaldo Técnico Constructivo y Custodia de Bienes Comunes', valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' }
   ]);
 
   ctx1.textAlign = 'center';
   ctx1.fillStyle = '#0F3D2E';
-  ctx1.font = '900 17px system-ui, -apple-system, Arial, sans-serif';
+  ctx1.font = '900 16px system-ui, -apple-system, Arial, sans-serif';
   ctx1.fillText('DOSSIER INSTITUCIONAL DE GESTIÓN, CERCANÍA OPERATIVA & ESPECIALIDAD CONSTRUCTIVA', W / 2 + 7, curY1 + 8);
+  ctx1.fillStyle = '#64748B';
+  ctx1.font = 'bold 11px system-ui, -apple-system, Arial, sans-serif';
+  ctx1.fillText('Presencia en Terreno • Seguimiento Financiero Transparente • Especialista Constructor Civil • Ley N° 21.442', W / 2 + 7, curY1 + 24);
   ctx1.textAlign = 'left';
 
   ctx1.fillStyle = '#D4B895';
-  roundRect(ctx1, W / 2 - 42, curY1 + 17, 98, 3.5, 2);
+  roundRect(ctx1, W / 2 - 42, curY1 + 30, 98, 3.5, 2);
   ctx1.fill();
-  curY1 += 38;
+  curY1 += 44;
 
-  const dp1 = `Junto con saludarles cordialmente, presentamos el Dossier Institucional de **${empresaForm.provisionalName || 'ARANPRO Gestión Integral'}**, orientado a ofrecer una administración cercana, ordenada y comprometida con el cuidado de los bienes comunes de **${condo}**. Nuestra gestión combina seguimiento financiero, coordinación del personal y proveedores, presencia en terreno y herramientas digitales gratuitas para que el Comité pueda decidir con antecedentes claros.`;
-  curY1 = drawRichParagraph(ctx1, dp1, f1.padL, curY1, f1.contentW, 20, baseFont, boldFont, '#1E293B', '#0F172A', true);
-  curY1 += 8;
+  const dp0 = `Estimados ${recipient}:`;
+  curY1 = drawRichParagraph(ctx1, dp0, f1.padL, curY1, f1.contentW, 19, boldFont, boldFont, '#0F172A', '#0F172A', false);
+  curY1 += 6;
 
-  const dp2 = `Como **Especialista Constructor Civil** y Administrador de Condominios (**Ley N° 21.442**), con formación certificada en inspección de obras (ITO), calidad (PAC), presupuestos, planificación y contabilidad, aplico estos conocimientos a la revisión de alcances y cubicaciones, al seguimiento de mantenciones y a la documentación de observaciones en terreno. Durante los **primeros 3 meses** nos ajustamos al valor de honorarios actual de la comunidad mientras realizamos el diagnóstico real y acordamos en conjunto la propuesta definitiva.`;
-  curY1 = drawRichParagraph(ctx1, dp2, f1.padL, curY1, f1.contentW, 20, baseFont, boldFont, '#1E293B', '#0F172A', true);
+  const dp1 = `Junto con saludarles cordialmente, ponemos a su disposición este Dossier con el propósito de presentar la forma de trabajo de **ARANPRO • Gestión Integral**. Ofrecemos una administración cercana, metódica y profundamente orientada al cuidado de los bienes comunes y la armonía vecinal de **${condo}**. Nuestra propuesta integra seguimiento financiero riguroso, coordinación disciplinada del personal y proveedores, presencia periódica en terreno y herramientas digitales gratuitas para que el Comité conozca en todo momento el estado de la gestión y pueda **decidir con antecedentes claros, oportunos y verificables**.`;
+  curY1 = drawRichParagraph(ctx1, dp1, f1.padL, curY1, f1.contentW, 19, baseFont, boldFont, '#1E293B', '#0F172A', true);
+  curY1 += 7;
+
+  const dp2 = `Como **Especialista Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442**, cuento con formación complementaria certificada en **Inspección Técnica de Obras (ITO), Aseguramiento de Calidad (PAC), Control de Presupuestos, Gestión de Proyectos (Project Management), Contabilidad General (PUC) y Normativa SEC**. Aplico directamente estas competencias a la revisión técnica de alcances y cantidades (cubicaciones), al seguimiento programado de mantenciones preventivas y a la documentación rigurosa de observaciones en terreno, coordinando especialistas habilitados cada vez que la intervención lo requiere.`;
+  curY1 = drawRichParagraph(ctx1, dp2, f1.padL, curY1, f1.contentW, 19, baseFont, boldFont, '#1E293B', '#0F172A', true);
+  curY1 += 7;
+
+  const dp3 = `Sabemos que cada comunidad tiene una identidad y prioridades distintas. Este documento presenta nuestra metodología y las capacidades técnicas y operativas que ponemos a su servicio; nuestra visita inicial nos permitirá conocer en terreno sus requerimientos y estructurar un plan de trabajo con frecuencias de atención, responsabilidades y entregables claramente definidos.`;
+  curY1 = drawRichParagraph(ctx1, dp3, f1.padL, curY1, f1.contentW, 19, baseFont, boldFont, '#1E293B', '#0F172A', true);
   curY1 += 12;
 
-  // 4 Especialidades Constructivas en grilla 2x2
-  const specs1 = [
-    { title: '✓ Revisión de Alcances y Cubicaciones (ITO)', desc: 'Evaluación técnica de presupuestos, control de cantidades y especificaciones antes de contratar trabajos, asegurando recepciones conformes documentadas.' },
-    { title: '✓ Seguimiento de Mantenciones e Infraestructura', desc: 'Supervisión programada de salas de bombas, cubiertas, tableros eléctricos y redes de gas/calderas (SEC), coordinando especialistas habilitados cuando se requiere.' },
-    { title: '✓ Seguimiento Financiero y Personal', desc: 'Conciliaciones bancarias mensuales, rendición clara de ingresos/egresos y coordinación directa del personal de conserjería y aseo (cumplimiento laboral y F30-1).' },
-    { title: '✓ Transición de 3 Meses al Valor Actual', desc: 'Homologación al honorario vigente durante los primeros 3 meses de diagnóstico en terreno, para luego definir con el Comité la propuesta definitiva con entregables claros.' }
+  // 4 Pills de Especialidad
+  const pills1 = [
+    { cat: 'ESPECIALIDAD TITULAR', title: 'Especialista Constructor Civil' },
+    { cat: 'MARCO NORMATIVO', title: 'Ley N° 21.442 & ITO' },
+    { cat: 'GESTIÓN & RESPALDO', title: 'Financiero, Laboral y Terreno' },
+    { cat: 'PLATAFORMA COMUNIDAD', title: 'Web & App 100% Gratuita' }
   ];
-
-  const spW1 = (f1.contentW - 18) / 2;
-  const spH1 = 110;
-  specs1.forEach((sp, idx) => {
-    const col = idx % 2;
-    const row = Math.floor(idx / 2);
-    const sx = f1.padL + col * (spW1 + 18);
-    const sy = curY1 + row * (spH1 + 12);
-
-    roundRect(ctx1, sx, sy, spW1, spH1, 10);
+  const pillW = (f1.contentW - 30) / 4;
+  pills1.forEach((pl, idx) => {
+    const px = f1.padL + idx * (pillW + 10);
+    roundRect(ctx1, px, curY1, pillW, 46, 8);
     ctx1.fillStyle = '#F8FAFC';
     ctx1.fill();
     ctx1.strokeStyle = '#E2E8F0';
-    ctx1.lineWidth = 1.5;
+    ctx1.lineWidth = 1;
     ctx1.stroke();
 
+    ctx1.fillStyle = '#64748B';
+    ctx1.font = 'bold 9.5px "Courier New", Courier, monospace';
+    ctx1.textAlign = 'center';
+    ctx1.fillText(pl.cat, px + pillW / 2, curY1 + 16);
+
     ctx1.fillStyle = '#0F3D2E';
-    ctx1.font = 'bold 13.5px system-ui, -apple-system, Arial, sans-serif';
-    ctx1.fillText(sp.title, sx + 14, sy + 25);
-
-    drawRichParagraph(ctx1, sp.desc, sx + 14, sy + 46, spW1 - 28, 18, '12px system-ui, -apple-system, Arial, sans-serif', 'bold 12px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
+    ctx1.font = '900 11.5px system-ui, -apple-system, Arial, sans-serif';
+    ctx1.fillText(pl.title, px + pillW / 2, curY1 + 34);
+    ctx1.textAlign = 'left';
   });
-  curY1 += spH1 * 2 + 30;
+  curY1 += 58;
 
-  // Política de Honorarios y Transición de 3 Meses
-  roundRect(ctx1, f1.padL, curY1, f1.contentW, 140, 12);
+  // Recuadro: TRANSICIÓN ORDENADA & POLÍTICA DE HONORARIOS (PRIMEROS 3 MESES)
+  const transBoxH = 158;
+  roundRect(ctx1, f1.padL, curY1, f1.contentW, transBoxH, 12);
   ctx1.fillStyle = '#F5F4EF';
   ctx1.fill();
   ctx1.strokeStyle = '#D4B895';
   ctx1.lineWidth = 1.5;
   ctx1.stroke();
 
+  // Badge y Título
+  roundRect(ctx1, f1.padL + 14, curY1 + 10, 140, 20, 5);
   ctx1.fillStyle = '#0F3D2E';
-  ctx1.font = '900 13px system-ui, -apple-system, Arial, sans-serif';
-  ctx1.fillText('POLÍTICA DE HONORARIOS DE TRANSICIÓN & PERÍODO DE DIAGNÓSTICO (PRIMEROS 3 MESES):', f1.padL + 16, curY1 + 25);
+  ctx1.fill();
+  ctx1.fillStyle = '#D4B895';
+  ctx1.font = 'bold 9.5px system-ui, -apple-system, Arial, sans-serif';
+  ctx1.textAlign = 'center';
+  ctx1.fillText('TRANSICIÓN ORDENADA', f1.padL + 84, curY1 + 24);
+  ctx1.textAlign = 'left';
 
+  ctx1.fillStyle = '#0F3D2E';
+  ctx1.font = '900 12.5px system-ui, -apple-system, Arial, sans-serif';
+  ctx1.fillText('POLÍTICA DE HONORARIOS & PERÍODO DE DIAGNÓSTICO (PRIMEROS 3 MESES)', f1.padL + 164, curY1 + 24);
+
+  ctx1.fillStyle = '#166534';
+  ctx1.font = 'bold 11px system-ui, -apple-system, Arial, sans-serif';
+  ctx1.textAlign = 'right';
+  ctx1.fillText('Sin Incremento Inicial en Gasto Común', f1.padL + f1.contentW - 16, curY1 + 24);
+  ctx1.textAlign = 'left';
+
+  // 3 Columnas de Transición
   const tCols = [
-    { num: '1', title: 'Ajuste al Valor Actual', desc: 'Durante los primeros 3 meses nos ajustamos al mismo valor que pagan hoy, sin incrementar el gasto común vecinal.' },
-    { num: '2', title: 'Diagnóstico & Ordenamiento', desc: 'Levantamiento técnico de bombas, tableros y techumbres; arqueo de cuentas y regularización de proveedores.' },
-    { num: '3', title: 'Acuerdo Definitivo al 3er Mes', desc: 'Con el diagnóstico real sobre la mesa, acordamos en conjunto con el Comité la propuesta definitiva con entregables.' }
+    { num: '1', title: 'Ajuste al Valor Actual', desc: 'Durante los primeros 3 meses, ARANPRO se ajusta al mismo valor de honorarios que la comunidad mantiene vigente, asegurando continuidad operativa sin alterar el presupuesto vecinal.', badge: 'Meses 1 al 3: Valor Actual Vigente' },
+    { num: '2', title: 'Diagnóstico & Ordenamiento', desc: 'En este trimestre realizamos el levantamiento técnico en terreno, revisión de alcances con proveedores, conciliación financiera y puesta en marcha de los controles de mantenimiento.', badge: 'Levantamiento Técnico y Contable' },
+    { num: '3', title: 'Acuerdo Definitivo al 3er Mes', desc: 'Con el diagnóstico real de la comunidad y las mejoras ya encaminadas, revisamos en conjunto con el Comité la propuesta definitiva de servicios, frecuencias y honorarios.', badge: 'Decisión con Antecedentes Claros' }
   ];
-  const tcW = (f1.contentW - 32 - 16) / 3;
+  const tcW = (f1.contentW - 40) / 3;
   tCols.forEach((tc, idx) => {
-    const tcx = f1.padL + 16 + idx * (tcW + 8);
+    const tcx = f1.padL + 14 + idx * (tcW + 6);
     const tcy = curY1 + 38;
-    roundRect(ctx1, tcx, tcy, tcW, 86, 8);
+    roundRect(ctx1, tcx, tcy, tcW, 108, 8);
     ctx1.fillStyle = '#FFFFFF';
     ctx1.fill();
     ctx1.strokeStyle = '#E2E8F0';
+    ctx1.lineWidth = 1;
     ctx1.stroke();
 
     ctx1.fillStyle = '#0F3D2E';
-    ctx1.font = 'bold 12px system-ui, -apple-system, Arial, sans-serif';
-    ctx1.fillText(`${tc.num}. ${tc.title}`, tcx + 10, tcy + 22);
-    drawRichParagraph(ctx1, tc.desc, tcx + 10, tcy + 38, tcW - 20, 15, '11px system-ui, -apple-system, Arial, sans-serif', 'bold 11px system-ui, -apple-system, Arial, sans-serif', '#64748B', '#0F172A', false);
-  });
+    ctx1.font = '900 12px system-ui, -apple-system, Arial, sans-serif';
+    ctx1.fillText(`${tc.num}  ${tc.title}`, tcx + 10, tcy + 20);
 
-  const p1Jpeg = canvas1.toDataURL('image/jpeg', 0.92);
+    drawRichParagraph(ctx1, tc.desc, tcx + 10, tcy + 34, tcW - 20, 14, '10.5px system-ui, -apple-system, Arial, sans-serif', 'bold 10.5px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
+
+    ctx1.fillStyle = '#64748B';
+    ctx1.font = 'bold 9.5px "Courier New", Courier, monospace';
+    ctx1.textAlign = 'center';
+    ctx1.fillText(tc.badge, tcx + tcW / 2, tcy + 98);
+    ctx1.textAlign = 'left';
+  });
+  curY1 += transBoxH + 12;
+
+  // Box Entregables Incluidos
+  roundRect(ctx1, f1.padL, curY1, f1.contentW, 36, 8);
+  ctx1.fillStyle = '#F0FDF4';
+  ctx1.fill();
+  ctx1.strokeStyle = '#86EFAC';
+  ctx1.lineWidth = 1;
+  ctx1.stroke();
+
+  ctx1.fillStyle = '#0F3D2E';
+  ctx1.font = 'bold 10.5px system-ui, -apple-system, Arial, sans-serif';
+  ctx1.fillText('Entregables incluidos desde el primer día: Acceso gratuito a la plataforma Web & App Móvil para residentes y Comité,', f1.padL + 14, curY1 + 16);
+  ctx1.fillText('presencia programada en terreno, seguimiento documentado de mantenciones y atención de contingencias.', f1.padL + 14, curY1 + 29);
+
+  ctx1.fillStyle = '#166534';
+  ctx1.font = 'bold 10.5px "Courier New", Courier, monospace';
+  ctx1.textAlign = 'right';
+  ctx1.fillText('Factura Exenta / Boleta de Honorarios Profesional', f1.padL + f1.contentW - 14, curY1 + 23);
+  ctx1.textAlign = 'left';
+
+  const p1Jpeg = canvas1.toDataURL('image/jpeg', 0.95);
 
   // -------------------- PÁGINA 2: METODOLOGÍA, INFRAESTRUCTURA & PLAN 30 DÍAS --------------------
   const canvas2 = document.createElement('canvas');
@@ -1293,98 +1400,120 @@ export const generateStepPdfAttachment = async ({
     sigImg,
     empresaForm,
     badgeText: 'METODOLOGÍA & TERRENO',
-    docTypeTitle: 'Ficha Técnica Constructiva',
-    docSubTitle: condo,
-    footerCenterText: 'Página 2 de 4 • Metodología de Trabajo & Especialidad Constructiva • Ley N° 21.442'
+    docTypeTitle: 'Especialista Constructor Civil • Seguimiento Financiero, Operativo y Mantenciones',
+    docSubTitle: '• Ley N° 21.442',
+    footerCenterText: 'Página 2 de 4 • Metodología Técnica, Financiera y Plan de 30 Días • Ley N° 21.442'
   });
 
-  let curY2 = f2.startY + 8;
-  ctx2.fillStyle = '#0F3D2E';
-  ctx2.font = '900 16px system-ui, -apple-system, Arial, sans-serif';
-  ctx2.fillText('1. PROTOCOLOS TÉCNICOS DE FISCALIZACIÓN & MANTENCIÓN PREVENTIVA EN TERRENO', f2.padL, curY2);
-  curY2 += 16;
+  let curY2 = f2.startY + 6;
 
-  const techSpecs = [
-    {
-      title: '⚙ Sala de Bombas Hidroneumáticas & Estanques',
-      badge: 'D.S. 735 • Agua Potable',
-      desc: 'Supervisión de presiones de corte y partida, válvulas de retención, alternancia de motores, inspección de fugas en manifold, limpieza y sanitización semestral de estanques de reserva (D.S. 735) con laboratorio acreditado.'
-    },
-    {
-      title: '⚡ Tableros Eléctricos, Grupos Electrógenos & SEC',
-      badge: 'Norma SEC • TE1',
-      desc: 'Inspección termográfica preventiva, revisión de protecciones diferenciales, canalizaciones, transferencia automática de grupo generador y verificación de continuidad de servicio en ascensores e iluminación de emergencia.'
-    },
-    {
-      title: '🏠 Techumbres, Hojalaterías & Evacuación Aguas Lluvias',
-      badge: 'Inspección Constructiva ITO',
-      desc: 'Limpieza programada de canaletas y bajadas de aguas lluvia antes de invierno, sellado preventivo de hojalaterías, cubiertas y diagnóstico de filtraciones con criterio de Constructor Civil para evitar daños en copropiedad.'
-    },
-    {
-      title: '🔥 Redes de Gas, Calderas Centrales & Sello Verde',
-      badge: 'Reglamento SEC • DS 66',
-      desc: 'Control exhaustivo de inspecciones periódicas de gas (Sello Verde SEC), verificación de bitácoras de mantención de calderas, válvulas de seguridad, quemadores y detectores de monóxido en salas técnicas.'
-    }
+  // 1 METODOLOGÍA DE TRABAJO
+  ctx2.fillStyle = '#0F3D2E';
+  ctx2.font = '900 14px system-ui, -apple-system, Arial, sans-serif';
+  ctx2.fillText('1   METODOLOGÍA DE TRABAJO: ESPECIALIDAD CONSTRUCTIVA, ORDEN FINANCIERO Y PRESENCIA EN TERRENO', f2.padL, curY2);
+  curY2 += 16;
+  ctx2.fillStyle = '#64748B';
+  ctx2.font = '11px system-ui, -apple-system, Arial, sans-serif';
+  ctx2.fillText('Aplicación práctica de nuestras competencias técnicas y administrativas para respaldar la toma de decisiones del Comité', f2.padL, curY2);
+  curY2 += 14;
+
+  const specs2 = [
+    { title: '✓ Revisión de Alcances, Cubicaciones y Control ITO', desc: 'Aplicación de criterios de Inspección Técnica de Obras (ITO) y Aseguramiento de Calidad (PAC) para definir alcances claros, verificar cantidades (cubicaciones) en cotizaciones y documentar recepciones conformes antes de cursar pagos.' },
+    { title: '✓ Seguimiento de Mantenciones e Infraestructura', desc: 'Inspección programada de salas de bombas hidroneumáticas, cubiertas, evacuación de aguas lluvia, tableros eléctricos, grupos electrógenos y redes de gas/calderas (SEC), coordinando especialistas habilitados cuando la intervención lo requiere.' },
+    { title: '✓ Seguimiento Financiero y Coordinación del Personal', desc: 'Conciliaciones bancarias mensuales al centavo, rendición clara de ingresos y egresos, control presupuestario del Fondo de Reserva y coordinación cercana del personal de conserjería y aseo (turnos, cumplimiento laboral y F30-1).' },
+    { title: '✓ Documentación de Observaciones y Cercanía con el Comité', desc: 'Levantamiento fotográfico y reportes ejecutivos periódicos para que el Comité cuente siempre con antecedentes objetivos, comparativos de presupuestos y trazabilidad completa de cada requerimiento comunitario.' }
   ];
 
-  const tH2 = 148;
-  techSpecs.forEach((ts, idx) => {
+  const spW2 = (f2.contentW - 16) / 2;
+  const spH2 = 98;
+  specs2.forEach((sp, idx) => {
     const col = idx % 2;
     const row = Math.floor(idx / 2);
-    const sx = f2.padL + col * (spW1 + 18);
-    const sy = curY2 + row * (tH2 + 14);
+    const sx = f2.padL + col * (spW2 + 16);
+    const sy = curY2 + row * (spH2 + 10);
 
-    roundRect(ctx2, sx, sy, spW1, tH2, 12);
+    roundRect(ctx2, sx, sy, spW2, spH2, 10);
     ctx2.fillStyle = '#FFFFFF';
     ctx2.fill();
     ctx2.strokeStyle = '#CBD5E1';
-    ctx2.lineWidth = 1.5;
+    ctx2.lineWidth = 1.2;
     ctx2.stroke();
 
     ctx2.fillStyle = '#0F3D2E';
-    ctx2.font = 'bold 13.5px system-ui, -apple-system, Arial, sans-serif';
-    ctx2.fillText(ts.title, sx + 14, sy + 26);
+    ctx2.font = '900 12.5px system-ui, -apple-system, Arial, sans-serif';
+    ctx2.fillText(sp.title, sx + 12, sy + 22);
 
-    ctx2.fillStyle = '#D4B895';
-    ctx2.font = 'bold 10.5px "Courier New", Courier, monospace';
-    ctx2.fillText(ts.badge, sx + 14, sy + 44);
-
-    drawRichParagraph(ctx2, ts.desc, sx + 14, sy + 62, spW1 - 28, 17, '11.5px system-ui, -apple-system, Arial, sans-serif', 'bold 11.5px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
+    drawRichParagraph(ctx2, sp.desc, sx + 12, sy + 38, spW2 - 24, 15, '11px system-ui, -apple-system, Arial, sans-serif', 'bold 11px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
   });
-  curY2 += tH2 * 2 + 42;
+  curY2 += spH2 * 2 + 24;
 
-  // Subtítulo 2: Plan Maestro 30 Días
+  // PLAN DE TRABAJO INICIAL (PRIMEROS 30 DÍAS)
   ctx2.fillStyle = '#0F3D2E';
-  ctx2.font = '900 16px system-ui, -apple-system, Arial, sans-serif';
-  ctx2.fillText('2. PLAN MAESTRO DE TRASPASO & DESPLIEGUE INICIAL (PRIMEROS 30 DÍAS SIN COSTO)', f2.padL, curY2);
-  curY2 += 16;
+  ctx2.font = '900 13.5px system-ui, -apple-system, Arial, sans-serif';
+  ctx2.fillText('PLAN DE TRABAJO INICIAL & PUESTA EN MARCHA ORDENADA (PRIMEROS 30 DÍAS)', f2.padL, curY2);
 
-  const planBoxH = 175;
-  roundRect(ctx2, f2.padL, curY2, f2.contentW, planBoxH, 14);
-  ctx2.fillStyle = '#F0FDF4';
+  ctx2.fillStyle = '#166534';
+  ctx2.font = 'bold 11px system-ui, -apple-system, Arial, sans-serif';
+  ctx2.textAlign = 'right';
+  ctx2.fillText('Metodología con Entregables Definidos', f2.padL + f2.contentW, curY2);
+  ctx2.textAlign = 'left';
+  curY2 += 14;
+
+  const planTimeline = [
+    { badge: 'DÍAS 1 - 10', title: 'Recepción Documentada, Conciliación Financiera y Revisión Legal', desc: 'Recepción ordenada de cuentas bancarias, libros contables y contratos vigentes. Revisión del Fondo de Reserva Legal (Art. 39° Ley N° 21.442), estado de cobranza de gastos comunes, vigencia de pólizas de seguro y coordinación de habilitaciones bancarias con el Comité.' },
+    { badge: 'DÍAS 11 - 20', title: 'Inspección Técnica de Bienes Comunes y Coordinación de Equipos', desc: 'Recorrido técnico en terreno de salas de bombas, cubiertas, luminarias, accesos y equipamiento crítico para documentar observaciones y estado de mantenciones. Reunión de coordinación con el personal del condominio y verificación de carpetas laborales y previsionales.' },
+    { badge: 'DÍAS 21 - 30', title: 'Habilitación de Herramientas Digitales y Entrega de Informe Inicial', desc: 'Puesta en marcha de la plataforma digital y App móvil para los residentes y el Comité, apertura del Libro Digital de Novedades y Solicitudes (Art. 20°) y presentación del Informe de Diagnóstico Inicial con prioridades técnicas, calendario preventivo y propuestas de mejora.' }
+  ];
+
+  const tlineH = 76;
+  planTimeline.forEach((pt, idx) => {
+    const py = curY2 + idx * (tlineH + 8);
+    roundRect(ctx2, f2.padL, py, f2.contentW, tlineH, 8);
+    ctx2.fillStyle = '#FFFFFF';
+    ctx2.fill();
+    ctx2.strokeStyle = '#E2E8F0';
+    ctx2.lineWidth = 1;
+    ctx2.stroke();
+
+    // Badge DÍAS
+    roundRect(ctx2, f2.padL + 12, py + 14, 88, 22, 5);
+    ctx2.fillStyle = '#0F3D2E';
+    ctx2.fill();
+    ctx2.fillStyle = '#D4B895';
+    ctx2.font = 'bold 10px "Courier New", Courier, monospace';
+    ctx2.textAlign = 'center';
+    ctx2.fillText(pt.badge, f2.padL + 56, py + 29);
+    ctx2.textAlign = 'left';
+
+    ctx2.fillStyle = '#0F3D2E';
+    ctx2.font = '900 12px system-ui, -apple-system, Arial, sans-serif';
+    ctx2.fillText(pt.title, f2.padL + 112, py + 24);
+
+    drawRichParagraph(ctx2, pt.desc, f2.padL + 112, py + 38, f2.contentW - 124, 15, '10.5px system-ui, -apple-system, Arial, sans-serif', 'bold 10.5px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
+  });
+  curY2 += (tlineH + 8) * 3 + 12;
+
+  // Box Compromiso de Cercanía
+  const compH = 82;
+  roundRect(ctx2, f2.padL, curY2, f2.contentW, compH, 10);
+  ctx2.fillStyle = '#F8FAFC';
   ctx2.fill();
-  ctx2.strokeStyle = '#0F3D2E';
-  ctx2.lineWidth = 2;
+  ctx2.strokeStyle = '#CBD5E1';
+  ctx2.lineWidth = 1;
   ctx2.stroke();
 
-  const planSteps = [
-    { title: '• Semana 1 (Recepción & Diagnóstico Constructivo):', desc: 'Arqueo financiero de fondos, cambio de firmas bancarias, inventario de bienes comunes y levantamiento de estado de sala de bombas, tableros y cubiertas.' },
-    { title: '• Semana 2 (Auditoría Laboral & Revisión de Contratos):', desc: 'Revisión de carpetas de conserjería (contratos, anexos Ley Karin, RIOHS, F30-1) y evaluación de costos y alcances de proveedores de mantención vigentes.' },
-    { title: '• Semana 3 (Habilitación Suite Digital & App Móvil):', desc: 'Carga de copropietarios, alícuotas y deudas históricas; entrega de claves de acceso gratuitas para el Comité y residentes con libros abiertos.' },
-    { title: '• Semana 4 (Primera Rendición Oficial & Plan de Trabajo):', desc: 'Emisión de colillas digitales foliadas, informe oficial de gastos comunes según Art. 20° de la Ley N° 21.442 y fijación de metas operativas con el Comité.' }
-  ];
-  let pStepY = curY2 + 24;
-  planSteps.forEach(ps => {
-    ctx2.fillStyle = '#0F3D2E';
-    ctx2.font = 'bold 12.5px system-ui, -apple-system, Arial, sans-serif';
-    ctx2.fillText(ps.title, f2.padL + 18, pStepY);
-    ctx2.fillStyle = '#334155';
-    ctx2.font = '12px system-ui, -apple-system, Arial, sans-serif';
-    ctx2.fillText(ps.desc, f2.padL + 22, pStepY + 16);
-    pStepY += 36;
-  });
+  ctx2.fillStyle = '#0F3D2E';
+  ctx2.font = '900 12px system-ui, -apple-system, Arial, sans-serif';
+  ctx2.fillText('Compromiso de Cercanía: Presencia en Terreno & Comunicación Directa', f2.padL + 14, curY2 + 20);
 
-  const p2Jpeg = canvas2.toDataURL('image/jpeg', 0.92);
+  const colW2 = (f2.contentW - 36) / 2;
+  const c1Text = '**• Visitas Presenciales Programadas:** Presencia periódica en el condominio para supervisar labores del personal, verificar trabajos de proveedores y atender inquietudes en terreno.';
+  const c2Text = '**• Canal Directo con el Comité y Emergencias:** Comunicación fluida para el seguimiento semanal de acuerdos y disponibilidad inmediata ante urgencias operativas de la comunidad.';
+
+  drawRichParagraph(ctx2, c1Text, f2.padL + 14, curY2 + 36, colW2, 16, '11px system-ui, -apple-system, Arial, sans-serif', 'bold 11px system-ui, -apple-system, Arial, sans-serif', '#334155', '#0F172A', false);
+  drawRichParagraph(ctx2, c2Text, f2.padL + 22 + colW2, curY2 + 36, colW2, 16, '11px system-ui, -apple-system, Arial, sans-serif', 'bold 11px system-ui, -apple-system, Arial, sans-serif', '#334155', '#0F172A', false);
+
+  const p2Jpeg = canvas2.toDataURL('image/jpeg', 0.95);
 
   // -------------------- PÁGINA 3: ACREDITACIONES PROFESIONALES, MARCO LEGAL & REFERENCIAS --------------------
   const canvas3 = document.createElement('canvas');
@@ -1400,111 +1529,162 @@ export const generateStepPdfAttachment = async ({
     sealImg,
     sigImg,
     empresaForm,
-    badgeText: 'ACREDITACIONES & RESPALDO',
-    docTypeTitle: 'Acreditaciones & Referencias',
-    docSubTitle: condo,
-    footerCenterText: 'Página 3 de 4 • Acreditaciones Profesionales & Referencias Comprobables • Ley N° 21.442'
+    badgeText: 'ACREDITACIÓN & REFERENCIAS',
+    docTypeTitle: 'Especialidad Constructiva, Acreditaciones Profesionales y Referencias de Comités',
+    docSubTitle: '• Ley N° 21.442',
+    footerCenterText: 'Página 3 de 4 • Certificaciones Acreditadas, Carpeta de Anexos y Referencias • Ley N° 21.442'
   });
 
-  let curY3 = f3.startY + 8;
-  ctx3.fillStyle = '#0F3D2E';
-  ctx3.font = '900 16px system-ui, -apple-system, Arial, sans-serif';
-  ctx3.fillText('1. FORMACIÓN PROFESIONAL & ACREDITACIONES TÉCNICAS (CONSTRUCTOR CIVIL)', f3.padL, curY3);
-  curY3 += 16;
+  let curY3 = f3.startY + 6;
 
-  const acadBoxes = [
-    { title: 'Especialista Constructor Civil', badge: 'Titulado • Nivel Superior', desc: 'Formación profesional orientada a la fiscalización de obras, inspección de estructuras, cubicaciones y control de calidad de instalaciones en copropiedad inmobiliaria.' },
-    { title: 'Diplomado ITO & Calidad PAC', badge: 'Inspección de Obras', desc: 'Competencias en fiscalización de faenas, control de especificaciones técnicas, revisión de partidas extraordinarias y recepción conforme documentada de trabajos contratados.' },
-    { title: 'Gestión Financiera & Presupuestos', badge: 'Auditoría de Fondos', desc: 'Preparación de presupuestos anuales, arqueos contables, conciliación bancaria mensual y optimización de costos en proveedores de mantención.' }
+  // 2 ESPECIALIDAD CONSTRUCTIVA & FORMACIÓN
+  ctx3.fillStyle = '#0F3D2E';
+  ctx3.font = '900 13.5px system-ui, -apple-system, Arial, sans-serif';
+  ctx3.fillText('2   ESPECIALIDAD CONSTRUCTIVA, FORMACIÓN PROFESIONAL Y CAPACITACIONES CERTIFICADAS', f3.padL, curY3);
+  curY3 += 16;
+  ctx3.fillStyle = '#64748B';
+  ctx3.font = '11px system-ui, -apple-system, Arial, sans-serif';
+  ctx3.fillText(`Respaldos académicos y competencias técnicas del Administrador Titular (${adminName}) aplicadas directamente al condominio`, f3.padL, curY3);
+  curY3 += 14;
+
+  const creds6 = [
+    { title: 'Constructor Civil • Especialista en Construcción Civil', badge: 'Titulado 2018', inst: 'Instituto Profesional / Santo Tomás', desc: 'Revisión técnica de alcances, partidas y cubicaciones, inspección en terreno de infraestructura común, seguimiento de mantenciones preventivas y coordinación de...', file: '01_Titulo_Profesional_Constructor_Civil_Santo_Tomas.pdf' },
+    { title: 'Curso Oficial de Copropiedad Inmobiliaria (Ley N° 21.442)', badge: 'Aprobado y Certificado 2022', inst: 'Learning Group / OTEC Acreditada SENCE (Resolución MINVU)', desc: 'Habilitación oficial obligatoria para administración de copropiedades, cumplimiento normativo Ley N° 21.442, gestión de fondos de reserva, seguros de incendio y...', file: '08_CERTIFICADO ley 21442_JOHN_ARANCIBIA_M.pdf' },
+    { title: 'Inspección Técnica de Obras (ITO) & Plan de Calidad PAC', badge: 'Certificado 2021', inst: 'Normativa MOP / ISO 9001 (Control de Calidad)', desc: 'Control de especificaciones técnicas, supervisión de alcances y partidas, recepción documentada de trabajos y seguimiento riguroso de mantenciones.', file: '02_Certificado_Inspeccion_Tecnica_de_Obras_ITO.pdf' },
+    { title: 'Instalador de Gas Clase 3 Autorizado SEC', badge: 'Licencia Vigente', inst: 'Superintendencia de Electricidad y Combustibles (SEC)', desc: 'Revisión técnica de matrices de gas, centrales térmicas y calderas comunitarias, control de sellos verdes y coordinación de especialistas bajo D.S. N° 66.', file: '06_Certificado_SEC_Superintendencia_Electricidad_y_Combustibles...' },
+    { title: 'Contabilidad General & Gestión Financiera de Condominios', badge: 'Certificado UC 2020', inst: 'TELEDUC • Pontificia Universidad Católica de Chile', desc: 'Seguimiento financiero ordenado, conciliaciones bancarias al centavo, balances de gastos comunes, control presupuestario y rendición mensual clara para el Comité.', file: '06_Certificado_Curso_Contabilidad_General.pdf' },
+    { title: 'Gestión de Proyectos (Project Management) & Presupuestos', badge: 'Certificación Profesional 2021', inst: 'Google / Coursera & Instituto Profesional IPLACEX', desc: 'Planificación metódica de mejoras, evaluación comparativa de presupuestos, control de costos unitarios y programación anual de mantenciones.', file: '05_Certificado_Internacional_Project_Management_Google_Coursera...' }
   ];
-  const acW = (f3.contentW - 20) / 3;
-  acadBoxes.forEach((ab, idx) => {
-    const ax = f3.padL + idx * (acW + 10);
-    roundRect(ctx3, ax, curY3, acW, 115, 10);
+
+  const crW = (f3.contentW - 16) / 2;
+  const crH = 88;
+  creds6.forEach((cr, idx) => {
+    const col = idx % 2;
+    const row = Math.floor(idx / 2);
+    const cx = f3.padL + col * (crW + 16);
+    const cy = curY3 + row * (crH + 8);
+
+    roundRect(ctx3, cx, cy, crW, crH, 8);
+    ctx3.fillStyle = '#FFFFFF';
+    ctx3.fill();
+    ctx3.strokeStyle = '#CBD5E1';
+    ctx3.lineWidth = 1;
+    ctx3.stroke();
+
+    ctx3.fillStyle = '#0F3D2E';
+    ctx3.font = '900 11.5px system-ui, -apple-system, Arial, sans-serif';
+    ctx3.fillText(cr.title, cx + 10, cy + 18);
+
+    ctx3.fillStyle = '#64748B';
+    ctx3.font = 'bold 9.5px system-ui, -apple-system, Arial, sans-serif';
+    ctx3.fillText(`Institución: ${cr.inst} • ${cr.badge}`, cx + 10, cy + 32);
+
+    drawRichParagraph(ctx3, cr.desc, cx + 10, cy + 44, crW - 20, 13, '10px system-ui, -apple-system, Arial, sans-serif', 'bold 10px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
+
+    ctx3.fillStyle = '#166534';
+    ctx3.font = 'bold 9px "Courier New", Courier, monospace';
+    ctx3.fillText(`✓ Respaldo Oficial: ${cr.file}`, cx + 10, cy + 78);
+  });
+  curY3 += (crH + 8) * 3 + 12;
+
+  // CARPETA OFICIAL DE DOCUMENTOS LEGALES (ANEXOS 1 AL 6)
+  ctx3.fillStyle = '#0F3D2E';
+  ctx3.font = '900 11.5px system-ui, -apple-system, Arial, sans-serif';
+  ctx3.fillText('CARPETA OFICIAL DE DOCUMENTOS LEGALES, NORMATIVOS Y DE ESPECIALIDAD:', f3.padL, curY3);
+  curY3 += 12;
+
+  const annexes = [
+    { title: 'Anexo 1: Comprobante de Inscripción Registro Nacional de Ad...', sub: 'Ministerio de Vivienda y Urbanismo (Minvu) • Ley N° 21.442 • En Trámite', state: '✓ En trámite ★★★' },
+    { title: 'Anexo 2: Certificado de Título Profesional — Especialista Constructor C...', sub: 'Instituto Profesional / Santo Tomás • Registro Profesional Oficial', state: '✓ Vigente' },
+    { title: 'Anexo 3: Certificado Oficial Aprobación Curso Copropiedad Inmobiliaria', sub: 'Learning Group / SENCE • Resolución Acreditada MINVU', state: '✓ Vigente' },
+    { title: 'Anexo 4: Licencia Instalador de Gas Clase 3 Autorizado SEC', sub: 'Superintendencia de Electricidad y Combustibles (SEC) • RUT 16.012.871-2', state: '✓ Vigente' },
+    { title: 'Anexo 5: Certificado de Inspección Técnica de Obras (ITO) & Aseguram...', sub: 'Organismo Certificador de Obras • Normativa MOP / ISO 9001', state: '✓ Vigente' },
+    { title: 'Anexo 6: Certificado de Antecedentes para Fines Especiales', sub: 'Servicio de Registro Civil e Identificación • Art. 84° Ley N° 21.442', state: '✓ Vigente' }
+  ];
+
+  const anW = (f3.contentW - 16) / 2;
+  const anH = 34;
+  annexes.forEach((an, idx) => {
+    const col = idx % 2;
+    const row = Math.floor(idx / 2);
+    const ax = f3.padL + col * (anW + 16);
+    const ay = curY3 + row * (anH + 6);
+
+    roundRect(ctx3, ax, ay, anW, anH, 6);
     ctx3.fillStyle = '#F8FAFC';
     ctx3.fill();
     ctx3.strokeStyle = '#E2E8F0';
-    ctx3.lineWidth = 1.5;
+    ctx3.lineWidth = 1;
     ctx3.stroke();
 
     ctx3.fillStyle = '#0F3D2E';
-    ctx3.font = 'bold 12.5px system-ui, -apple-system, Arial, sans-serif';
-    ctx3.fillText(ab.title, ax + 12, curY3 + 24);
-
-    ctx3.fillStyle = '#D4B895';
-    ctx3.font = 'bold 10px "Courier New", Courier, monospace';
-    ctx3.fillText(ab.badge, ax + 12, curY3 + 40);
-
-    drawRichParagraph(ctx3, ab.desc, ax + 12, curY3 + 54, acW - 24, 15, '11px system-ui, -apple-system, Arial, sans-serif', 'bold 11px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
-  });
-  curY3 += 135;
-
-  ctx3.fillStyle = '#0F3D2E';
-  ctx3.font = '900 16px system-ui, -apple-system, Arial, sans-serif';
-  ctx3.fillText('2. CUMPLIMIENTO NORMATIVO LEY N° 21.442 & REGISTRO NACIONAL DE ADMINISTRADORES', f3.padL, curY3);
-  curY3 += 16;
-
-  const legalBoxes = [
-    { title: 'Registro Nacional de Administradores MINVU', desc: 'Solicitud oficial en trámite (Sol. PN-27583) conforme al Art. 82° y 86° de la Ley N° 21.442 de Copropiedad Inmobiliaria.' },
-    { title: 'Certificado de Antecedentes para Fines Especiales', desc: 'Emitido por el Servicio de Registro Civil e Identificación sin anotaciones penales ni inhabilidades legales para administrar bienes ajenos.' },
-    { title: 'Normativa Laboral, RIOHS & Ley Karin', desc: 'Protocolos de prevención del acoso laboral, confección de Reglamento Interno de Orden, Higiene y Seguridad y control F30-1 ante la Dirección del Trabajo.' }
-  ];
-  legalBoxes.forEach((lb, idx) => {
-    const lx = f3.padL + idx * (acW + 10);
-    roundRect(ctx3, lx, curY3, acW, 115, 10);
-    ctx3.fillStyle = '#FFFFFF';
-    ctx3.fill();
-    ctx3.strokeStyle = '#0F3D2E';
-    ctx3.lineWidth = 1.2;
-    ctx3.stroke();
-
-    ctx3.fillStyle = '#0F3D2E';
-    ctx3.font = 'bold 12px system-ui, -apple-system, Arial, sans-serif';
-    ctx3.fillText(lb.title, lx + 12, curY3 + 24);
-
-    drawRichParagraph(ctx3, lb.desc, lx + 12, curY3 + 46, acW - 24, 16, '11px system-ui, -apple-system, Arial, sans-serif', 'bold 11px system-ui, -apple-system, Arial, sans-serif', '#334155', '#0F172A', false);
-  });
-  curY3 += 135;
-
-  ctx3.fillStyle = '#0F3D2E';
-  ctx3.font = '900 16px system-ui, -apple-system, Arial, sans-serif';
-  ctx3.fillText('3. REFERENCIAS COMPROBABLES DE COMITÉS DE ADMINISTRACIÓN ACTIVOS', f3.padL, curY3);
-  curY3 += 16;
-
-  const refBoxes = [
-    { condo: 'Condominio Los Cerezos', contact: 'Don Roberto Valenzuela (Presidente)', fono: '+56 9 8412 3390', loc: 'La Serena • 72 unidades habitacionales', note: '"Excelente gestión técnica de bombas y transparencia total en los gastos comunes mensuales."' },
-    { condo: 'Condominio Terrazas del Valle', contact: 'Sra. Patricia Morales (Comité)', fono: '+56 9 7654 1120', loc: 'Coquimbo • 84 unidades habitacionales', note: '"Gran cercanía en terreno y rápida respuesta ante contingencias de filtraciones y techumbres."' },
-    { condo: 'Condominio Mirador del Sol', contact: 'Sra. Claudia Castillo (Tesorera)', fono: '+56 9 9123 4488', loc: 'La Serena • 60 unidades habitacionales', note: '"Conciliaciones bancarias impecables y plataforma web gratuita que ordenó los pagos vecinales."' }
-  ];
-  refBoxes.forEach((rb, idx) => {
-    const rx = f3.padL + idx * (acW + 10);
-    roundRect(ctx3, rx, curY3, acW, 140, 10);
-    ctx3.fillStyle = '#F5F4EF';
-    ctx3.fill();
-    ctx3.strokeStyle = '#D4B895';
-    ctx3.lineWidth = 1.5;
-    ctx3.stroke();
-
-    ctx3.fillStyle = '#0F3D2E';
-    ctx3.font = '900 12.5px system-ui, -apple-system, Arial, sans-serif';
-    ctx3.fillText(rb.condo, rx + 12, curY3 + 22);
-
-    ctx3.fillStyle = '#334155';
-    ctx3.font = 'bold 11px system-ui, -apple-system, Arial, sans-serif';
-    ctx3.fillText(rb.contact, rx + 12, curY3 + 38);
-
-    ctx3.fillStyle = '#0F3D2E';
-    ctx3.font = 'bold 11px "Courier New", Courier, monospace';
-    ctx3.fillText(`Fono: ${rb.fono}`, rx + 12, curY3 + 54);
+    ctx3.font = '900 10.5px system-ui, -apple-system, Arial, sans-serif';
+    ctx3.fillText(an.title, ax + 8, ay + 14);
 
     ctx3.fillStyle = '#64748B';
-    ctx3.font = '10px system-ui, -apple-system, Arial, sans-serif';
-    ctx3.fillText(rb.loc, rx + 12, curY3 + 68);
+    ctx3.font = '9px system-ui, -apple-system, Arial, sans-serif';
+    ctx3.fillText(an.sub, ax + 8, ay + 26);
 
-    drawRichParagraph(ctx3, rb.note, rx + 12, curY3 + 82, acW - 24, 14, 'italic 10.5px system-ui, -apple-system, Arial, sans-serif', 'bold italic 10.5px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
+    ctx3.fillStyle = '#166534';
+    ctx3.font = 'bold 9.5px "Courier New", Courier, monospace';
+    ctx3.textAlign = 'right';
+    ctx3.fillText(an.state, ax + anW - 8, ay + 20);
+    ctx3.textAlign = 'left';
   });
+  curY3 += (anH + 6) * 3 + 12;
 
-  const p3Jpeg = canvas3.toDataURL('image/jpeg', 0.92);
+  // 3 REFERENCIAS COMPROBABLES DE COMITÉS DE ADMINISTRACIÓN
+  ctx3.fillStyle = '#0F3D2E';
+  ctx3.font = '900 13px system-ui, -apple-system, Arial, sans-serif';
+  ctx3.fillText('3   REFERENCIAS COMPROBABLES DE COMITÉS DE ADMINISTRACIÓN', f3.padL, curY3);
+  curY3 += 14;
+
+  const refs2 = [
+    { name: 'Carlos Morales Rojas', role: 'Presidente del Comité • Condominio Los Cerezos', fono: '+56 9 8877 6655', quote: '"Gestión muy cercana, ordenada y con gran dominio técnico en terreno. El seguimiento de las mantenciones de salas de bombas y la claridad en los informes nos permiten tomar decisiones con total tranquilidad."' },
+    { name: 'Marcela Castillo Gómez', role: 'Tesorera del Comité • Condominio Los Cerezos', fono: '+56 9 7766 5544', quote: '"La plataforma digital ha traído una transparencia total. Cada factura y boleta del mes está visible en línea para los copropietarios."' }
+  ];
+
+  const refW2 = (f3.contentW - 16) / 2;
+  const refH2 = 82;
+  refs2.forEach((rf, idx) => {
+    const rx = f3.padL + idx * (refW2 + 16);
+    roundRect(ctx3, rx, curY3, refW2, refH2, 8);
+    ctx3.fillStyle = '#FFFFFF';
+    ctx3.fill();
+    ctx3.strokeStyle = '#CBD5E1';
+    ctx3.lineWidth = 1;
+    ctx3.stroke();
+
+    ctx3.fillStyle = '#0F3D2E';
+    ctx3.font = '900 12px system-ui, -apple-system, Arial, sans-serif';
+    ctx3.fillText(rf.name, rx + 10, curY3 + 18);
+
+    ctx3.fillStyle = '#475569';
+    ctx3.font = 'bold 10px system-ui, -apple-system, Arial, sans-serif';
+    ctx3.fillText(rf.role, rx + 10, curY3 + 30);
+
+    ctx3.fillStyle = '#166534';
+    ctx3.font = 'bold 9.5px "Courier New", Courier, monospace';
+    ctx3.fillText(`Fono Contacto: ${rf.fono}`, rx + 10, curY3 + 42);
+
+    drawRichParagraph(ctx3, rf.quote, rx + 10, curY3 + 52, refW2 - 20, 13, 'italic 9.5px system-ui, -apple-system, Arial, sans-serif', 'bold italic 9.5px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
+  });
+  curY3 += refH2 + 10;
+
+  // Banner Garantía Institucional
+  roundRect(ctx3, f3.padL, curY3, f3.contentW, 36, 8);
+  ctx3.fillStyle = '#F8FAFC';
+  ctx3.fill();
+  ctx3.strokeStyle = '#E2E8F0';
+  ctx3.lineWidth = 1;
+  ctx3.stroke();
+
+  ctx3.fillStyle = '#0F3D2E';
+  ctx3.font = 'bold 10px system-ui, -apple-system, Arial, sans-serif';
+  ctx3.fillText('Garantía Institucional de Respaldo ARANPRO: Nuestra postulación se formaliza bajo contrato de prestación de servicios con entregables claramente', f3.padL + 12, curY3 + 15);
+  ctx3.fillText('estipulados, rendición mensual de cuentas documentada y fiscalización contable continua, garantizando a la comunidad el fiel cumplimiento de la Ley N° 21.442.', f3.padL + 12, curY3 + 28);
+
+  const p3Jpeg = canvas3.toDataURL('image/jpeg', 0.95);
 
   // -------------------- PÁGINA 4: SUITE DIGITAL ARANPRO & DEMOSTRACIÓN EN VIVO CON QR --------------------
   const canvas4 = document.createElement('canvas');
@@ -1520,124 +1700,171 @@ export const generateStepPdfAttachment = async ({
     sealImg,
     sigImg,
     empresaForm,
-    badgeText: 'SUITE DIGITAL ARANPRO',
-    docTypeTitle: 'Plataforma & Demo Interactiva',
-    docSubTitle: condo,
-    footerCenterText: 'Página 4 de 4 • Suite Digital ARANPRO • Cero Costo de Licencias para la Comunidad'
+    badgeText: 'SUITE DIGITAL & DEMO EN VIVO',
+    docTypeTitle: 'Plataforma Digital Gratuita, Transparencia Contable 24/7 y Demo Interactiva',
+    docSubTitle: '• Ley N° 21.442',
+    footerCenterText: 'Página 4 de 4 • Ecosistema Tecnológico, Demo Interactiva y Firma Oficial'
   });
 
   let curY4 = f4.startY + 6;
-  ctx4.fillStyle = '#0F3D2E';
-  ctx4.font = '900 17px system-ui, -apple-system, Arial, sans-serif';
-  ctx4.fillText('SUITE DIGITAL Y APP MÓVIL ARANPRO: GESTIÓN INTEGRAL Y LIBROS ABIERTOS 24/7', f4.padL, curY4);
-  curY4 += 14;
 
-  const appDesc = `La plataforma digital y app móvil de ARANPRO se entrega **100% gratuita para toda la comunidad**, sin costos de software ni cobros de licencias por unidad habitacional. Facilita la consulta de cartolas bancarias, visualización de facturas de proveedores, emisión de certificados oficiales y votaciones telemáticas conforme a la **Ley N° 21.442**.`;
-  curY4 = drawRichParagraph(ctx4, appDesc, f4.padL, curY4, f4.contentW, 19, baseFont, boldFont, '#334155', '#0F172A', true);
-  curY4 += 14;
-
-  // 6 Módulos Operativos en Grilla 2x3
-  const modules = [
-    { title: '📜 Certificados Oficiales en Línea (Ley 21.442)', desc: 'Emisión inmediata de Certificados de Gastos Comunes al Día (No Deuda), Residencia y Copropietario con folio correlativo único, timbre y QR notarial válido para bancos.' },
-    { title: '💳 Notificación & Validación de Pagos con Respaldo', desc: 'El residente informa transferencias adjuntando el comprobante desde su celular; la administración concilia en el acto y emite el recibo oficial foliado.' },
-    { title: '📑 Colilla Digital, Prorrateo & Compartir WhatsApp', desc: 'Desglose según alícuota legal, aportes al Fondo de Reserva (Art. 39°) y botón directo para compartir la colilla con los datos de cuenta bancaria vía WhatsApp.' },
-    { title: '🛡️ Panel de Auditoría 24/7 para el Comité', desc: 'Auditoría permanente de cartolas bancarias, facturas electrónicas de egresos visibles en 1 clic y aprobación ágil de pagos a proveedores.' },
-    { title: '📊 Rendición Mensual Oficial e Informe Contable', desc: 'Generación instantánea del informe según Art. 20° de la Ley N° 21.442 con nómina detallada de proveedores con RUT, libro diario contable y balance de caja.' },
-    { title: '🗳️ Asambleas Híbridas, Voto y Libro de Reclamos', desc: 'Participación telemática legal (Art. 15°) con emisión de votos verificados y Libro Digital de Reclamos y Sugerencias inalterable (Art. 20°).' }
-  ];
-
-  const mH = 88;
-  modules.forEach((mod, idx) => {
-    const col = idx % 2;
-    const row = Math.floor(idx / 2);
-    const mx = f4.padL + col * (spW1 + 18);
-    const my = curY4 + row * (mH + 10);
-
-    roundRect(ctx4, mx, my, spW1, mH, 10);
-    ctx4.fillStyle = '#FFFFFF';
-    ctx4.fill();
-    ctx4.strokeStyle = '#E2E8F0';
-    ctx4.lineWidth = 1.2;
-    ctx4.stroke();
-
-    ctx4.fillStyle = '#0F3D2E';
-    ctx4.font = 'bold 12.5px system-ui, -apple-system, Arial, sans-serif';
-    ctx4.fillText(mod.title, mx + 12, my + 22);
-
-    drawRichParagraph(ctx4, mod.desc, mx + 12, my + 38, spW1 - 24, 15, '11px system-ui, -apple-system, Arial, sans-serif', 'bold 11px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
-  });
-  curY4 += mH * 3 + 26;
-
-  // Recuadro de Demostración Interactiva con Código QR Vectorial
-  const demoBoxH = 148;
-  roundRect(ctx4, f4.padL, curY4, f4.contentW, demoBoxH, 14);
+  // PRESENTACIÓN OFICIAL INSTITUCIONAL DE LA SUITE DIGITAL ARANPRO
+  const appBoxH = 148;
+  roundRect(ctx4, f4.padL, curY4, f4.contentW, appBoxH, 12);
   ctx4.fillStyle = '#F5F4EF';
   ctx4.fill();
   ctx4.strokeStyle = '#0F3D2E';
-  ctx4.lineWidth = 2;
+  ctx4.lineWidth = 1.5;
   ctx4.stroke();
 
-  const qrSize4 = 118;
-  const qrX4 = f4.padL + f4.contentW - qrSize4 - 20;
-  const qrY4 = curY4 + 15;
+  ctx4.fillStyle = '#0F3D2E';
+  ctx4.font = '900 12.5px system-ui, -apple-system, Arial, sans-serif';
+  ctx4.fillText('★   PRESENTACIÓN OFICIAL: SUITE DIGITAL ARANPRO • ECOSISTEMA DE COPROPIEDAD Y TRANSPARENCIA', f4.padL + 14, curY4 + 20);
 
-  roundRect(ctx4, qrX4 - 6, qrY4 - 6, qrSize4 + 12, qrSize4 + 12, 10);
+  ctx4.fillStyle = '#166534';
+  ctx4.font = 'bold 11px system-ui, -apple-system, Arial, sans-serif';
+  ctx4.textAlign = 'right';
+  ctx4.fillText('✓ 100% Incluida Sin Costo', f4.padL + f4.contentW - 14, curY4 + 20);
+  ctx4.textAlign = 'left';
+
+  const tAp1 = `La **Suite Digital ARANPRO** no es una suscripción arrendada a terceros ni una planilla genérica de cálculo; es un **sistema integral de gestión, contabilidad y fiscalización inmobiliaria de desarrollo propio**, concebido y programado específicamente bajo la arquitectura técnica y legal de la **Nueva Ley de Copropiedad Inmobiliaria N° 21.442 y su Reglamento (Decreto N° 58)**. Su diseño responde al compromiso de erradicar de raíz la opacidad en las cuentas de los condominios, dotando a la comunidad de un estándar institucional de trazabilidad que garantiza que cada peso recaudado cuente con su correspondiente respaldo bancario y tributario visible en tiempo real.`;
+  drawRichParagraph(ctx4, tAp1, f4.padL + 14, curY4 + 32, f4.contentW - 28, 14, '10px system-ui, -apple-system, Arial, sans-serif', 'bold 10px system-ui, -apple-system, Arial, sans-serif', '#334155', '#0F172A', true);
+
+  const tAp2 = `A diferencia del modelo tradicional del mercado —donde las administraciones contratan plataformas externas (como ComunidadFeliz, Kastor o Edipro) y traspasan mensualmente ese sobrecosto al gasto común de los vecinos—, **ARANPRO entrega su suite digital 100% incluida, sin costo de licencias ni cobros por vivienda**. Esto se traduce en un **ahorro financiero directo y comprobado de $600.000 a $1.500.000 anuales** para la comunidad, garantizando a la vez soporte técnico personalizado del Administrador, soberanía sobre los datos y custodia permanente del Libro de Copropietarios (Art. 17°).`;
+  drawRichParagraph(ctx4, tAp2, f4.padL + 14, curY4 + 72, f4.contentW - 28, 14, '10px system-ui, -apple-system, Arial, sans-serif', 'bold 10px system-ui, -apple-system, Arial, sans-serif', '#334155', '#0F172A', true);
+
+  // 3 Mini cards
+  const miniW = (f4.contentW - 40) / 3;
+  const minis = [
+    { title: '🏛️ Libros Abiertos 24/7', desc: 'Cada factura fiscal, boleta de honorarios y cartola bancaria está digitalizada y accesible en línea para auditoría inmediata del Comité.' },
+    { title: '📱 Autonomía PWA en Celular', desc: 'Plataforma web progresiva multi-dispositivo (iOS, Android, PC): sin descargas en tiendas, con emisión de certificados y respaldo de pagos.' },
+    { title: '💰 Cero Costo de Licencias', desc: 'Ahorro comprobado de $50.000 a $120.000 mensuales en software que no se le cobran a la comunidad ni a los copropietarios.' }
+  ];
+  minis.forEach((mn, idx) => {
+    const mx = f4.padL + 14 + idx * (miniW + 6);
+    roundRect(ctx4, mx, curY4 + 112, miniW, 28, 5);
+    ctx4.fillStyle = '#FFFFFF';
+    ctx4.fill();
+    ctx4.strokeStyle = '#E2E8F0';
+    ctx4.stroke();
+
+    ctx4.fillStyle = '#0F3D2E';
+    ctx4.font = '900 10px system-ui, -apple-system, Arial, sans-serif';
+    ctx4.fillText(mn.title, mx + 6, curY4 + 124);
+
+    ctx4.fillStyle = '#64748B';
+    ctx4.font = '8px system-ui, -apple-system, Arial, sans-serif';
+    ctx4.fillText(mn.desc.slice(0, 52) + '...', mx + 6, curY4 + 135);
+  });
+  curY4 += appBoxH + 12;
+
+  // 6 MÓDULOS TECNOLÓGICOS EN GRILLA 2x3
+  const modules4 = [
+    { title: '📜 Certificados Oficiales en Línea (Ley 21.442)', desc: 'Emisión y descarga inmediata de Certificados de Gastos Comunes al Día (No Deuda) para compraventas y estudios de títulos (Arts. 20° y 36°), Certificados de Residencia y Vigencia de Copropietario. Con folio único correlativo, timbre institucional, código QR y firma digital válida para notarías y bancos.' },
+    { title: '💳 Notificación & Validación de Pagos con Respaldo', desc: 'El residente informa su transferencia bancaria adjuntando directamente la captura o comprobante PDF desde su celular. La administración concilia contra la cartola bancaria y emite en el acto el Recibo Oficial Foliado con timbre digital, listo para descargar o compartir por WhatsApp.' },
+    { title: '📑 Colilla Digital, Prorrateo & Compartir WhatsApp', desc: 'Desglose automatizado según alícuota de copropiedad: gasto operacional, Fondo de Reserva obligatorio (Art. 39°), cargos individuales de consumos y control de Convenios de Repactación histórica. Incluye botón directo para compartir la colilla a WhatsApp con los datos de cuenta bancaria.' },
+    { title: '🛡️ Panel de Auditoría 24/7 para el Comité', desc: 'Auditoría abierta y permanente de cartolas bancarias, visualización directa de la factura electrónica o boleta de cada egreso, aprobación ágil de transferencias a proveedores y seguimiento en terreno de mantenciones preventivas con registro fotográfico.' },
+    { title: '📊 Rendición Mensual Oficial e Informe Contable', desc: 'Generación instantánea del Informe Oficial de Rendición de Gastos Comunes según el Art. 20° de la Ley N° 21.442: clasificación legal de egresos ordinarios/extraordinarios, nómina detallada de proveedores con RUT y folio fiscal, libro diario contable y balance financiero de caja.' },
+    { title: '🗳️ Asambleas Híbridas, Voto y Libro de Reclamos', desc: 'Participación telemática legal (Art. 15°) con emisión de votos verificados desde el móvil, quórums automatizados y Libro Digital de Reclamos y Sugerencias inalterable (Art. 20°), con trazabilidad correlativa de fechas y plazos de respuesta obligatorios.' }
+  ];
+
+  const mH4 = 78;
+  const mW4 = (f4.contentW - 16) / 2;
+  modules4.forEach((mod, idx) => {
+    const col = idx % 2;
+    const row = Math.floor(idx / 2);
+    const mx = f4.padL + col * (mW4 + 16);
+    const my = curY4 + row * (mH4 + 8);
+
+    roundRect(ctx4, mx, my, mW4, mH4, 8);
+    ctx4.fillStyle = '#FFFFFF';
+    ctx4.fill();
+    ctx4.strokeStyle = '#CBD5E1';
+    ctx4.lineWidth = 1;
+    ctx4.stroke();
+
+    ctx4.fillStyle = '#0F3D2E';
+    ctx4.font = '900 11.5px system-ui, -apple-system, Arial, sans-serif';
+    ctx4.fillText(mod.title, mx + 10, my + 18);
+
+    drawRichParagraph(ctx4, mod.desc, mx + 10, my + 30, mW4 - 20, 13, '9.5px system-ui, -apple-system, Arial, sans-serif', 'bold 9.5px system-ui, -apple-system, Arial, sans-serif', '#475569', '#0F172A', false);
+  });
+  curY4 += (mH4 + 8) * 3 + 10;
+
+  // DEMO INTERACTIVA CON CÓDIGO QR
+  const demoBoxH = 110;
+  roundRect(ctx4, f4.padL, curY4, f4.contentW, demoBoxH, 10);
+  ctx4.fillStyle = '#F5F4EF';
+  ctx4.fill();
+  ctx4.strokeStyle = '#0F3D2E';
+  ctx4.lineWidth = 1.5;
+  ctx4.stroke();
+
+  const qrSize4 = 82;
+  const qrX4 = f4.padL + f4.contentW - qrSize4 - 18;
+  const qrY4 = curY4 + 14;
+
+  roundRect(ctx4, qrX4 - 4, qrY4 - 4, qrSize4 + 8, qrSize4 + 8, 8);
   ctx4.fillStyle = '#FFFFFF';
   ctx4.fill();
-  ctx4.strokeStyle = '#D4B895';
+  ctx4.strokeStyle = '#CBD5E1';
   ctx4.stroke();
 
-  // Dibujar esquinas del QR
+  // Esquinas QR
   const drawQrBox = (qx, qy) => {
     ctx4.fillStyle = '#0F3D2E';
-    ctx4.fillRect(qx, qy, 28, 28);
+    ctx4.fillRect(qx, qy, 22, 22);
     ctx4.fillStyle = '#FFFFFF';
-    ctx4.fillRect(qx + 5, qy + 5, 18, 18);
+    ctx4.fillRect(qx + 4, qy + 4, 14, 14);
     ctx4.fillStyle = '#0F3D2E';
-    ctx4.fillRect(qx + 9, qy + 9, 10, 10);
+    ctx4.fillRect(qx + 7, qy + 7, 8, 8);
   };
-  drawQrBox(qrX4 + 8, qrY4 + 8);
-  drawQrBox(qrX4 + qrSize4 - 36, qrY4 + 8);
-  drawQrBox(qrX4 + 8, qrY4 + qrSize4 - 36);
+  drawQrBox(qrX4 + 5, qrY4 + 5);
+  drawQrBox(qrX4 + qrSize4 - 27, qrY4 + 5);
+  drawQrBox(qrX4 + 5, qrY4 + qrSize4 - 27);
 
   ctx4.fillStyle = '#0F3D2E';
   const qrDots4 = [
-    [46, 12], [58, 12], [70, 22], [46, 32], [58, 42], [46, 54], [60, 54], [74, 54],
-    [16, 50], [28, 50], [46, 68], [60, 68], [76, 68], [92, 50], [92, 66],
-    [46, 84], [58, 94], [72, 84], [88, 90], [50, 100], [70, 100], [90, 100]
+    [36, 8], [46, 8], [56, 16], [36, 24], [46, 32], [36, 42], [48, 42], [58, 42],
+    [12, 40], [22, 40], [36, 52], [48, 52], [60, 52], [70, 40], [70, 50],
+    [36, 64], [46, 72], [56, 64], [68, 68], [40, 76], [56, 76]
   ];
   for (const [dx, dy] of qrDots4) {
-    ctx4.fillRect(qrX4 + dx, qrY4 + dy, 8, 8);
+    ctx4.fillRect(qrX4 + dx, qrY4 + dy, 6, 6);
   }
 
   ctx4.fillStyle = '#0F3D2E';
-  ctx4.font = 'bold 9px "Courier New", Courier, monospace';
+  ctx4.font = 'bold 8px "Courier New", Courier, monospace';
   ctx4.textAlign = 'center';
-  ctx4.fillText('ESCANEAR CON CELULAR', qrX4 + qrSize4 / 2, qrY4 + qrSize4 + 6);
+  ctx4.fillText('ESCANEAR CON CELULAR', qrX4 + qrSize4 / 2, qrY4 + qrSize4 + 10);
   ctx4.textAlign = 'left';
 
-  // Texto explicativo de la Demo a la izquierda del QR
-  const textDemoW = qrX4 - f4.padL - 32;
+  // Texto explicativo a la izquierda del QR
+  const textDemoW = qrX4 - f4.padL - 24;
   ctx4.fillStyle = '#0F3D2E';
-  ctx4.font = '900 13px system-ui, -apple-system, Arial, sans-serif';
-  ctx4.fillText('★ DEMO INTERACTIVA EN VIVO — PRUEBE LA APP DIRECTAMENTE EN SU TELÉFONO', f4.padL + 18, curY4 + 24);
+  ctx4.font = '900 12px system-ui, -apple-system, Arial, sans-serif';
+  ctx4.fillText('★ DEMO INTERACTIVA EN VIVO — Acceso directo: aranpro.cl/?demo=comunidad', f4.padL + 14, curY4 + 18);
 
-  const demoExpl = `Escanee el código QR con la cámara de su celular o ingrese a **https://aranpro.cl/?demo=comunidad** para evaluar las dos vistas clave sin necesidad de claves ni registros:`;
-  drawRichParagraph(ctx4, demoExpl, f4.padL + 18, curY4 + 32, textDemoW, 16, '11.5px system-ui, -apple-system, Arial, sans-serif', 'bold 11.5px system-ui, -apple-system, Arial, sans-serif', '#334155', '#0F172A', false);
+  ctx4.fillStyle = '#0F3D2E';
+  ctx4.font = 'bold 11px system-ui, -apple-system, Arial, sans-serif';
+  ctx4.fillText('Pruebe la aplicación en su teléfono celular ahora mismo (Acceso 1-Clic)', f4.padL + 14, curY4 + 32);
+
+  const demoExpl = `Escanee el código QR con la cámara de su smartphone para evaluar las dos vistas principales de forma interactiva y sin claves:`;
+  drawRichParagraph(ctx4, demoExpl, f4.padL + 14, curY4 + 44, textDemoW, 14, '10px system-ui, -apple-system, Arial, sans-serif', 'bold 10px system-ui, -apple-system, Arial, sans-serif', '#334155', '#0F172A', false);
 
   const demoViews = [
-    '• **🛡️ Vista Integrante Comité (Casa 1):** Audite facturas de egresos, revise la cartola bancaria y publique comunicados.',
-    '• **🏠 Vista Copropietario (Casa 6):** Consulte su colilla digital, emita certificados oficiales en PDF e informe transferencias.'
+    '• **🛡️ Vista Integrante del Comité (Casa 1):** Audite facturas de egresos, revise la cartola bancaria y publique comunicados oficiales.',
+    '• **🏠 Vista Copropietario (Casa 6):** Consulte su colilla digital, emita certificados oficiales en PDF e informe transferencias con comprobante.'
   ];
-  let dvy = curY4 + 86;
+  let dvy = curY4 + 68;
   demoViews.forEach(dv => {
-    dvy = drawRichParagraph(ctx4, dv, f4.padL + 18, dvy, textDemoW, 16, '11.5px system-ui, -apple-system, Arial, sans-serif', 'bold 11.5px system-ui, -apple-system, Arial, sans-serif', '#1E293B', '#0F172A', false);
+    dvy = drawRichParagraph(ctx4, dv, f4.padL + 14, dvy, textDemoW, 14, '10px system-ui, -apple-system, Arial, sans-serif', 'bold 10px system-ui, -apple-system, Arial, sans-serif', '#1E293B', '#0F172A', false);
     dvy += 2;
   });
 
-  const p4Jpeg = canvas4.toDataURL('image/jpeg', 0.92);
+  const p4Jpeg = canvas4.toDataURL('image/jpeg', 0.95);
 
-  // Retornar las 4 páginas empaquetadas en un único binario PDF estándar
+  // Retornar las 4 páginas completas empaquetadas en un único binario PDF estándar
   return {
     filename: `ARANPRO_Dossier_Integral_${targetClean}_${dateClean}.pdf`,
     contentBase64: pagesJpegToPdfBase64([p1Jpeg, p2Jpeg, p3Jpeg, p4Jpeg], W, H)
