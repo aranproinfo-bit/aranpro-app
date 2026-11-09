@@ -51,6 +51,9 @@ export const validateRut = (rutRaw) => {
 export const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return String(dateString);
+  }
   return new Intl.DateTimeFormat('es-CL', {
     year: 'numeric',
     month: 'short',

@@ -2710,13 +2710,13 @@ export const CompanySettingsAndBackupModule = ({
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="font-black text-sm text-slate-900">{item.title}</span>
                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                item.status.includes('Titulado')
+                                String(item.status || '').includes('Titulado')
                                   ? 'bg-emerald-100 text-emerald-800'
-                                  : item.status.includes('curso')
+                                  : String(item.status || '').toLowerCase().includes('curso')
                                   ? 'bg-blue-100 text-blue-800'
                                   : 'bg-purple-100 text-purple-800'
                               }`}>
-                                {item.status}
+                                {item.status || 'Certificado'}
                               </span>
                               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
                                 {item.category || 'Acreditación Técnica'}
@@ -6576,7 +6576,7 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Pie de Página Institucional Página 1 */}
                 <div className="mt-auto pt-2.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
                   <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                  <div className="font-bold text-[#0F3D2E]">Página 1 de 3 • Propuesta de Gestión & Cercanía Operativa • Ley N° 21.442</div>
+                  <div className="font-bold text-[#0F3D2E]">Página 1 de 4 • Propuesta de Gestión & Cercanía Operativa • Ley N° 21.442</div>
                   <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
                 </div>
               </div>
@@ -6622,7 +6622,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                     <div className="text-right shrink-0">
                       <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                        METODOLOGÍA & TERRENO • PÁG. 2 DE 3
+                        METODOLOGÍA & TERRENO • PÁG. 2 DE 4
                       </span>
                     </div>
                   </div>
@@ -6752,12 +6752,12 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Pie de Página Institucional Página 2 */}
                 <div className="mt-auto pt-3 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
                   <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                  <div className="font-bold text-[#0F3D2E]">Página 2 de 3 • Metodología Técnica, Financiera y Plan de 30 Días</div>
+                  <div className="font-bold text-[#0F3D2E]">Página 2 de 4 • Metodología Técnica, Financiera y Plan de 30 Días</div>
                   <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
                 </div>
               </div>
 
-              {/* ==================== PÁGINA 3: HERRAMIENTAS DIGITALES, CERTIFICACIONES, REFERENCIAS & FIRMA ==================== */}
+              {/* ==================== PÁGINA 3: ESPECIALIDAD CONSTRUCTIVA, ACREDITACIONES Y REFERENCIAS ==================== */}
               <div
                 data-pdf-style={pdfStyle}
                 className="dossier-page page-3 bg-white p-6 pl-10 min-h-[1050px] max-h-[1080px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
@@ -6782,9 +6782,9 @@ export const CompanySettingsAndBackupModule = ({
                   />
                 </div>
 
-                <div className="space-y-2 relative z-10">
+                <div className="space-y-3 relative z-10">
                   {/* Membrete de Continuidad ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-1.5">
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
                     <div className="flex items-center space-x-3">
                       <AranproLogo variant="principal" className="h-9 w-auto" />
                       <div className="border-l border-slate-300 pl-3">
@@ -6792,112 +6792,67 @@ export const CompanySettingsAndBackupModule = ({
                           {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
                         </span>
                         <span className="text-[9px] text-slate-500 font-mono">
-                          Herramientas Digitales, Certificaciones Acreditadas y Referencias • Ley N° 21.442
+                          Especialidad Constructiva, Acreditaciones Profesionales y Referencias de Comités • Ley N° 21.442
                         </span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                        RESPALDO & FIRMA • PÁG. 3 DE 3
+                        ACREDITACIÓN & REFERENCIAS • PÁG. 3 DE 4
                       </span>
                     </div>
                   </div>
 
-                  {/* SECCIÓN 2: ECOSISTEMA TECNOLÓGICO ARANPRO */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
-                          2
-                        </div>
-                        <div>
-                          <h2 className="font-black text-[10.5px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                            Herramientas Digitales ARANPRO: Información Clara y Accesible Sin Costo Adicional
-                          </h2>
-                          <p className="text-[8.5px] text-slate-500 leading-tight">
-                            Plataforma propia incluida sin costo de licencias externas para apoyar la gestión del Comité y la comunicación con residentes
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-[8px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        100% Incluido
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">📲 Portal Web & App Residentes</strong>
-                        <p className="text-[8.5px] text-slate-600 leading-snug">
-                          Consulta de avisos de cobro, comprobantes de pago, comunicados oficiales, reserva de espacios comunes y encuestas.
-                        </p>
-                      </div>
-
-                      <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">🛡️ Panel del Comité 24/7</strong>
-                        <p className="text-[8.5px] text-slate-600 leading-snug">
-                          Acceso permanente a cartolas bancarias, facturas de proveedores, estado de mantenciones y respaldos para decidir con claridad.
-                        </p>
-                      </div>
-
-                      <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">📖 Registro Digital Trazable</strong>
-                        <p className="text-[8.5px] text-slate-600 leading-snug">
-                          Libro digital foliado de solicitudes y observaciones conforme al Art. 20° de la Ley N° 21.442, con seguimiento de respuestas.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SECCIÓN 3: FORMACIÓN PROFESIONAL, ESPECIALIDAD CONSTRUCTIVA Y CAPACITACIONES CERTIFICADAS */}
-                  <div className="space-y-1">
+                  {/* SECCIÓN 2: FORMACIÓN PROFESIONAL, ESPECIALIDAD CONSTRUCTIVA Y CAPACITACIONES CERTIFICADAS */}
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
-                        3
+                        2
                       </div>
                       <div>
-                        <h2 className="font-black text-[10.5px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
                           Especialidad Constructiva, Formación Profesional y Capacitaciones Certificadas
                         </h2>
                         <p className="text-[8.5px] text-slate-500 leading-tight">
-                          Títulos y certificaciones acreditadas del Administrador Titular ({empresaForm.adminName}) aplicadas a la gestión del condominio
+                          Respaldos académicos y competencias técnicas del Administrador Titular ({empresaForm.adminName}) aplicadas directamente al condominio
                         </p>
                       </div>
                     </div>
 
                     {/* Grilla de 6 Certificaciones Profesionales y Técnicas en 2 Columnas fijas */}
-                    <div className="grid grid-cols-2 gap-1.5 text-xs">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
                       {dossierAcademicPortfolio.slice(0, 6).map((item) => (
-                        <div key={item.id} className="p-1.5 rounded-xl border border-slate-300 bg-slate-50/90 space-y-0.5 shadow-2xs flex flex-col justify-between">
+                        <div key={item.id} className="p-2 rounded-xl border border-slate-300 bg-slate-50/90 space-y-1 shadow-2xs flex flex-col justify-between">
                           <div>
                             <div className="flex items-start justify-between gap-1">
-                              <span className="font-black text-slate-900 text-[9.5px] leading-tight line-clamp-1">{item.title}</span>
+                              <span className="font-black text-slate-900 text-[10px] leading-tight line-clamp-1">{item.title}</span>
                               <span className="px-1.5 py-0.5 rounded text-[7px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
                                 {item.status}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between text-[7.5px] text-slate-500">
+                            <div className="flex items-center justify-between text-[8px] text-slate-500">
                               <span className="truncate">Institución: <strong className="text-slate-700">{item.institution}</strong></span>
                               <span className="shrink-0 font-mono font-bold text-slate-600 ml-1">{item.year}</span>
                             </div>
-                            <p className="text-slate-700 bg-white px-1.5 py-0.5 rounded border border-slate-200/80 text-[7.5px] leading-snug mt-0.5 line-clamp-2">
-                              <strong>Aplicación en la Comunidad:</strong> {item.relevance}
+                            <p className="text-slate-700 bg-white px-2 py-1 rounded border border-slate-200/80 text-[8px] leading-snug mt-0.5 line-clamp-2">
+                              <strong>Aporte Práctico:</strong> {item.relevance}
                             </p>
                           </div>
-                          <div className="text-[7px] text-emerald-800 font-mono font-bold truncate pt-0.5 border-t border-slate-200/60">
-                            ✓ Respaldo: {item.fileName}
+                          <div className="text-[7.5px] text-emerald-800 font-mono font-bold truncate pt-0.5 border-t border-slate-200/60">
+                            ✓ Respaldo Oficial: {item.fileName}
                           </div>
                         </div>
                       ))}
                     </div>
 
                     {/* Índice de Documentos Legales y Técnicos Acreditados en Carpeta Oficial */}
-                    <div className="pt-0.5 space-y-1">
-                      <span className="text-[8.5px] font-black uppercase text-[#0F3D2E] block">
-                        Documentación Legal, Normativa y de Especialidad Disponible en Carpeta Oficial:
+                    <div className="pt-1 space-y-1">
+                      <span className="text-[9px] font-black uppercase text-[#0F3D2E] block">
+                        Carpeta Oficial de Documentos Legales, Normativos y de Especialidad:
                       </span>
-                      <div className="grid grid-cols-2 gap-1 text-[8.5px]">
+                      <div className="grid grid-cols-2 gap-1.5 text-[8.5px]">
                         {dossierAccreditationDocs.slice(0, 6).map((doc, idx) => (
-                          <div key={doc.id} className="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-between gap-1.5 shadow-2xs">
+                          <div key={doc.id} className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 shadow-2xs">
                             <div className="min-w-0">
                               <strong className="text-slate-900 block leading-tight truncate text-[8.5px]">
                                 Anexo {idx + 1}: {doc.name}
@@ -6906,7 +6861,7 @@ export const CompanySettingsAndBackupModule = ({
                                 {doc.issuer || 'Institución Oficial'} {doc.folio ? `• ${doc.folio}` : ''}
                               </span>
                             </div>
-                            <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold text-[7.5px] shrink-0 whitespace-nowrap">
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[7.5px] shrink-0 whitespace-nowrap">
                               ✓ {doc.status || 'Vigente'}
                             </span>
                           </div>
@@ -6915,31 +6870,31 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* SECCIÓN 4: REFERENCIAS DE COMITÉS */}
-                  <div className="space-y-1">
+                  {/* SECCIÓN 3: REFERENCIAS DE COMITÉS */}
+                  <div className="space-y-1.5 pt-1">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
-                        4
+                        3
                       </div>
                       <div>
-                        <h2 className="font-black text-[10.5px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
                           Referencias Comprobables de Comités de Administración
                         </h2>
                         <p className="text-[8.5px] text-slate-500 leading-tight">
-                          Experiencia directa de representantes comunitarios con nuestra metodología de trabajo
+                          Testimonios y antecedentes de contacto de representantes comunitarios que avalan nuestra gestión
                         </p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       {committeeReferences.map(ref => (
-                        <div key={ref.id} className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 space-y-0.5">
+                        <div key={ref.id} className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1 shadow-2xs">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="font-black text-slate-900 text-[9.5px]">{ref.contactName}</span>
+                            <span className="font-black text-slate-900 text-[10px]">{ref.contactName}</span>
                             <span className="text-[8px] font-bold text-[#0F3D2E] text-right">{ref.role} • {ref.communityName}</span>
                           </div>
-                          <p className="text-slate-500 text-[7.5px] font-mono">Fono Contacto: {ref.phone}</p>
-                          <blockquote className="text-slate-700 italic bg-white px-1.5 py-0.5 rounded border border-slate-200 text-[8px] leading-snug">
+                          <p className="text-slate-500 text-[8px] font-mono">Fono Contacto: {ref.phone}</p>
+                          <blockquote className="text-slate-700 italic bg-white px-2 py-1 rounded border border-slate-200 text-[8.5px] leading-snug">
                             "{String(ref.quote || '').includes('administración anterior')
                               ? 'Gestión muy cercana, ordenada y con gran dominio técnico en terreno. El seguimiento de las mantenciones de salas de bombas y la claridad en los informes nos permiten tomar decisiones con total tranquilidad.'
                               : ref.quote}"
@@ -6948,11 +6903,204 @@ export const CompanySettingsAndBackupModule = ({
                       ))}
                     </div>
                   </div>
+
+                  {/* Recuadro de Garantía Institucional y Cumplimiento Ley 21.442 */}
+                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-[#0F3D2E]/10 via-[#F5F4EF] to-transparent border border-[#0F3D2E]/20 text-[8.5px] text-slate-700 space-y-1">
+                    <strong className="text-[#0F3D2E] block text-[9.5px]">Garantía Institucional de Respaldo ARANPRO:</strong>
+                    <p className="leading-snug">
+                      Nuestra postulación se formaliza bajo contrato de prestación de servicios con entregables claramente estipulados, rendición mensual de cuentas documentada y fiscalización contable continua, garantizando a la comunidad el fiel cumplimiento de las obligaciones legales establecidas en la <strong>Ley N° 21.442</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Pie de Página Institucional Página 3 */}
+                <div className="mt-auto pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
+                  <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
+                  <div className="font-bold text-[#0F3D2E]">Página 3 de 4 • Certificaciones Acreditadas, Carpeta de Anexos y Referencias</div>
+                  <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
+                </div>
+              </div>
+
+              {/* ==================== PÁGINA 4: SUITE DIGITAL ARANPRO, DEMO EN VIVO CON QR & FIRMA OFICIAL ==================== */}
+              <div
+                data-pdf-style={pdfStyle}
+                className="dossier-page page-4 bg-white p-6 pl-10 min-h-[1050px] max-h-[1080px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {/* Filete doble izquierdo Alternativa 4 */}
+                <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
+                  <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
+                  <div className="w-[2px] h-full bg-transparent" />
+                  <div className="w-[1px] h-full bg-[#D4B895]" />
+                </div>
+
+                {/* Sello de agua central sutil */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 opacity-[0.035]"
+                  aria-hidden="true"
+                >
+                  <img
+                    src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                    alt=""
+                    className="w-[420px] h-[420px] object-contain"
+                  />
+                </div>
+
+                <div className="space-y-3 relative z-10">
+                  {/* Membrete de Continuidad ARANPRO */}
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
+                    <div className="flex items-center space-x-3">
+                      <AranproLogo variant="principal" className="h-9 w-auto" />
+                      <div className="border-l border-slate-300 pl-3">
+                        <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">
+                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
+                        </span>
+                        <span className="text-[9px] text-slate-500 font-mono">
+                          Plataforma Digital Gratuita, Transparencia Contable 24/7 y Demo Interactiva • Ley N° 21.442
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
+                        SUITE DIGITAL & DEMO EN VIVO • PÁG. 4 DE 4
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Título de la Sección Digital */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
+                          4
+                        </div>
+                        <div>
+                          <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                            Ecosistema Digital ARANPRO: Transparencia Contable y Gestión Móvil 24/7
+                          </h2>
+                          <p className="text-[8.5px] text-slate-500 leading-tight">
+                            Plataforma propia 100% incluida • Ahorro directo en software para la comunidad de $500.000 a $1.200.000 anuales
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[8px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        100% Gratuito e Incluido
+                      </span>
+                    </div>
+
+                    {/* 4 Pilares Tecnológicos en Grilla 2x2 */}
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10px]">
+                          <span>📲</span>
+                          Portal Web & App Residentes
+                        </div>
+                        <p className="text-[8.5px] text-slate-600 leading-relaxed">
+                          Avisos de cobro descargables en PDF, colillas detalladas con fondo de reserva (Art. 39°), pago de gastos comunes en línea y reserva digital de quinchos y salas multiuso.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10px]">
+                          <span>🛡️</span>
+                          Panel Comité de Administración 24/7
+                        </div>
+                        <p className="text-[8.5px] text-slate-600 leading-relaxed">
+                          Auditoría libre y permanente de cartolas bancarias, respaldos digitales de cada factura o boleta de egreso y aprobación de transferencias a proveedores con un solo clic.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10px]">
+                          <span>📖</span>
+                          Libro Digital de Reclamos y Solicitudes
+                        </div>
+                        <p className="text-[8.5px] text-slate-600 leading-relaxed">
+                          Registro inalterable con folios correlativos conforme al Art. 20° de la Ley N° 21.442, con trazabilidad completa de fechas, estados de avance y plazos comprometidos de respuesta.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10px]">
+                          <span>🗳️</span>
+                          Asambleas Híbridas & Votaciones Digitales
+                        </div>
+                        <p className="text-[8.5px] text-slate-600 leading-relaxed">
+                          Participación telemática segura según el Art. 15° de la Ley N° 21.442. Los propietarios pueden emitir su voto verificado desde el celular, con quórums y actas calculadas en tiempo real.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recuadro de Demo Interactiva en Vivo con Código QR Vectorial */}
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#F5F4EF] via-white to-[#F5F4EF] border-2 border-[#0F3D2E]/30 shadow-xs flex items-center justify-between gap-4">
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-mono font-bold text-[8.5px] uppercase">
+                        ★ Demo Interactiva en Vivo
+                      </div>
+                      <h4 className="text-[11px] font-black text-[#0F3D2E] leading-tight">
+                        Pruebe la experiencia en su teléfono celular ahora mismo
+                      </h4>
+                      <p className="text-[9px] text-slate-700 leading-snug">
+                        Escanee este código QR con la cámara de su smartphone o ingrese directamente a <strong>{empresaForm.website || 'https://aranpro.cl'}</strong> para interactuar con la plataforma: consulte colillas de gastos comunes simuladas, audite respaldos bancarios de egresos y pruebe el libro digital.
+                      </p>
+                      <div className="text-[8.5px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block">
+                        ✓ 100% Gratuita para la comunidad • Cero cobros de licencias o software
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 p-2.5 bg-white rounded-xl border border-slate-300 shadow-xs text-center">
+                      <svg className="w-20 h-20 mx-auto" viewBox="0 0 100 100" fill="#0F3D2E">
+                        <rect x="5" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
+                        <rect x="10" y="10" width="15" height="15" fill="#ffffff" rx="1" />
+                        <rect x="14" y="14" width="7" height="7" fill="#0F3D2E" />
+
+                        <rect x="70" y="5" width="25" height="25" fill="#0F3D2E" rx="3" />
+                        <rect x="75" y="10" width="15" height="15" fill="#ffffff" rx="1" />
+                        <rect x="79" y="14" width="7" height="7" fill="#0F3D2E" />
+
+                        <rect x="5" y="70" width="25" height="25" fill="#0F3D2E" rx="3" />
+                        <rect x="10" y="75" width="15" height="15" fill="#ffffff" rx="1" />
+                        <rect x="14" y="79" width="7" height="7" fill="#0F3D2E" />
+
+                        <rect x="35" y="10" width="6" height="6" />
+                        <rect x="45" y="10" width="6" height="6" />
+                        <rect x="55" y="10" width="6" height="6" />
+                        <rect x="35" y="25" width="6" height="6" />
+                        <rect x="45" y="20" width="6" height="6" />
+                        <rect x="55" y="25" width="6" height="6" />
+                        <rect x="35" y="35" width="10" height="10" />
+                        <rect x="50" y="35" width="10" height="10" />
+                        <rect x="65" y="35" width="6" height="6" />
+                        <rect x="10" y="45" width="6" height="6" />
+                        <rect x="20" y="45" width="6" height="6" />
+                        <rect x="35" y="50" width="6" height="6" />
+                        <rect x="45" y="50" width="6" height="6" />
+                        <rect x="55" y="50" width="6" height="6" />
+                        <rect x="65" y="50" width="6" height="6" />
+                        <rect x="75" y="45" width="10" height="10" />
+                        <rect x="35" y="65" width="6" height="6" />
+                        <rect x="45" y="65" width="6" height="6" />
+                        <rect x="55" y="65" width="6" height="6" />
+                        <rect x="65" y="65" width="15" height="6" />
+                        <rect x="35" y="75" width="15" height="6" />
+                        <rect x="55" y="75" width="6" height="6" />
+                        <rect x="65" y="75" width="6" height="15" />
+                        <rect x="75" y="85" width="15" height="6" />
+                        <rect x="35" y="85" width="6" height="6" />
+                        <rect x="45" y="85" width="6" height="6" />
+                        <rect x="55" y="85" width="6" height="6" />
+                      </svg>
+                      <span className="text-[7.5px] font-mono font-bold text-slate-500 block mt-1 tracking-tight">
+                        ESCANEAR CON CELULAR
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* SECCIÓN DE SELLO CIRCULAR DORADO + FIRMA Y FOOTER ANCLADOS AL PIE */}
-                <div className="mt-auto pt-1.5 space-y-1.5 relative z-10">
-                  <div className="pt-1.5 border-t border-slate-200 flex items-end justify-between gap-4">
+                <div className="mt-auto pt-2 space-y-2 relative z-10">
+                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
                     <AranproOfficialSeal
                       size="sm"
                       companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
@@ -6984,10 +7132,10 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* Pie de Página Institucional Página 3 */}
-                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
+                  {/* Pie de Página Institucional Página 4 */}
+                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                    <div className="font-bold text-[#0F3D2E]">Página 3 de 3 • Certificaciones, Referencias y Firma Oficial</div>
+                    <div className="font-bold text-[#0F3D2E]">Página 4 de 4 • Ecosistema Tecnológico, Demo Interactiva y Firma Oficial</div>
                     <div>{empresaForm.city || 'La Serena / Coquimbo, Chile'}</div>
                   </div>
                 </div>

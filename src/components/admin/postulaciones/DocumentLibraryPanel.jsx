@@ -49,15 +49,18 @@ export const DocumentLibraryPanel = ({ documents, setDocuments, showAlert, showC
   const fileInputRef = useRef(null);
 
   const now = new Date();
-  const summary = useMemo(() => summarizeDocuments(documents), [documents]);
+  const summary = useMemo(() => summarizeDocuments(documents || []), [documents]);
 
   const grouped = useMemo(() => {
     const map = new Map(DOC_CATEGORIES.map((c) => [c.id, []]));
-    documents.forEach((d) => {
+    (documents || []).forEach((d) => {
       const cat = normalizeCategory(d.category);
+      if (!map.has(cat)) {
+        map.set(cat, []);
+      }
       map.get(cat).push(d);
     });
-    return DOC_CATEGORIES.map((c) => ({ ...c, docs: map.get(c.id) })).filter((g) => g.docs.length > 0);
+    return DOC_CATEGORIES.map((c) => ({ ...c, docs: map.get(c.id) || [] })).filter((g) => g.docs.length > 0);
   }, [documents]);
 
   const openNew = (requirementKey = '') => {
@@ -212,7 +215,7 @@ export const DocumentLibraryPanel = ({ documents, setDocuments, showAlert, showC
               >
                 <Plus className="w-3 h-3" />
                 {r.label}
-                <span className="text-[9px] font-black uppercase px-1 rounded bg-amber-100 text-amber-800">{TIER_META[r.tier].label}</span>
+                <span className="text-[9px] font-black uppercase px-1 rounded bg-amber-100 text-amber-800">{TIER_META[r.tier]?.label || 'Requisito'}</span>
               </button>
             ))}
           </div>
@@ -249,13 +252,13 @@ export const DocumentLibraryPanel = ({ documents, setDocuments, showAlert, showC
                         {doc.expiryDate ? ` • Vence: ${formatDate(doc.expiryDate)}` : ''}
                       </div>
                     </div>
-                    <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${TONE[v.tone]}`}>{v.label}</span>
+                    <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${TONE[v?.tone] || TONE.slate}`}>{v?.label || 'Registrado'}</span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-1.5">
                     {req && (
                       <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                        Requisito: {TIER_META[req.tier].label}
+                        Requisito: {TIER_META[req.tier]?.label || 'Requisito'}
                       </span>
                     )}
                     {file ? (
