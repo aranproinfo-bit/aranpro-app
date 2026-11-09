@@ -6411,14 +6411,14 @@ export const CompanySettingsAndBackupModule = ({
               {/* ==================== PÁGINA 1: PORTADA & CARTA EJECUTIVA DE PRESENTACIÓN ==================== */}
               <div
                 data-pdf-style={pdfStyle}
-                className="dossier-page page-1 bg-white p-7 pl-10 min-h-[1050px] max-h-[1080px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                className="dossier-page page-1 bg-white p-7 pl-10 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* Filete doble izquierdo Alternativa 4 */}
                 <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
                   <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
                   <div className="w-[2px] h-full bg-transparent" />
-                  <div className="w-[1px] h-full bg-[#D4B895]" />
+                  <div className="w-[1.5px] h-full bg-[#D4B895]" />
                 </div>
 
                 {/* Sello de agua central sutil */}
@@ -6646,7 +6646,7 @@ export const CompanySettingsAndBackupModule = ({
                 <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
                   <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
                   <div className="w-[2px] h-full bg-transparent" />
-                  <div className="w-[1px] h-full bg-[#D4B895]" />
+                  <div className="w-[1.5px] h-full bg-[#D4B895]" />
                 </div>
 
                 {/* Sello de agua central sutil */}
@@ -6815,14 +6815,14 @@ export const CompanySettingsAndBackupModule = ({
               {/* ==================== PÁGINA 3: ESPECIALIDAD CONSTRUCTIVA, ACREDITACIONES Y REFERENCIAS ==================== */}
               <div
                 data-pdf-style={pdfStyle}
-                className="dossier-page page-3 bg-white p-6 pl-10 min-h-[1050px] max-h-[1080px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                className="dossier-page page-3 bg-white p-6 pl-10 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* Filete doble izquierdo Alternativa 4 */}
                 <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
                   <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
                   <div className="w-[2px] h-full bg-transparent" />
-                  <div className="w-[1px] h-full bg-[#D4B895]" />
+                  <div className="w-[1.5px] h-full bg-[#D4B895]" />
                 </div>
 
                 {/* Sello de agua central sutil */}
@@ -6880,7 +6880,7 @@ export const CompanySettingsAndBackupModule = ({
                         <div key={item.id} className="p-2 rounded-xl border border-slate-300 bg-slate-50/90 space-y-1 shadow-2xs flex flex-col justify-between">
                           <div>
                             <div className="flex items-start justify-between gap-1">
-                              <span className="font-black text-slate-900 text-[10px] leading-tight line-clamp-1">{item.title}</span>
+                              <span className="font-black text-slate-900 text-[10px] leading-normal truncate block">{item.title}</span>
                               <span className="px-1.5 py-0.5 rounded text-[7px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
                                 {item.status}
                               </span>
@@ -6889,7 +6889,7 @@ export const CompanySettingsAndBackupModule = ({
                               <span className="truncate">Institución: <strong className="text-slate-700">{item.institution}</strong></span>
                               <span className="shrink-0 font-mono font-bold text-slate-600 ml-1">{item.year}</span>
                             </div>
-                            <p className="text-slate-700 bg-white px-2 py-1 rounded border border-slate-200/80 text-[8px] leading-snug mt-0.5 line-clamp-2">
+                            <p className="text-slate-700 bg-white px-2 py-1 rounded border border-slate-200/80 text-[8px] leading-snug mt-0.5 overflow-hidden max-h-[34px] block">
                               <strong>Aporte Práctico:</strong> {item.relevance}
                             </p>
                           </div>
@@ -6909,7 +6909,7 @@ export const CompanySettingsAndBackupModule = ({
                         {dossierAccreditationDocs.slice(0, 6).map((doc, idx) => (
                           <div key={doc.id} className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 shadow-2xs">
                             <div className="min-w-0">
-                              <strong className="text-slate-900 block leading-tight truncate text-[8.5px]">
+                              <strong className="text-slate-900 block leading-normal truncate text-[8.5px]">
                                 Anexo {idx + 1}: {doc.name}
                               </strong>
                               <span className="text-[7.5px] text-slate-500 block truncate">
@@ -6979,14 +6979,14 @@ export const CompanySettingsAndBackupModule = ({
               {/* ==================== PÁGINA 4: SUITE DIGITAL ARANPRO, DEMO EN VIVO CON QR & FIRMA OFICIAL ==================== */}
               <div
                 data-pdf-style={pdfStyle}
-                className="dossier-page page-4 bg-white p-6 pl-10 min-h-[1050px] max-h-[1080px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                className="dossier-page page-4 bg-white p-6 pl-10 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* Filete doble izquierdo Alternativa 4 */}
                 <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
                   <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
                   <div className="w-[2px] h-full bg-transparent" />
-                  <div className="w-[1px] h-full bg-[#D4B895]" />
+                  <div className="w-[1.5px] h-full bg-[#D4B895]" />
                 </div>
 
                 {/* Sello de agua central sutil */}

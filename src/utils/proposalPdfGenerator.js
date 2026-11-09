@@ -27,12 +27,15 @@ const loadImage = (src) => {
  * en Base64 idéntico al documento maestro que se imprime o descarga desde la aplicación.
  */
 export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => {
-  const targetEl = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+  let targetEl = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+  if (!targetEl && typeof elementOrId === 'string') {
+    targetEl = document.querySelector(`[id="${elementOrId}"]`);
+  }
   if (!targetEl) {
     throw new Error(`Elemento #${typeof elementOrId === 'string' ? elementOrId : 'desconocido'} no encontrado en el DOM`);
   }
 
-  // 1. Obtener el HTML limpio del elemento
+  // 1. Obtener el HTML limpio del elemento maestro
   let contentHtml = targetEl.innerHTML;
 
   // 2. Resolver rutas de imágenes relativas a absolutas para carga inmediata sin bloqueos
@@ -42,7 +45,7 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     .replace(/src="brand\//g, `src="${origin}/brand/`)
     .replace(/src="\/certificaciones\//g, `src="${origin}/certificaciones/`);
 
-  // Extraer todas las hojas de estilo y estilos inline de la aplicación
+  // Extraer todas las hojas de estilo y estilos compilados de la aplicación
   const existingStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
     .map((el) => el.outerHTML)
     .join('\n');
@@ -55,13 +58,16 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     iframe.style.position = 'fixed';
     iframe.style.left = '-10000px';
     iframe.style.top = '0';
-    iframe.style.width = '850px';
-    iframe.style.height = '1200px';
+    iframe.style.width = '816px';
+    iframe.style.height = '4600px';
     iframe.style.border = '0';
     iframe.style.opacity = '1';
     iframe.style.visibility = 'visible';
     iframe.style.zIndex = '-99999';
     document.body.appendChild(iframe);
+  } else {
+    iframe.style.width = '816px';
+    iframe.style.height = '4600px';
   }
 
   const doc = iframe.contentWindow || iframe.contentDocument;
@@ -72,41 +78,66 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     <html lang="es">
       <head>
         <meta charset="utf-8" />
-        <script src="https://cdn.tailwindcss.com"></script>
         ${existingStyles}
         <style>
           * {
-            box-sizing: border-box;
+            box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            -webkit-line-clamp: unset !important;
+            -webkit-box-orient: unset !important;
           }
           html, body {
             margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
-            width: 850px !important;
+            width: 816px !important;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             color: #0f172a;
+            -webkit-font-smoothing: antialiased;
           }
+          /* Páginas maestras con proporción exacta Carta (816 x 1056 px a 96 DPI -> 612 x 792 pt) */
           .dossier-page {
-            width: 850px !important;
-            min-height: 1060px !important;
-            max-height: 1080px !important;
+            width: 816px !important;
+            min-height: 1056px !important;
+            height: 1056px !important;
+            max-height: 1056px !important;
             box-sizing: border-box !important;
-            margin: 0 !important;
+            margin: 0 0 24px 0 !important;
             background: #ffffff !important;
             overflow: hidden !important;
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
+            position: relative !important;
+            padding: 24px 28px 20px 36px !important;
           }
           .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-xs, .shadow-2xs, .shadow-sm {
             box-shadow: none !important;
           }
+          /* Colores oficiales de marca ARANPRO */
+          .bg-\[\#0F3D2E\] { background-color: #0F3D2E !important; }
+          .bg-\[\#D4B895\] { background-color: #D4B895 !important; }
+          .bg-\[\#F5F4EF\] { background-color: #F5F4EF !important; }
+          .text-\[\#0F3D2E\] { color: #0F3D2E !important; }
+          .text-\[\#D4B895\] { color: #D4B895 !important; }
+          .border-\[\#0F3D2E\] { border-color: #0F3D2E !important; }
+          .border-\[\#D4B895\] { border-color: #D4B895 !important; }
+          .opacity-\[0\.035\], [class*="opacity-[0.035]"] {
+            opacity: 0.035 !important;
+          }
+
+          /* Corrección crítica contra bisecado de texto en html2canvas */
+          .line-clamp-1, .line-clamp-2, .line-clamp-3 {
+            display: block !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            line-height: 1.35 !important;
+          }
         </style>
       </head>
       <body>
-        <div id="export-root" style="width: 850px; background: #ffffff;">
+        <div id="export-root" style="width: 816px; background: #ffffff;">
           ${contentHtml}
         </div>
       </body>
@@ -114,8 +145,8 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
   `);
   iDoc.close();
 
-  // Esperar a que el iframe compile estilos de Tailwind y renderice (~350ms)
-  await new Promise(r => setTimeout(r, 350));
+  // Esperar a que el iframe compile estilos y estabilice el layout
+  await new Promise(r => setTimeout(r, 250));
 
   // Esperar a que todas las imágenes del iframe carguen completamente
   const iframeImgs = Array.from(iDoc.querySelectorAll('img'));
@@ -136,33 +167,34 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'pt',
-    format: 'letter' // 612 x 792 pt (Carta oficial)
+    format: 'letter' // 612 x 792 pt (Carta oficial estándar)
   });
 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
 
-    // Captura limpia del elemento dentro del iframe con escala 2 para nitidez
+    // Captura limpia del elemento con escala 2.5 para nitidez tipo vector y cero pixelación
     const canvas = await html2canvas(page, {
-      scale: 2,
+      scale: 2.5,
       useCORS: true,
-      allowTaint: false,
+      allowTaint: true,
       backgroundColor: '#ffffff',
       logging: false,
       scrollX: 0,
       scrollY: 0,
-      windowWidth: 850,
+      windowWidth: 816,
       window: iframe.contentWindow
     });
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    // Formato PNG para preservar el 100% de la fidelidad de color (#0F3D2E, #D4B895, #F5F4EF) sin artefactos JPEG
+    const imgData = canvas.toDataURL('image/png');
 
     if (i > 0) {
       pdf.addPage('letter', 'portrait');
     }
 
-    // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt)
-    pdf.addImage(imgData, 'JPEG', 0, 0, 612, 792, undefined, 'FAST');
+    // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt) con proporción matemática exacta
+    pdf.addImage(imgData, 'PNG', 0, 0, 612, 792, undefined, 'FAST');
   }
 
   const dataUri = pdf.output('datauristring');
@@ -709,18 +741,13 @@ export const generateStepPdfAttachment = async ({
   // ===== PRIORIDAD 1: EXPORTACIÓN DIRECTA DEL DOCUMENTO MAESTRO EN EL DOM =====
   try {
     if (typeof document !== 'undefined') {
-      const el = document.getElementById(elementId);
+      let el = document.getElementById(elementId);
+      if (!el) {
+        el = document.querySelector(`[id="${elementId}"]`);
+      }
       if (el) {
-        // En el Paso 2 (Dossier Integral), exigimos estrictamente que existan las 4 páginas completas
-        if (stepNumber === 2) {
-          const rawPages = Array.from(el.querySelectorAll('.dossier-page'));
-          if (rawPages.length < 4) {
-            console.warn('[generateStepPdfAttachment] El DOM no contiene las 4 páginas del Dossier, recurriendo al motor canónico de 4 páginas');
-            throw new Error('Dossier incompleto en DOM');
-          }
-        }
         const contentBase64 = await exportDomElementToPdfBase64(el, { filename: defaultFilename });
-        if (contentBase64 && contentBase64.length > (stepNumber === 2 ? 40000 : 200)) {
+        if (contentBase64 && contentBase64.length > 500) {
           return {
             filename: defaultFilename,
             contentBase64
@@ -729,7 +756,7 @@ export const generateStepPdfAttachment = async ({
       }
     }
   } catch (domErr) {
-    console.warn(`[generateStepPdfAttachment] No se pudo capturar #${elementId} del DOM, ejecutando motor canónico de alta resolución:`, domErr);
+    console.error(`[generateStepPdfAttachment] Error al exportar #${elementId} desde el DOM:`, domErr);
   }
 
   // ===== RESPALDO CANÓNICO VÍA CANVAS =====
