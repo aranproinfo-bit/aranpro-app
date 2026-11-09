@@ -2,45 +2,30 @@ import React, { useState } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatCLP, formatDate, getMonthName } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
+import { AranproLogo } from '../common/MauranLogo';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
-import { UnitAccountStatementView } from '../admin/UnitAccountStatementView';
-import { LegalAspectsModal } from '../common/LegalAspectsModal';
-import { PwaInstallButton } from '../layout/PwaPrompt';
 import { 
   Building2, Home, User, CheckCircle2, AlertCircle, Eye, 
   Download, ArrowUpRight, DollarSign, FileText, Send, 
   CreditCard, Copy, Check, ShieldCheck, ChevronDown, ChevronUp, LogOut,
   Megaphone, FolderOpen, KeyRound, Printer, Menu, X, Globe, Shield, Plus,
-  FileCheck, HelpCircle, MessageCircle, Clock, CheckCheck, Sparkles, Scale, Lock
+  FileCheck
 } from 'lucide-react';
 
-export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) => {
-  const { currentUser, communities, getUnitFinancials, setActiveReceipt, reportPayment, addAnnouncement, calculateCommunityTotals, changeResidentPassword, logout, companySettings, toggleExpenseApproval } = useCommunity();
+export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) => {
+  const { currentUser, communities, getUnitFinancials, setActiveReceipt, reportPayment, addAnnouncement, calculateCommunityTotals, changeResidentPassword, logout, companySettings, loginResident } = useCommunity();
   const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'gastos' | 'mis-pagos' | 'comunicados' | 'cuenta-bancaria'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showCommitteeAnnForm, setShowCommitteeAnnForm] = useState(false);
   const [committeeAnnForm, setCommitteeAnnForm] = useState({ title: '', content: '', priority: 'Importante' });
   const [showPayModal, setShowPayModal] = useState(false);
   const [showBillModal, setShowBillModal] = useState(false);
-  const [showAccountStatementModal, setShowAccountStatementModal] = useState(false);
   const [showExpenseReportModal, setShowExpenseReportModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [passwordSaved, setPasswordSaved] = useState(false);
-  const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
-  const [colillaDesign, setColillaDesign] = useState('ejecutiva');
   const [activePaymentReceipt, setActivePaymentReceipt] = useState(null);
   const [copiedBank, setCopiedBank] = useState(false);
-  const [copiedItem, setCopiedItem] = useState(''); // 'account' | 'rut' | 'email' | 'amount'
-  const [showHowIsCalculated, setShowHowIsCalculated] = useState(false);
-  const [legalModalOpen, setLegalModalOpen] = useState(false);
-  const [legalInitialTab, setLegalInitialTab] = useState('terminos');
-
-  const openLegalModal = (tab = 'terminos') => {
-    setLegalInitialTab(tab);
-    setLegalModalOpen(true);
-  };
 
   // Formulario para informar pago
   const [paymentForm, setPaymentForm] = useState({
@@ -60,12 +45,19 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
     );
   }
 
-  const community = communities.find(c => c.id === currentUser.communityId || c.slug === currentUser.communitySlug) || communities[0];
+  const community = communities.find(c => c.id === currentUser.communityId);
   if (!community) return null;
 
-  const unit = (community.units && community.units.find(u => u.id === currentUser.unitId || u.number === currentUser.unitNumber)) 
-    || community.units?.[0] 
-    || { id: 'sim-unit', number: '1', owner: 'Copropietario Ejemplo', aliquota: 1, debt: 0, paymentHistory: [] };
+  const unit = community.units.find(u => u.id === currentUser.unitId || u.number === currentUser.unitNumber);
+  if (!unit) return null;
+
+  const isDemoActive = Boolean(
+    isDemo || 
+    currentUser?.isDemo || 
+    (typeof window !== 'undefined' && window.location.search.includes('demo'))
+  );
+  const displayCommunityName = isDemoActive ? 'Comunidad Demostración ARANPRO' : community.name;
+  const displayCommunityAddress = isDemoActive ? 'Condominio Piloto Interactivo • Ley N° 21.442' : `${community.address}, ${community.city}`;
 
   // Cálculos de la comunidad
   const commTotals = calculateCommunityTotals(community);
@@ -89,18 +81,10 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
   const unitPayments = (community.paymentReports || []).filter(p => p.unitNumber === unit.number);
 
   const handleCopyBankInfo = () => {
-    const text = `Datos de Transferencia ${community.name}:\nBanco: ${community.bankInfo?.bank || 'Banco Estado'}\nTipo: ${community.bankInfo?.accountType || 'Cuenta Corriente'}\nN° Cuenta: ${community.bankInfo?.accountNumber || ''}\nTitular: ${community.bankInfo?.holderName || community.name}\nRUT: ${community.bankInfo?.rut || ''}\nEmail: ${community.bankInfo?.email || 'contacto@aranpro.cl'}\nMonto exacto: ${formatCLP(totalToPay > 0 ? totalToPay : currentCharge)}\nAsunto obligatorio: Casa ${unit.number}`;
+    const text = `Datos de Transferencia Condominio:\nBanco: ${community.bankInfo?.bank}\nTipo: ${community.bankInfo?.accountType}\nN° Cuenta: ${community.bankInfo?.accountNumber}\nTitular: ${community.bankInfo?.holderName}\nRUT: ${community.bankInfo?.rut}\nCorreo: ${community.bankInfo?.email}`;
     navigator.clipboard.writeText(text);
     setCopiedBank(true);
-    setCopiedItem('all');
-    setTimeout(() => { setCopiedBank(false); setCopiedItem(''); }, 2500);
-  };
-
-  const handleCopySingleField = (text, fieldKey) => {
-    if (!text) return;
-    navigator.clipboard.writeText(String(text).trim());
-    setCopiedItem(fieldKey);
-    setTimeout(() => setCopiedItem(''), 2000);
+    setTimeout(() => setCopiedBank(false), 2500);
   };
 
   const handlePaymentSubmit = (e) => {
@@ -143,7 +127,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                 Portal Copropietario • ARANPRO
               </span>
               <h1 className="text-xs font-black text-white truncate">
-                {community.name}
+                {displayCommunityName}
               </h1>
             </div>
           </div>
@@ -283,53 +267,51 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
             <span className="truncate">Salir</span>
           </button>
         </div>
-
-        {/* Firma Oficial Red-Enlace Soluciones Digitales */}
-        <div className="pt-2 border-t border-[#E9EBE8] text-center">
-          <a
-            href="https://redenlace.cl/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-[10.5px] text-slate-500 hover:text-[#0F3D2E] font-medium transition-colors group cursor-pointer"
-            title="Visitar Red-Enlace Soluciones Digitales"
-          >
-            <img
-              src="/red-enlace-logo.png"
-              alt="Logo Red-Enlace"
-              width={14}
-              height={14}
-              className="h-3 w-auto opacity-70 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0"
-            />
-            <span>Desarrollado por Red-Enlace</span>
-          </a>
-        </div>
       </div>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-slate-100/60 flex flex-col">
-      {/* BANNER MODO SIMULACIÓN PARA ADMINISTRADOR */}
-      {currentUser?.isSimulatedByAdmin && (
-        <div className="bg-[#0F3D2E] text-white px-4 py-2.5 border-b-2 border-[#D4B895] shadow-md sticky top-0 z-50 flex items-center justify-between gap-3">
-          <div className="flex items-center space-x-2.5 min-w-0">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#D4B895] text-[#0A291F] uppercase tracking-wider shrink-0 shadow-xs">
-              Modo Simulación
+      {/* BARRA SUPERIOR FIJA DE CONTROL DE DEMOSTRACIÓN EN VIVO */}
+      {isDemoActive && (
+        <div className="bg-[#0F3D2E] text-white px-4 py-2.5 shadow-md flex flex-wrap items-center justify-between gap-2 sticky top-0 z-50 border-b-2 border-[#D4B895]">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-0.5 rounded bg-[#D4B895] text-[#0F3D2E] font-black text-[10px] tracking-wider uppercase">
+              ★ DEMOSTRACIÓN ARANPRO
             </span>
-            <div className="text-xs text-white truncate">
-              Estás viendo la app como vecino de <strong className="text-[#D4B895]">{community.name}</strong> • Casa N° {unit.number} ({unit.owner})
-            </div>
+            <span className="text-xs text-white/95">
+              Evaluando: <strong className="text-[#D4B895]">{unit.isCommittee ? `🛡️ ${unit.committeeRole || 'Comité'} (Casa ${unit.number})` : `🏠 Copropietario al Día (Casa ${unit.number})`}</strong>
+            </span>
           </div>
-          <button
-            onClick={() => {
-              if (onBackToAdmin) onBackToAdmin();
-              else onBack();
-            }}
-            className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-[#0F3D2E] font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
-            title="Regresar inmediatamente al panel de administración"
-          >
-            <span>⬅️ Volver a Administración</span>
-          </button>
+          <div className="flex items-center gap-2 text-xs">
+            {!unit.isCommittee ? (
+              <button
+                type="button"
+                onClick={() => loginResident(community.slug, '1', '1')}
+                className="px-3 py-1.5 bg-white hover:bg-slate-100 text-[#0F3D2E] font-black rounded-xl text-xs shadow-xs transition-transform active:scale-95 cursor-pointer flex items-center gap-1.5"
+                title="Cambiar con 1 clic a la vista de Integrante del Comité"
+              >
+                <span>🛡️ Cambiar a Vista Comité (Casa 1)</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => loginResident(community.slug, '6', '6')}
+                className="px-3 py-1.5 bg-[#D4B895] hover:bg-[#c4a885] text-[#0F3D2E] font-black rounded-xl text-xs shadow-xs transition-transform active:scale-95 cursor-pointer flex items-center gap-1.5"
+                title="Cambiar con 1 clic a la vista de Copropietario / Residente"
+              >
+                <span>🏠 Cambiar a Vista Copropietario (Casa 6)</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-2.5 py-1.5 bg-[#0A291F] hover:bg-rose-900 text-white/80 hover:text-white rounded-xl text-xs transition-colors cursor-pointer"
+            >
+              Salir de Demo
+            </button>
+          </div>
         </div>
       )}
 
@@ -346,7 +328,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
           </button>
           <div className="truncate">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] block leading-tight truncate">
-              Casa N° {unit.number} • {community.name}
+              Casa N° {unit.number} • {displayCommunityName}
             </span>
             <span className="text-xs font-black text-white truncate block">
               {activeResTabObj.label}
@@ -354,16 +336,13 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
           </div>
         </div>
 
-        <div className="flex items-center space-x-1.5 shrink-0">
-          <PwaInstallButton variant="compact" label="Instalar" />
-          <button
-            onClick={() => { setPasswordSaved(false); setNewPasswordInput(''); setShowPasswordModal(true); }}
-            className="px-2.5 py-1.5 bg-white/10 text-[#D4B895] rounded-lg text-[11px] font-bold flex items-center shrink-0"
-          >
-            <KeyRound className="w-3.5 h-3.5 mr-1" />
-            Clave
-          </button>
-        </div>
+        <button
+          onClick={() => { setPasswordSaved(false); setNewPasswordInput(''); setShowPasswordModal(true); }}
+          className="px-2.5 py-1.5 bg-white/10 text-[#D4B895] rounded-lg text-[11px] font-bold flex items-center shrink-0"
+        >
+          <KeyRound className="w-3.5 h-3.5 mr-1" />
+          Clave
+        </button>
       </div>
 
       {/* Drawer Lateral en Celular (< lg) */}
@@ -406,7 +385,6 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
-            <PwaInstallButton variant="compact" label="Instalar App" />
             <button
               onClick={onBack}
               className="px-3 py-1.5 text-xs font-bold text-[#4A4F4F] hover:text-[#0F3D2E] hover:bg-[#F5F4EF] rounded-xl transition-colors flex items-center"
@@ -443,7 +421,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                   <div>
                     <div className="flex items-center space-x-2 flex-wrap">
                       <h3 className="text-sm sm:text-base font-black text-[#0F3D2E]">
-                        Avisos y Comunicados de {community.name}
+                        Avisos y Comunicados de {displayCommunityName}
                       </h3>
                       {unit.isCommittee && (
                         <span className="px-2 py-0.5 text-[10px] font-black bg-[#0F3D2E] text-[#D4B895] rounded-full">
@@ -696,263 +674,6 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
 
               </div>
 
-              {/* 1.1 BARRA VISUAL DE ESTADO: EL CAMINO DE TU GASTO COMÚN */}
-              <div className="mt-5 p-4 bg-white/90 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black uppercase text-[#0F3D2E] tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#D4B895]" />
-                    El Camino de tu Gasto Común ({getMonthName(community.activePeriod.month)} {community.activePeriod.year})
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-semibold">Paso a paso en tiempo real</span>
-                </div>
-
-                {(() => {
-                  const hasReported = unitPayments.length > 0;
-                  const hasApproved = unitPayments.some(p => p.status === 'aprobado') || isUpToDate;
-                  const hasPendingApproval = unitPayments.some(p => p.status === 'pendiente') && !hasApproved;
-
-                  const steps = [
-                    {
-                      label: '1. Colilla Emitida',
-                      desc: `Por Administración • ${formatCLP(fin.totalBilledThisPeriod)}`,
-                      completed: true,
-                      current: !hasReported && !hasApproved
-                    },
-                    {
-                      label: '2. Transferencia Informada',
-                      desc: hasReported ? `${unitPayments[0]?.transferNumber ? `N° ${unitPayments[0].transferNumber}` : 'Comprobante recibido'}` : 'Pendiente de pago',
-                      completed: hasReported || hasApproved,
-                      current: hasPendingApproval
-                    },
-                    {
-                      label: '3. Validado por Administración',
-                      desc: hasApproved ? 'Conciliado con éxito' : (hasPendingApproval ? 'En revisión bancaria' : 'En espera'),
-                      completed: hasApproved,
-                      current: false
-                    },
-                    {
-                      label: '4. Recibo Oficial Emitido',
-                      desc: hasApproved ? 'Foliado y descargable' : 'Al validar pago',
-                      completed: hasApproved,
-                      current: false
-                    }
-                  ];
-
-                  return (
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
-                      {steps.map((st, sIdx) => (
-                        <div
-                          key={sIdx}
-                          className={`p-2.5 rounded-xl border text-xs transition-all ${
-                            st.completed
-                              ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                              : st.current
-                              ? 'bg-amber-50 border-amber-300 text-amber-900 ring-1 ring-amber-300'
-                              : 'bg-slate-50 border-slate-200 text-slate-400'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold text-[11px]">{st.label}</span>
-                            {st.completed ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                            ) : st.current ? (
-                              <Clock className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
-                            ) : (
-                              <div className="w-3.5 h-3.5 rounded-full border border-slate-300" />
-                            )}
-                          </div>
-                          <p className="text-[10px] leading-tight opacity-90">{st.desc}</p>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* 1.2 WIDGET INTELIGENTE DE TRANSFERENCIA RÁPIDA (1-TAP COPY) */}
-              <div className="mt-4 p-4 bg-gradient-to-br from-emerald-50/80 to-[#F5F4EF] rounded-2xl border border-emerald-200/90 shadow-2xs space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200/60 pb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center shrink-0">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black text-[#0F3D2E]">
-                        Transferencia Rápida en 1 Toque (Listo para tu App de Banco)
-                      </h4>
-                      <p className="text-[11px] text-slate-600">
-                        Toca cualquier dato para copiarlo al instante a tu celular o computador:
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleCopyBankInfo}
-                    className="px-3 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-[11px] font-black rounded-xl flex items-center gap-1.5 shadow-2xs cursor-pointer transition-transform active:scale-95 shrink-0"
-                  >
-                    {copiedItem === 'all' ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5 text-[#D4B895]" />}
-                    <span>{copiedItem === 'all' ? '¡Todo Copiado!' : 'Copiar Todos los Datos'}</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  {/* N° Cuenta */}
-                  <button
-                    type="button"
-                    onClick={() => handleCopySingleField(community.bankInfo?.accountNumber, 'account')}
-                    className="p-2.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-400 text-left transition-colors cursor-pointer group shadow-2xs"
-                  >
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
-                      <span>N° CUENTA</span>
-                      {copiedItem === 'account' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-700" />}
-                    </div>
-                    <span className="font-mono font-black text-slate-900 block truncate text-xs">
-                      {community.bankInfo?.accountNumber || 'Por configurar'}
-                    </span>
-                    <span className="text-[9px] text-emerald-700 font-semibold">
-                      {copiedItem === 'account' ? '✓ Copiado' : `${community.bankInfo?.bank || 'Banco Estado'}`}
-                    </span>
-                  </button>
-
-                  {/* RUT */}
-                  <button
-                    type="button"
-                    onClick={() => handleCopySingleField(community.bankInfo?.rut, 'rut')}
-                    className="p-2.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-400 text-left transition-colors cursor-pointer group shadow-2xs"
-                  >
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
-                      <span>RUT TITULAR</span>
-                      {copiedItem === 'rut' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-700" />}
-                    </div>
-                    <span className="font-mono font-black text-slate-900 block truncate text-xs">
-                      {community.bankInfo?.rut || '65.184.920-K'}
-                    </span>
-                    <span className="text-[9px] text-emerald-700 font-semibold">
-                      {copiedItem === 'rut' ? '✓ Copiado' : 'RUT Comunidad'}
-                    </span>
-                  </button>
-
-                  {/* Email */}
-                  <button
-                    type="button"
-                    onClick={() => handleCopySingleField(community.bankInfo?.email || 'contacto@aranpro.cl', 'email')}
-                    className="p-2.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-400 text-left transition-colors cursor-pointer group shadow-2xs"
-                  >
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
-                      <span>EMAIL COMPROBANTES</span>
-                      {copiedItem === 'email' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-700" />}
-                    </div>
-                    <span className="font-mono font-black text-slate-900 block truncate text-xs">
-                      {community.bankInfo?.email || 'contacto@aranpro.cl'}
-                    </span>
-                    <span className="text-[9px] text-emerald-700 font-semibold">
-                      {copiedItem === 'email' ? '✓ Copiado' : 'Destino oficial'}
-                    </span>
-                  </button>
-
-                  {/* Monto Exacto */}
-                  <button
-                    type="button"
-                    onClick={() => handleCopySingleField(totalToPay > 0 ? totalToPay : currentCharge, 'amount')}
-                    className="p-2.5 bg-white rounded-xl border border-slate-200 hover:border-emerald-400 text-left transition-colors cursor-pointer group shadow-2xs"
-                  >
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-0.5">
-                      <span>MONTO EXACTO</span>
-                      {copiedItem === 'amount' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400 group-hover:text-emerald-700" />}
-                    </div>
-                    <span className="font-mono font-black text-emerald-800 block truncate text-xs">
-                      {formatCLP(totalToPay > 0 ? totalToPay : currentCharge)}
-                    </span>
-                    <span className="text-[9px] text-emerald-700 font-semibold">
-                      {copiedItem === 'amount' ? '✓ Copiado' : `Asunto: Casa ${unit.number}`}
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 1.3 EXPLICACIÓN SENCILLA PARA PRINCIPIANTES */}
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowHowIsCalculated(!showHowIsCalculated)}
-                  className="text-xs font-bold text-[#0F3D2E] hover:text-[#0A291F] flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-white/60 transition-colors cursor-pointer"
-                >
-                  <HelpCircle className="w-4 h-4 text-[#D4B895]" />
-                  <span>¿Cómo se calculó exactamente mi cobro de este mes?</span>
-                  {showHowIsCalculated ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </button>
-
-                {showHowIsCalculated && (
-                  <div className="mt-2 p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs text-xs space-y-2 animate-in fade-in">
-                    <p className="text-slate-700 leading-relaxed">
-                      El cobro de tu vivienda corresponde al prorrateo de los gastos comunes operacionales de la comunidad durante el período <strong>{getMonthName(community.activePeriod.month)} {community.activePeriod.year}</strong> según la <strong>Ley N° 21.442</strong>:
-                    </p>
-                    <ul className="space-y-1.5 text-slate-600 list-disc list-inside bg-slate-50 p-3 rounded-xl">
-                      <li>
-                        <strong>Gasto Base Común:</strong> {formatCLP(currentCharge)} (calculado según tu alícuota de copropiedad sobre las facturas de mantención, luz y servicios).
-                      </li>
-                      <li>
-                        <strong>Fondo de Reserva:</strong> {community.reserveFundPercentage}% obligatorio por Ley para imprevistos o emergencias de la comunidad.
-                      </li>
-                      {previousDebt > 0 && (
-                        <li className="text-rose-700 font-semibold">
-                          <strong>Saldo Anterior Pendiente:</strong> {formatCLP(previousDebt)} de períodos anteriores.
-                        </li>
-                      )}
-                      {extraCharge > 0 && (
-                        <li className="text-amber-800 font-semibold">
-                          <strong>Cobro Individual / Multa:</strong> {formatCLP(extraCharge)}.
-                        </li>
-                      )}
-                      {paidSoFar > 0 && (
-                        <li className="text-emerald-700 font-semibold">
-                          <strong>Abonos Realizados:</strong> Ya se han registrado {formatCLP(paidSoFar)} descontados de tu total.
-                        </li>
-                      )}
-                    </ul>
-                    <p className="text-[11px] text-slate-500 italic">
-                      Todos los comprobantes y facturas que respaldan este cálculo están disponibles para tu libre revisión en el botón <strong>"Ver Rendición de Gastos"</strong>.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* 1.4 CONTACTO RÁPIDO DIRECTO CON LA ADMINISTRACIÓN (WHATSAPP) */}
-              <div className="mt-4 p-3.5 bg-white/90 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                    <MessageCircle className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-slate-900">¿Tienes alguna duda sobre tu cobro o tu casa?</h5>
-                    <p className="text-[11px] text-slate-500">Estamos disponibles para ayudarte directamente por WhatsApp o correo oficial.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`https://wa.me/56987654321?text=${encodeURIComponent(
-                      `Hola Administración ARANPRO, soy ${unit.owner} de la Casa ${unit.number} de ${community.name}. Tengo una consulta sobre mi cobro de gasto común del mes.`
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-2xs flex items-center gap-1.5 transition-colors"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    <span>WhatsApp Administración</span>
-                  </a>
-                  <a
-                    href={`mailto:${community.email || community.bankInfo?.email || 'contacto@aranpro.cl'}?subject=${encodeURIComponent(
-                      `Consulta Gasto Común - Casa ${unit.number} • ${community.name}`
-                    )}`}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
-                  >
-                    Email Oficial
-                  </a>
-                </div>
-              </div>
-
               {/* Desglose separado: Gasto del Mes | Saldo Anterior | Cuota Deuda Repactada | Pagado / Saldo */}
               <div className="mt-6 pt-5 border-t border-slate-200/80 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
                 <div className="bg-white/70 p-2.5 rounded-xl border border-slate-200/70">
@@ -1141,25 +862,22 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
               </div>
             </div>
 
-            {/* 3. TRÁMITES RÁPIDOS Y EMISIÓN DE CERTIFICADOS */}
+            {/* 3. TRÁMITES RÁPIDOS */}
             <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center space-x-3">
                 <div className="p-3 bg-white rounded-xl text-[#0F3D2E] border border-slate-200 shadow-2xs">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                  <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">¿Necesitas un Certificado Oficial Timbrado?</h4>
-                  <p className="text-xs text-slate-500">
-                    Solicita certificados de <strong>Residencia</strong>, <strong>Gastos Comunes al Día (No Deuda)</strong>, <strong>Mudanza/Salvoconducto</strong> o <strong>Copropiedad</strong> con firma autorizada RNAC Minvu.
-                  </p>
+                  <h4 className="text-sm font-bold text-slate-900">¿Necesitas un Certificado de Residencia?</h4>
+                  <p className="text-xs text-slate-500">Genera una solicitud oficial timbrada para trámites escolares o bancarios.</p>
                 </div>
               </div>
               <button
                 onClick={onOpenCertificates}
-                className="px-5 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] font-bold text-xs rounded-xl shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-xs shrink-0"
               >
-                <FileText className="w-4 h-4" />
-                <span>Solicitar Certificado Oficial</span>
+                Solicitar Certificado
               </button>
             </div>
 
@@ -1230,43 +948,13 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                           {formatCLP(exp.amount)}
                         </td>
                         <td className="px-5 py-3.5 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => setActiveReceipt(exp)}
-                              className="inline-flex items-center px-2.5 py-1.5 bg-[#F5F4EF] hover:bg-[#eae7dd] text-[#0A291F] font-semibold text-xs rounded-xl border border-[#D4B895] transition-colors cursor-pointer"
-                              title="Inspeccionar factura o boleta digital"
-                            >
-                              <Eye className="w-3.5 h-3.5 mr-1" />
-                              Respaldo
-                            </button>
-
-                            {/* Control Exclusivo de V°B° para Miembros del Comité */}
-                            {unit.isCommittee ? (
-                              <button
-                                type="button"
-                                onClick={() => toggleExpenseApproval(community.id, exp.id, {
-                                  approvedBy: `Comité (${unit.committeeRole || 'Miembro'} • Casa ${unit.number})`,
-                                  approvedAt: new Date().toISOString().split('T')[0]
-                                })}
-                                className={`px-2.5 py-1.5 text-xs font-bold rounded-xl border transition-all inline-flex items-center gap-1 cursor-pointer ${
-                                  exp.approvedByCommittee
-                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200'
-                                    : 'bg-white hover:bg-emerald-50 text-slate-600 border-slate-300 hover:text-emerald-800 hover:border-emerald-400'
-                                }`}
-                                title={exp.approvedByCommittee ? `Gasto auditado y aprobado por ${exp.approvedBy || 'el Comité'}` : 'Dar V°B° y aprobar gasto conforme a Ley 21.442'}
-                              >
-                                <ShieldCheck className={`w-3.5 h-3.5 ${exp.approvedByCommittee ? 'text-emerald-700' : 'text-slate-400'}`} />
-                                <span>${exp.approvedByCommittee ? '✓ V°B° Aprobado' : 'Dar V°B°'}</span>
-                              </button>
-                            ) : (
-                              exp.approvedByCommittee && (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1" title="Gasto revisado y visado por el Comité">
-                                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                                  <span>V°B° Comité</span>
-                                </span>
-                              )
-                            )}
-                          </div>
+                          <button
+                            onClick={() => setActiveReceipt(exp)}
+                            className="inline-flex items-center px-3 py-1.5 bg-[#F5F4EF] hover:bg-[#F5F4EF] text-[#0A291F] font-semibold text-xs rounded-xl border border-[#D4B895] transition-colors"
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1" />
+                            Ver Respaldo
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -1289,22 +977,12 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                   Revisa el estado de tus transferencias informadas y descarga tu Comprobante Oficial de Pago Foliado.
                 </p>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAccountStatementModal(true)}
-                  className="px-3.5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-[#0F3D2E] font-bold text-xs rounded-xl shadow-2xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <FileText className="w-4 h-4 text-[#0F3D2E]" />
-                  <span>Ver Cartola Cuenta Corriente</span>
-                </button>
-                <button
-                  onClick={() => { setPaymentSubmitted(false); setShowPayModal(true); }}
-                  className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs shrink-0 cursor-pointer"
-                >
-                  + Informar Nueva Transferencia
-                </button>
-              </div>
+              <button
+                onClick={() => { setPaymentSubmitted(false); setShowPayModal(true); }}
+                className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs shrink-0"
+              >
+                + Informar Nueva Transferencia
+              </button>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
@@ -1387,7 +1065,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-slate-900">Mural de Avisos y Comunicados</h3>
-                      <p className="text-xs text-slate-500">Informaciones oficiales de la Administración y del Comité para {community.name}</p>
+                      <p className="text-xs text-slate-500">Informaciones oficiales de la Administración y del Comité para {displayCommunityName}</p>
                     </div>
                   </div>
                   {unit.isCommittee && (
@@ -1594,36 +1272,6 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
           </div>
         )}
 
-          {/* PIE DE PÁGINA INSTITUCIONAL & AVISO LEGAL DEL PORTAL DE RESIDENTES */}
-          <div className="pt-8 pb-16 lg:pb-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-            <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
-              <span>© {new Date().getFullYear()} ARANPRO • Portal Copropietarios. Todos los derechos reservados.</span>
-              <span className="hidden sm:inline text-slate-300">•</span>
-              <button
-                type="button"
-                onClick={() => openLegalModal('terminos')}
-                className="text-[#0F3D2E] hover:underline font-bold cursor-pointer inline-flex items-center gap-1"
-              >
-                <Scale className="w-3.5 h-3.5 text-[#D4B895]" />
-                <span>Aviso Legal & Términos</span>
-              </button>
-              <span className="hidden sm:inline text-slate-300">•</span>
-              <button
-                type="button"
-                onClick={() => openLegalModal('privacidad')}
-                className="hover:text-slate-800 transition-colors cursor-pointer inline-flex items-center gap-1"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                <span>Privacidad (Ley 19.628)</span>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2 text-[11px] text-slate-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Conforme a Ley 21.442 • Minvu RNAC N° 48.912</span>
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -1790,53 +1438,20 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
           <div 
             id="resident-bill-printable-doc"
-            className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-7 space-y-4 max-h-[92vh] overflow-y-auto"
+            className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-8 space-y-6"
           >
-            {/* Selector de las 3 alternativas de colilla y 3 estilos de hoja */}
-            <div className="no-print space-y-2 pb-3 border-b border-slate-200">
-              <div className="flex flex-wrap items-center justify-between gap-2 bg-[#F5F4EF] px-3 py-2 rounded-xl border border-[#D4B895]/60">
-                <span className="text-[11px] font-black uppercase tracking-wider text-[#0F3D2E]">
-                  Diseño de Colilla:
-                </span>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {[
-                    { id: 'ejecutiva', label: '1. Ejecutiva Oficial' },
-                    { id: 'cupon', label: '2. Con Cupón Recortable' }
-                  ].map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setColillaDesign(opt.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                        colillaDesign === opt.id
-                          ? 'bg-[#0F3D2E] text-[#D4B895] shadow-xs'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
-            </div>
-
-            <div className="flex items-start justify-between pb-3.5 border-b-2 border-[#0F3D2E] gap-3">
+            
+            <div className="flex items-center justify-between pb-4 border-b-2 border-[#0F3D2E]">
               <div className="flex items-center space-x-3.5">
-                <AranproLogo variant="principal" className="h-12 w-auto" />
-                <div className="border-l border-slate-300 pl-3.5">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#0F3D2E] block">
-                    {companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL INMOBILIARIA
-                  </span>
-                  <h3 className="text-base font-black text-slate-900 leading-tight">{community.name}</h3>
-                  <p className="text-[10.5px] text-slate-500 font-mono">
-                    RUT Comunidad: {community.rut || community.bankInfo?.rut || '65.123.456-7'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
-                  </p>
+                <AranproLogo className="h-10 w-auto" />
+                <div>
+                  <h3 className="text-base font-black text-slate-900">{displayCommunityName}</h3>
+                  <p className="text-xs text-slate-500">Cobro de Gasto Común Oficial • Ley N° 21.442</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowBillModal(false)}
-                className="no-print p-1 text-slate-400 hover:text-slate-600"
+                className="p-1 text-slate-400 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -1939,60 +1554,15 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1 items-center">
-              <div className="sm:col-span-7 p-3 bg-[#F5F4EF] rounded-xl text-[10.5px] text-[#0F3D2E] border border-[#D4B895] space-y-0.5">
-                <div className="font-black uppercase tracking-wider">
-                  Vencimiento: <strong>{formatDate(community.activePeriod.dueDate)}</strong>
-                </div>
-                <div className="text-slate-700">
-                  <strong>Banco:</strong> {community.bankInfo?.bank || 'Banco Estado'} • <strong>Cta:</strong> {community.bankInfo?.accountType || 'Cta. Corriente'} N° <span className="font-mono font-bold">{community.bankInfo?.accountNumber || 'Por informar'}</span>
-                </div>
-              </div>
-              <div className="sm:col-span-5 flex items-center justify-between gap-2 px-2">
-                <AranproOfficialSeal size="sm" showText={false} />
-                <div className="text-right flex-1">
-                  {companySettings?.signatureDataUrl && (
-                    <img
-                      src={companySettings.signatureDataUrl}
-                      alt="Firma"
-                      className="max-h-11 object-contain ml-auto mb-0.5"
-                      style={{
-                        transform: `scale(${companySettings?.signatureScale || 1.35})`,
-                        transformOrigin: 'bottom right'
-                      }}
-                    />
-                  )}
-                  <div className="border-t border-[#0F3D2E] pt-0.5">
-                    <span className="text-[9.5px] font-black text-slate-900 block">
-                      {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia M.'}
-                    </span>
-                    <span className="text-[8.5px] font-mono text-[#0F3D2E] font-bold block">
-                      RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
-                    </span>
-                  </div>
-                </div>
-              </div>
+            <div className="p-3 bg-[#F5F4EF] rounded-xl text-center text-xs text-[#0F3D2E] border border-[#D4B895]">
+              Fecha de Vencimiento: <strong>{formatDate(community.activePeriod.dueDate)}</strong>
             </div>
 
-            {colillaDesign === 'cupon' && (
-              <div className="pt-2 border-t-2 border-dashed border-slate-400 space-y-1 text-[10px]">
-                <div className="flex justify-between font-black uppercase tracking-wider text-slate-500">
-                  <span>✂ Cupón Desprendible de Control de Pago</span>
-                  <span>Casa N° {unit.number} — {community.name}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-300">
-                  <div><strong>Titular:</strong> {unit.owner}</div>
-                  <div><strong>Total:</strong> {formatCLP(totalToPay)}</div>
-                  <div><strong>Fecha / Op:</strong> ______________</div>
-                </div>
-              </div>
-            )}
-
-            <div className="no-print flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between pt-2">
               <button
                 onClick={() => {
                   const commName = (community?.name || 'Condominio').replace(/\s+/g, '_');
-                  printDocumentDirectly('resident-bill-printable-doc', `Colilla_Gasto_Comun_Casa_${unit.number}_${commName}`, { fitPage: true, pdfStyle });
+                  printDocumentDirectly('resident-bill-printable-doc', `Colilla_Gasto_Comun_Casa_${unit.number}_${commName}`, { fitPage: true });
                 }}
                 className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
               >
@@ -2016,18 +1586,14 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
           <div 
             id="resident-payment-receipt-printable-doc"
-            className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-7 space-y-4"
+            className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-7 space-y-5"
           >
-            <div className="no-print pb-2 border-b border-slate-100">
-              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
-            </div>
-
-            <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-3.5">
+            <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-4">
               <div className="flex items-center space-x-3">
-                <AranproLogo variant="principal" className="h-12 w-auto" />
-                <div className="border-l border-slate-300 pl-3">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#0F3D2E] block">
-                    ARANPRO • GESTIÓN INTEGRAL
+                <AranproLogo className="h-9 w-auto" />
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#0F3D2E] block">
+                    ARANPRO • Gestión Integral
                   </span>
                   <h3 className="text-base font-black text-slate-900">Comprobante Oficial de Pago</h3>
                   <p className="text-xs font-mono font-bold text-emerald-700">
@@ -2037,7 +1603,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
               </div>
               <button
                 onClick={() => setActivePaymentReceipt(null)}
-                className="no-print text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -2071,39 +1637,28 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
             </div>
 
             {/* Timbre y Firma Digital de Emisión */}
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs gap-3">
-              <AranproOfficialSeal size="sm" />
+            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-slate-500 font-mono block">Recaudado y Validado</span>
+                <span className="font-bold text-[#0F3D2E] text-[11px] block">{companySettings?.adminName || companySettings?.administratorName || 'Administración ARANPRO'}</span>
+                <span className="text-[9px] text-slate-500 font-mono">RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}</span>
+              </div>
               <div className="text-right">
                 {companySettings?.signatureDataUrl ? (
-                  <img
-                    src={companySettings.signatureDataUrl}
-                    alt="Firma"
-                    className="max-h-14 object-contain ml-auto mb-1"
-                    style={{
-                      transform: `scale(${companySettings?.signatureScale || 1.35})`,
-                      transformOrigin: 'bottom right'
-                    }}
-                  />
+                  <img src={companySettings.signatureDataUrl} alt="Firma" className="max-h-11 object-contain ml-auto" />
                 ) : (
                   <div className="h-6"></div>
                 )}
-                <div className="border-t border-slate-300 pt-1">
-                  <span className="font-bold text-[#0F3D2E] text-[11px] block">
-                    {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia Maureira'}
-                  </span>
-                  <span className="text-[9px] font-mono text-emerald-800 font-bold block">
-                    ✓ Timbre Digital Verificado • RNAC N° {companySettings?.rnacNumber || '48.912'}
-                  </span>
-                </div>
+                <span className="text-[9px] font-mono text-emerald-800 font-bold block">✓ Timbre Digital Verificado</span>
               </div>
             </div>
 
-            <div className="no-print flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between pt-2">
               <button
                 onClick={() => {
                   const commName = (community?.name || 'Condominio').replace(/\s+/g, '_');
                   const folio = (activePaymentReceipt.receiptFolio || 'REC').replace(/[^a-zA-Z0-9_-]/g, '_');
-                  printDocumentDirectly('resident-payment-receipt-printable-doc', `Recibo_Pago_${folio}_Casa_${unit.number}_${commName}`, { fitPage: true, pdfStyle });
+                  printDocumentDirectly('resident-payment-receipt-printable-doc', `Recibo_Pago_${folio}_Casa_${unit.number}_${commName}`, { fitPage: true });
                 }}
                 className="px-4 py-2 bg-[#0F3D2E] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
               >
@@ -2175,41 +1730,12 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, onBackToAdmin }) =>
         </div>
       )}
 
-      {/* MODAL CARTOLA DE CUENTA CORRIENTE POR UNIDAD */}
-      {showAccountStatementModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/80 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 relative">
-            <button
-              type="button"
-              onClick={() => setShowAccountStatementModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <UnitAccountStatementView
-              community={community}
-              initialUnitId={unit.id}
-              companySettings={companySettings}
-              currentUser={currentUser}
-            />
-          </div>
-        </div>
-      )}
-
       {/* MODAL INFORME OFICIAL DE RENDICIÓN DE GASTOS COMUNES (LEY N° 21.442) */}
       <ExpenseReportModal
         isOpen={showExpenseReportModal}
         onClose={() => setShowExpenseReportModal(false)}
         community={community}
       />
-
-      {/* MODAL LEGAL Y PRIVACIDAD INTERACTIVO */}
-      <LegalAspectsModal
-        isOpen={legalModalOpen}
-        onClose={() => setLegalModalOpen(false)}
-        initialTab={legalInitialTab}
-      />
-
       </div>
     </div>
   );

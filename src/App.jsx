@@ -55,6 +55,14 @@ function MainApp() {
     setResidentRutInput(rut);
     setResidentPasswordInput(pass);
     setResidentLoginError('');
+    const res = loginResidentByRut(rut, pass);
+    if (res?.success) {
+      setCurrentView('resident');
+      setResidentRutInput('');
+      setResidentPasswordInput('');
+    } else if (res?.message) {
+      setResidentLoginError(res.message);
+    }
   };
 
   // Leer parámetro ?c=slug o ?demo=... de la URL (para accesos directos desde QR o WhatsApp)
