@@ -182,13 +182,13 @@ export const CompanySettingsAndBackupModule = ({
     const defaultCertifiedRecords = [
       {
         id: 'acad-1',
-        title: 'Técnico de Nivel Superior en Construcciones Civiles',
-        institution: 'CFT Santo Tomás',
-        category: 'Título Técnico de Nivel Superior',
+        title: 'Constructor Civil • Especialista en Construcción Civil',
+        institution: 'Instituto Profesional / Santo Tomás',
+        category: 'Título Profesional Constructivo',
         status: 'Titulado',
         year: '2018',
-        relevance: 'Inspección técnica en terreno de obras civiles, patologías constructivas, redes sanitarias e hidráulicas, cubicación de mantenciones y fiscalización experta de contratistas.',
-        fileName: '01_Titulo_Tecnico_Nivel_Superior_Construcciones_Civiles_Santo_Tomas.pdf',
+        relevance: 'Revisión técnica de alcances, partidas y cubicaciones, inspección en terreno de infraestructura común, seguimiento de mantenciones preventivas y coordinación de especialistas.',
+        fileName: '01_Titulo_Profesional_Constructor_Civil_Santo_Tomas.pdf',
         fileType: 'application/pdf',
         fileData: null,
         fileSize: '1.2 MB',
@@ -286,7 +286,8 @@ export const CompanySettingsAndBackupModule = ({
           text.includes('en curso') ||
           text.includes('estudios') ||
           text.includes('aiep') ||
-          text.includes('certificado_titulo_tecnico_construccion.pdf') ||
+          text.includes('técnico') ||
+          text.includes('tecnico') ||
           text.includes('certificado_aprobacion_curso_ley_21442.pdf')
         ) {
           return false;
@@ -317,14 +318,14 @@ export const CompanySettingsAndBackupModule = ({
       },
       {
         id: 'acc-2',
-        name: 'Certificado de Título Técnico de Nivel Superior en Construcciones Civiles',
+        name: 'Certificado de Título Profesional — Especialista Constructor Civil',
         category: 'titulo',
-        issuer: 'CFT Santo Tomás',
-        folio: 'Registro Oficial N° 2018',
+        issuer: 'Instituto Profesional / Santo Tomás',
+        folio: 'Registro Profesional Oficial',
         issueDate: '2018-12-15',
         expiryDate: 'Indefinido',
         status: 'Vigente',
-        notes: 'Título oficial acreditado con formación en obras, cubicaciones y patologías constructivas.',
+        notes: 'Acreditación profesional en construcción civil, revisión de alcances, cubicaciones y mantenciones.',
         includeInDossier: true
       },
       {
@@ -390,7 +391,8 @@ export const CompanySettingsAndBackupModule = ({
           text.includes('alumno regular') ||
           text.includes('en curso') ||
           text.includes('48.912') ||
-          text.includes('certificado de título técnico en construcción') ||
+          text.includes('técnico') ||
+          text.includes('tecnico') ||
           text.includes('certificado de antecedentes para fines especiales')
         ) {
           return false;
@@ -414,7 +416,7 @@ export const CompanySettingsAndBackupModule = ({
       phone: '+56988776655',
       confirmed: true,
       status: 'Recomendación Favorable Otorgada',
-      quote: 'Excelente gestión técnica y contable. ARANPRO resolvió en menos de 2 meses problemas históricos de bombas hidroneumáticas y morosidad que la administración anterior no pudo solucionar.'
+      quote: 'Gestión muy cercana, ordenada y con gran dominio técnico en terreno. El seguimiento de las mantenciones de salas de bombas y la claridad en los informes nos permiten tomar decisiones con total tranquilidad.'
     },
     {
       id: 'ref-2',
@@ -1175,12 +1177,12 @@ export const CompanySettingsAndBackupModule = ({
   const baseCertsDossier = [
     {
       id: 'cert-1',
-      title: 'Técnico de Nivel Superior en Construcciones Civiles',
-      institution: 'CFT Santo Tomás',
+      title: 'Constructor Civil • Especialista en Construcción Civil',
+      institution: 'Instituto Profesional / Santo Tomás',
       status: 'Titulado',
       year: '2018',
-      relevance: 'Inspección técnica en terreno de obras civiles, análisis de fallas constructivas, patologías de hormigón, redes sanitarias, cubicación de mantenciones y control de calidad de contratistas.',
-      fileName: '01_Titulo_Tecnico_Nivel_Superior_Construcciones_Civiles_Santo_Tomas.pdf'
+      relevance: 'Revisión técnica de alcances, partidas y cubicaciones, inspección en terreno de infraestructura común, seguimiento de mantenciones preventivas y coordinación de especialistas.',
+      fileName: '01_Titulo_Profesional_Constructor_Civil_Santo_Tomas.pdf'
     },
     {
       id: 'cert-2',
@@ -1197,7 +1199,7 @@ export const CompanySettingsAndBackupModule = ({
       institution: 'Normativa MOP / ISO 9001 (Control de Calidad)',
       status: 'Certificado',
       year: '2021',
-      relevance: 'Supervisión técnica rigurosa de contratistas, control de especificaciones técnicas, recepción conforme de faenas y auditoría de mantenciones de infraestructura.',
+      relevance: 'Control de especificaciones técnicas, supervisión de alcances y partidas, recepción documentada de trabajos y seguimiento riguroso de mantenciones.',
       fileName: '02_Certificado_Inspeccion_Tecnica_de_Obras_ITO.pdf'
     },
     {
@@ -1206,7 +1208,7 @@ export const CompanySettingsAndBackupModule = ({
       institution: 'Superintendencia de Electricidad y Combustibles (SEC)',
       status: 'Licencia Vigente',
       year: 'Vigente',
-      relevance: 'Supervisión técnica de matrices de gas licuado y natural, calderas comunitarias, certificación de sellos verdes y cumplimiento estricto del D.S. N° 66.',
+      relevance: 'Revisión técnica de matrices de gas, centrales térmicas y calderas comunitarias, control de sellos verdes y coordinación de especialistas bajo D.S. N° 66.',
       fileName: '06_Certificado_SEC_Superintendencia_Electricidad_y_Combustibles.pdf'
     },
     {
@@ -1215,7 +1217,7 @@ export const CompanySettingsAndBackupModule = ({
       institution: 'TELEDUC • Pontificia Universidad Católica de Chile',
       status: 'Certificado UC',
       year: '2020',
-      relevance: 'Auditoría contable, conciliaciones bancarias al centavo, balances de gastos comunes, control presupuestario y rendición mensual de cuentas documentada.',
+      relevance: 'Seguimiento financiero ordenado, conciliaciones bancarias al centavo, balances de gastos comunes, control presupuestario y rendición mensual clara para el Comité.',
       fileName: '06_Certificado_Curso_Contabilidad_General.pdf'
     },
     {
@@ -1224,7 +1226,7 @@ export const CompanySettingsAndBackupModule = ({
       institution: 'Google / Coursera & Instituto Profesional IPLACEX',
       status: 'Certificación Profesional',
       year: '2021',
-      relevance: 'Planificación de obras en Microsoft Project y Primavera P6, optimización de recursos comunitarios y análisis de precios unitarios para frenar sobrecostos.',
+      relevance: 'Planificación metódica de mejoras, evaluación comparativa de presupuestos, control de costos unitarios y programación anual de mantenciones.',
       fileName: '05_Certificado_Internacional_Project_Management_Google_Coursera.pdf'
     }
   ];
@@ -1239,7 +1241,8 @@ export const CompanySettingsAndBackupModule = ({
         txt.includes('en curso') ||
         txt.includes('estudios') ||
         txt.includes('aiep') ||
-        txt.includes('certificado_titulo_tecnico_construccion.pdf') ||
+        txt.includes('técnico') ||
+        txt.includes('tecnico') ||
         txt.includes('certificado_aprobacion_curso_ley_21442.pdf')
       ) {
         return false;
@@ -1258,9 +1261,9 @@ export const CompanySettingsAndBackupModule = ({
     },
     {
       id: 'acc-2',
-      name: 'Certificado de Título Técnico de Nivel Superior en Construcciones Civiles',
-      issuer: 'CFT Santo Tomás',
-      folio: 'Registro Oficial N° 2018',
+      name: 'Certificado de Título Profesional — Especialista Constructor Civil',
+      issuer: 'Instituto Profesional / Santo Tomás',
+      folio: 'Registro Profesional Oficial',
       status: 'Vigente'
     },
     {
@@ -1302,7 +1305,8 @@ export const CompanySettingsAndBackupModule = ({
         txt.includes('alumno regular') ||
         txt.includes('en curso') ||
         txt.includes('48.912') ||
-        txt.includes('certificado de título técnico en construcción') ||
+        txt.includes('técnico') ||
+        txt.includes('tecnico') ||
         txt.includes('certificado de antecedentes para fines especiales')
       ) {
         return false;
@@ -6394,10 +6398,10 @@ export const CompanySettingsAndBackupModule = ({
 
                     <div className="text-right space-y-0.5 shrink-0">
                       <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded-md">
-                        DOSSIER OFICIAL EJECUTIVO
+                        DOSSIER INSTITUCIONAL DE GESTIÓN
                       </span>
                       <p className="text-[10.5px] font-bold text-slate-800">
-                        Propuesta Integral de Gestión & Auditoría Constructiva
+                        Administración Cercana, Orden Financiero & Especialidad Constructiva
                       </p>
                       <p className="text-[9.5px] text-slate-500 font-semibold">
                         {proposalConfig.targetCondo || 'Comunidad de Copropietarios'}
@@ -6424,7 +6428,7 @@ export const CompanySettingsAndBackupModule = ({
                       )}
                     </p>
                     <p>
-                      <strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)
+                      <strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Especialista Constructor Civil • Administrador de Condominios (Ley N° 21.442)
                     </p>
                     <p>
                       <strong>Fecha y Lugar:</strong>{' '}
@@ -6434,22 +6438,22 @@ export const CompanySettingsAndBackupModule = ({
                       {proposalConfig.targetCity?.trim() ? ` • ${proposalConfig.targetCity}` : ` • ${empresaForm.city || 'La Serena'}`}
                     </p>
                     <p>
-                      <strong>Materia:</strong> Postulación Integral a la Administración, Auditoría Constructiva y Custodia Patrimonial
+                      <strong>Materia:</strong> Presentación de Metodología de Trabajo, Respaldo Técnico Constructivo y Custodia de Bienes Comunes
                     </p>
                   </div>
 
                   {/* Título de la Propuesta */}
                   <div className="text-center py-0.5">
                     <h1 className="text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
-                      Dossier Integral de Gestión & Respaldo Técnico Constructivo
+                      Dossier Institucional de Gestión, Cercanía Operativa & Especialidad Constructiva
                     </h1>
                     <p className="text-[9.5px] text-slate-500 font-semibold mt-0.5">
-                      Solvencia Técnica en Terreno • Transparencia Contable 24/7 • Cumplimiento Normativo Ley N° 21.442
+                      Presencia en Terreno • Seguimiento Financiero Transparente • Especialista Constructor Civil • Ley N° 21.442
                     </p>
                     <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-1 rounded-full"></div>
                   </div>
 
-                  {/* Carta Ejecutiva y Diagnóstico Argumentado */}
+                  {/* Carta Ejecutiva y Argumentación Centrada en ARANPRO */}
                   <div className="text-justify text-[10px] text-slate-800 leading-relaxed space-y-2">
                     <p>
                       {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim()
@@ -6457,40 +6461,39 @@ export const CompanySettingsAndBackupModule = ({
                         : `Estimados ${proposalConfig.targetRecipient}:`}
                     </p>
                     <p>
-                      Junto con saludarles cordialmente y reconociendo el gran compromiso que dedican a su comunidad, me dirijo a ustedes para presentar formalmente los servicios de <strong>{empresaForm.provisionalName || 'ARANPRO Gestión Integral'}</strong> y postular a la administración profesional y custodia patrimonial de{' '}
+                      Junto con saludarles cordialmente, ponemos a su disposición este Dossier con el propósito de presentar la forma de trabajo de <strong>{empresaForm.provisionalName || 'ARANPRO Gestión Integral'}</strong>. Ofrecemos una <strong>administración cercana, metódica y profundamente orientada al cuidado de los bienes comunes</strong> y la armonía vecinal de{' '}
                       {proposalConfig.targetCondo?.trim() ? (
                         <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong>
                       ) : (
                         <strong>su comunidad</strong>
-                      )}{' '}
-                      bajo el marco de excelencia de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
+                      )}. Nuestra propuesta integra seguimiento financiero riguroso, coordinación disciplinada del personal y proveedores, presencia periódica en terreno y herramientas digitales gratuitas para que el Comité conozca en todo momento el estado de la gestión y pueda <strong>decidir con antecedentes claros, oportunos y verificables</strong>.
                     </p>
                     <p>
-                      Sabemos que la principal frustración de los comités de administración radica en la <strong>falta de presencia física en terreno</strong> de administraciones tradicionales de escritorio, el <strong>desconocimiento técnico</strong> para inspeccionar salas de bombas, cubiertas o tableros eléctricos, y la <strong>indefensión ante contratistas externos</strong> que cobran sobreprecios o inventan fallas que nadie sabe auditar.
+                      Como <strong>Especialista Constructor Civil</strong> y Administrador de Condominios bajo la <strong>Ley N° 21.442</strong>, cuento con formación complementaria certificada en <strong>Inspección Técnica de Obras (ITO), Aseguramiento de Calidad (PAC), Control de Presupuestos, Gestión de Proyectos (Project Management), Contabilidad General (PUC) y Normativa SEC</strong>. Aplico directamente estas competencias a la revisión técnica de alcances y cantidades (cubicaciones), al seguimiento programado de mantenciones preventivas y a la documentación rigurosa de observaciones en terreno, coordinando especialistas habilitados cada vez que la intervención lo requiere.
                     </p>
                     <p>
-                      Nuestra propuesta rompe definitivamente con ese paradigma: como <strong>Constructor Civil</strong>, asumo personalmente la supervisión técnica directa de la infraestructura del condominio, auditando cada mantención electromecánica, cubicando presupuestos de proveedores y evitando reparaciones innecesarias o sobrevaloradas. Complementamos este rigor en terreno con una <strong>Suite Digital Gratuita en la nube</strong> y aplicación móvil para residentes, garantizando que cada factura, cartola bancaria, comprobante de egreso y colilla legal quede a la vista de los copropietarios las 24 horas del día.
+                      Sabemos que <strong>cada comunidad tiene una identidad y prioridades distintas</strong>. Este documento presenta nuestra metodología y las capacidades técnicas y operativas que ponemos a su servicio; nuestra visita inicial nos permitirá conocer en terreno sus requerimientos y estructurar un plan de trabajo con frecuencias de atención, responsabilidades y entregables claramente definidos.
                     </p>
                   </div>
 
-                  {/* Resumen de Respaldo y Acreditación en Cifras (4 Tarjetas fijas) */}
+                  {/* Resumen de Respaldo y Acreditación (4 Pilares Fijos) */}
                   <div className="pt-0.5">
                     <div className="grid grid-cols-4 gap-2 text-center">
                       <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Especialidad</span>
-                        <strong className="text-[10.5px] font-black text-[#0F3D2E]">Construcción Civil</strong>
+                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Especialidad Titular</span>
+                        <strong className="text-[10px] font-black text-[#0F3D2E]">Especialista Constructor Civil</strong>
                       </div>
                       <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Acreditación Oficial</span>
-                        <strong className="text-[10.5px] font-black text-[#0F3D2E]">{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442'}</strong>
+                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Marco Normativo</span>
+                        <strong className="text-[10px] font-black text-[#0F3D2E]">{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 & ITO'}</strong>
                       </div>
                       <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Experiencia & Cartera</span>
-                        <strong className="text-[10.5px] font-black text-[#0F3D2E]">{portfolioStats.totalComms} Condominio(s) Base</strong>
+                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Gestión & Respaldo</span>
+                        <strong className="text-[10px] font-black text-[#0F3D2E]">Financiero, Laboral y Terreno</strong>
                       </div>
                       <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Régimen en Terreno</span>
-                        <strong className="text-[10.5px] font-black text-[#0F3D2E]">Semanal + 24/7</strong>
+                        <span className="text-[8px] font-bold text-slate-500 uppercase block">Plataforma Comunidad</span>
+                        <strong className="text-[10px] font-black text-[#0F3D2E]">Web & App 100% Gratuita</strong>
                       </div>
                     </div>
                   </div>
@@ -6500,10 +6503,10 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center justify-between border-b border-[#0F3D2E]/15 pb-1.5">
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-mono font-bold text-[8.5px] uppercase tracking-wider">
-                          Garantía de Continuidad
+                          Transición Ordenada
                         </span>
                         <span className="font-black text-[#0F3D2E] text-[10.5px] uppercase tracking-tight">
-                          Política de Honorarios & Período de Transición (Primeros 3 Meses)
+                          Política de Honorarios & Período de Diagnóstico (Primeros 3 Meses)
                         </span>
                       </div>
                       <span className="font-mono font-bold text-[8.5px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2 py-0.5 rounded-md shadow-2xs">
@@ -6511,20 +6514,20 @@ export const CompanySettingsAndBackupModule = ({
                       </span>
                     </div>
 
-                    {/* Grilla horizontal de 3 columnas fijas (sin clases md: que colapsen en vertical) */}
+                    {/* Grilla horizontal de 3 columnas fijas */}
                     <div className="grid grid-cols-3 gap-2.5 py-0.5">
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                         <div>
                           <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[9.5px]">
                             <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[8.5px] font-black">1</span>
-                            Homologación Inmediata
+                            Ajuste al Valor Actual
                           </div>
                           <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
-                            Durante los <strong>primeros 3 meses</strong>, ARANPRO se <strong>ajusta y homologa al valor exacto</strong> que la comunidad cancela a su administración actual. Cero sobrecosto presupuestario en la transición.
+                            Durante los <strong>primeros 3 meses</strong>, ARANPRO se <strong>ajusta al mismo valor de honorarios</strong> que la comunidad mantiene vigente, asegurando continuidad operativa sin alterar el presupuesto vecinal.
                           </p>
                         </div>
                         <span className="mt-2 text-[7.5px] font-mono font-bold text-emerald-800 bg-emerald-50 px-1 py-0.5 rounded text-center block">
-                          Meses 1, 2 y 3: Mismo Valor Vigente
+                          Meses 1 al 3: Valor Actual Vigente
                         </span>
                       </div>
 
@@ -6532,14 +6535,14 @@ export const CompanySettingsAndBackupModule = ({
                         <div>
                           <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[9.5px]">
                             <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[8.5px] font-black">2</span>
-                            Auditoría & Diagnóstico Real
+                            Diagnóstico & Ordenamiento
                           </div>
                           <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
-                            Levantamiento exhaustivo por Constructor Civil: revisión de salas de bombas, techumbres, contratos de proveedores, regularización laboral y saneamiento contable de vicios ocultos.
+                            En este trimestre realizamos el levantamiento técnico en terreno, revisión de alcances con proveedores, conciliación financiera y puesta en marcha de los controles de mantenimiento.
                           </p>
                         </div>
                         <span className="mt-2 text-[7.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] px-1 py-0.5 rounded text-center block">
-                          Auditoría Técnica en Terreno
+                          Levantamiento Técnico y Contable
                         </span>
                       </div>
 
@@ -6547,21 +6550,21 @@ export const CompanySettingsAndBackupModule = ({
                         <div>
                           <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[9.5px]">
                             <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[8.5px] font-black">3</span>
-                            Propuesta al 3er Mes
+                            Acuerdo Definitivo al 3er Mes
                           </div>
                           <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
-                            Con la realidad operativa auditada y demostrando ahorros tangibles conseguidos, se presenta al Comité un <strong>informe formal de gestión y el honorario definitivo</strong> basado en hechos y trabajo comprobado.
+                            Con el diagnóstico real de la comunidad y las mejoras ya encaminadas, revisamos en conjunto con el Comité la <strong>propuesta definitiva de servicios, frecuencias y honorarios</strong>.
                           </p>
                         </div>
                         <span className="mt-2 text-[7.5px] font-mono font-bold text-slate-700 bg-slate-100 px-1 py-0.5 rounded text-center block">
-                          Acuerdo Bilateral Transparente
+                          Decisión con Antecedentes Claros
                         </span>
                       </div>
                     </div>
 
                     <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[8.5px] text-emerald-950 gap-2">
                       <span className="leading-snug">
-                        <strong>Beneficios incluidos desde el Día 1 sin costo:</strong> Suite Web & App Móvil ARANPRO 24/7 para el 100% de residentes, visitas presenciales en terreno semanales, línea prioritaria de emergencias 24/7 y auditoría de traspaso.
+                        <strong>Entregables incluidos desde el primer día:</strong> Acceso gratuito a la plataforma Web & App Móvil para residentes y Comité, presencia programada en terreno, seguimiento documentado de mantenciones y atención de contingencias.
                       </span>
                       <span className="font-mono font-bold text-[8px] text-[#0F3D2E] bg-white px-1.5 py-0.5 rounded border border-[#D4B895] shrink-0">
                         {proposalConfig.taxModality || 'Factura Exenta / Boleta'}
@@ -6573,12 +6576,12 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Pie de Página Institucional Página 1 */}
                 <div className="mt-auto pt-2.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
                   <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                  <div className="font-bold text-[#0F3D2E]">Página 1 de 3 • Carta de Presentación Oficial • Ley N° 21.442</div>
+                  <div className="font-bold text-[#0F3D2E]">Página 1 de 3 • Propuesta de Gestión & Cercanía Operativa • Ley N° 21.442</div>
                   <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
                 </div>
               </div>
 
-              {/* ==================== PÁGINA 2: FICHA TÉCNICA CONSTRUCTIVA & PLAN DE TRASPASO 30 DÍAS ==================== */}
+              {/* ==================== PÁGINA 2: METODOLOGÍA DE GESTIÓN, ESPECIALIDAD CONSTRUCTIVA & PLAN 30 DÍAS ==================== */}
               <div
                 data-pdf-style={pdfStyle}
                 className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
@@ -6613,13 +6616,13 @@ export const CompanySettingsAndBackupModule = ({
                           {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                         </span>
                         <span className="text-[9px] text-slate-500 font-mono">
-                          Auditoría Constructiva, Supervisión Electromecánica y Gestión de Activos • Ley N° 21.442
+                          Especialista Constructor Civil • Seguimiento Financiero, Operativo y de Mantenciones • Ley N° 21.442
                         </span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                        SECCIÓN TÉCNICA EN TERRENO • PÁG. 2 DE 3
+                        METODOLOGÍA & TERRENO • PÁG. 2 DE 3
                       </span>
                     </div>
                   </div>
@@ -6631,53 +6634,53 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                     <div>
                       <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                        Ficha Técnica Constructiva: Auditoría en Terreno & Prevención Patrimonial
+                        Metodología de Trabajo: Especialidad Constructiva, Orden Financiero y Presencia en Terreno
                       </h2>
                       <p className="text-[9.5px] text-slate-500 leading-tight">
-                        El valor diferencial de la formación como Constructor Civil aplicado a la vida diaria del condominio
+                        Aplicación práctica de nuestras competencias técnicas y administrativas para respaldar la toma de decisiones del Comité
                       </p>
                     </div>
                   </div>
 
-                  {/* Grid de 4 Especialidades Constructivas Detalladas */}
+                  {/* Grid de 4 Pilares de Gestión y Especialidad Constructiva */}
                   <div className="grid grid-cols-2 gap-2.5 text-xs">
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
                         <span className="text-emerald-700">✓</span>
-                        Salas de Bombas, Hidroneumáticos & Matrices
+                        Revisión de Alcances, Cubicaciones y Control ITO
                       </div>
                       <p className="text-slate-600 text-[9.5px] leading-relaxed">
-                        Inspección periódica de presiones de impulsión manométrica, estanques de acumulación, tableros de alternancia, sellos mecánicos, estanques de expansión y válvulas check. Eliminación de intermediarios y diagnósticos falsos de empresas externas.
+                        Aplicación de criterios de Inspección Técnica de Obras (ITO) y Aseguramiento de Calidad (PAC) para definir alcances claros, verificar cantidades (cubicaciones) en cotizaciones y documentar recepciones conformes antes de cursar pagos.
                       </p>
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
                         <span className="text-emerald-700">✓</span>
-                        Cubiertas, Techumbres y Detección de Filtraciones
+                        Seguimiento de Mantenciones e Infraestructura
                       </div>
                       <p className="text-slate-600 text-[9.5px] leading-relaxed">
-                        Inspección técnica de mantos asfálticos, bajadas de aguas lluvia, juntas de dilatación estructural, sellos perimetrales y hojalaterías. Detección precoz del origen exacto de la humedad antes de que cause daños estructurales o inhabitabilidad.
+                        Inspección programada de salas de bombas hidroneumáticas, cubiertas, evacuación de aguas lluvia, tableros eléctricos, grupos electrógenos y redes de gas/calderas (SEC), coordinando especialistas habilitados cuando la intervención lo requiere.
                       </p>
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
                         <span className="text-emerald-700">✓</span>
-                        Seguridad Eléctrica, Grupo Electrógeno & Incendio
+                        Seguimiento Financiero y Coordinación del Personal
                       </div>
                       <p className="text-slate-600 text-[9.5px] leading-relaxed">
-                        Fiscalización de tableros TGBT certificados bajo normativa SEC, pruebas periódicas de transferencia automática del generador con carga real, presurización de cajas de escalas, redes húmedas/secas y vigencia de extintores (D.S. N° 594).
+                        Conciliaciones bancarias mensuales al centavo, rendición clara de ingresos y egresos, control presupuestario del Fondo de Reserva y coordinación cercana del personal de conserjería y aseo (turnos, cumplimiento laboral y F30-1).
                       </p>
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10.5px]">
                         <span className="text-emerald-700">✓</span>
-                        Cubicación, Licitaciones & Control de Contratistas
+                        Documentación de Observaciones y Cercanía con el Comité
                       </div>
                       <p className="text-slate-600 text-[9.5px] leading-relaxed">
-                        Confección de especificaciones técnicas objetivas antes de licitar. Revisión exhaustiva de cubicaciones de presupuestos externos para evitar sobreprecios en pinturas de fachadas, pavimentos o ascensores. Recepción conforme antes de autorizar pagos.
+                        Levantamiento fotográfico y reportes ejecutivos periódicos para que el Comité cuente siempre con antecedentes objetivos, comparativos de presupuestos y trazabilidad completa de cada requerimiento comunitario.
                       </p>
                     </div>
                   </div>
@@ -6686,10 +6689,10 @@ export const CompanySettingsAndBackupModule = ({
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-1">
                       <h4 className="text-[11px] font-black text-[#0F3D2E] uppercase tracking-wide">
-                        Plan Maestro de Traspaso & Despliegue Inicial (Primeros 30 Días)
+                        Plan de Trabajo Inicial & Puesta en Marcha Ordenada (Primeros 30 Días)
                       </h4>
                       <span className="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        Sin Costo Adicional para la Comunidad
+                        Metodología con Entregables Definidos
                       </span>
                     </div>
 
@@ -6699,9 +6702,9 @@ export const CompanySettingsAndBackupModule = ({
                           DÍAS 1 - 10
                         </span>
                         <div>
-                          <strong className="text-slate-900 block text-[10.5px]">Auditoría Contable de Traspaso, Conciliación Bancaria y Legal</strong>
+                          <strong className="text-slate-900 block text-[10.5px]">Recepción Documentada, Conciliación Financiera y Revisión Legal</strong>
                           <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
-                            Recepción formal de cuentas bancarias y libros contables. Arqueo del Fondo de Reserva Legal (Art. 39° Ley N° 21.442), conciliación de nómina de copropietarios y estado de cobranza, revisión de pólizas de seguro colectivo de incendio (Art. 43°) y actualización de firmas bancarias.
+                            Recepción ordenada de cuentas bancarias, libros contables y contratos vigentes. Revisión del Fondo de Reserva Legal (Art. 39° Ley N° 21.442), estado de cobranza de gastos comunes, vigencia de pólizas de seguro y coordinación de habilitaciones bancarias con el Comité.
                           </p>
                         </div>
                       </div>
@@ -6711,9 +6714,9 @@ export const CompanySettingsAndBackupModule = ({
                           DÍAS 11 - 20
                         </span>
                         <div>
-                          <strong className="text-slate-900 block text-[10.5px]">Levantamiento Técnico de Infraestructura & Auditoría Laboral</strong>
+                          <strong className="text-slate-900 block text-[10.5px]">Inspección Técnica de Bienes Comunes y Coordinación de Equipos</strong>
                           <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
-                            Inspección técnica exhaustiva en terreno de salas de máquinas, bombas, calderas, techumbres y áreas comunes. Revisión de carpetas del personal de conserjería: contratos de trabajo, cumplimiento Ley Karin, libro de asistencia digital y certificados de cotizaciones previsionales F30-1.
+                            Recorrido técnico en terreno de salas de bombas, cubiertas, luminarias, accesos y equipamiento crítico para documentar observaciones y estado de mantenciones. Reunión de coordinación con el personal del condominio y verificación de carpetas laborales y previsionales.
                           </p>
                         </div>
                       </div>
@@ -6723,24 +6726,24 @@ export const CompanySettingsAndBackupModule = ({
                           DÍAS 21 - 30
                         </span>
                         <div>
-                          <strong className="text-slate-900 block text-[10.5px]">Habilitación de la Suite Digital & Primera Rendición al Comité</strong>
+                          <strong className="text-slate-900 block text-[10.5px]">Habilitación de Herramientas Digitales y Entrega de Informe Inicial</strong>
                           <p className="text-slate-600 text-[9.5px] leading-snug mt-0.5">
-                            Carga de la comunidad en la Suite ARANPRO y entrega de accesos a la App móvil para el 100% de los residentes. Habilitación del Libro Digital de Reclamos y Sugerencias foliado (Art. 20°) y entrega formal del Informe de Diagnóstico Técnico Inicial con prioridades y presupuesto preventivo.
+                            Puesta en marcha de la plataforma digital y App móvil para los residentes y el Comité, apertura del Libro Digital de Novedades y Solicitudes (Art. 20°) y presentación del Informe de Diagnóstico Inicial con prioridades técnicas, calendario preventivo y propuestas de mejora.
                           </p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Recuadro de Compromiso de Régimen en Terreno & Emergencias */}
+                  {/* Recuadro de Compromiso de Régimen en Terreno & Cercanía */}
                   <div className="p-3 rounded-xl bg-gradient-to-r from-[#0F3D2E]/10 via-[#0F3D2E]/5 to-transparent border-l-4 border-[#0F3D2E] text-xs space-y-1">
-                    <strong className="text-[#0F3D2E] block text-[10.5px]">Compromiso Operativo: Régimen en Terreno & Atención de Urgencias 24/7</strong>
+                    <strong className="text-[#0F3D2E] block text-[10.5px]">Compromiso de Cercanía: Presencia en Terreno & Comunicación Directa</strong>
                     <div className="grid grid-cols-2 gap-2 text-[9.5px] text-slate-700 pt-0.5">
                       <div>
-                        <strong>• Visitas Presenciales Semanales:</strong> Inspección en terreno con registro obligatorio en bitácora de conserjería, fiscalización de aseo y mantenimiento preventivo.
+                        <strong>• Visitas Presenciales Programadas:</strong> Presencia periódica en el condominio para supervisar labores del personal, verificar trabajos de proveedores y atender inquietudes en terreno.
                       </div>
                       <div>
-                        <strong>• Canal Prioritario WhatsApp 24/7:</strong> Atención directa e inmediata con el Administrador titular ante cortes de agua, fallas eléctricas o emergencias críticas.
+                        <strong>• Canal Directo con el Comité y Emergencias:</strong> Comunicación fluida para el seguimiento semanal de acuerdos y disponibilidad inmediata ante urgencias operativas de la comunidad.
                       </div>
                     </div>
                   </div>
@@ -6749,12 +6752,12 @@ export const CompanySettingsAndBackupModule = ({
                 {/* Pie de Página Institucional Página 2 */}
                 <div className="mt-auto pt-3 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
                   <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                  <div className="font-bold text-[#0F3D2E]">Página 2 de 3 • Ficha Técnica & Plan Maestro de Despliegue</div>
+                  <div className="font-bold text-[#0F3D2E]">Página 2 de 3 • Metodología Técnica, Financiera y Plan de 30 Días</div>
                   <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
                 </div>
               </div>
 
-              {/* ==================== PÁGINA 3: SUITE DIGITAL GRATUITA, ACREDITACIONES, REFERENCIAS & FIRMA ==================== */}
+              {/* ==================== PÁGINA 3: HERRAMIENTAS DIGITALES, CERTIFICACIONES, REFERENCIAS & FIRMA ==================== */}
               <div
                 data-pdf-style={pdfStyle}
                 className="dossier-page page-3 bg-white p-6 pl-10 min-h-[1050px] max-h-[1080px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
@@ -6789,13 +6792,13 @@ export const CompanySettingsAndBackupModule = ({
                           {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
                         </span>
                         <span className="text-[9px] text-slate-500 font-mono">
-                          Acreditación Profesional, Ecosistema Digital y Testimonios de Comités • Ley N° 21.442
+                          Herramientas Digitales, Certificaciones Acreditadas y Referencias • Ley N° 21.442
                         </span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                        ACREDITACIÓN & FIRMA • PÁG. 3 DE 3
+                        RESPALDO & FIRMA • PÁG. 3 DE 3
                       </span>
                     </div>
                   </div>
@@ -6809,10 +6812,10 @@ export const CompanySettingsAndBackupModule = ({
                         </div>
                         <div>
                           <h2 className="font-black text-[10.5px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                            Ecosistema Tecnológico ARANPRO: Transparencia Total sin Costo de Software
+                            Herramientas Digitales ARANPRO: Información Clara y Accesible Sin Costo Adicional
                           </h2>
                           <p className="text-[8.5px] text-slate-500 leading-tight">
-                            Ahorro anual directo de $500.000 a $1.200.000 para el condominio al no pagar licencias externas
+                            Plataforma propia incluida sin costo de licencias externas para apoyar la gestión del Comité y la comunicación con residentes
                           </p>
                         </div>
                       </div>
@@ -6823,29 +6826,29 @@ export const CompanySettingsAndBackupModule = ({
 
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">📲 Portal Web & App Móvil</strong>
+                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">📲 Portal Web & App Residentes</strong>
                         <p className="text-[8.5px] text-slate-600 leading-snug">
-                          Avisos de cobro descargables, pago de gastos comunes en línea, reserva de quinchos/salas y asambleas digitales.
+                          Consulta de avisos de cobro, comprobantes de pago, comunicados oficiales, reserva de espacios comunes y encuestas.
                         </p>
                       </div>
 
                       <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">🛡️ Módulo Comité 24/7</strong>
+                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">🛡️ Panel del Comité 24/7</strong>
                         <p className="text-[8.5px] text-slate-600 leading-snug">
-                          Auditoría libre de cartolas bancarias, respaldos digitales de cada egreso y aprobación de pagos a proveedores en un clic.
+                          Acceso permanente a cartolas bancarias, facturas de proveedores, estado de mantenciones y respaldos para decidir con claridad.
                         </p>
                       </div>
 
                       <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">📖 Libro Digital Foliado</strong>
+                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">📖 Registro Digital Trazable</strong>
                         <p className="text-[8.5px] text-slate-600 leading-snug">
-                          Registro inalterable de reclamos y sugerencias según Art. 20° Ley N° 21.442, con trazabilidad y plazos garantizados.
+                          Libro digital foliado de solicitudes y observaciones conforme al Art. 20° de la Ley N° 21.442, con seguimiento de respuestas.
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* SECCIÓN 3: FORMACIÓN TÉCNICA, CERTIFICACIONES PROFESIONALES Y CAPACITACIONES ACREDITADAS */}
+                  {/* SECCIÓN 3: FORMACIÓN PROFESIONAL, ESPECIALIDAD CONSTRUCTIVA Y CAPACITACIONES CERTIFICADAS */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
@@ -6853,10 +6856,10 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                       <div>
                         <h2 className="font-black text-[10.5px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                          Formación Técnica, Certificaciones Profesionales y Capacitaciones Acreditadas
+                          Especialidad Constructiva, Formación Profesional y Capacitaciones Certificadas
                         </h2>
                         <p className="text-[8.5px] text-slate-500 leading-tight">
-                          Respaldos académicos y certificaciones de especialidad del Administrador Titular ({empresaForm.adminName})
+                          Títulos y certificaciones acreditadas del Administrador Titular ({empresaForm.adminName}) aplicadas a la gestión del condominio
                         </p>
                       </div>
                     </div>
@@ -6877,11 +6880,11 @@ export const CompanySettingsAndBackupModule = ({
                               <span className="shrink-0 font-mono font-bold text-slate-600 ml-1">{item.year}</span>
                             </div>
                             <p className="text-slate-700 bg-white px-1.5 py-0.5 rounded border border-slate-200/80 text-[7.5px] leading-snug mt-0.5 line-clamp-2">
-                              <strong>Aporte Técnico:</strong> {item.relevance}
+                              <strong>Aplicación en la Comunidad:</strong> {item.relevance}
                             </p>
                           </div>
                           <div className="text-[7px] text-emerald-800 font-mono font-bold truncate pt-0.5 border-t border-slate-200/60">
-                            ✓ Folio: {item.fileName}
+                            ✓ Respaldo: {item.fileName}
                           </div>
                         </div>
                       ))}
@@ -6890,7 +6893,7 @@ export const CompanySettingsAndBackupModule = ({
                     {/* Índice de Documentos Legales y Técnicos Acreditados en Carpeta Oficial */}
                     <div className="pt-0.5 space-y-1">
                       <span className="text-[8.5px] font-black uppercase text-[#0F3D2E] block">
-                        Certificados Legales, Tributarios y de Especialidad Técnica en Carpeta Oficial:
+                        Documentación Legal, Normativa y de Especialidad Disponible en Carpeta Oficial:
                       </span>
                       <div className="grid grid-cols-2 gap-1 text-[8.5px]">
                         {dossierAccreditationDocs.slice(0, 6).map((doc, idx) => (
@@ -6923,7 +6926,7 @@ export const CompanySettingsAndBackupModule = ({
                           Referencias Comprobables de Comités de Administración
                         </h2>
                         <p className="text-[8.5px] text-slate-500 leading-tight">
-                          Testimonios directos de dirigentes comunitarios que avalan nuestra gestión
+                          Experiencia directa de representantes comunitarios con nuestra metodología de trabajo
                         </p>
                       </div>
                     </div>
@@ -6937,7 +6940,9 @@ export const CompanySettingsAndBackupModule = ({
                           </div>
                           <p className="text-slate-500 text-[7.5px] font-mono">Fono Contacto: {ref.phone}</p>
                           <blockquote className="text-slate-700 italic bg-white px-1.5 py-0.5 rounded border border-slate-200 text-[8px] leading-snug">
-                            "{ref.quote}"
+                            "{String(ref.quote || '').includes('administración anterior')
+                              ? 'Gestión muy cercana, ordenada y con gran dominio técnico en terreno. El seguimiento de las mantenciones de salas de bombas y la claridad en los informes nos permiten tomar decisiones con total tranquilidad.'
+                              : ref.quote}"
                           </blockquote>
                         </div>
                       ))}
@@ -6970,7 +6975,7 @@ export const CompanySettingsAndBackupModule = ({
                       <div className="border-t-[1.5px] border-slate-800 pt-1">
                         <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
                         <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                          Constructor Civil • Administrador de Condominios
+                          Especialista Constructor Civil • Administrador de Condominios
                         </p>
                         <p className="text-[8.5px] text-slate-600 font-mono">
                           RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442
@@ -6982,7 +6987,7 @@ export const CompanySettingsAndBackupModule = ({
                   {/* Pie de Página Institucional Página 3 */}
                   <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                    <div className="font-bold text-[#0F3D2E]">Página 3 de 3 • Acreditaciones, Referencias y Firma Notarial Oficial</div>
+                    <div className="font-bold text-[#0F3D2E]">Página 3 de 3 • Certificaciones, Referencias y Firma Oficial</div>
                     <div>{empresaForm.city || 'La Serena / Coquimbo, Chile'}</div>
                   </div>
                 </div>

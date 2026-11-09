@@ -159,13 +159,13 @@ export const CommunityProvider = ({ children }) => {
           academicBackground: Array.isArray(parsed.academicBackground) && parsed.academicBackground.length >= 6
             ? parsed.academicBackground.filter(rec => {
                 const txt = `${rec.title || ''} ${rec.institution || ''} ${rec.status || ''} ${rec.fileName || ''}`.toLowerCase();
-                return !txt.includes('alumno regular') && !txt.includes('en curso') && !txt.includes('aiep');
+                return !txt.includes('alumno regular') && !txt.includes('en curso') && !txt.includes('aiep') && !txt.includes('técnico') && !txt.includes('tecnico');
               })
             : undefined,
           accreditationFiles: Array.isArray(parsed.accreditationFiles) && parsed.accreditationFiles.length >= 6
             ? parsed.accreditationFiles.filter(doc => {
                 const txt = `${doc.name || ''} ${doc.folio || ''} ${doc.notes || ''}`.toLowerCase();
-                return !txt.includes('48.912') && !txt.includes('alumno regular') && !txt.includes('en curso');
+                return !txt.includes('48.912') && !txt.includes('alumno regular') && !txt.includes('en curso') && !txt.includes('técnico') && !txt.includes('tecnico');
               })
             : undefined,
           experienceSince: parsed.experienceSince || initialCompanySettings.experienceSince,

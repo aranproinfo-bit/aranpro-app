@@ -1127,15 +1127,15 @@ export const generateStepPdfAttachment = async ({
   let curY = drawProtocolBox(ctx, padL, startY, contentW, [
     { label: 'Dirigido cordialmente a:', value: recipient, valueColor: '#0F172A' },
     { label: 'Condominio / Edificio:', value: condo.toUpperCase(), valueColor: '#0F3D2E', valueFont: '900 14px system-ui, -apple-system, Arial, sans-serif' },
-    { label: 'Presentado por:', value: `${adminName} — Constructor Civil • Administrador de Condominios (Ley N° 21.442)`, valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' },
+    { label: 'Presentado por:', value: `${adminName} — Especialista Constructor Civil • Administrador de Condominios (Ley N° 21.442)`, valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' },
     { label: 'Fecha:', value: `${dateFormatted} • ${proposalConfig.targetCity || empresaForm.city || 'La Serena, Chile'}`, valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' },
-    { label: 'Materia:', value: 'Postulación Integral a la Administración y Custodia Técnica del Condominio', valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' }
+    { label: 'Materia:', value: 'Presentación de Metodología de Trabajo, Respaldo Técnico Constructivo y Custodia de Bienes Comunes', valueColor: '#334155', valueFont: '14px system-ui, -apple-system, Arial, sans-serif' }
   ]);
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#0F3D2E';
   ctx.font = '900 18px system-ui, -apple-system, Arial, sans-serif';
-  ctx.fillText('DOSSIER DE PRESENTACIÓN, FICHA TÉCNICA CONSTRUCTIVA & CUMPLIMIENTO LEY N° 21.442', W / 2 + 7, curY + 8);
+  ctx.fillText('DOSSIER INSTITUCIONAL DE GESTIÓN, CERCANÍA OPERATIVA & ESPECIALIDAD CONSTRUCTIVA', W / 2 + 7, curY + 8);
   ctx.textAlign = 'left';
 
   ctx.fillStyle = '#D4B895';
@@ -1143,31 +1143,31 @@ export const generateStepPdfAttachment = async ({
   ctx.fill();
   curY += 42;
 
-  const dp1 = `Junto con saludarles muy cordialmente, nos es muy grato presentar a su distinguida comunidad el Dossier de Postulación de **${empresaForm.provisionalName || 'ARANPRO Gestión Integral'}** para asumir la administración profesional y resguardo patrimonial de **${condo}** bajo las estrictas exigencias de la **Ley N° 21.442 de Copropiedad Inmobiliaria**.`;
+  const dp1 = `Junto con saludarles cordialmente, presentamos el Dossier Institucional de **${empresaForm.provisionalName || 'ARANPRO Gestión Integral'}**, orientado a ofrecer una administración cercana, ordenada y comprometida con el cuidado de los bienes comunes de **${condo}**. Nuestra gestión combina seguimiento financiero, coordinación del personal y proveedores, presencia en terreno y herramientas digitales gratuitas para que el Comité pueda decidir con antecedentes claros.`;
   curY = drawRichParagraph(ctx, dp1, padL, curY, contentW, 21, baseFont, boldFont, '#1E293B', '#0F172A', true);
   curY += 10;
 
-  const dp2 = `Complementamos nuestro rigor constructivo en terreno como **Constructor Civil** con una plataforma digital de última generación en la nube y aplicación móvil 100% gratuita para residentes, garantizando que cada gasto, comprobante bancario, colilla legal y rendición de cuentas quede disponible las 24 horas para libre revisión del Comité y los copropietarios.`;
+  const dp2 = `Como **Especialista Constructor Civil** y Administrador de Condominios (**Ley N° 21.442**), con formación certificada en inspección de obras (ITO), calidad (PAC), presupuestos, planificación y contabilidad, aplico estos conocimientos a la revisión de alcances y cubicaciones, al seguimiento de mantenciones y a la documentación de observaciones en terreno. Durante los **primeros 3 meses** nos ajustamos al valor de honorarios actual de la comunidad mientras realizamos el diagnóstico real y acordamos en conjunto la propuesta definitiva.`;
   curY = drawRichParagraph(ctx, dp2, padL, curY, contentW, 21, baseFont, boldFont, '#1E293B', '#0F172A', true);
   curY += 14;
 
   // 4 Especialidades Constructivas en grilla 2x2
   const specs = [
     {
-      title: '✓ Salas de Bombas e Hidroneumáticos',
-      desc: 'Verificación experta de presión de impulsión, estanques de acumulación, tableros de alternancia, sellos mecánicos y válvulas de retención sin depender de diagnósticos externos.'
+      title: '✓ Revisión de Alcances y Cubicaciones (ITO)',
+      desc: 'Evaluación técnica de presupuestos, control de cantidades y especificaciones antes de contratar trabajos, asegurando recepciones conformes documentadas.'
     },
     {
-      title: '✓ Cubiertas, Techumbres y Filtraciones',
-      desc: 'Detección precoz del origen de filtraciones (juntas de dilatación, bajadas de aguas lluvia, membranas asfálticas), garantizando reparaciones definitivas.'
+      title: '✓ Seguimiento de Mantenciones e Infraestructura',
+      desc: 'Supervisión programada de salas de bombas, cubiertas, tableros eléctricos y redes de gas/calderas (SEC), coordinando especialistas habilitados cuando se requiere.'
     },
     {
-      title: '✓ Fiscalización Experta de Contratistas',
-      desc: 'Revisión rigurosa de especificaciones técnicas y cubicaciones de presupuestos externos, frenando sobreprecios en pinturas, pavimentos y mantenciones.'
+      title: '✓ Seguimiento Financiero y Personal',
+      desc: 'Conciliaciones bancarias mensuales, rendición clara de ingresos/egresos y coordinación directa del personal de conserjería y aseo (cumplimiento laboral y F30-1).'
     },
     {
-      title: '✓ Acreditación Legal & RNAC MINVU',
-      desc: 'Título Profesional de Constructor Civil, Curso Oficial de Administración de Copropiedades aprobado, Certificado de Antecedentes intachable y Solicitud RNAC PN-27583.'
+      title: '✓ Transición de 3 Meses al Valor Actual',
+      desc: 'Homologación al honorario vigente durante los primeros 3 meses de diagnóstico en terreno, para luego definir con el Comité la propuesta definitiva con entregables claros.'
     }
   ];
 
