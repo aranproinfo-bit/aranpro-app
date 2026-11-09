@@ -1242,7 +1242,7 @@ export const initialCertificates = [
     date: '2026-11-20',
     status: 'EMITIDO',
     debtAmount: 0,
-    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    issuedBy: 'Administración ARANPRO (Ley N° 21.442)',
     notes: 'Unidad al día auditada conforme Art. 20° y 36° Ley 21.442.'
   },
   {
@@ -1260,7 +1260,7 @@ export const initialCertificates = [
     date: '2026-11-22',
     status: 'EMITIDO',
     debtAmount: 0,
-    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    issuedBy: 'Administración ARANPRO (Ley N° 21.442)',
     notes: 'Tesorera del Comité electa válidamente en Asamblea del 28/04/2025.'
   },
   {
@@ -1278,7 +1278,7 @@ export const initialCertificates = [
     date: '2026-11-28',
     status: 'EMITIDO',
     debtAmount: 0,
-    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    issuedBy: 'Administración ARANPRO (Ley N° 21.442)',
     notes: 'Residencia efectiva en Casa 3 validada según registro oficial Art. 17°.'
   },
   {
@@ -1296,7 +1296,7 @@ export const initialCertificates = [
     date: '2026-12-01',
     status: 'SOLICITADO',
     debtAmount: 0,
-    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    issuedBy: 'Administración ARANPRO (Ley N° 21.442)',
     notes: 'Solicitud ingresada por portal de residentes pendiente de firma.'
   },
   {
@@ -1314,7 +1314,7 @@ export const initialCertificates = [
     date: '2026-12-02',
     status: 'EMITIDO',
     debtAmount: 245000,
-    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    issuedBy: 'Administración ARANPRO (Ley N° 21.442)',
     notes: 'Liquidación morosa con instrucción de Vale Vista para retención notarial según Art. 36° Ley 21.442.'
   },
   {
@@ -1332,7 +1332,7 @@ export const initialCertificates = [
     date: '2026-12-03',
     status: 'EMITIDO',
     debtAmount: 0,
-    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    issuedBy: 'Administración ARANPRO (Ley N° 21.442)',
     notes: 'Gastos al día y garantía de áreas comunes consignada. Mudanza autorizada para el 06/12/2026 de 09:00 a 14:00 hrs.'
   },
   {
@@ -1350,7 +1350,7 @@ export const initialCertificates = [
     date: '2026-12-04',
     status: 'EMITIDO',
     debtAmount: 0,
-    issuedBy: 'Administración ARANPRO (RNAC N° 48.912)',
+    issuedBy: 'Administración ARANPRO (Ley N° 21.442)',
     notes: 'Alícuota oficial de 6.250% y ponderación de derechos sobre bienes comunes acreditada.'
   }
 ];

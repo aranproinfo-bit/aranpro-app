@@ -53,6 +53,13 @@ export const ExpenseReportModal = ({
 
   if (!isOpen || !community) return null;
 
+  const isDemoActive = Boolean(
+    community.isDemo || 
+    (typeof window !== 'undefined' && window.location.search.includes('demo'))
+  );
+  const displayCommunityName = isDemoActive ? 'Comunidad Demostración ARANPRO' : community.name;
+  const displayCommunityAddress = isDemoActive ? 'Condominio Piloto Interactivo • Ley N° 21.442' : (community.address || 'Dirección del Condominio');
+
   const allExpenses = community.expenses || [];
   const totalOrdinary = allExpenses
     .filter(e => e.fundSource !== 'fondo_reserva')
@@ -207,7 +214,7 @@ export const ExpenseReportModal = ({
                   </span>
                 </div>
                 <p className="text-[11px] text-[#D4B895] font-semibold truncate mt-0.5">
-                  {community.name} • Período: {periodName} ({periodMonthStr}/{periodYear})
+                  {displayCommunityName} • Período: {periodName} ({periodMonthStr}/{periodYear})
                 </p>
               </div>
             </div>
@@ -329,8 +336,8 @@ export const ExpenseReportModal = ({
                     </div>
                   </div>
                   <div className="text-right text-xs">
-                    <div className="font-black text-slate-900 text-xs sm:text-sm leading-tight">{community.name}</div>
-                    <div className="text-slate-600 text-[9.5px]">{community.address || 'Dirección del Condominio'}</div>
+                    <div className="font-black text-slate-900 text-xs sm:text-sm leading-tight">{displayCommunityName}</div>
+                    <div className="text-slate-600 text-[9.5px]">{displayCommunityAddress}</div>
                     <div className="text-[9px] font-mono text-[#0F3D2E] font-bold">
                       Fecha Rendición: {formatDate(new Date().toISOString().split('T')[0])}
                     </div>
@@ -377,37 +384,39 @@ export const ExpenseReportModal = ({
                     <span className="w-1.5 h-2.5 bg-[#0F3D2E] rounded-xs mr-1.5 inline-block" />
                     1. Clasificación Legal de Gastos (Art. 6° Ley N° 21.442)
                   </div>
-                  <table className="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
-                    <thead className="bg-[#F5F4EF] text-[#0F3D2E] font-bold text-[8.5px] uppercase border-b border-slate-200">
-                      <tr>
-                        <th className="px-2 py-0.5">Categoría Legal</th>
-                        <th className="px-2 py-0.5 text-center">N° Comprobantes</th>
-                        <th className="px-2 py-0.5 text-right">Subtotal ($ CLP)</th>
-                        <th className="px-2 py-0.5 text-right">% del Gasto</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-[8.5px]">
-                      {Object.entries(catMap).map(([cat, data]) => {
-                        const pct = totalOrdinary > 0 && !data.isReserve
-                          ? ((data.amount / totalOrdinary) * 100).toFixed(1) + '%'
-                          : (data.isReserve ? 'F. Reserva' : '0%');
-                        return (
-                          <tr key={cat}>
-                            <td className="px-2 py-0.5 font-semibold text-slate-800">{cat}</td>
-                            <td className="px-2 py-0.5 text-center text-slate-600">{data.count}</td>
-                            <td className="px-2 py-0.5 text-right font-bold text-slate-900">{formatCLP(data.amount)}</td>
-                            <td className="px-2 py-0.5 text-right font-mono text-slate-600">{pct}</td>
-                          </tr>
-                        );
-                      })}
-                      <tr className="bg-slate-50 font-black text-slate-900 border-t border-slate-300">
-                        <td className="px-2 py-0.5 text-[8.5px]">TOTAL RENDICIÓN MENSUAL</td>
-                        <td className="px-2 py-0.5 text-center text-[8.5px]">{allExpenses.length}</td>
-                        <td className="px-2 py-0.5 text-right text-[#0F3D2E] text-[9px]">{formatCLP(grandTotal)}</td>
-                        <td className="px-2 py-0.5 text-right font-mono text-[8.5px]">100.0%</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className="overflow-x-auto w-full -mx-1 px-1">
+                    <table className="w-full min-w-[560px] sm:min-w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
+                      <thead className="bg-[#F5F4EF] text-[#0F3D2E] font-bold text-[8.5px] uppercase border-b border-slate-200">
+                        <tr>
+                          <th className="px-2 py-0.5">Categoría Legal</th>
+                          <th className="px-2 py-0.5 text-center">N° Comprobantes</th>
+                          <th className="px-2 py-0.5 text-right">Subtotal ($ CLP)</th>
+                          <th className="px-2 py-0.5 text-right">% del Gasto</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[8.5px]">
+                        {Object.entries(catMap).map(([cat, data]) => {
+                          const pct = totalOrdinary > 0 && !data.isReserve
+                            ? ((data.amount / totalOrdinary) * 100).toFixed(1) + '%'
+                            : (data.isReserve ? 'F. Reserva' : '0%');
+                          return (
+                            <tr key={cat}>
+                              <td className="px-2 py-0.5 font-semibold text-slate-800">{cat}</td>
+                              <td className="px-2 py-0.5 text-center text-slate-600">{data.count}</td>
+                              <td className="px-2 py-0.5 text-right font-bold text-slate-900">{formatCLP(data.amount)}</td>
+                              <td className="px-2 py-0.5 text-right font-mono text-slate-600">{pct}</td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="bg-slate-50 font-black text-slate-900 border-t border-slate-300">
+                          <td className="px-2 py-0.5 text-[8.5px]">TOTAL RENDICIÓN MENSUAL</td>
+                          <td className="px-2 py-0.5 text-center text-[8.5px]">{allExpenses.length}</td>
+                          <td className="px-2 py-0.5 text-right text-[#0F3D2E] text-[9px]">{formatCLP(grandTotal)}</td>
+                          <td className="px-2 py-0.5 text-right font-mono text-[8.5px]">100.0%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Tabla 2: Nómina Detallada de Documentos y Egresos (Sin Truncados Innecesarios) */}
@@ -416,7 +425,8 @@ export const ExpenseReportModal = ({
                     <span className="w-1.5 h-2.5 bg-[#0F3D2E] rounded-xs mr-1.5 inline-block" />
                     2. Nómina Detallada de Facturas, Boletas y Comprobantes de Pago
                   </div>
-                  <table className="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto w-full -mx-1 px-1">
+                    <table className="w-full min-w-[620px] sm:min-w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
                     <thead className="bg-[#F5F4EF] text-[#0F3D2E] font-bold text-[8px] uppercase border-b border-slate-200">
                       <tr>
                         <th className="px-2 py-0.5 w-16">Fecha</th>
@@ -478,6 +488,7 @@ export const ExpenseReportModal = ({
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
 
                 {/* Certificaciones Legales y Cumplimiento Laboral Art. 18 */}
@@ -565,7 +576,7 @@ export const ExpenseReportModal = ({
                     ESTADO DE RENDICIÓN MENSUAL DE CUENTAS Y EGRESOS DE OPERACIÓN
                   </h1>
                   <p className="text-[8.5px] font-mono text-slate-600 mt-0.5">
-                    COMUNIDAD: <strong>{community.name.toUpperCase()}</strong> | RUT: {community.rut || '76.123.456-7'} | PERÍODO: {periodName.toUpperCase()}
+                    COMUNIDAD: <strong>{displayCommunityName.toUpperCase()}</strong> | RUT: {community.rut || '76.123.456-7'} | PERÍODO: {periodName.toUpperCase()}
                   </p>
                 </div>
 
@@ -600,7 +611,8 @@ export const ExpenseReportModal = ({
                     <span>II. LIBRO DIARIO DE EGRESOS Y FACTURAS DEL PERÍODO</span>
                     <span>LEY 21.442 ART. 6° & ART. 14°</span>
                   </div>
-                  <table className="w-full text-left border-collapse border border-slate-300 text-[8px]">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full min-w-[620px] sm:min-w-full text-left border-collapse border border-slate-300 text-[8px]">
                     <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
                       <tr>
                         <th className="px-1.5 py-0.5 border-r border-slate-300 text-center w-8">N°</th>
@@ -660,6 +672,7 @@ export const ExpenseReportModal = ({
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
 
                 {/* Certificación y Declaración Jurada */}
@@ -730,7 +743,7 @@ export const ExpenseReportModal = ({
                         Rendición Mensual de Gastos para la Comunidad
                       </h1>
                       <p className="text-[9px] text-[#D4B895]">
-                        {community.name} • Cuentas Claras y Transparentes
+                        {displayCommunityName} • Cuentas Claras y Transparentes
                       </p>
                     </div>
                   </div>
@@ -795,7 +808,8 @@ export const ExpenseReportModal = ({
                   <div className="text-[8.5px] font-bold text-[#0F3D2E] uppercase tracking-wider mb-0.5">
                     Detalle de Pagos y Comprobantes para Revisión de los Vecinos
                   </div>
-                  <table className="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto w-full -mx-1 px-1">
+                    <table className="w-full min-w-[620px] sm:min-w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
                     <thead className="bg-[#0F3D2E]/10 text-[#0F3D2E] font-bold text-[8px] uppercase border-b border-slate-200">
                       <tr>
                         <th className="px-2 py-0.5 w-16">Fecha</th>
@@ -837,6 +851,7 @@ export const ExpenseReportModal = ({
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
 
                 {/* Sello de Confianza y Firmas Vecinales */}

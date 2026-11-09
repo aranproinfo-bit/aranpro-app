@@ -1,20 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
-import { formatCLP, formatDate, getMonthName } from '../../utils/formatters';
+import { formatCLP, formatDate, getMonthName, cleanRut } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo } from '../common/MauranLogo';
+import { AranproLogo, AranproOfficialSeal } from '../common/MauranLogo';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { 
   Building2, Home, User, CheckCircle2, AlertCircle, Eye, 
   Download, ArrowUpRight, DollarSign, FileText, Send, 
   CreditCard, Copy, Check, ShieldCheck, ChevronDown, ChevronUp, LogOut,
   Megaphone, FolderOpen, KeyRound, Printer, Menu, X, Globe, Shield, Plus,
-  FileCheck
+  FileCheck, Award, Share2, Sparkles, ExternalLink
 } from 'lucide-react';
 
 export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) => {
-  const { currentUser, communities, getUnitFinancials, setActiveReceipt, reportPayment, addAnnouncement, calculateCommunityTotals, changeResidentPassword, logout, companySettings, loginResident } = useCommunity();
-  const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'gastos' | 'mis-pagos' | 'comunicados' | 'cuenta-bancaria'
+  const { 
+    currentUser, 
+    communities, 
+    certificates,
+    getUnitFinancials, 
+    setActiveReceipt, 
+    reportPayment, 
+    addAnnouncement, 
+    calculateCommunityTotals, 
+    changeResidentPassword, 
+    logout, 
+    companySettings, 
+    loginResident 
+  } = useCommunity();
+  const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'gastos' | 'mis-pagos' | 'certificados' | 'comunicados' | 'cuenta-bancaria'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showCommitteeAnnForm, setShowCommitteeAnnForm] = useState(false);
   const [committeeAnnForm, setCommitteeAnnForm] = useState({ title: '', content: '', priority: 'Importante' });
@@ -25,6 +38,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [activePaymentReceipt, setActivePaymentReceipt] = useState(null);
+  const [activeResidentCert, setActiveResidentCert] = useState(null);
   const [copiedBank, setCopiedBank] = useState(false);
 
   // Formulario para informar pago
@@ -80,11 +94,129 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
   // Historial de pagos de esta casa
   const unitPayments = (community.paymentReports || []).filter(p => p.unitNumber === unit.number);
 
+  // Configuración de datos bancarios con aislamiento total para la Demostración
+  const demoBankInfo = {
+    bank: 'Banco Estado',
+    accountType: 'Cuenta Corriente',
+    accountNumber: '21000984210',
+    holderName: 'Comunidad Demostración ARANPRO',
+    rut: '65.201.340-9',
+    email: 'demo.pagos@aranpro.cl'
+  };
+  const displayBankInfo = isDemoActive ? demoBankInfo : (community.bankInfo || demoBankInfo);
+
   const handleCopyBankInfo = () => {
-    const text = `Datos de Transferencia Condominio:\nBanco: ${community.bankInfo?.bank}\nTipo: ${community.bankInfo?.accountType}\nN° Cuenta: ${community.bankInfo?.accountNumber}\nTitular: ${community.bankInfo?.holderName}\nRUT: ${community.bankInfo?.rut}\nCorreo: ${community.bankInfo?.email}`;
+    const text = `Datos de Transferencia - ${displayCommunityName}:\nBanco: ${displayBankInfo.bank}\nTipo: ${displayBankInfo.accountType}\nN° Cuenta: ${displayBankInfo.accountNumber}\nTitular: ${displayBankInfo.holderName}\nRUT: ${displayBankInfo.rut}\nCorreo Comprobantes: ${displayBankInfo.email}`;
     navigator.clipboard.writeText(text);
     setCopiedBank(true);
     setTimeout(() => setCopiedBank(false), 2500);
+  };
+
+  // Certificados oficiales de esta unidad (con datos oficiales y soporte demostración)
+  const myCertificates = useMemo(() => {
+    let list = (certificates || []).filter(c => 
+      String(c.unitNumber) === String(unit.number) || 
+      (c.rut && unit.rut && cleanRut(c.rut) === cleanRut(unit.rut))
+    );
+    // Si estamos en demo y la unidad no tiene certificados aún, proveemos certificados listos para probar
+    if (list.length === 0 && isDemoActive) {
+      list = [
+        {
+          id: `demo-cert-${unit.number}-1`,
+          folio: `CERT-2026-${String(unit.number).padStart(3, '0')}`,
+          verificationCode: `VRF-${String(unit.number)}B42`,
+          communityName: displayCommunityName,
+          applicantName: unit.owner,
+          rut: unit.rut || '15.420.312-4',
+          unitNumber: unit.number,
+          email: 'demo.contacto@aranpro.cl',
+          phone: '+56988776655',
+          type: 'Certificado de Gastos Comunes al Día (No Deuda)',
+          purpose: 'Estudio de Títulos Notarial / Trámites Bancarios y de Crédito',
+          date: new Date().toISOString().split('T')[0],
+          status: 'EMITIDO',
+          debtAmount: 0,
+          issuedBy: 'Administración ARANPRO • Especialista Constructor Civil',
+          notes: 'Unidad al día auditada conforme Art. 20° y 36° Ley N° 21.442 de Copropiedad Inmobiliaria.'
+        },
+        {
+          id: `demo-cert-${unit.number}-2`,
+          folio: `CERT-2026-${String(parseInt(unit.number || '1', 10) + 12).padStart(3, '0')}`,
+          verificationCode: `VRF-${String(unit.number)}R88`,
+          communityName: displayCommunityName,
+          applicantName: unit.owner,
+          rut: unit.rut || '15.420.312-4',
+          unitNumber: unit.number,
+          email: 'demo.contacto@aranpro.cl',
+          phone: '+56988776655',
+          type: 'Certificado de Residencia y Domicilio',
+          purpose: 'Acreditación Domiciliaria • Trámites Municipales y de Licencia',
+          date: new Date(Date.now() - 4 * 86400000).toISOString().split('T')[0],
+          status: 'EMITIDO',
+          debtAmount: 0,
+          issuedBy: 'Administración ARANPRO • Especialista Constructor Civil',
+          notes: 'Residencia efectiva y registro de copropietario acreditado según Art. 17° Ley 21.442.'
+        }
+      ];
+    }
+    return list;
+  }, [certificates, unit, isDemoActive, displayCommunityName]);
+
+  // Compartir Colilla Oficial por WhatsApp o Web Share API
+  const handleShareBill = () => {
+    const dueDateStr = community?.activePeriod?.dueDate ? formatDate(community.activePeriod.dueDate) : 'Próximos días';
+    const periodLabel = `${community?.activePeriod?.month || 'Período Activo'} ${community?.activePeriod?.year || '2026'}`;
+    const shareText = `*COLILLA OFICIAL DE GASTO COMÚN - ARANPRO*\n` +
+      `🏢 *Comunidad:* ${displayCommunityName}\n` +
+      `🏠 *Unidad:* Casa N° ${unit.number} (${unit.owner})\n` +
+      `📅 *Período:* ${periodLabel}\n` +
+      `💰 *Total a Pagar:* ${formatCLP(totalToPay)}\n` +
+      `📅 *Vencimiento:* ${dueDateStr}\n\n` +
+      `💳 *Datos para Transferencia:*\n` +
+      `• Banco: ${displayBankInfo.bank} (${displayBankInfo.accountType})\n` +
+      `• N° Cuenta: ${displayBankInfo.accountNumber}\n` +
+      `• Titular: ${displayBankInfo.holderName}\n` +
+      `• RUT: ${displayBankInfo.rut}\n` +
+      `• Correo: ${displayBankInfo.email}\n` +
+      `• Asunto requerido: Casa ${unit.number}\n\n` +
+      `🌐 *Portal de Residentes:* https://aranpro.cl`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: `Colilla Gasto Común Casa ${unit.number} - ${displayCommunityName}`,
+        text: shareText
+      }).catch(() => {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+      });
+    } else {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+    }
+  };
+
+  // Compartir Certificado Oficial por WhatsApp o Web Share API
+  const handleShareCertificate = (cert) => {
+    const certDateStr = cert.date ? formatDate(cert.date) : 'Emitido';
+    const shareText = `*CERTIFICADO OFICIAL ARANPRO (Ley N° 21.442)*\n` +
+      `📜 *Tipo:* ${cert.type}\n` +
+      `🏢 *Comunidad:* ${displayCommunityName}\n` +
+      `🏠 *Unidad:* Casa N° ${cert.unitNumber} (${cert.applicantName})\n` +
+      `🔢 *Folio Oficial:* ${cert.folio}\n` +
+      `🔐 *Código de Verificación:* ${cert.verificationCode || 'VRF-OK'}\n` +
+      `📅 *Fecha de Emisión:* ${certDateStr}\n` +
+      `✅ *Estado:* VIGENTE (Válido por 30 días corridos)\n` +
+      `🏛️ *Finalidad:* ${cert.purpose || 'Trámites oficiales y legales'}\n\n` +
+      `🌐 *Verificación Digital en Línea:* https://aranpro.cl`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: `${cert.type} - Casa ${cert.unitNumber}`,
+        text: shareText
+      }).catch(() => {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+      });
+    } else {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+    }
   };
 
   const handlePaymentSubmit = (e) => {
@@ -107,6 +239,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
     { id: 'resumen', label: 'Mi Vivienda & Resumen', shortLabel: 'Mi Casa', icon: Home, badge: null },
     { id: 'gastos', label: 'Gastos y Boletas', shortLabel: 'Boletas', icon: FileText, badge: community.expenses?.length || 0 },
     { id: 'mis-pagos', label: 'Mis Pagos y Recibos', shortLabel: 'Mis Pagos', icon: CheckCircle2, badge: unitPayments.length },
+    { id: 'certificados', label: 'Mis Certificados Oficiales', shortLabel: 'Certificados', icon: Award, badge: myCertificates.length },
     { id: 'comunicados', label: 'Mural & Documentos', shortLabel: 'Mural', icon: Megaphone, badge: totalDocsAndAnn },
     { id: 'cuenta-bancaria', label: 'Datos para Pagar', shortLabel: 'Banco', icon: CreditCard, badge: null }
   ];
@@ -643,14 +776,14 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                   </p>
                 </div>
 
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <button
                     onClick={() => {
                       setPaymentSubmitted(false);
                       setPaymentForm(prev => ({ ...prev, amount: totalToPay > 0 ? totalToPay : '' }));
                       setShowPayModal(true);
                     }}
-                    className="w-full sm:w-auto px-6 py-3 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center justify-center"
+                    className="w-full sm:w-auto px-6 py-3 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center justify-center cursor-pointer"
                   >
                     <CreditCard className="w-4 h-4 mr-2" />
                     Informar Transferencia
@@ -663,6 +796,15 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                   >
                     <FileText className="w-4 h-4 mr-2 text-[#0F3D2E]" />
                     Ver Colilla de Cobro
+                  </button>
+
+                  <button
+                    onClick={handleShareBill}
+                    className="w-full sm:w-auto px-4 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm rounded-2xl shadow-xs transition-colors flex items-center justify-center cursor-pointer"
+                    title="Compartir resumen y colilla por WhatsApp o aplicaciones del celular"
+                  >
+                    <Share2 className="w-4 h-4 mr-2 text-white" />
+                    Compartir WhatsApp
                   </button>
 
                   <button
@@ -865,23 +1007,40 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
               </div>
             </div>
 
-            {/* 3. TRÁMITES RÁPIDOS */}
-            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-white rounded-xl text-[#0F3D2E] border border-slate-200 shadow-2xs">
-                  <FileText className="w-5 h-5" />
+            {/* 3. TRÁMITES RÁPIDOS Y CERTIFICADOS OFICIALES */}
+            <div className="p-6 bg-[#F5F4EF] rounded-3xl border border-[#D4B895]/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center space-x-3.5">
+                <div className="p-3 bg-white rounded-2xl text-[#0F3D2E] border border-[#D4B895] shadow-2xs shrink-0">
+                  <Award className="w-6 h-6 text-[#0F3D2E]" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">¿Necesitas un Certificado de Residencia?</h4>
-                  <p className="text-xs text-slate-500">Genera una solicitud oficial timbrada para trámites escolares o bancarios.</p>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-black text-[#0F3D2E]">Certificados Oficiales de Copropiedad</h4>
+                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold">
+                      Ley N° 21.442
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Descarga tus certificados al día (Gastos Comunes al Día, Residencia) con folio, timbre y código de verificación.
+                  </p>
                 </div>
               </div>
-              <button
-                onClick={onOpenCertificates}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-xs shrink-0"
-              >
-                Solicitar Certificado
-              </button>
+              <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('certificados')}
+                  className="flex-1 sm:flex-none px-4 py-2.5 bg-white hover:bg-slate-50 text-[#0F3D2E] border border-[#D4B895] font-bold text-xs rounded-xl shadow-xs transition-colors text-center cursor-pointer"
+                >
+                  Ver Mis Certificados ({myCertificates.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenCertificates}
+                  className="flex-1 sm:flex-none px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-colors text-center cursor-pointer"
+                >
+                  Solicitar Nuevo
+                </button>
+              </div>
             </div>
 
           </div>
@@ -1028,7 +1187,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                         <td className="px-5 py-3.5 text-center">
                           {pay.status === 'APROBADO' ? (
                             <button
-                              onClick={() => setActivePaymentReceipt({ ...pay, communityName: community.name })}
+                              onClick={() => setActivePaymentReceipt({ ...pay, communityName: displayCommunityName })}
                               className="inline-flex items-center px-3 py-1.5 bg-[#F5F4EF] hover:bg-[#D4B895]/30 text-[#0F3D2E] font-bold text-xs rounded-xl border border-[#D4B895]"
                             >
                               <Printer className="w-3.5 h-3.5 mr-1.5" />
@@ -1210,22 +1369,201 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
           </div>
         )}
 
+        {/* TAB: MIS CERTIFICADOS OFICIALES (Ley N° 21.442) */}
+        {activeTab === 'certificados' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center space-x-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center shrink-0 shadow-xs">
+                  <Award className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-lg font-black text-[#0F3D2E]">Mis Certificados Oficiales</h3>
+                    <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black uppercase tracking-wider">
+                      Ley N° 21.442
+                    </span>
+                    {isDemoActive && (
+                      <span className="px-2 py-0.5 bg-[#D4B895] text-[#0F3D2E] rounded-md text-[10px] font-black uppercase">
+                        Demostración
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Certificaciones legales emitidas para la Casa N° {unit.number} ({unit.owner}) con firma electrónica, folio institucional y validez oficial.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onOpenCertificates}
+                  className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-[#D4B895]" />
+                  Solicitar Nuevo Certificado
+                </button>
+              </div>
+            </div>
+
+            {/* Listado de Certificados */}
+            <div className="space-y-4">
+              {myCertificates.length === 0 ? (
+                <div className="bg-white p-10 rounded-3xl border border-slate-200 text-center space-y-3">
+                  <Award className="w-12 h-12 text-slate-300 mx-auto" />
+                  <h4 className="text-sm font-bold text-slate-700">No registras certificados emitidos</h4>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    Cuando la administración emita certificados para tu unidad (como Certificado de Gastos al Día o de Residencia), podrás consultarlos, descargarlos e imprimirlos cuantas veces los necesites mientras se encuentren vigentes.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={onOpenCertificates}
+                    className="mt-2 px-5 py-2.5 bg-[#0F3D2E] text-white font-bold text-xs rounded-xl inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 text-[#D4B895]" />
+                    Solicitar Certificado en Línea
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {myCertificates.map((cert) => {
+                    const isIssued = cert.status === 'EMITIDO';
+                    const emitDate = new Date(cert.date || Date.now());
+                    const validUntil = new Date(emitDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+                    const isValid = validUntil >= new Date();
+
+                    return (
+                      <div
+                        key={cert.id}
+                        className="bg-white rounded-3xl border-2 border-slate-200/90 hover:border-[#D4B895] p-5 shadow-xs transition-all space-y-4 flex flex-col justify-between"
+                      >
+                        <div className="space-y-3">
+                          {/* Cabecera de la tarjeta */}
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-1 bg-[#F5F4EF] text-[#0F3D2E] rounded-lg text-xs font-black font-mono border border-[#D4B895]/50">
+                                {cert.folio || 'CERT-OFICIAL'}
+                              </span>
+                              <span className="text-[11px] font-mono text-slate-500">
+                                Verif: <strong className="text-slate-800">{cert.verificationCode || 'VRF-OK'}</strong>
+                              </span>
+                            </div>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              isIssued && isValid
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : isIssued && !isValid
+                                ? 'bg-slate-100 text-slate-600'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}>
+                              {isIssued && isValid ? '✓ EMITIDO • VIGENTE' : isIssued && !isValid ? 'VENCIDO (30 DÍAS)' : 'EN TRÁMITE'}
+                            </span>
+                          </div>
+
+                          {/* Título del certificado */}
+                          <div>
+                            <h4 className="text-sm font-black text-slate-900 leading-snug">
+                              {cert.type}
+                            </h4>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {cert.purpose || 'Para trámites oficiales / bancarios / notariales'}
+                            </p>
+                          </div>
+
+                          {/* Datos descriptivos */}
+                          <div className="bg-slate-50 rounded-2xl p-3 text-xs space-y-1.5 border border-slate-100">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Titular Solicitante:</span>
+                              <span className="font-bold text-slate-800">{cert.applicantName}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Unidad:</span>
+                              <span className="font-bold text-[#0F3D2E]">Casa N° {cert.unitNumber}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Fecha Emisión:</span>
+                              <span className="font-semibold text-slate-700">{formatDate(cert.date)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Válido Hasta:</span>
+                              <span className="font-bold text-emerald-700">
+                                {validUntil.toLocaleDateString('es-CL')} (30 días)
+                              </span>
+                            </div>
+                            {cert.notes && (
+                              <div className="pt-1 border-t border-slate-200/60 text-[11px] text-slate-600 italic">
+                                "{cert.notes}"
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Botones de acción */}
+                        <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setActiveResidentCert(cert)}
+                            className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                            Ver Oficial PDF
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleShareCertificate(cert)}
+                            className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                            title="Compartir datos y verificación del certificado por WhatsApp"
+                          >
+                            <Share2 className="w-3.5 h-3.5 text-emerald-700" />
+                            WhatsApp
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Banner Informativo sobre Ley 21.442 */}
+            <div className="bg-[#F5F4EF] p-5 rounded-3xl border border-[#D4B895]/60 flex flex-col sm:flex-row items-center gap-4 text-xs text-[#0F3D2E]">
+              <div className="w-10 h-10 rounded-xl bg-white border border-[#D4B895] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5 text-[#0F3D2E]" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="font-bold">Validez Legal de los Certificados ARANPRO:</p>
+                <p className="text-slate-600 leading-relaxed">
+                  Emitidos en conformidad con los Arts. 20°, 24° y 36° de la Ley N° 21.442 sobre Copropiedad Inmobiliaria. Cada certificado cuenta con folio institucional único y código alfanumérico verificable por notarías, bancos e instituciones públicas.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TAB 3: DATOS DE CUENTA BANCARIA PARA TRANSFERENCIAS */}
         {activeTab === 'cuenta-bancaria' && (
-          <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl border border-slate-200 shadow-md space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div className="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-md space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-[#F5F4EF] text-[#0F3D2E] rounded-xl">
+                <div className="p-3 bg-[#F5F4EF] text-[#0F3D2E] rounded-xl shrink-0">
                   <CreditCard className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Cuenta Bancaria de la Comunidad</h3>
-                  <p className="text-xs text-slate-500">Exclusiva para el pago de gastos comunes del condominio</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-lg font-bold text-slate-900">Cuenta Bancaria de la Comunidad</h3>
+                    {isDemoActive && (
+                      <span className="px-2 py-0.5 text-[10px] font-black bg-[#D4B895] text-[#0F3D2E] rounded-md uppercase">
+                        Datos Demo Oficial
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">Exclusiva para el pago de gastos comunes de {displayCommunityName}</p>
                 </div>
               </div>
               <button
                 onClick={handleCopyBankInfo}
-                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center transition-colors"
+                className="px-3.5 py-2 bg-[#F5F4EF] hover:bg-[#eae7dd] text-[#0F3D2E] border border-[#D4B895] rounded-xl text-xs font-bold flex items-center transition-colors shrink-0 cursor-pointer"
               >
                 {copiedBank ? <Check className="w-4 h-4 mr-1.5 text-emerald-600" /> : <Copy className="w-4 h-4 mr-1.5" />}
                 {copiedBank ? '¡Copiado!' : 'Copiar Datos'}
@@ -1235,27 +1573,27 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
             <div className="space-y-3 bg-slate-50 p-6 rounded-2xl border border-slate-200 text-sm">
               <div className="flex justify-between py-1 border-b border-slate-200/60">
                 <span className="text-slate-500 font-medium">Banco:</span>
-                <span className="font-bold text-slate-900">{community.bankInfo?.bank || 'Banco Estado'}</span>
+                <span className="font-bold text-slate-900">{displayBankInfo.bank}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-200/60">
                 <span className="text-slate-500 font-medium">Tipo de Cuenta:</span>
-                <span className="font-bold text-slate-900">{community.bankInfo?.accountType || 'Cuenta Corriente'}</span>
+                <span className="font-bold text-slate-900">{displayBankInfo.accountType}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-200/60">
                 <span className="text-slate-500 font-medium">N° de Cuenta:</span>
-                <span className="font-bold text-[#0F3D2E] font-mono text-base">{community.bankInfo?.accountNumber || 'Sin configurar'}</span>
+                <span className="font-bold text-[#0F3D2E] font-mono text-base">{displayBankInfo.accountNumber}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-200/60">
                 <span className="text-slate-500 font-medium">Titular:</span>
-                <span className="font-bold text-slate-900">{community.bankInfo?.holderName || community.name}</span>
+                <span className="font-bold text-slate-900">{displayBankInfo.holderName}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-200/60">
                 <span className="text-slate-500 font-medium">RUT Titular:</span>
-                <span className="font-bold text-slate-900">{community.bankInfo?.rut || 'Sin RUT'}</span>
+                <span className="font-bold text-slate-900">{displayBankInfo.rut}</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-500 font-medium">Email Comprobantes:</span>
-                <span className="font-bold text-slate-900">{community.bankInfo?.email || 'pagos@comunidad.cl'}</span>
+                <span className="font-bold text-slate-900">{displayBankInfo.email}</span>
               </div>
             </div>
 
@@ -1267,7 +1605,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
             <div className="pt-2 text-center">
               <button
                 onClick={() => { setPaymentSubmitted(false); setShowPayModal(true); }}
-                className="w-full py-3.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-sm rounded-2xl shadow-md transition-colors"
+                className="w-full py-3.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-sm rounded-2xl shadow-md transition-colors cursor-pointer"
               >
                 Ya transferí: Informar mi pago a la administración
               </button>
@@ -1279,7 +1617,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
       </div>
 
       {/* BARRA INFERIOR DE ACCESO RÁPIDO MÓVIL PWA (< lg) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 px-2 py-1.5 grid grid-cols-5 gap-1 shadow-lg">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 px-1 py-1.5 grid grid-cols-6 gap-0.5 shadow-lg">
         {residentTabs.map((item) => {
           const IconComp = item.icon;
           const active = activeTab === item.id;
@@ -1287,12 +1625,17 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`relative flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-bold transition-colors ${
+              className={`relative flex flex-col items-center justify-center py-1 px-0.5 rounded-xl text-[9px] font-bold transition-colors ${
                 active ? 'text-[#0F3D2E] bg-[#F5F4EF]' : 'text-slate-500'
               }`}
             >
-              <IconComp className={`w-4 h-4 mb-0.5 ${active ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-              <span>{item.shortLabel}</span>
+              <div className="relative">
+                <IconComp className={`w-4 h-4 mb-0.5 ${active ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                {item.badge !== null && item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#D4B895] rounded-full ring-1 ring-white" />
+                )}
+              </div>
+              <span className="truncate max-w-full text-center leading-tight">{item.shortLabel}</span>
             </button>
           );
         })}
@@ -1438,10 +1781,10 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
 
       {/* MODAL COLILLA DE COBRO (IMPRIMIBLE / DESCARGABLE) */}
       {showBillModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
           <div 
             id="resident-bill-printable-doc"
-            className="w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-8 space-y-6"
+            className="w-full max-w-xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-slate-200 p-5 sm:p-8 space-y-5 sm:space-y-6"
           >
             
             <div className="flex items-center justify-between pb-4 border-b-2 border-[#0F3D2E]">
@@ -1454,7 +1797,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
               </div>
               <button
                 onClick={() => setShowBillModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-600"
+                className="p-1 text-slate-400 hover:text-slate-600 no-print cursor-pointer"
               >
                 ✕
               </button>
@@ -1561,20 +1904,33 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
               Fecha de Vencimiento: <strong>{formatDate(community.activePeriod.dueDate)}</strong>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 no-print">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const commName = (displayCommunityName || 'Condominio').replace(/\s+/g, '_');
+                    printDocumentDirectly('resident-bill-printable-doc', `Colilla_Gasto_Comun_Casa_${unit.number}_${commName}`, { fitPage: true });
+                  }}
+                  className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
+                >
+                  <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
+                  Imprimir / Guardar PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShareBill}
+                  className="px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
+                  title="Compartir por WhatsApp o celular"
+                >
+                  <Share2 className="w-3.5 h-3.5 mr-1.5 text-white" />
+                  Compartir WhatsApp
+                </button>
+              </div>
               <button
-                onClick={() => {
-                  const commName = (community?.name || 'Condominio').replace(/\s+/g, '_');
-                  printDocumentDirectly('resident-bill-printable-doc', `Colilla_Gasto_Comun_Casa_${unit.number}_${commName}`, { fitPage: true });
-                }}
-                className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
-              >
-                <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
-                Imprimir / Guardar PDF
-              </button>
-              <button
+                type="button"
                 onClick={() => setShowBillModal(false)}
-                className="px-5 py-2 bg-[#0F3D2E] text-white border-b border-[#0F3D2E] font-semibold text-xs rounded-xl"
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl cursor-pointer"
               >
                 Cerrar
               </button>
@@ -1586,10 +1942,10 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
 
       {/* MODAL RECIBO OFICIAL DE PAGO FOLIADO PARA EL VECINO */}
       {activePaymentReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
           <div 
             id="resident-payment-receipt-printable-doc"
-            className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-7 space-y-5"
+            className="w-full max-w-md max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#D4B895] p-6 sm:p-7 space-y-5"
           >
             <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-4">
               <div className="flex items-center space-x-3">
@@ -1606,16 +1962,17 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
               </div>
               <button
                 onClick={() => setActivePaymentReceipt(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 no-print cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="bg-[#F5F4EF] p-4 rounded-2xl border border-[#D4B895] space-y-2 text-xs">
+            {/* Datos de la transacción */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-slate-500">Comunidad:</span>
-                <span className="font-bold text-slate-900">{activePaymentReceipt.communityName}</span>
+                <span className="font-bold text-slate-900">{activePaymentReceipt.communityName || displayCommunityName}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Unidad Pagadora:</span>
@@ -1644,7 +2001,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
               <div className="space-y-0.5">
                 <span className="text-[10px] text-slate-500 font-mono block">Recaudado y Validado</span>
                 <span className="font-bold text-[#0F3D2E] text-[11px] block">{companySettings?.adminName || companySettings?.administratorName || 'Administración ARANPRO'}</span>
-                <span className="text-[9px] text-slate-500 font-mono">RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}</span>
+                <span className="text-[9px] text-slate-500 font-mono">{companySettings?.rnacNumber && companySettings.rnacNumber !== '48.912' ? `RNAC MINVU N° ${companySettings.rnacNumber}` : 'Ley N° 21.442 de Copropiedad'}</span>
               </div>
               <div className="text-right">
                 {companySettings?.signatureDataUrl ? (
@@ -1656,25 +2013,179 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 no-print">
               <button
+                type="button"
                 onClick={() => {
-                  const commName = (community?.name || 'Condominio').replace(/\s+/g, '_');
+                  const commName = (displayCommunityName || 'Condominio').replace(/\s+/g, '_');
                   const folio = (activePaymentReceipt.receiptFolio || 'REC').replace(/[^a-zA-Z0-9_-]/g, '_');
                   printDocumentDirectly('resident-payment-receipt-printable-doc', `Recibo_Pago_${folio}_Casa_${unit.number}_${commName}`, { fitPage: true });
                 }}
-                className="px-4 py-2 bg-[#0F3D2E] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
+                className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
               >
                 <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
                 Imprimir / Guardar PDF
               </button>
               <button
+                type="button"
                 onClick={() => setActivePaymentReceipt(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl cursor-pointer"
               >
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CERTIFICADO OFICIAL TIMBRADO Y VERIFICABLE (PDF / IMPRIMIBLE) */}
+      {activeResidentCert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
+          <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#D4B895] p-5 sm:p-8 space-y-6">
+            
+            <div 
+              id="resident-certificate-printable-doc"
+              className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6 relative"
+            >
+              {/* Membrete oficial */}
+              <div className="flex items-center justify-between pb-4 border-b-2 border-[#0F3D2E] gap-4">
+                <div className="flex items-center space-x-3.5">
+                  <AranproLogo className="h-10 w-auto" />
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">{displayCommunityName}</h3>
+                    <p className="text-[11px] text-slate-600 font-semibold">
+                      Administración Profesional • {companySettings?.administratorName || 'ARANPRO Gestión Integral'}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      Especialista Constructor Civil • Ley N° 21.442 de Copropiedad
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <div className="px-3 py-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase block">Folio Oficial</span>
+                    <span className="text-xs font-black font-mono text-[#0F3D2E]">{activeResidentCert.folio}</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-slate-400 block mt-1">
+                    Verif: <strong>{activeResidentCert.verificationCode || 'VRF-OK'}</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Título del Certificado */}
+              <div className="text-center py-2 space-y-1">
+                <span className="text-[10px] font-black tracking-widest text-[#D4B895] uppercase">
+                  REPÚBLICA DE CHILE • LEY DE COPROPIEDAD INMOBILIARIA N° 21.442
+                </span>
+                <h2 className="text-lg sm:text-xl font-black text-[#0F3D2E] uppercase tracking-wide">
+                  {activeResidentCert.type}
+                </h2>
+                <div className="h-0.5 w-24 bg-[#D4B895] mx-auto rounded-full mt-1" />
+              </div>
+
+              {/* Cuerpo del Certificado */}
+              <div className="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-3.5 text-justify">
+                <p>
+                  El Administrador Titular de la copropiedad inmobiliaria <strong>{displayCommunityName}</strong>, 
+                  en virtud de las facultades legales conferidas por la Ley N° 21.442 y su Reglamento, 
+                  <strong> CERTIFICA:</strong>
+                </p>
+
+                <p>
+                  Que la unidad habitacional individualizada como <strong>Casa N° {activeResidentCert.unitNumber}</strong>, 
+                  cuyo propietario registrado en el Libro de Copropietarios es don(ña) <strong>{activeResidentCert.applicantName}</strong>, 
+                  RUT <strong>{activeResidentCert.rut || 'No informado'}</strong>,
+                  {activeResidentCert.type.includes('No Deuda') || activeResidentCert.type.includes('al Día') ? (
+                    <> se encuentra <strong>COMPLETAMENTE AL DÍA</strong> en el pago íntegro de los gastos comunes ordinarios, gastos comunes extraordinarios y fondos de reserva devengados hasta la fecha del presente instrumento, no registrando saldos adeudados pendientes de cobro.</>
+                  ) : activeResidentCert.type.includes('Residencia') ? (
+                    <> registra su domicilio y residencia efectiva comprobada en dicha unidad habitacional dentro del conjunto residencial <strong>{displayCommunityName}</strong>, conforme al registro de residentes establecido en el Art. 17° de la Ley N° 21.442.</>
+                  ) : (
+                    <> cuenta con registro regular y validado ante la administración del condominio con respecto a la finalidad requerida: <em>"{activeResidentCert.purpose || 'Trámites oficiales'}"</em>.</>
+                  )}
+                </p>
+
+                {activeResidentCert.notes && (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 italic">
+                    Observaciones: {activeResidentCert.notes}
+                  </div>
+                )}
+
+                <p className="text-[11px] text-slate-500">
+                  Se extiende el presente certificado a petición de la parte interesada para los fines de: 
+                  <strong className="text-slate-700"> {activeResidentCert.purpose || 'Presentación oficial y trámites pertinentes'}</strong>.
+                </p>
+              </div>
+
+              {/* Cláusula de Vigencia y Fecha */}
+              <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200 flex flex-col sm:flex-row justify-between items-center text-xs text-emerald-950 gap-2">
+                <span>
+                  📅 <strong>Fecha de Emisión:</strong> {formatDate(activeResidentCert.date)}
+                </span>
+                <span className="font-bold">
+                  🛡️ <strong>Vigencia Legal:</strong> 30 días corridos a contar de su emisión
+                </span>
+              </div>
+
+              {/* Sello, Firma y Verificación Digital */}
+              <div className="pt-4 border-t border-slate-200 grid grid-cols-2 gap-4 items-center">
+                <div className="flex items-center space-x-3">
+                  <AranproOfficialSeal size="sm" variant="ap" />
+                  <div className="text-[10px] space-y-0.5">
+                    <span className="font-bold text-[#0F3D2E] block">Certificación Oficial ARANPRO</span>
+                    <span className="text-slate-500 block">Firma Electrónica Avanzada</span>
+                    <span className="text-emerald-700 font-mono font-bold block">✓ Documento Verificado</span>
+                  </div>
+                </div>
+
+                <div className="text-right space-y-0.5">
+                  <span className="text-xs font-bold text-slate-900 block">
+                    {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia M.'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block">
+                    Especialista Constructor Civil • Administrador de Condominios
+                  </span>
+                  <span className="text-[9px] text-[#0F3D2E] font-semibold block">
+                    {displayCommunityName}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Botones de acción del Modal (no impresos) */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 no-print">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const commName = (displayCommunityName || 'Condominio').replace(/\s+/g, '_');
+                    const folioClean = (activeResidentCert.folio || 'CERT').replace(/[^a-zA-Z0-9_-]/g, '_');
+                    printDocumentDirectly('resident-certificate-printable-doc', `Certificado_${folioClean}_Casa_${activeResidentCert.unitNumber}_${commName}`, { fitPage: true });
+                  }}
+                  className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
+                >
+                  <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
+                  Imprimir / Guardar PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleShareCertificate(activeResidentCert)}
+                  className="px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
+                >
+                  <Share2 className="w-3.5 h-3.5 mr-1.5 text-white" />
+                  Compartir WhatsApp
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveResidentCert(null)}
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+
           </div>
         </div>
       )}

@@ -170,13 +170,12 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
       iframe = document.createElement('iframe');
       iframe.id = 'aranpro-print-iframe';
       iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
+      iframe.style.left = '-9999px';
+      iframe.style.top = '0';
+      iframe.style.width = '820px';
+      iframe.style.height = '1150px';
       iframe.style.border = '0';
-      iframe.style.opacity = '0';
-      iframe.style.pointerEvents = 'none';
+      iframe.style.zIndex = '-9999';
       document.body.appendChild(iframe);
     }
 
@@ -355,7 +354,11 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             #printable-community-severance-doc,
             #printable-community-dismissal-letter,
             #printable-community-overtime-pact,
-            #printable-community-karin-protocol {
+            #printable-community-karin-protocol,
+            #resident-bill-printable-doc,
+            #expense-rendition-printable-doc,
+            #resident-payment-receipt-printable-doc,
+            #resident-certificate-printable-doc {
               border: none !important;
               border-radius: 0 !important;
               padding: 0 !important;
@@ -411,7 +414,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
         window.print();
         setTimeout(cleanup, 120000);
       }
-    }, 450);
+    }, 700);
   } catch (e) {
     console.error('Error generando documento de impresión', e);
     window.print();
