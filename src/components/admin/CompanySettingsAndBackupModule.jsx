@@ -6930,33 +6930,69 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* Título de la Sección Digital */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
-                          4
+                  {/* PRESENTACIÓN OFICIAL INSTITUCIONAL DE LA SUITE DIGITAL ARANPRO */}
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-2xl bg-gradient-to-br from-[#F5F4EF] via-white to-[#F5F4EF] border-2 border-[#0F3D2E]/30 space-y-1.5 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-[#D4B895]/50 pb-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
+                            ★
+                          </div>
+                          <div>
+                            <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                              Presentación Oficial: Suite Digital ARANPRO • Ecosistema de Copropiedad y Transparencia
+                            </h2>
+                            <span className="text-[8px] text-slate-500 font-mono block">
+                              Desarrollo Tecnológico Propio bajo el estándar técnico y legal de la Ley N° 21.442
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                            Ecosistema Tecnológico ARANPRO: Cero Costo de Software y Autogestión Total
-                          </h2>
-                          <p className="text-[8.5px] text-slate-500 leading-tight">
-                            Plataforma desarrollada exclusivamente para la Ley N° 21.442 • Ahorro real comprobado de $600.000 a $1.500.000 anuales para la comunidad
+                        <span className="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                          ✓ 100% Incluida Sin Costo
+                        </span>
+                      </div>
+
+                      <p className="text-[8.2px] text-slate-700 leading-relaxed text-justify">
+                        La <strong>Suite Digital ARANPRO</strong> no es una suscripción arrendada a terceros ni una planilla genérica de cálculo; es un <strong>sistema integral de gestión, contabilidad y fiscalización inmobiliaria de desarrollo propio</strong>, concebido y programado específicamente bajo la arquitectura técnica y legal de la <strong>Nueva Ley de Copropiedad Inmobiliaria N° 21.442 y su Reglamento (Decreto N° 58)</strong>. Su diseño responde al compromiso de erradicar de raíz la opacidad en las cuentas de los condominios, dotando a la comunidad de un estándar institucional de trazabilidad que garantiza que cada peso recaudado cuente con su correspondiente respaldo bancario y tributario visible en tiempo real.
+                      </p>
+
+                      <p className="text-[8.2px] text-slate-700 leading-relaxed text-justify">
+                        A diferencia del modelo tradicional del mercado —donde las administraciones contratan plataformas externas (como ComunidadFeliz, Kastor o Edipro) y traspasan mensualmente ese sobrecosto al gasto común de los vecinos—, <strong>ARANPRO entrega su suite digital 100% incluida, sin costo de licencias ni cobros por vivienda</strong>. Esto se traduce en un <strong>ahorro financiero directo y comprobado de $600.000 a $1.500.000 anuales</strong> para la comunidad, garantizando a la vez soporte técnico personalizado del Administrador, soberanía sobre los datos y custodia permanente del Libro de Copropietarios (Art. 17°).
+                      </p>
+
+                      <div className="grid grid-cols-3 gap-1.5 pt-0.5">
+                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                          <div className="text-[#0F3D2E] font-black text-[8.5px] flex items-center gap-1">
+                            <span>🏛️</span> Libros Abiertos 24/7
+                          </div>
+                          <p className="text-[7.5px] text-slate-600 leading-tight mt-0.5">
+                            Cada factura fiscal, boleta de honorarios y cartola bancaria está digitalizada y accesible en línea para auditoría inmediata del Comité.
+                          </p>
+                        </div>
+
+                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                          <div className="text-[#0F3D2E] font-black text-[8.5px] flex items-center gap-1">
+                            <span>📱</span> Autonomía PWA en Celular
+                          </div>
+                          <p className="text-[7.5px] text-slate-600 leading-tight mt-0.5">
+                            Plataforma web progresiva multi-dispositivo (iOS, Android, PC): sin descargas en tiendas, con emisión de certificados y respaldo de pagos.
+                          </p>
+                        </div>
+
+                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                          <div className="text-[#0F3D2E] font-black text-[8.5px] flex items-center gap-1">
+                            <span>💰</span> Cero Costo de Licencias
+                          </div>
+                          <p className="text-[7.5px] text-slate-600 leading-tight mt-0.5">
+                            Ahorro comprobado de $50.000 a $120.000 mensuales en software que no se le cobran a la comunidad ni a los copropietarios.
                           </p>
                         </div>
                       </div>
-                      <span className="text-[8px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        ✓ 100% Incluido Sin Costo
-                      </span>
                     </div>
-                    <p className="text-[8.5px] text-slate-600 leading-relaxed text-justify">
-                      A diferencia de administraciones convencionales que traspasan costosas suscripciones de software a la comunidad o entregan rendiciones opacas, <strong>ARANPRO entrega una suite digital propia, 100% incluida y sin cobro de licencias</strong>. Los residentes disponen de autogestión ágil para consultar, pagar y certificar desde su teléfono móvil o computador, mientras el Comité ejerce una auditoría contable y bancaria en tiempo real las 24 horas.
-                    </p>
 
                     {/* 6 Pilares Tecnológicos en Grilla 2x3 */}
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
                           <span>📜</span>
                           Certificados Oficiales en Línea (Ley 21.442)
@@ -6966,7 +7002,7 @@ export const CompanySettingsAndBackupModule = ({
                         </p>
                       </div>
 
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
                           <span>💳</span>
                           Notificación & Validación de Pagos con Respaldo
@@ -6976,7 +7012,7 @@ export const CompanySettingsAndBackupModule = ({
                         </p>
                       </div>
 
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
                           <span>📑</span>
                           Colilla Digital, Prorrateo & Compartir WhatsApp
@@ -6986,7 +7022,7 @@ export const CompanySettingsAndBackupModule = ({
                         </p>
                       </div>
 
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
                           <span>🛡️</span>
                           Panel de Auditoría 24/7 para el Comité
@@ -6996,7 +7032,7 @@ export const CompanySettingsAndBackupModule = ({
                         </p>
                       </div>
 
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
                           <span>📊</span>
                           Rendición Mensual Oficial e Informe Contable
@@ -7006,7 +7042,7 @@ export const CompanySettingsAndBackupModule = ({
                         </p>
                       </div>
 
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                         <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
                           <span>🗳️</span>
                           Asambleas Híbridas, Voto y Libro de Reclamos
@@ -7014,20 +7050,6 @@ export const CompanySettingsAndBackupModule = ({
                         <p className="text-[8px] text-slate-600 leading-relaxed">
                           Participación telemática legal (Art. 15°) con emisión de votos verificados desde el móvil, quórums automatizados y <strong>Libro Digital de Reclamos y Sugerencias inalterable (Art. 20°)</strong>, con trazabilidad correlativa de fechas y plazos de respuesta obligatorios.
                         </p>
-                      </div>
-                    </div>
-
-                    {/* Barra de Resumen de Ahorro y Garantías para el Comité */}
-                    <div className="p-2 rounded-xl bg-[#0F3D2E]/5 border border-[#0F3D2E]/20 flex items-center justify-between text-[8px] text-[#0F3D2E] gap-2">
-                      <div className="flex items-center gap-1 font-bold">
-                        <span>💰</span>
-                        <span>Cero cobro mensual por unidad:</span>
-                        <span className="text-slate-600 font-normal">Ahorro íntegro de $600.000 a $1.500.000 al año vs. plataformas externas (ComunidadFeliz, Edipro).</span>
-                      </div>
-                      <div className="flex items-center gap-1 font-bold shrink-0">
-                        <span>🔒</span>
-                        <span>Seguridad Legal:</span>
-                        <span className="text-slate-600 font-normal">Libro de Copropietarios (Art. 17°) y respaldos tributarios en la nube.</span>
                       </div>
                     </div>
                   </div>
