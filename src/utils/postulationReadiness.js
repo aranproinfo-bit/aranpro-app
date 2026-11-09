@@ -207,12 +207,8 @@ export const detectPlaceholders = ({ empresaForm = {}, adminPin = '' } = {}) => 
 export const buildProfileLine = (records = []) => {
   const included = records.filter((r) => r.includeInProposal !== false);
   const clean = (t) => String(t || '').replace(/\s*\(.*?\)\s*/g, ' ').trim();
-  const titled = included.filter((r) => /titulad/i.test(r.status || ''));
-  const inProgress = included.filter((r) => /en curso/i.test(r.status || ''));
-  const parts = [
-    ...titled.map((r) => clean(r.title)),
-    ...inProgress.map((r) => `Estudiante de ${clean(r.title)}`)
-  ].filter(Boolean);
+  const titled = included.filter((r) => /titulad|aprobado|certificad|vigente/i.test(r.status || ''));
+  const parts = titled.map((r) => clean(r.title)).filter(Boolean);
   return parts.join(' • ');
 };
 

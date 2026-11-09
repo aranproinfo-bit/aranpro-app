@@ -201,7 +201,7 @@ export const CompanySettingsAndBackupModule = ({
         institution: 'Learning Group / OTEC Acreditada SENCE (Resolución MINVU)',
         category: 'Certificación Legal Copropiedad Inmobiliaria',
         status: 'Aprobado y Certificado',
-        year: '2022 - 2026',
+        year: '2022',
         relevance: 'Habilitación oficial obligatoria para administración de copropiedades, cumplimiento normativo Ley N° 21.442, gestión de fondos de reserva, seguros de incendio y asambleas.',
         fileName: '08_CERTIFICADO ley 21442_JOHN_ARANCIBIA_M.pdf',
         fileType: 'application/pdf',
@@ -212,7 +212,7 @@ export const CompanySettingsAndBackupModule = ({
       },
       {
         id: 'acad-3',
-        title: 'Inspección Técnica de Obras (ITO) & Plan de Aseguramiento de Calidad PAC',
+        title: 'Inspección Técnica de Obras (ITO) & Plan de Calidad PAC',
         institution: 'Capacitación Profesional Especializada (Normativa MOP / ISO 9001)',
         category: 'Especialización Técnica Constructiva',
         status: 'Certificado',
@@ -257,7 +257,7 @@ export const CompanySettingsAndBackupModule = ({
       },
       {
         id: 'acad-6',
-        title: 'Gestión Profesional de Proyectos (Project Management) & Control de Presupuestos',
+        title: 'Gestión de Proyectos (Project Management) & Presupuestos',
         institution: 'Google / Coursera & Instituto Profesional IPLACEX',
         category: 'Certificación Internacional & Presupuestaria',
         status: 'Certificación Profesional',
@@ -273,12 +273,29 @@ export const CompanySettingsAndBackupModule = ({
     ];
 
     if (Array.isArray(companySettings?.academicBackground) && companySettings.academicBackground.length > 0) {
-      // Filtrar estrictamente cualquier registro previo que contenga "alumno regular", "estudios en curso" o "en curso"
-      const cleaned = companySettings.academicBackground.filter(item => {
-        const text = `${item.title || ''} ${item.status || ''} ${item.fileName || ''}`.toLowerCase();
-        return !text.includes('alumno regular') && !text.includes('en curso') && !text.includes('estudios');
+      const merged = defaultCertifiedRecords.map((master) => {
+        const existing = companySettings.academicBackground.find(
+          (r) => r.id === master.id || r.fileName === master.fileName
+        );
+        return existing?.fileData ? { ...master, fileData: existing.fileData } : master;
       });
-      if (cleaned.length >= 2) return cleaned;
+      const customExtras = companySettings.academicBackground.filter((item) => {
+        const text = `${item.title || ''} ${item.institution || ''} ${item.status || ''} ${item.fileName || ''}`.toLowerCase();
+        if (
+          text.includes('alumno regular') ||
+          text.includes('en curso') ||
+          text.includes('estudios') ||
+          text.includes('aiep') ||
+          text.includes('certificado_titulo_tecnico_construccion.pdf') ||
+          text.includes('certificado_aprobacion_curso_ley_21442.pdf')
+        ) {
+          return false;
+        }
+        return !defaultCertifiedRecords.some(
+          (m) => m.id === item.id || m.fileName === item.fileName || m.title.toLowerCase() === (item.title || '').toLowerCase()
+        );
+      });
+      return [...merged, ...customExtras];
     }
     return defaultCertifiedRecords;
   });
@@ -306,7 +323,7 @@ export const CompanySettingsAndBackupModule = ({
         folio: 'Registro Oficial N° 2018',
         issueDate: '2018-12-15',
         expiryDate: 'Indefinido',
-        status: 'Titulado',
+        status: 'Vigente',
         notes: 'Título oficial acreditado con formación en obras, cubicaciones y patologías constructivas.',
         includeInDossier: true
       },
@@ -318,7 +335,7 @@ export const CompanySettingsAndBackupModule = ({
         folio: 'Resolución Acreditada MINVU',
         issueDate: '2022-09-08',
         expiryDate: 'Vigente',
-        status: 'Aprobado y Certificado',
+        status: 'Vigente',
         notes: 'Acreditación exigida por Ley N° 21.442 para el ejercicio profesional de administrador.',
         includeInDossier: true
       },
@@ -330,7 +347,7 @@ export const CompanySettingsAndBackupModule = ({
         folio: 'RUT 16.012.871-2',
         issueDate: '2025-04-03',
         expiryDate: 'Vigente',
-        status: 'Licencia Vigente',
+        status: 'Vigente',
         notes: 'Certificación técnica oficial para inspección y control de redes de gas y calderas.',
         includeInDossier: true
       },
@@ -342,7 +359,7 @@ export const CompanySettingsAndBackupModule = ({
         folio: 'Normativa MOP / ISO 9001',
         issueDate: '2021-06-22',
         expiryDate: 'Vigente',
-        status: 'Certificado',
+        status: 'Vigente',
         notes: 'Competencia técnica en fiscalización de contratistas y recepción conforme de obras.',
         includeInDossier: true
       },
@@ -351,21 +368,38 @@ export const CompanySettingsAndBackupModule = ({
         name: 'Certificado de Antecedentes para Fines Especiales',
         category: 'identidad',
         issuer: 'Servicio de Registro Civil e Identificación',
-        folio: 'RC-2026-8841',
+        folio: 'Art. 84° Ley N° 21.442',
         issueDate: new Date(Date.now() - 15 * 86400000).toISOString().slice(0, 10),
         expiryDate: new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10),
-        status: 'Intachable',
+        status: 'Vigente',
         notes: 'Sin anotaciones en el Registro General de Condenas (exigencia Art. 84° Ley 21.442).',
         includeInDossier: true
       }
     ];
 
     if (Array.isArray(companySettings?.accreditationFiles) && companySettings.accreditationFiles.length > 0) {
-      const cleaned = companySettings.accreditationFiles.filter(item => {
-        const text = `${item.name || ''} ${item.folio || ''} ${item.notes || ''}`.toLowerCase();
-        return !text.includes('alumno regular') && !text.includes('en curso');
+      const merged = defaultAccreditationDocs.map((master) => {
+        const existing = companySettings.accreditationFiles.find(
+          (d) => d.id === master.id || d.name?.toLowerCase() === master.name.toLowerCase()
+        );
+        return existing?.fileData ? { ...master, fileData: existing.fileData } : master;
       });
-      if (cleaned.length >= 3) return cleaned;
+      const customExtras = companySettings.accreditationFiles.filter((item) => {
+        const text = `${item.name || ''} ${item.folio || ''} ${item.notes || ''}`.toLowerCase();
+        if (
+          text.includes('alumno regular') ||
+          text.includes('en curso') ||
+          text.includes('48.912') ||
+          text.includes('certificado de título técnico en construcción') ||
+          text.includes('certificado de antecedentes para fines especiales')
+        ) {
+          return false;
+        }
+        return !defaultAccreditationDocs.some(
+          (m) => m.id === item.id || m.name.toLowerCase() === (item.name || '').toLowerCase()
+        );
+      });
+      return [...merged, ...customExtras];
     }
     return defaultAccreditationDocs;
   });
@@ -1087,7 +1121,7 @@ export const CompanySettingsAndBackupModule = ({
     return { totalComms, totalUnits, totalIssuedCerts, yearsExp };
   }, [communities, certificates, empresaForm.startYear]);
 
-  // Hidratar archivos pesados desde IndexedDB (fileVault) al montar el módulo
+  // Hidratar archivos pesados desde IndexedDB (fileVault) y sincronizar las 6 certificaciones oficiales al montar
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -1099,6 +1133,13 @@ export const CompanySettingsAndBackupModule = ({
         if (mounted) {
           setAcademicRecords(hydratedAcad);
           setAccreditationDocs(hydratedDocs);
+          setCompanySettings((prev) => ({
+            ...prev,
+            rnacNumber: (prev?.rnacNumber && prev.rnacNumber !== '48.912') ? prev.rnacNumber : '',
+            companyRut: (prev?.companyRut && !String(prev.companyRut).includes('76.999.888')) ? prev.companyRut : '',
+            academicBackground: hydratedAcad,
+            accreditationFiles: hydratedDocs
+          }));
         }
       } catch (err) {
         console.warn('[fileVault] Error hidratando respaldos digitales:', err);
@@ -1130,130 +1171,145 @@ export const CompanySettingsAndBackupModule = ({
     portfolioStats
   ]);
 
-  // Portafolio de Certificaciones Técnicas y Acreditaciones Oficiales del Dossier
-  const dossierAcademicPortfolio = useMemo(() => {
-    const baseCerts = [
-      {
-        id: 'cert-1',
-        title: 'Técnico de Nivel Superior en Construcciones Civiles',
-        institution: 'CFT Santo Tomás',
-        status: 'Titulado',
-        year: '2018',
-        relevance: 'Inspección técnica en terreno de obras civiles, análisis de fallas constructivas, patologías de hormigón, redes sanitarias, cubicación de mantenciones y control de calidad de contratistas.',
-        fileName: '01_Titulo_Tecnico_Nivel_Superior_Construcciones_Civiles_Santo_Tomas.pdf'
-      },
-      {
-        id: 'cert-2',
-        title: 'Curso Oficial de Copropiedad Inmobiliaria (Ley N° 21.442)',
-        institution: 'Learning Group / OTEC Acreditada SENCE (Resolución MINVU)',
-        status: 'Aprobado y Certificado',
-        year: '2022',
-        relevance: 'Habilitación oficial obligatoria para administración de copropiedades, cumplimiento normativo Ley N° 21.442, gestión de fondos de reserva, seguros de incendio y asambleas.',
-        fileName: '08_CERTIFICADO ley 21442_JOHN_ARANCIBIA_M.pdf'
-      },
-      {
-        id: 'cert-3',
-        title: 'Inspección Técnica de Obras (ITO) & Plan de Calidad PAC',
-        institution: 'Normativa MOP / ISO 9001 (Control de Calidad)',
-        status: 'Certificado',
-        year: '2021',
-        relevance: 'Supervisión técnica rigurosa de contratistas, control de especificaciones técnicas, recepción conforme de faenas y auditoría de mantenciones de infraestructura.',
-        fileName: '02_Certificado_Inspeccion_Tecnica_de_Obras_ITO.pdf'
-      },
-      {
-        id: 'cert-4',
-        title: 'Instalador de Gas Clase 3 Autorizado SEC',
-        institution: 'Superintendencia de Electricidad y Combustibles (SEC)',
-        status: 'Licencia Vigente',
-        year: 'Vigente',
-        relevance: 'Supervisión técnica de matrices de gas licuado y natural, calderas comunitarias, certificación de sellos verdes y cumplimiento estricto del D.S. N° 66.',
-        fileName: '06_Certificado_SEC_Superintendencia_Electricidad_y_Combustibles.pdf'
-      },
-      {
-        id: 'cert-5',
-        title: 'Contabilidad General & Gestión Financiera de Condominios',
-        institution: 'TELEDUC • Pontificia Universidad Católica de Chile',
-        status: 'Certificado UC',
-        year: '2020',
-        relevance: 'Auditoría contable, conciliaciones bancarias al centavo, balances de gastos comunes, control presupuestario y rendición mensual de cuentas documentada.',
-        fileName: '06_Certificado_Curso_Contabilidad_General.pdf'
-      },
-      {
-        id: 'cert-6',
-        title: 'Gestión de Proyectos (Project Management) & Presupuestos',
-        institution: 'Google / Coursera & Instituto Profesional IPLACEX',
-        status: 'Certificación Profesional',
-        year: '2021',
-        relevance: 'Planificación de obras en Microsoft Project y Primavera P6, optimización de recursos comunitarios y análisis de precios unitarios para frenar sobrecostos.',
-        fileName: '05_Certificado_Internacional_Project_Management_Google_Coursera.pdf'
-      }
-    ];
+  // Portafolio de Certificaciones Técnicas y Acreditaciones Oficiales del Dossier (sin hooks adicionales)
+  const baseCertsDossier = [
+    {
+      id: 'cert-1',
+      title: 'Técnico de Nivel Superior en Construcciones Civiles',
+      institution: 'CFT Santo Tomás',
+      status: 'Titulado',
+      year: '2018',
+      relevance: 'Inspección técnica en terreno de obras civiles, análisis de fallas constructivas, patologías de hormigón, redes sanitarias, cubicación de mantenciones y control de calidad de contratistas.',
+      fileName: '01_Titulo_Tecnico_Nivel_Superior_Construcciones_Civiles_Santo_Tomas.pdf'
+    },
+    {
+      id: 'cert-2',
+      title: 'Curso Oficial de Copropiedad Inmobiliaria (Ley N° 21.442)',
+      institution: 'Learning Group / OTEC Acreditada SENCE (Resolución MINVU)',
+      status: 'Aprobado y Certificado',
+      year: '2022',
+      relevance: 'Habilitación oficial obligatoria para administración de copropiedades, cumplimiento normativo Ley N° 21.442, gestión de fondos de reserva, seguros de incendio y asambleas.',
+      fileName: '08_CERTIFICADO ley 21442_JOHN_ARANCIBIA_M.pdf'
+    },
+    {
+      id: 'cert-3',
+      title: 'Inspección Técnica de Obras (ITO) & Plan de Calidad PAC',
+      institution: 'Normativa MOP / ISO 9001 (Control de Calidad)',
+      status: 'Certificado',
+      year: '2021',
+      relevance: 'Supervisión técnica rigurosa de contratistas, control de especificaciones técnicas, recepción conforme de faenas y auditoría de mantenciones de infraestructura.',
+      fileName: '02_Certificado_Inspeccion_Tecnica_de_Obras_ITO.pdf'
+    },
+    {
+      id: 'cert-4',
+      title: 'Instalador de Gas Clase 3 Autorizado SEC',
+      institution: 'Superintendencia de Electricidad y Combustibles (SEC)',
+      status: 'Licencia Vigente',
+      year: 'Vigente',
+      relevance: 'Supervisión técnica de matrices de gas licuado y natural, calderas comunitarias, certificación de sellos verdes y cumplimiento estricto del D.S. N° 66.',
+      fileName: '06_Certificado_SEC_Superintendencia_Electricidad_y_Combustibles.pdf'
+    },
+    {
+      id: 'cert-5',
+      title: 'Contabilidad General & Gestión Financiera de Condominios',
+      institution: 'TELEDUC • Pontificia Universidad Católica de Chile',
+      status: 'Certificado UC',
+      year: '2020',
+      relevance: 'Auditoría contable, conciliaciones bancarias al centavo, balances de gastos comunes, control presupuestario y rendición mensual de cuentas documentada.',
+      fileName: '06_Certificado_Curso_Contabilidad_General.pdf'
+    },
+    {
+      id: 'cert-6',
+      title: 'Gestión de Proyectos (Project Management) & Presupuestos',
+      institution: 'Google / Coursera & Instituto Profesional IPLACEX',
+      status: 'Certificación Profesional',
+      year: '2021',
+      relevance: 'Planificación de obras en Microsoft Project y Primavera P6, optimización de recursos comunitarios y análisis de precios unitarios para frenar sobrecostos.',
+      fileName: '05_Certificado_Internacional_Project_Management_Google_Coursera.pdf'
+    }
+  ];
 
-    const userCustom = (academicRecords || []).filter(r => {
+  const dossierAcademicPortfolio = [
+    ...baseCertsDossier,
+    ...(academicRecords || []).filter(r => {
       if (r.includeInProposal === false) return false;
-      const txt = `${r.title || ''} ${r.status || ''} ${r.fileName || ''}`.toLowerCase();
-      if (txt.includes('alumno regular') || txt.includes('en curso') || txt.includes('estudios')) return false;
-      return !baseCerts.some(b => b.fileName === r.fileName || b.title.toLowerCase() === r.title?.toLowerCase());
-    });
-
-    return [...baseCerts, ...userCustom];
-  }, [academicRecords]);
-
-  const dossierAccreditationDocs = useMemo(() => {
-    const baseDocs = [
-      {
-        id: 'acc-1',
-        name: 'Comprobante de Inscripción Registro Nacional de Administradores (MINVU)',
-        issuer: 'Ministerio de Vivienda y Urbanismo (Minvu)',
-        folio: 'Ley N° 21.442 • En Trámite',
-        status: 'En trámite ★★★'
-      },
-      {
-        id: 'acc-2',
-        name: 'Certificado de Título Técnico de Nivel Superior en Construcciones Civiles',
-        issuer: 'CFT Santo Tomás',
-        folio: 'Registro Oficial N° 2018',
-        status: 'Vigente'
-      },
-      {
-        id: 'acc-3',
-        name: 'Certificado Oficial Aprobación Curso Copropiedad Inmobiliaria',
-        issuer: 'Learning Group / SENCE',
-        folio: 'Resolución Acreditada MINVU',
-        status: 'Vigente'
-      },
-      {
-        id: 'acc-4',
-        name: 'Licencia Instalador de Gas Clase 3 Autorizado SEC',
-        issuer: 'Superintendencia de Electricidad y Combustibles (SEC)',
-        folio: 'RUT 16.012.871-2',
-        status: 'Vigente'
-      },
-      {
-        id: 'acc-5',
-        name: 'Certificado de Inspección Técnica de Obras (ITO) & Aseguramiento PAC',
-        issuer: 'Organismo Certificador de Obras',
-        folio: 'Normativa MOP / ISO 9001',
-        status: 'Vigente'
-      },
-      {
-        id: 'acc-6',
-        name: 'Certificado de Antecedentes para Fines Especiales',
-        issuer: 'Servicio de Registro Civil e Identificación',
-        folio: 'RC-2026-8841',
-        status: 'Vigente'
+      const txt = `${r.title || ''} ${r.institution || ''} ${r.status || ''} ${r.fileName || ''}`.toLowerCase();
+      if (
+        txt.includes('alumno regular') ||
+        txt.includes('en curso') ||
+        txt.includes('estudios') ||
+        txt.includes('aiep') ||
+        txt.includes('certificado_titulo_tecnico_construccion.pdf') ||
+        txt.includes('certificado_aprobacion_curso_ley_21442.pdf')
+      ) {
+        return false;
       }
-    ];
+      return !baseCertsDossier.some(b => b.fileName === r.fileName || b.title.toLowerCase() === (r.title || '').toLowerCase());
+    })
+  ];
 
-    const userCustom = (accreditationDocs || []).filter(d => {
+  const baseDocsDossier = [
+    {
+      id: 'acc-1',
+      name: 'Comprobante de Inscripción Registro Nacional de Administradores (MINVU)',
+      issuer: 'Ministerio de Vivienda y Urbanismo (Minvu)',
+      folio: 'Ley N° 21.442 • En Trámite',
+      status: 'En trámite ★★★'
+    },
+    {
+      id: 'acc-2',
+      name: 'Certificado de Título Técnico de Nivel Superior en Construcciones Civiles',
+      issuer: 'CFT Santo Tomás',
+      folio: 'Registro Oficial N° 2018',
+      status: 'Vigente'
+    },
+    {
+      id: 'acc-3',
+      name: 'Certificado Oficial Aprobación Curso Copropiedad Inmobiliaria',
+      issuer: 'Learning Group / SENCE',
+      folio: 'Resolución Acreditada MINVU',
+      status: 'Vigente'
+    },
+    {
+      id: 'acc-4',
+      name: 'Licencia Instalador de Gas Clase 3 Autorizado SEC',
+      issuer: 'Superintendencia de Electricidad y Combustibles (SEC)',
+      folio: 'RUT 16.012.871-2',
+      status: 'Vigente'
+    },
+    {
+      id: 'acc-5',
+      name: 'Certificado de Inspección Técnica de Obras (ITO) & Aseguramiento PAC',
+      issuer: 'Organismo Certificador de Obras',
+      folio: 'Normativa MOP / ISO 9001',
+      status: 'Vigente'
+    },
+    {
+      id: 'acc-6',
+      name: 'Certificado de Antecedentes para Fines Especiales',
+      issuer: 'Servicio de Registro Civil e Identificación',
+      folio: 'Art. 84° Ley N° 21.442',
+      status: 'Vigente'
+    }
+  ];
+
+  const dossierAccreditationDocs = [
+    ...baseDocsDossier,
+    ...(accreditationDocs || []).filter(d => {
       if (d.includeInDossier === false) return false;
       const txt = `${d.name || ''} ${d.folio || ''} ${d.notes || ''}`.toLowerCase();
-      if (txt.includes('alumno regular') || txt.includes('en curso')) return false;
-      return !baseDocs.some(b => b.name.toLowerCase() === d.name?.toLowerCase());
-    });
-
-    return [...baseDocs, ...userCustom];
-  }, [accreditationDocs]);
+      if (
+        txt.includes('alumno regular') ||
+        txt.includes('en curso') ||
+        txt.includes('48.912') ||
+        txt.includes('certificado de título técnico en construcción') ||
+        txt.includes('certificado de antecedentes para fines especiales')
+      ) {
+        return false;
+      }
+      return !baseDocsDossier.some(b => b.name.toLowerCase() === (d.name || '').toLowerCase());
+    })
+  ];
 
   const packageFilesCount = useMemo(() => {
     return (
@@ -6701,7 +6757,7 @@ export const CompanySettingsAndBackupModule = ({
               {/* ==================== PÁGINA 3: SUITE DIGITAL GRATUITA, ACREDITACIONES, REFERENCIAS & FIRMA ==================== */}
               <div
                 data-pdf-style={pdfStyle}
-                className="dossier-page page-3 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                className="dossier-page page-3 bg-white p-6 pl-10 min-h-[1050px] max-h-[1080px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* Filete doble izquierdo Alternativa 4 */}
@@ -6723,9 +6779,9 @@ export const CompanySettingsAndBackupModule = ({
                   />
                 </div>
 
-                <div className="space-y-2.5 relative z-10">
+                <div className="space-y-2 relative z-10">
                   {/* Membrete de Continuidad ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-1.5">
                     <div className="flex items-center space-x-3">
                       <AranproLogo variant="principal" className="h-9 w-auto" />
                       <div className="border-l border-slate-300 pl-3">
@@ -6745,44 +6801,44 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* SECCIÓN 2: ECOSISTEMA TECNOLÓGICO ARANPRO */}
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
+                        <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
                           2
                         </div>
                         <div>
-                          <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                          <h2 className="font-black text-[10.5px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
                             Ecosistema Tecnológico ARANPRO: Transparencia Total sin Costo de Software
                           </h2>
-                          <p className="text-[9px] text-slate-500 leading-tight">
+                          <p className="text-[8.5px] text-slate-500 leading-tight">
                             Ahorro anual directo de $500.000 a $1.200.000 para el condominio al no pagar licencias externas
                           </p>
                         </div>
                       </div>
-                      <span className="text-[8.5px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      <span className="text-[8px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         100% Incluido
                       </span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[10px] block font-bold">📲 Portal Web & App Móvil</strong>
-                        <p className="text-[9px] text-slate-600 leading-snug">
+                      <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">📲 Portal Web & App Móvil</strong>
+                        <p className="text-[8.5px] text-slate-600 leading-snug">
                           Avisos de cobro descargables, pago de gastos comunes en línea, reserva de quinchos/salas y asambleas digitales.
                         </p>
                       </div>
 
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[10px] block font-bold">🛡️ Módulo Comité 24/7</strong>
-                        <p className="text-[9px] text-slate-600 leading-snug">
+                      <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">🛡️ Módulo Comité 24/7</strong>
+                        <p className="text-[8.5px] text-slate-600 leading-snug">
                           Auditoría libre de cartolas bancarias, respaldos digitales de cada egreso y aprobación de pagos a proveedores en un clic.
                         </p>
                       </div>
 
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                        <strong className="text-[#0F3D2E] text-[10px] block font-bold">📖 Libro Digital Foliado</strong>
-                        <p className="text-[9px] text-slate-600 leading-snug">
+                      <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                        <strong className="text-[#0F3D2E] text-[9.5px] block font-bold">📖 Libro Digital Foliado</strong>
+                        <p className="text-[8.5px] text-slate-600 leading-snug">
                           Registro inalterable de reclamos y sugerencias según Art. 20° Ley N° 21.442, con trazabilidad y plazos garantizados.
                         </p>
                       </div>
@@ -6790,41 +6846,41 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* SECCIÓN 3: FORMACIÓN TÉCNICA, CERTIFICACIONES PROFESIONALES Y CAPACITACIONES ACREDITADAS */}
-                  <div className="space-y-1.5 pt-0.5">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
+                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
                         3
                       </div>
                       <div>
-                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                        <h2 className="font-black text-[10.5px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
                           Formación Técnica, Certificaciones Profesionales y Capacitaciones Acreditadas
                         </h2>
-                        <p className="text-[9px] text-slate-500 leading-tight">
+                        <p className="text-[8.5px] text-slate-500 leading-tight">
                           Respaldos académicos y certificaciones de especialidad del Administrador Titular ({empresaForm.adminName})
                         </p>
                       </div>
                     </div>
 
                     {/* Grilla de 6 Certificaciones Profesionales y Técnicas en 2 Columnas fijas */}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-2 gap-1.5 text-xs">
                       {dossierAcademicPortfolio.slice(0, 6).map((item) => (
-                        <div key={item.id} className="p-2 rounded-xl border border-slate-300 bg-slate-50/90 space-y-1 shadow-2xs flex flex-col justify-between">
+                        <div key={item.id} className="p-1.5 rounded-xl border border-slate-300 bg-slate-50/90 space-y-0.5 shadow-2xs flex flex-col justify-between">
                           <div>
-                            <div className="flex items-start justify-between gap-1.5">
-                              <span className="font-black text-slate-900 text-[10px] leading-tight line-clamp-1">{item.title}</span>
-                              <span className="px-1.5 py-0.5 rounded text-[7.5px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
+                            <div className="flex items-start justify-between gap-1">
+                              <span className="font-black text-slate-900 text-[9.5px] leading-tight line-clamp-1">{item.title}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[7px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
                                 {item.status}
                               </span>
                             </div>
-                            <div className="flex items-center justify-between text-[8px] text-slate-500 mt-0.5">
+                            <div className="flex items-center justify-between text-[7.5px] text-slate-500">
                               <span className="truncate">Institución: <strong className="text-slate-700">{item.institution}</strong></span>
                               <span className="shrink-0 font-mono font-bold text-slate-600 ml-1">{item.year}</span>
                             </div>
-                            <p className="text-slate-700 bg-white px-1.5 py-1 rounded border border-slate-200/80 text-[8px] leading-snug mt-1">
+                            <p className="text-slate-700 bg-white px-1.5 py-0.5 rounded border border-slate-200/80 text-[7.5px] leading-snug mt-0.5 line-clamp-2">
                               <strong>Aporte Técnico:</strong> {item.relevance}
                             </p>
                           </div>
-                          <div className="text-[7.5px] text-emerald-800 font-mono font-bold truncate pt-0.5 border-t border-slate-200/60">
+                          <div className="text-[7px] text-emerald-800 font-mono font-bold truncate pt-0.5 border-t border-slate-200/60">
                             ✓ Folio: {item.fileName}
                           </div>
                         </div>
@@ -6833,21 +6889,21 @@ export const CompanySettingsAndBackupModule = ({
 
                     {/* Índice de Documentos Legales y Técnicos Acreditados en Carpeta Oficial */}
                     <div className="pt-0.5 space-y-1">
-                      <span className="text-[9px] font-black uppercase text-[#0F3D2E] block">
+                      <span className="text-[8.5px] font-black uppercase text-[#0F3D2E] block">
                         Certificados Legales, Tributarios y de Especialidad Técnica en Carpeta Oficial:
                       </span>
-                      <div className="grid grid-cols-2 gap-1.5 text-[9px]">
+                      <div className="grid grid-cols-2 gap-1 text-[8.5px]">
                         {dossierAccreditationDocs.slice(0, 6).map((doc, idx) => (
                           <div key={doc.id} className="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 flex items-center justify-between gap-1.5 shadow-2xs">
                             <div className="min-w-0">
-                              <strong className="text-slate-900 block leading-tight truncate text-[9.5px]">
+                              <strong className="text-slate-900 block leading-tight truncate text-[8.5px]">
                                 Anexo {idx + 1}: {doc.name}
                               </strong>
-                              <span className="text-[8px] text-slate-500 block truncate">
+                              <span className="text-[7.5px] text-slate-500 block truncate">
                                 {doc.issuer || 'Institución Oficial'} {doc.folio ? `• ${doc.folio}` : ''}
                               </span>
                             </div>
-                            <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold text-[8px] shrink-0 whitespace-nowrap">
+                            <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold text-[7.5px] shrink-0 whitespace-nowrap">
                               ✓ {doc.status || 'Vigente'}
                             </span>
                           </div>
@@ -6857,16 +6913,16 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* SECCIÓN 4: REFERENCIAS DE COMITÉS */}
-                  <div className="space-y-1 pt-0.5">
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10.5px] flex items-center justify-center shrink-0">
+                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
                         4
                       </div>
                       <div>
-                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                        <h2 className="font-black text-[10.5px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
                           Referencias Comprobables de Comités de Administración
                         </h2>
-                        <p className="text-[9px] text-slate-500 leading-tight">
+                        <p className="text-[8.5px] text-slate-500 leading-tight">
                           Testimonios directos de dirigentes comunitarios que avalan nuestra gestión
                         </p>
                       </div>
@@ -6876,11 +6932,11 @@ export const CompanySettingsAndBackupModule = ({
                       {committeeReferences.map(ref => (
                         <div key={ref.id} className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 space-y-0.5">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="font-black text-slate-900 text-[10px]">{ref.contactName}</span>
-                            <span className="text-[8.5px] font-bold text-[#0F3D2E] text-right">{ref.role} • {ref.communityName}</span>
+                            <span className="font-black text-slate-900 text-[9.5px]">{ref.contactName}</span>
+                            <span className="text-[8px] font-bold text-[#0F3D2E] text-right">{ref.role} • {ref.communityName}</span>
                           </div>
-                          <p className="text-slate-500 text-[8px] font-mono">Fono Contacto: {ref.phone}</p>
-                          <blockquote className="text-slate-700 italic bg-white px-1.5 py-0.5 rounded border border-slate-200 text-[8.5px] leading-snug">
+                          <p className="text-slate-500 text-[7.5px] font-mono">Fono Contacto: {ref.phone}</p>
+                          <blockquote className="text-slate-700 italic bg-white px-1.5 py-0.5 rounded border border-slate-200 text-[8px] leading-snug">
                             "{ref.quote}"
                           </blockquote>
                         </div>
@@ -6890,8 +6946,8 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* SECCIÓN DE SELLO CIRCULAR DORADO + FIRMA Y FOOTER ANCLADOS AL PIE */}
-                <div className="mt-auto pt-2 space-y-2 relative z-10">
-                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
+                <div className="mt-auto pt-1.5 space-y-1.5 relative z-10">
+                  <div className="pt-1.5 border-t border-slate-200 flex items-end justify-between gap-4">
                     <AranproOfficialSeal
                       size="sm"
                       companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
@@ -6899,12 +6955,12 @@ export const CompanySettingsAndBackupModule = ({
                       showCaption={true}
                     />
                     <div className="text-center space-y-0.5 min-w-[240px]">
-                      <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
+                      <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
                         {signatureImage ? (
                           <img
                             src={signatureImage}
                             alt="Firma Administrador"
-                            className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
+                            className="h-11 max-h-12 w-auto max-w-[230px] object-contain mx-auto"
                             style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                           />
                         ) : (
@@ -6916,7 +6972,7 @@ export const CompanySettingsAndBackupModule = ({
                         <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
                           Constructor Civil • Administrador de Condominios
                         </p>
-                        <p className="text-[9px] text-slate-600 font-mono">
+                        <p className="text-[8.5px] text-slate-600 font-mono">
                           RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442
                         </p>
                       </div>
@@ -6924,7 +6980,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Pie de Página Institucional Página 3 */}
-                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
                     <div className="font-bold text-[#0F3D2E]">Página 3 de 3 • Acreditaciones, Referencias y Firma Notarial Oficial</div>
                     <div>{empresaForm.city || 'La Serena / Coquimbo, Chile'}</div>
