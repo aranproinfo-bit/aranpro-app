@@ -6939,86 +6939,135 @@ export const CompanySettingsAndBackupModule = ({
                         </div>
                         <div>
                           <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                            Ecosistema Digital ARANPRO: Transparencia Contable y Gestión Móvil 24/7
+                            Ecosistema Tecnológico ARANPRO: Cero Costo de Software y Autogestión Total
                           </h2>
                           <p className="text-[8.5px] text-slate-500 leading-tight">
-                            Plataforma propia 100% incluida • Ahorro directo en software para la comunidad de $500.000 a $1.200.000 anuales
+                            Plataforma desarrollada exclusivamente para la Ley N° 21.442 • Ahorro real comprobado de $600.000 a $1.500.000 anuales para la comunidad
                           </p>
                         </div>
                       </div>
                       <span className="text-[8px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        100% Gratuito e Incluido
+                        ✓ 100% Incluido Sin Costo
                       </span>
                     </div>
+                    <p className="text-[8.5px] text-slate-600 leading-relaxed text-justify">
+                      A diferencia de administraciones convencionales que traspasan costosas suscripciones de software a la comunidad o entregan rendiciones opacas, <strong>ARANPRO entrega una suite digital propia, 100% incluida y sin cobro de licencias</strong>. Los residentes disponen de autogestión ágil para consultar, pagar y certificar desde su teléfono móvil o computador, mientras el Comité ejerce una auditoría contable y bancaria en tiempo real las 24 horas.
+                    </p>
 
-                    {/* 4 Pilares Tecnológicos en Grilla 2x2 */}
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10px]">
-                          <span>📲</span>
-                          Portal Web & App Residentes
+                    {/* 6 Pilares Tecnológicos en Grilla 2x3 */}
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
+                          <span>📜</span>
+                          Certificados Oficiales en Línea (Ley 21.442)
                         </div>
-                        <p className="text-[8.5px] text-slate-600 leading-relaxed">
-                          Avisos de cobro descargables en PDF, colillas detalladas con fondo de reserva (Art. 39°), pago de gastos comunes en línea y reserva digital de quinchos y salas multiuso.
+                        <p className="text-[8px] text-slate-600 leading-relaxed">
+                          Emisión y descarga inmediata de <strong>Certificados de Gastos Comunes al Día (No Deuda)</strong> para compraventas y estudios de títulos (Arts. 20° y 36°), Certificados de Residencia y Vigencia de Copropietario. Con folio único correlativo, timbre institucional, código QR y firma digital válida para notarías y bancos.
                         </p>
                       </div>
 
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10px]">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
+                          <span>💳</span>
+                          Notificación & Validación de Pagos con Respaldo
+                        </div>
+                        <p className="text-[8px] text-slate-600 leading-relaxed">
+                          El residente informa su transferencia bancaria adjuntando directamente la captura o comprobante PDF desde su celular. La administración concilia contra la cartola bancaria y emite en el acto el <strong>Recibo Oficial Foliado con timbre digital</strong>, listo para descargar o compartir por WhatsApp.
+                        </p>
+                      </div>
+
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
+                          <span>📑</span>
+                          Colilla Digital, Prorrateo & Compartir WhatsApp
+                        </div>
+                        <p className="text-[8px] text-slate-600 leading-relaxed">
+                          Desglose automatizado según alícuota de copropiedad: gasto operacional, Fondo de Reserva obligatorio (Art. 39°), cargos individuales de consumos y control de Convenios de Repactación histórica. Incluye botón directo para compartir la colilla a WhatsApp con los datos de cuenta bancaria.
+                        </p>
+                      </div>
+
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
                           <span>🛡️</span>
-                          Panel Comité de Administración 24/7
+                          Panel de Auditoría 24/7 para el Comité
                         </div>
-                        <p className="text-[8.5px] text-slate-600 leading-relaxed">
-                          Auditoría libre y permanente de cartolas bancarias, respaldos digitales de cada factura o boleta de egreso y aprobación de transferencias a proveedores con un solo clic.
+                        <p className="text-[8px] text-slate-600 leading-relaxed">
+                          Auditoría abierta y permanente de cartolas bancarias, visualización directa de la factura electrónica o boleta de cada egreso, aprobación ágil de transferencias a proveedores y seguimiento en terreno de mantenciones preventivas con registro fotográfico.
                         </p>
                       </div>
 
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10px]">
-                          <span>📖</span>
-                          Libro Digital de Reclamos y Solicitudes
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
+                          <span>📊</span>
+                          Rendición Mensual Oficial e Informe Contable
                         </div>
-                        <p className="text-[8.5px] text-slate-600 leading-relaxed">
-                          Registro inalterable con folios correlativos conforme al Art. 20° de la Ley N° 21.442, con trazabilidad completa de fechas, estados de avance y plazos comprometidos de respuesta.
+                        <p className="text-[8px] text-slate-600 leading-relaxed">
+                          Generación instantánea del <strong>Informe Oficial de Rendición de Gastos Comunes</strong> según el Art. 20° de la Ley N° 21.442: clasificación legal de egresos ordinarios/extraordinarios, nómina detallada de proveedores con RUT y folio fiscal, libro diario contable y balance financiero de caja.
                         </p>
                       </div>
 
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[10px]">
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center gap-1.5 text-[#0F3D2E] font-black text-[9.5px]">
                           <span>🗳️</span>
-                          Asambleas Híbridas & Votaciones Digitales
+                          Asambleas Híbridas, Voto y Libro de Reclamos
                         </div>
-                        <p className="text-[8.5px] text-slate-600 leading-relaxed">
-                          Participación telemática segura según el Art. 15° de la Ley N° 21.442. Los propietarios pueden emitir su voto verificado desde el celular, con quórums y actas calculadas en tiempo real.
+                        <p className="text-[8px] text-slate-600 leading-relaxed">
+                          Participación telemática legal (Art. 15°) con emisión de votos verificados desde el móvil, quórums automatizados y <strong>Libro Digital de Reclamos y Sugerencias inalterable (Art. 20°)</strong>, con trazabilidad correlativa de fechas y plazos de respuesta obligatorios.
                         </p>
+                      </div>
+                    </div>
+
+                    {/* Barra de Resumen de Ahorro y Garantías para el Comité */}
+                    <div className="p-2 rounded-xl bg-[#0F3D2E]/5 border border-[#0F3D2E]/20 flex items-center justify-between text-[8px] text-[#0F3D2E] gap-2">
+                      <div className="flex items-center gap-1 font-bold">
+                        <span>💰</span>
+                        <span>Cero cobro mensual por unidad:</span>
+                        <span className="text-slate-600 font-normal">Ahorro íntegro de $600.000 a $1.500.000 al año vs. plataformas externas (ComunidadFeliz, Edipro).</span>
+                      </div>
+                      <div className="flex items-center gap-1 font-bold shrink-0">
+                        <span>🔒</span>
+                        <span>Seguridad Legal:</span>
+                        <span className="text-slate-600 font-normal">Libro de Copropietarios (Art. 17°) y respaldos tributarios en la nube.</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Recuadro de Demo Interactiva en Vivo con Código QR Vectorial */}
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#F5F4EF] via-white to-[#F5F4EF] border-2 border-[#0F3D2E]/30 shadow-xs flex items-center justify-between gap-4">
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-mono font-bold text-[8.5px] uppercase">
-                        ★ Demo Interactiva en Vivo
+                  <div className="p-3 rounded-2xl bg-gradient-to-br from-[#F5F4EF] via-white to-[#F5F4EF] border-2 border-[#0F3D2E]/40 shadow-xs flex items-center justify-between gap-4">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-mono font-bold text-[8.5px] uppercase">
+                          ★ Demo Interactiva en Vivo
+                        </span>
+                        <span className="text-[8px] font-bold text-slate-500 font-mono">
+                          Acceso directo: aranpro.cl/?demo=comunidad
+                        </span>
                       </div>
                       <h4 className="text-[11px] font-black text-[#0F3D2E] leading-tight">
-                        Pruebe la experiencia en su teléfono celular ahora mismo
+                        Pruebe la aplicación en su teléfono celular ahora mismo (Acceso 1-Clic)
                       </h4>
-                      <p className="text-[9px] text-slate-700 leading-snug">
-                        Escanee este código QR con la cámara de su smartphone o ingrese directamente a <strong>{empresaForm.website || 'https://aranpro.cl'}</strong> para interactuar con la plataforma: consulte colillas de gastos comunes simuladas, audite respaldos bancarios de egresos y pruebe el libro digital.
+                      <p className="text-[8.5px] text-slate-700 leading-snug">
+                        Escanee el código QR con la cámara de su smartphone para evaluar las dos vistas principales de forma interactiva y sin claves:
                       </p>
-                      <div className="text-[8.5px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block">
-                        ✓ 100% Gratuita para la comunidad • Cero cobros de licencias o software
+                      <div className="grid grid-cols-2 gap-1.5 text-[8px] pt-0.5">
+                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                          <strong className="text-[#0F3D2E] block">🛡️ Vista Integrante del Comité (Casa 1):</strong>
+                          Audite facturas de egresos, revise la cartola bancaria y publique comunicados oficiales.
+                        </div>
+                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                          <strong className="text-[#0F3D2E] block">🏠 Vista Copropietario (Casa 6):</strong>
+                          Consulte su colilla, emita certificados oficiales en PDF e informe transferencias con comprobante.
+                        </div>
                       </div>
                     </div>
 
                     <div className="shrink-0 p-2 bg-white rounded-xl border border-slate-300 shadow-xs text-center">
                       <AranproQrCode 
                         value="https://aranpro.cl/?demo=comunidad" 
-                        size={84} 
+                        size={82} 
                         alt="Código QR Demo Escaneable ARANPRO" 
                       />
-                      <span className="text-[7.5px] font-mono font-bold text-slate-500 block mt-1 tracking-tight">
+                      <span className="text-[7.5px] font-mono font-bold text-[#0F3D2E] block mt-1 tracking-tight">
                         ESCANEAR CON CELULAR
                       </span>
                     </div>
@@ -7604,45 +7653,65 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* 4 Pilares Tecnológicos */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  {/* 6 Pilares Tecnológicos */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <h5 className="font-black text-[11px]">1. Auditoría Bancaria con 1 Clic</h5>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <h5 className="font-black text-[10.5px]">1. Certificados Oficiales en Línea (Ley 21.442)</h5>
                       </div>
-                      <p className="text-[10px] text-slate-600 leading-snug">
-                        Cada factura, boleta de honorarios y comprobante de transferencia bancaria de los gastos comunes está disponible en línea para consulta inmediata de cualquier vecino. Cero suspicacias.
+                      <p className="text-[9px] text-slate-600 leading-snug">
+                        Emisión instantánea de <strong>Certificados de Gastos al Día (No Deuda)</strong> para compraventas y notarías (Arts. 20° y 36°), Certificados de Residencia y Copropietario con folio, código QR y firma digital.
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <h5 className="font-black text-[11px]">2. Colilla Digital & Pago Rápido</h5>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <h5 className="font-black text-[10.5px]">2. Notificación de Pagos con Respaldo Adjunto</h5>
                       </div>
-                      <p className="text-[10px] text-slate-600 leading-snug">
-                        Desglose detallado del gasto común del mes, desglose del fondo de reserva obligatorio (Art. 6° Ley 21.442), lecturas de agua y pago en línea con Webpay / Flow.
+                      <p className="text-[9px] text-slate-600 leading-snug">
+                        El vecino informa su transferencia subiendo la foto o PDF del comprobante desde el celular. Se coteja con la cartola bancaria y se emite el <strong>Recibo Oficial Foliado con timbre digital</strong>.
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <h5 className="font-black text-[11px]">3. Asambleas y Voto Telemático</h5>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <h5 className="font-black text-[10.5px]">3. Colilla Digital, Prorrateo & WhatsApp</h5>
                       </div>
-                      <p className="text-[10px] text-slate-600 leading-snug">
-                        Participación híbrida conforme al Art. 15° de la Ley 21.442. Los propietarios pueden emitir su voto de manera segura desde el celular con quórums auditados en tiempo real.
+                      <p className="text-[9px] text-slate-600 leading-snug">
+                        Desglose legal de alícuotas, Fondo de Reserva obligatorio (Art. 39°), convenios de repactación histórica y botón directo para compartir la colilla con datos de transferencia por WhatsApp.
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <h5 className="font-black text-[11px]">4. Libro Oficial de Reclamos Digital</h5>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <h5 className="font-black text-[10.5px]">4. Auditoría Bancaria 24/7 para el Comité</h5>
                       </div>
-                      <p className="text-[10px] text-slate-600 leading-snug">
-                        Trazabilidad legal con folios correlativos bajo el Art. 20°. Cada reclamo o sugerencia ingresado tiene fecha límite estricta de respuesta formal por parte de la administración.
+                      <p className="text-[9px] text-slate-600 leading-snug">
+                        Cada factura electrónica, boleta de honorarios y comprobante bancario está disponible en línea para consulta inmediata de cualquier miembro del Comité. Cero gastos sin respaldo.
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <h5 className="font-black text-[10.5px]">5. Rendición Oficial Mensual (Art. 20°)</h5>
+                      </div>
+                      <p className="text-[9px] text-slate-600 leading-snug">
+                        Generación con 1 clic del informe estandarizado de rendición: nómina de proveedores, clasificación contable, libro diario y balance de caja en PDF descargable para la comunidad.
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <h5 className="font-black text-[10.5px]">6. Asambleas Híbridas & Libro de Reclamos</h5>
+                      </div>
+                      <p className="text-[9px] text-slate-600 leading-snug">
+                        Votaciones telemáticas legales (Art. 15°) y Libro Digital de Reclamos y Sugerencias inalterable (Art. 20°) con folios correlativos y plazos de respuesta obligatorios.
                       </p>
                     </div>
                   </div>
