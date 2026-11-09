@@ -306,7 +306,10 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
             )}
             <button
               type="button"
-              onClick={onBack}
+              onClick={() => {
+                if (logout) logout();
+                if (onBack) onBack();
+              }}
               className="px-2.5 py-1.5 bg-[#0A291F] hover:bg-rose-900 text-white/80 hover:text-white rounded-xl text-xs transition-colors cursor-pointer"
             >
               Salir de Demo

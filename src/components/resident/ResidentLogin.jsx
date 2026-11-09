@@ -42,11 +42,12 @@ export const ResidentLogin = ({ communitySlug, onBack, onSuccess, isDemo = false
   // Inicio de sesión directo en 1 clic (SIN FORMULARIOS NI ERRORES DE VALIDACIÓN)
   const handleInstantDemoLogin = (unitNumber, rut) => {
     setError('');
-    const res = loginResident(community.slug, rut || unitNumber, unitNumber);
-    if (res.success) {
+    const targetSlug = community?.slug || communities[0]?.slug || 'los-cerezos';
+    const res = loginResident(targetSlug, rut || unitNumber, unitNumber);
+    if (res?.success) {
       if (onSuccess) onSuccess();
     } else {
-      setError(res.message);
+      setError(res?.message || 'Error al iniciar sesión de demostración');
     }
   };
 
