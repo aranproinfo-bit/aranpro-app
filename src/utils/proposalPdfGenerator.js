@@ -184,6 +184,11 @@ export const generateStepPdfAttachment = async ({
     defaultFilename = targetClean
       ? `ARANPRO_Brochure_App_${targetClean}_${dateClean}.pdf`
       : `ARANPRO_Brochure_App_${dateClean}.pdf`;
+  } else if (stepNumber === 5) {
+    elementId = 'printable-transition-package';
+    defaultFilename = targetClean
+      ? `ARANPRO_Kit_Asesoria_y_Traspaso_${targetClean}_${dateClean}.pdf`
+      : `ARANPRO_Kit_Asesoria_y_Traspaso_${dateClean}.pdf`;
   }
 
   if (typeof document !== 'undefined') {

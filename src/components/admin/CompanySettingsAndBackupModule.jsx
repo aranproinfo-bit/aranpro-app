@@ -11,6 +11,7 @@ import { PipelinePanel } from './postulaciones/PipelinePanel';
 import { AgacechFeeCalculatorPanel } from './postulaciones/AgacechFeeCalculatorPanel';
 import { PitchMasterPanel } from './postulaciones/PitchMasterPanel';
 import { QuickDocumentsPanel } from './postulaciones/QuickDocumentsPanel';
+import { Step5TransitionPanel } from './postulaciones/Step5TransitionPanel';
 import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
@@ -764,6 +765,33 @@ export const CompanySettingsAndBackupModule = ({
             `Acceso directo a la Demo en Vivo (1-clic):\n${demoLink}\n\n` +
             `Adjuntamos el Brochure Oficial con capturas reales para su revisión.\n\n` +
             `Saludos cordiales,\n${admin} • ARANPRO Gestión Integral\n${phone} | https://aranpro.cl`
+        };
+      }
+      case 5: {
+        const outgoing = proposalConfig.outgoingAdminName?.trim() || 'Administración Saliente';
+        return {
+          title: 'Paso 5: Kit de Asesoría Legal, Notificación al Saliente & Pauta de Traspaso',
+          subject: `Kit de Asesoría Legal, Notificación de Término y Pauta de Traspaso • ${condo}`,
+          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
+            `Junto con agradecer la confianza depositada en nuestro equipo profesional para asumir la administración del condominio, ponemos a su disposición el *Kit Oficial de Asesoría Legal y Traspaso Operativo*, estructurado rigurosamente según las exigencias de la nueva Ley N° 21.442 de Copropiedad Inmobiliaria y el Decreto Supremo N° 7 MINVU:\n\n` +
+            `📦 *Documentos y Pautas que ponemos a su disposición:*\n\n` +
+            `1️⃣ *Carta Formal de Término y Preaviso de 30 Días:* Redactada conforme al Art. 20 Ley 21.442 para notificar al saliente (*${outgoing}*) con exigencia formal de rendición documentada, balances y claves.\n` +
+            `2️⃣ *Checklist & Pauta Simple de Traspaso (3 Páginas):* Instrumento de verificación exhaustiva en 5 bloques (Legal, Financiero para carga inmediata en software, Laboral, Mantenimiento y Sistemas) con talón oficial de firmas.\n` +
+            `3️⃣ *Cláusulas Legales Redactadas para el Libro de Actas:* Texto canónico listo para asamblea o sesión de comité, con facultades plenas ante bancos, SII, DT y mandato de protocolización notarial.\n` +
+            `4️⃣ *Contrato Marco de Servicios:* Formato formal bilateral de 10 cláusulas para las comunidades que deseen suscribir instrumento privado adicional.\n` +
+            `5️⃣ *Guías Rápidas de Asesoría para el Comité:* Cuadros de facultades (Asambleas vs. Comité DS N° 7) y Quórums oficiales (Art. 15).\n\n` +
+            `Adjuntamos el documento consolidado en PDF para la formalización de este proceso. Cuentan con nuestro acompañamiento presencial y técnico en cada etapa de esta transición.\n\n` +
+            `Atentamente,\n*${admin}*\nConstructor Civil • Administrador de Condominios\nRegistro Nacional MINVU • ARANPRO Gestión Integral\nFono / WhatsApp: ${phone}`,
+          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\n` +
+            `Agradeciendo su decisión de confiarnos la administración de su comunidad, hacemos entrega del Kit de Asesoría Legal, Notificación de Término y Pauta de Traspaso, diseñado para proteger la continuidad operativa, financiera y legal de ${condo} bajo la Ley N° 21.442.\n\n` +
+            `Contenido del Kit de Asesoría Legal y Traspaso:\n` +
+            `1. Carta Oficial de Término de Funciones y Preaviso Legal de 30 Días al Administrador Saliente (${outgoing}), exigiendo rendición de cuentas al último día de funciones, conciliaciones bancarias al día y traspaso de claves.\n` +
+            `2. Pauta y Checklist Exhaustivo de Recepción (3 Páginas) estructurado para el traspaso de información Legal, Financiera (para carga inmediata en la Suite ARANPRO), Laboral, Técnica y de Seguridad.\n` +
+            `3. Cláusulas Redactadas para el Libro de Actas de Asamblea o Comité, con facultades expresas bancarias, ante el SII, Dirección del Trabajo, facultades de cobranza y mandato de protocolización notarial.\n` +
+            `4. Contrato Marco de Prestación de Servicios de Administración (10 Cláusulas) para respaldo de la directiva.\n` +
+            `5. Fichas de Asesoría Legal: Distribución de facultades Comité vs. Asamblea (DS N° 7 MINVU) y Cuadro Oficial de Quórums y Materias (Art. 15 Ley 21.442).\n\n` +
+            `Adjunto encontrarán el documento oficial para su revisión y firma.\n\n` +
+            `Saludos cordiales,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
       }
       default:
@@ -3423,7 +3451,7 @@ export const CompanySettingsAndBackupModule = ({
               {!hidePostulacionSubNav && (
                 <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
                   {[
-                    { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send, badge: '4 Pasos' },
+                    { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send, badge: '5 Pasos' },
                     { id: 'material', label: '2. Bandeja de Documentos Rápidos', icon: FileText },
                     { id: 'pipeline', label: `3. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
                     { id: 'preparacion', label: `4. Checklist & Semáforo (${readinessReport.score}/100)`, icon: ClipboardCheck },
@@ -3459,8 +3487,8 @@ export const CompanySettingsAndBackupModule = ({
               )}
 
               {/* ==================== SECCIÓN 1: GUÍA PASO A PASO (EL EMBUDO COMERCIAL ARANPRO) ==================== */}
-              {postulacionSection === 'flujo' && (
-                <div className="space-y-6 animate-in fade-in">
+              <div className={postulacionSection === 'flujo' ? 'space-y-6 animate-in fade-in' : 'hidden'}>
+                <div className="space-y-6">
                   {/* CABECERA EJECUTIVA Y FOCALIZADA DE LA GUÍA PASO A PASO */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
                     <div>
@@ -4285,9 +4313,24 @@ export const CompanySettingsAndBackupModule = ({
                         </div>
                       )}
                     </div>
+
+                    {/* ========== PASO 5: ADJUDICACIÓN, PREAVISO AL SALIENTE & KIT DE TRASPASO ========== */}
+                    <Step5TransitionPanel
+                      proposalConfig={proposalConfig}
+                      setProposalConfig={setProposalConfig}
+                      empresaForm={empresaForm}
+                      signatureImage={signatureImage || companySettings?.signatureDataUrl || ''}
+                      companySettings={companySettings}
+                      showAlert={showAlert}
+                      handleShareWhatsApp={handleShareWhatsApp}
+                      handleShareEmail={handleShareEmail}
+                      sendingEmailStep={sendingEmailStep}
+                      getStepMessages={getStepMessages}
+                      handleCopyStepMessage={handleCopyStepMessage}
+                    />
                   </div>
                 </div>
-              )}
+              </div>
 
 
 

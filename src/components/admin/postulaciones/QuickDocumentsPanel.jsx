@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { formatCLP } from '../../../utils/formatters';
 import { openDataUrlInNewTab, downloadDataUrl } from '../../../utils/fileVault';
+import { printDocumentDirectly } from '../../../utils/printDocument';
 
 export const QuickDocumentsPanel = ({
   proposalConfig = {},
@@ -73,7 +74,44 @@ export const QuickDocumentsPanel = ({
     }
   };
 
-  // 1. DOCUMENTOS GENERADOS OFICIALES POR LA PLATAFORMA
+  // Handlers para documentos de Transición y Traspaso (Paso 5)
+  const handlePrintTerminationNotice = () => {
+    const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
+    printDocumentDirectly('printable-termination-notice', `ARANPRO_Carta_Preaviso_Termino_${targetClean}`, {
+      pageSize: 'letter portrait',
+      fitPage: true,
+      margin: '6mm 8mm 6mm 8mm'
+    });
+  };
+
+  const handlePrintTransitionChecklist = () => {
+    const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
+    printDocumentDirectly('printable-transition-checklist', `ARANPRO_Pauta_Checklist_Traspaso_3Pags_${targetClean}`, {
+      pageSize: 'letter portrait',
+      fitPage: false,
+      margin: '6mm 6mm 6mm 6mm'
+    });
+  };
+
+  const handlePrintContract = () => {
+    const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
+    printDocumentDirectly('printable-management-contract', `ARANPRO_Contrato_Servicios_Administracion_${targetClean}`, {
+      pageSize: 'letter portrait',
+      fitPage: false,
+      margin: '6mm 8mm 6mm 8mm'
+    });
+  };
+
+  const handlePrintLegalGuides = () => {
+    const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
+    printDocumentDirectly('printable-legal-advisory-sheet', `ARANPRO_Guias_Legales_Asambleas_y_Quorums_${targetClean}`, {
+      pageSize: 'letter landscape',
+      fitPage: true,
+      margin: '5mm 5mm 5mm 5mm'
+    });
+  };
+
+    // 1. DOCUMENTOS GENERADOS OFICIALES POR LA PLATAFORMA
   const generatedDocs = useMemo(() => [
     {
       id: 'carta-valor',
@@ -199,6 +237,97 @@ export const QuickDocumentsPanel = ({
       openLabel: 'Abrir Calculadora & Memoria',
       stepNumber: null,
       icon: Calculator
+    },
+    {
+      id: 'carta-termino-saliente',
+      title: 'Carta de Término de Funciones y Preaviso de 30 Días',
+      subtitle: 'Notificación formal al Administrador Saliente con apercibimiento Art. 20 Ley 21.442, rendición documentada, balances y claves.',
+      badge: 'Paso 5 • Traspaso',
+      badgeColor: 'red',
+      format: 'PDF Oficial Carta (1 Pág)',
+      type: 'generado',
+      category: 'generados',
+      ready: true,
+      onPrint: handlePrintTerminationNotice,
+      onOpen: () => onNavigateToSection?.('flujo'),
+      onWhatsApp: () => handleShareWhatsApp?.(5),
+      stepNumber: 5,
+      icon: Scale
+    },
+    {
+      id: 'checklist-traspaso-3pags',
+      title: 'Pauta & Checklist de Recepción de Comunidad (3 Págs)',
+      subtitle: 'Protocolo de traspaso exhaustivo en 5 bloques: Legal, Financiero (para carga en software), Laboral, Mantenimiento y Sistemas.',
+      badge: 'Paso 5 • Protocolo',
+      badgeColor: 'emerald',
+      format: 'PDF Oficial Carta (3 Págs)',
+      type: 'generado',
+      category: 'generados',
+      ready: true,
+      onPrint: handlePrintTransitionChecklist,
+      onOpen: () => onNavigateToSection?.('flujo'),
+      stepNumber: 5,
+      icon: CheckSquare
+    },
+    {
+      id: 'contrato-marco-servicios',
+      title: 'Contrato Marco Bilateral de Prestación de Servicios',
+      subtitle: 'Contrato formal bilateral de 10 cláusulas para formalizar la relación contractual cuando el comité lo solicite adicionalmente al Acta.',
+      badge: 'Paso 5 • Contrato',
+      badgeColor: 'blue',
+      format: 'PDF Oficial Carta (2 Págs)',
+      type: 'generado',
+      category: 'generados',
+      ready: true,
+      onPrint: handlePrintContract,
+      onOpen: () => onNavigateToSection?.('flujo'),
+      stepNumber: 5,
+      icon: PenTool
+    },
+    {
+      id: 'clausulas-libro-actas',
+      title: 'Cláusulas Legales para el Libro de Actas (Nombramiento)',
+      subtitle: 'Redacción jurídica canónica de nombramiento, facultades bancarias plenas, representación laboral/tributaria y mandato de protocolización.',
+      badge: 'Paso 5 • Jurídico',
+      badgeColor: 'purple',
+      format: 'Texto Legal Canónico',
+      type: 'generado',
+      category: 'fichas',
+      ready: true,
+      onOpen: () => onNavigateToSection?.('flujo'),
+      openLabel: 'Ver y Copiar Cláusulas',
+      stepNumber: 5,
+      icon: BookOpen
+    },
+    {
+      id: 'guia-asambleas-comite',
+      title: 'Ficha Legal: Facultades Asambleas vs Comité (DS N° 7 / 2025)',
+      subtitle: 'Cuadro comparativo de atribuciones exclusivas del Comité vs materias reservadas a la Asamblea bajo la nueva ley de copropiedad.',
+      badge: 'Asesoría Comité',
+      badgeColor: 'slate',
+      format: 'Ficha Legal (1 Pág)',
+      type: 'generado',
+      category: 'fichas',
+      ready: true,
+      onPrint: handlePrintLegalGuides,
+      onOpen: () => onNavigateToSection?.('flujo'),
+      stepNumber: null,
+      icon: ShieldCheck
+    },
+    {
+      id: 'guia-materias-quorums',
+      title: 'Ficha Legal: Cuadro Maestro de Quórums y Materias (Art. 15)',
+      subtitle: 'Esquema sinóptico de sesiones ordinarias, extraordinarias de mayoría absoluta y mayoría reforzada con quórums de constitución y votación.',
+      badge: 'Asesoría Comité',
+      badgeColor: 'slate',
+      format: 'Ficha Legal (1 Pág)',
+      type: 'generado',
+      category: 'fichas',
+      ready: true,
+      onPrint: handlePrintLegalGuides,
+      onOpen: () => onNavigateToSection?.('flujo'),
+      stepNumber: null,
+      icon: Scale
     }
   ], [
     setPreviewColdLetterModal, handlePrintColdLetter, handleShareWhatsApp,
