@@ -9248,9 +9248,21 @@ export const CompanySettingsAndBackupModule = ({
       )}
 
       {/* ==================== MODAL 1: BROCHURE DE LA APP & PORTAL WEB (PDF CARTA) ==================== */}
-      {previewBrochureModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col relative space-y-4">
+      <div
+        className={
+          previewBrochureModal
+            ? 'fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto'
+            : 'fixed top-0 left-0 w-[850px] -z-[9999] opacity-100 pointer-events-none'
+        }
+      >
+        <div
+          className={
+            previewBrochureModal
+              ? 'bg-white rounded-3xl max-w-4xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col relative space-y-4'
+              : 'w-[850px] bg-white'
+          }
+        >
+          {previewBrochureModal && (
             <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 rounded-2xl bg-[#0F3D2E] text-[#D4B895]">
@@ -9284,15 +9296,18 @@ export const CompanySettingsAndBackupModule = ({
                 </button>
               </div>
             </div>
+          )}
 
+          {previewBrochureModal && (
             <div className="no-print pb-1">
               <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
             </div>
+          )}
 
-            {/* CONTENEDOR DEL BROCHURE IMPRIMIBLE */}
-            <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl">
-              <div
-                id="printable-app-brochure"
+          {/* CONTENEDOR DEL BROCHURE IMPRIMIBLE */}
+          <div className={previewBrochureModal ? "overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl" : "w-[850px]"}>
+            <div
+              id="printable-app-brochure"
                 data-pdf-style={pdfStyle}
                 className="dossier-page page-1 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed"
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
@@ -9561,7 +9576,6 @@ export const CompanySettingsAndBackupModule = ({
             </div>
           </div>
         </div>
-      )}
 
       {/* ==================== MODAL 2: INFORME DE DIAGNÓSTICO TÉCNICO INICIAL ==================== */}
       {previewInspectionModal && (
