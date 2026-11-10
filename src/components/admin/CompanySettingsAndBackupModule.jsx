@@ -6032,17 +6032,33 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Presentación Formal del Levantamiento Técnico */}
-                  <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-50/80 via-teal-50/50 to-slate-50 border border-emerald-300/80 text-[11px] text-slate-800 leading-relaxed space-y-2 shadow-2xs">
-                    <div className="flex items-center gap-1.5 border-b border-emerald-200/80 pb-1">
+                  <div
+                    className="p-2.5 rounded-xl border text-[10px] text-slate-800 leading-relaxed space-y-1.5 shadow-2xs"
+                    style={{
+                      backgroundColor: '#f0fdf4',
+                      borderColor: '#86efac',
+                      WebkitPrintColorAdjust: 'exact',
+                      printColorAdjust: 'exact'
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5 border-b border-emerald-300 pb-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-[#0F3D2E]"></span>
-                      <strong className="text-[#0F3D2E] uppercase text-[10.5px] tracking-wider">
+                      <strong className="text-[#0F3D2E] uppercase text-[10px] tracking-wider">
                         Alcance & Metodología del Levantamiento Técnico Visual:
                       </strong>
                     </div>
-                    <p className="text-justify">
+                    <p className="text-justify leading-snug">
                       El presente informe recopila de manera fidedigna las observaciones preliminares levantadas <em>in situ</em> durante el recorrido inspectivo guiado a las áreas e instalaciones de uso común del condominio. Su objetivo primordial es constatar el estado real de conservación, identificar vulnerabilidades operativas tempranas, fatiga o desgaste prematuro de materiales, y orientar con rigor de <strong>Constructor Civil colegiado</strong> al Comité de Administración en la priorización de obras preventivas antes de que deriven en emergencias de alto impacto presupuestario.
                     </p>
-                    <div className="p-2 bg-white/80 rounded-lg border border-emerald-200/60 text-[10.5px] text-slate-700 space-y-1">
+                    <div
+                      className="p-1.5 rounded-lg border text-[9.5px] text-slate-700 space-y-0.5"
+                      style={{
+                        backgroundColor: '#ffffff',
+                        borderColor: '#bbf7d0',
+                        WebkitPrintColorAdjust: 'exact',
+                        printColorAdjust: 'exact'
+                      }}
+                    >
                       <div className="font-bold text-[#0F3D2E] flex items-center gap-1">
                         <span>ℹ</span>
                         <span>Nota de Alcance Técnico & Auditoría Especializada de 30 Días:</span>
@@ -6054,28 +6070,31 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Partidas Evaluadas */}
-                  <div className="space-y-1.5">
-                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-0.5 flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-0.5 flex items-center justify-between">
                       <span>Estado de Instalaciones Críticas Inspeccionadas:</span>
-                      <span className="text-[9.5px] text-slate-500 font-mono font-normal">Muestra preliminar in situ</span>
+                      <span className="text-[9px] text-slate-500 font-mono font-normal">Muestra preliminar in situ</span>
                     </h4>
 
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       {inspectionForm.items.map((item, idx) => (
-                        <div key={item.id} className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-1 text-xs break-inside-avoid shadow-2xs">
+                        <div key={item.id} className="p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs break-inside-avoid shadow-2xs">
                           <div className="flex items-center justify-between">
-                            <span className="font-black text-slate-900 text-[11px]">{idx + 1}. {item.name}</span>
-                            <span className={`px-2.5 py-0.5 rounded text-[9.5px] font-bold ${
-                              item.status === 'Bueno'
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                : item.status === 'Requiere Mantención'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                                : 'bg-rose-100 text-rose-800 border border-rose-300'
-                            }`}>
+                            <span className="font-black text-slate-900 text-[10.5px]">{idx + 1}. {item.name}</span>
+                            <span
+                              className="px-2 py-0.5 rounded text-[9px] font-bold border"
+                              style={{
+                                backgroundColor: item.status === 'Bueno' ? '#d1fae5' : item.status === 'Requiere Mantención' ? '#fef3c7' : '#ffe4e6',
+                                color: item.status === 'Bueno' ? '#065f46' : item.status === 'Requiere Mantención' ? '#92400e' : '#9f1239',
+                                borderColor: item.status === 'Bueno' ? '#a7f3d0' : item.status === 'Requiere Mantención' ? '#fde68a' : '#fecdd3',
+                                WebkitPrintColorAdjust: 'exact',
+                                printColorAdjust: 'exact'
+                              }}
+                            >
                               {item.status}
                             </span>
                           </div>
-                          <p className="text-[10.5px] text-slate-700 leading-snug bg-slate-50/80 p-2 rounded-lg border border-slate-100">
+                          <p className="text-[10px] text-slate-700 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100">
                             {item.notes}
                           </p>
                         </div>
@@ -6085,23 +6104,23 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 {/* SECCIÓN INFERIOR ANCLADA AL PIE (PÁGINA 2: CONTINÚA EN PÁGINA 3) */}
-                <div className="mt-auto pt-2 space-y-2 relative z-10">
-                  <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                <div className="mt-auto pt-1.5 space-y-1.5 relative z-10">
+                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-xs">
                     <div className="space-y-0.5 max-w-xl">
-                      <p className="font-bold text-slate-900 text-[10.5px]">Dictamen Técnico & Criterio Constructivo Preventivo:</p>
-                      <p className="text-[10px] text-slate-600 leading-snug">
+                      <p className="font-bold text-slate-900 text-[10px]">Dictamen Técnico & Criterio Constructivo Preventivo:</p>
+                      <p className="text-[9.5px] text-slate-600 leading-tight">
                         Levantamiento ocular y funcional sin costo comercial para respaldar las decisiones estratégicas del Comité de Administración, protegiendo el valor patrimonial y la plusvalía de la copropiedad.
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full shadow-2xs">
+                      <span className="text-[9.5px] font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
                         Continúa en Página 3 (Matriz Comparativa) →
                       </span>
                     </div>
                   </div>
 
                   {/* Pie de Página Canónico Maestro */}
-                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Informe de Diagnóstico Técnico Inicial • Ley N° 21.442 (Pág. 2 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
@@ -6130,85 +6149,109 @@ export const CompanySettingsAndBackupModule = ({
                 />
 
                 {/* SECCIÓN SUPERIOR: MEMBRETE, PRESENTACIÓN INSTITUCIONAL, MATRIZ COMPARATIVA */}
-                <div className="space-y-2 relative z-10">
+                <div className="space-y-1.5 relative z-10">
                   {/* Membrete Maestro Técnico ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-1.5">
                     <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-11 w-auto" />
-                      <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <span className="text-[9.5px] font-black text-[#D4B895] uppercase tracking-widest block">
+                      <AranproLogo variant="principal" className="h-10 w-auto" />
+                      <div className="space-y-0.5 border-l border-slate-300 pl-3">
+                        <span className="text-[9px] font-black text-[#D4B895] uppercase tracking-widest block">
                           ANÁLISIS COMPARATIVO DE VALOR AGREGADO & PROPUESTA DIFERENCIADORA
                         </span>
-                        <h2 className="text-base font-black text-[#0F3D2E] uppercase tracking-tight">
+                        <h2 className="text-[15px] font-black text-[#0F3D2E] uppercase tracking-tight">
                           ¿Por qué elegir la Gestión Integral de ARANPRO?
                         </h2>
-                        <p className="text-[9.5px] text-slate-600 font-mono">
+                        <p className="text-[9px] text-slate-600 font-mono">
                           {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded">
+                      <span className="inline-block px-2 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9px] font-mono font-bold rounded">
                         ESTÁNDAR LEY 21.442
                       </span>
-                      <p className="text-[9.5px] text-slate-500 font-semibold">
+                      <p className="text-[9px] text-slate-500 font-semibold">
                         {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
                       </p>
                     </div>
                   </div>
 
                   {/* Presentación Estratégica Comparativa */}
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-800 leading-relaxed space-y-1.5 shadow-2xs">
-                    <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1">
+                  <div
+                    className="p-2 rounded-xl border text-[10px] text-slate-800 leading-snug space-y-1 shadow-2xs"
+                    style={{
+                      backgroundColor: '#f8fafc',
+                      borderColor: '#cbd5e1',
+                      WebkitPrintColorAdjust: 'exact',
+                      printColorAdjust: 'exact'
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5 border-b border-slate-200 pb-0.5">
                       <span className="inline-block w-2 h-2 rounded-full bg-[#0F3D2E]"></span>
-                      <strong className="text-[#0F3D2E] uppercase text-[10.5px] tracking-wider">
+                      <strong className="text-[#0F3D2E] uppercase text-[10px] tracking-wider">
                         Fundamentación Comparativa para la Decisión del Comité:
                       </strong>
                     </div>
-                    <p className="text-justify">
-                      Al enfrentar un proceso de licitación, es habitual recibir ofertas de administraciones empíricas o corredores de propiedades que compiten con precios ilusorios, pero carecen de competencia técnica en terreno y terminan traspasando costos ocultos (licencias de software, sobrecostos por reparaciones mal diagnosticadas o multas por incumplimientos normativos). En <strong>ARANPRO</strong> presentamos un modelo superador: unimos la dirección técnica en terreno de un <strong>Constructor Civil colegiado</strong> con una <strong>Suite Tecnológica 100% Bonificada</strong> de libre acceso para toda la comunidad:
+                    <p className="text-justify text-[9.5px]">
+                      Frente al proceso de licitación, contrastamos el modelo tradicional de administraciones empíricas (que compiten con honorarios ilusorios pero trasladan costos ocultos y carecen de supervisión constructiva) versus el estándar de <strong>Gestión Integral ARANPRO</strong>, fundado en la dirección de un <strong>Constructor Civil</strong> y una <strong>Suite Tecnológica 100% Bonificada</strong> para la comunidad:
                     </p>
                   </div>
 
                   {/* FILAS DE LA MATRIZ COMPARATIVA */}
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     {[
                       {
                         p: '1. Supervisión Constructiva & Auditoría de Obras en Terreno',
-                        t: 'Visitas superficiales y esporádicas. Desconocimiento técnico en bombas, calderas y electricidad; dependencia ciega de cotizaciones de terceros que encarecen los arreglos o no resuelven la falla de raíz.',
-                        a: 'Liderazgo directo de Constructor Civil. Inspección técnica de instalaciones críticas, fiscalización in situ del estándar real de mantenciones y auditoría de presupuestos para optimizar el gasto de la comunidad.'
+                        t: 'Visitas esporádicas. Desconocimiento constructivo; dependencia ciega de cotizaciones externas que inflan costos.',
+                        a: 'Liderazgo directo de Constructor Civil. Inspección técnica in situ de bombas, tableros y mantenciones para cuidar el gasto común.'
                       },
                       {
                         p: '2. Transparencia Financiera, Bancaria & Rendición 24/7',
-                        t: 'Planillas Excel estáticas enviadas con semanas de retraso. Cartolas bancarias y facturas ocultas o de difícil acceso, sembrando desconfianza y desgaste entre los vecinos.',
-                        a: 'Portal Web y App Móvil 24/7 sin costo de software: cada vecino audita facturas digitalizadas, comprobantes y conciliaciones bancarias al día con 1 solo clic.'
+                        t: 'Planillas Excel estáticas tardías. Cartolas bancarias y facturas ocultas o de difícil acceso para los vecinos.',
+                        a: 'Portal Web y App Móvil 24/7 sin costo: cada vecino audita facturas digitalizadas y conciliaciones bancarias con 1 clic.'
                       },
                       {
                         p: '3. Cumplimiento Ley N° 21.442, Asambleas & Quórums Validados',
-                        t: 'Falta crónica de quórum presencial. Conflictos entre copropietarios, actas demoradas y reglamentos desactualizados que exponen a contingencias legales al Comité.',
-                        a: 'Asambleas telemáticas e híbridas con votación digital verificada desde el celular (Art. 15°), cálculo automático de quórums y modernización al marco legal de la Ley N° 21.442.'
+                        t: 'Falta crónica de quórum presencial. Conflictos, actas demoradas y reglamentos desactualizados con riesgo de nulidad.',
+                        a: 'Asambleas telemáticas e híbridas con votación digital celular (Art. 15°), quórums automáticos y marco Ley 21.442.'
                       },
                       {
-                        p: '4. Trazabilidad de Reclamos, Gestión de Incidentes & Libro Art. 20°',
-                        t: 'Mensajes dispersos de WhatsApp o llamados informales que quedan sin respuesta ni registro vinculante, provocando frustración vecinal.',
-                        a: 'Libro Oficial de Reclamos y Sugerencias digital y foliado conforme a la Ley N° 21.442 (Art. 20°). Registro con ticket de seguimiento y plazos legales perentorios de respuesta formal.'
+                        p: '4. Trazabilidad de Reclamos & Libro Oficial Art. 20°',
+                        t: 'Mensajes dispersos de WhatsApp o llamados informales que quedan sin respuesta ni registro legal formal.',
+                        a: 'Libro Oficial de Reclamos digital y foliado conforme a Ley 21.442. Ticket de seguimiento y plazos legales de respuesta.'
                       },
                       {
                         p: '5. Estrategia de Cobranza Legal, Fe Notarial & Certificaciones',
-                        t: 'Cobranza informal reactiva y demoras injustificadas en la emisión de certificados de deuda para compraventa o arriendo, bloqueando gestiones notariales.',
-                        a: 'Protocolos de corte legal automatizados, convenios de pago formales y emisión instantánea foliada de certificados de no deuda para notarías (Art. 36°), respaldados con firma legal.'
+                        t: 'Cobranza informal reactiva y demoras injustificadas en entrega de certificados de deuda para notarías.',
+                        a: 'Protocolos de corte legal automatizados, convenios de pago formales y certificados para notarías inmediatos (Art. 36°).'
                       }
                     ].map((row, i) => (
-                      <div key={i} className="p-2 rounded-xl border border-slate-200 bg-white space-y-1 text-xs shadow-2xs">
-                        <span className="font-black text-slate-900 text-[10.5px] block">{row.p}</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
-                          <div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-slate-700">
-                            <strong className="text-rose-800 block text-[9px] uppercase tracking-wide">✕ Administración Tradicional:</strong>
+                      <div key={i} className="p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs shadow-2xs">
+                        <span className="font-black text-slate-900 text-[10px] block leading-tight">{row.p}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[9.5px]">
+                          <div
+                            className="p-1.5 rounded-lg border text-slate-700 leading-tight"
+                            style={{
+                              backgroundColor: '#fff1f2',
+                              borderColor: '#fecdd3',
+                              WebkitPrintColorAdjust: 'exact',
+                              printColorAdjust: 'exact'
+                            }}
+                          >
+                            <strong className="text-rose-800 block text-[8.5px] uppercase tracking-wide">✕ Administración Tradicional:</strong>
                             <p className="mt-0.5 leading-snug">{row.t}</p>
                           </div>
-                          <div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-slate-800">
-                            <strong className="text-[#0F3D2E] block text-[9px] uppercase tracking-wide">✓ Con ARANPRO Gestión Integral:</strong>
-                            <p className="mt-0.5 leading-snug font-medium">{row.a}</p>
+                          <div
+                            className="p-1.5 rounded-lg border text-slate-800 leading-tight font-medium"
+                            style={{
+                              backgroundColor: '#f0fdf4',
+                              borderColor: '#bbf7d0',
+                              WebkitPrintColorAdjust: 'exact',
+                              printColorAdjust: 'exact'
+                            }}
+                          >
+                            <strong className="text-[#0F3D2E] block text-[8.5px] uppercase tracking-wide">✓ Con ARANPRO Gestión Integral:</strong>
+                            <p className="mt-0.5 leading-snug">{row.a}</p>
                           </div>
                         </div>
                       </div>
@@ -6216,65 +6259,78 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Cierre Magistral Institucional */}
-                  <div className="p-3 rounded-xl bg-gradient-to-r from-[#0F3D2E] via-[#144937] to-[#0A291F] text-white text-[10px] leading-relaxed space-y-1.5 shadow-md border border-[#D4B895]/50">
-                    <div className="flex items-center justify-between border-b border-[#D4B895]/40 pb-1">
+                  <div
+                    data-aranpro-dark="true"
+                    className="p-2 rounded-xl border shadow-md space-y-1"
+                    style={{
+                      backgroundColor: '#0F3D2E',
+                      color: '#ffffff',
+                      borderColor: '#D4B895',
+                      WebkitPrintColorAdjust: 'exact',
+                      printColorAdjust: 'exact'
+                    }}
+                  >
+                    <div className="flex items-center justify-between border-b border-[#D4B895]/50 pb-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[#D4B895] text-xs font-black">★</span>
-                        <h4 className="text-[#D4B895] font-black text-[11px] uppercase tracking-wider">
+                        <h4 className="text-[#D4B895] font-black text-[10px] uppercase tracking-wider">
                           Voto de Confianza, Fe Institucional & Compromiso de Excelencia
                         </h4>
                       </div>
-                      <span className="text-[9px] font-mono text-emerald-200/90 bg-white/10 px-2 py-0.5 rounded border border-white/10">
+                      <span
+                        className="text-[8.5px] font-mono text-emerald-100 px-1.5 py-0.5 rounded border border-white/20"
+                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
+                      >
                         Liderazgo • Rigor Constructivo • Transparencia Total
                       </span>
                     </div>
-                    <p className="text-slate-100 text-justify leading-relaxed">
-                      Asumir la administración de su condominio no es para nosotros un mero encargo comercial ni una función de gabinete; representa un <strong>compromiso ético y profesional indeclinable</strong> con el resguardo del patrimonio y la calidad de vida de cada una de las familias que componen su comunidad. Ponemos a su entera disposición nuestra solvencia como <strong>Constructor Civil colegiado</strong>, el estricto apego a la <strong>Ley N° 21.442</strong> y una plataforma tecnológica transparente que devolverá al Comité de Administración la tranquilidad, el orden y la dignidad directiva que merecen. Agradecemos su confianza y quedamos a su entera disposición para iniciar juntos este camino de orden y excelencia.
+                    <p className="text-slate-100 text-justify leading-snug text-[9.5px]">
+                      Asumir la administración de su condominio no es para nosotros un mero encargo comercial ni una función de gabinete; representa un <strong>compromiso ético y profesional indeclinable</strong> con el resguardo patrimonial y la calidad de vida de su comunidad. Ponemos a su entera disposición nuestra solvencia técnica como <strong>Constructor Civil colegiado</strong>, el estricto apego a la <strong>Ley N° 21.442</strong> y una plataforma digital transparente que devolverá al Comité la tranquilidad, el orden y la dignidad directiva que se merece. Agradecemos su confianza y quedamos a su entera disposición para iniciar juntos este camino de excelencia.
                     </p>
                   </div>
                 </div>
 
                 {/* SECCIÓN INFERIOR ANCLADA AL PIE (PÁGINA FINAL CON SELLO Y FIRMA OFICIAL) */}
-                <div className="mt-auto pt-2 space-y-2 relative z-10">
-                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4 text-xs">
-                    <div className="flex items-center gap-3 max-w-md">
+                <div className="mt-auto pt-1.5 space-y-1 relative z-10">
+                  <div className="pt-1.5 border-t border-slate-200 flex items-end justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2.5 max-w-md">
                       <AranproOfficialSeal
                         size="sm"
                         companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
                         rnacNumber=""
                         showCaption={true}
                       />
-                      <div className="space-y-0.5 border-l border-slate-200 pl-3">
-                        <p className="font-bold text-slate-900 text-[10px]">Respaldo Institucional & Compromiso de Gestión:</p>
-                        <p className="text-[9.5px] text-slate-600 leading-snug">
+                      <div className="space-y-0.5 border-l border-slate-200 pl-2.5">
+                        <p className="font-bold text-slate-900 text-[9.5px]">Respaldo Institucional & Compromiso de Gestión:</p>
+                        <p className="text-[9px] text-slate-600 leading-tight">
                           Propuesta vinculante formalizada conforme a la Ley N° 21.442 de Copropiedad Inmobiliaria, garantizando solvencia técnica y transparencia contable 24/7.
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-center min-w-[240px]">
-                      <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
+                    <div className="text-center min-w-[210px]">
+                      <div className="h-11 flex items-end justify-center pb-0.5 overflow-visible">
                         {(signatureImage || companySettings?.signatureDataUrl) ? (
                           <img
                             src={signatureImage || companySettings?.signatureDataUrl}
                             alt="Firma"
-                            className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
+                            className="h-10 max-h-11 w-auto max-w-[210px] object-contain mx-auto"
                             style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                           />
                         ) : (
-                          <div className="h-12 flex items-center justify-center text-[10px] text-slate-400 italic">Firma del Representante Legal</div>
+                          <div className="h-10 flex items-center justify-center text-[9px] text-slate-400 italic">Firma del Representante Legal</div>
                         )}
                       </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-1 text-[10px]">
-                        <p className="font-black text-slate-900 text-[11px] leading-tight">{empresaForm.adminName}</p>
-                        <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">Constructor Civil • Administrador de Condominios</p>
-                        <p className="text-[9px] text-slate-600 font-mono">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
+                      <div className="border-t-[1.5px] border-slate-800 pt-0.5 text-[9px]">
+                        <p className="font-black text-slate-900 text-[10.5px] leading-tight">{empresaForm.adminName}</p>
+                        <p className="text-[8.5px] text-[#0F3D2E] font-bold leading-tight">Constructor Civil • Administrador de Condominios</p>
+                        <p className="text-[8.5px] text-slate-600 font-mono">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Pie de Página Canónico Maestro Página 3 */}
-                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Matriz Comparativa de Gestión • Estándar Ley N° 21.442 (Pág. 3 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>

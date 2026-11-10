@@ -261,6 +261,39 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             .bg-slate-50 { background-color: #f8fafc !important; }
             .bg-slate-100 { background-color: #f1f5f9 !important; }
 
+            /* Preservación estricta de colores institucionales en impresión */
+            .bg-aranpro-dark, [data-aranpro-dark="true"] {
+              background-color: #0F3D2E !important;
+              color: #ffffff !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .bg-emerald-50, [class*="bg-emerald-50"] {
+              background-color: #f0fdf4 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .bg-rose-50, [class*="bg-rose-50"] {
+              background-color: #fff1f2 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .bg-amber-100, [class*="bg-amber-100"] {
+              background-color: #fef3c7 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .bg-emerald-100, [class*="bg-emerald-100"] {
+              background-color: #d1fae5 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .bg-rose-100, [class*="bg-rose-100"] {
+              background-color: #ffe4e6 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
             /* Marca de agua central institucional (Alternativa 4) */
             .aranpro-print-watermark {
               position: fixed;
@@ -414,7 +447,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
         window.print();
         setTimeout(cleanup, 120000);
       }
-    }, 700);
+    }, 1000);
   } catch (e) {
     console.error('Error generando documento de impresión', e);
     window.print();
