@@ -1,12 +1,12 @@
-/**
- * Generador Canónico de PDF para Postulaciones ARANPRO
- * Exporta 1:1 el documento maestro del DOM generado por la aplicación
- * (ARANPRO_Carta_Valor_Comite, Dossier Integral 4 Páginas, Carta Formal de Postulación y Brochure)
- * asegurando la misma tipografía, tamaños, doble filete, colores exactos (#0F3D2E, #D4B895, #F5F4EF)
- * y distribución de página idéntica a la previsualización e impresión oficial.
+﻿/**
+ * Generador CanÃ³nico de PDF para Postulaciones ARANPRO
+ * Exporta 1:1 el documento maestro del DOM generado por la aplicaciÃ³n
+ * (ARANPRO_Carta_Valor_Comite, Dossier Integral 4 PÃ¡ginas, Carta Formal de PostulaciÃ³n y Brochure)
+ * asegurando la misma tipografÃ­a, tamaÃ±os, doble filete, colores exactos (#0F3D2E, #D4B895, #F5F4EF)
+ * y distribuciÃ³n de pÃ¡gina idÃ©ntica a la previsualizaciÃ³n e impresiÃ³n oficial.
  */
 
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
 
 /**
@@ -42,8 +42,8 @@ const getWatermarkBase64 = async () => {
 };
 
 /**
- * Captura un elemento o contenedor del DOM y genera un PDF estándar Carta (612 x 792 pt)
- * en Base64 idéntico al documento maestro que se imprime o descarga desde la aplicación.
+ * Captura un elemento o contenedor del DOM y genera un PDF estÃ¡ndar Carta (612 x 792 pt)
+ * en Base64 idÃ©ntico al documento maestro que se imprime o descarga desde la aplicaciÃ³n.
  */
 export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => {
   let targetEl = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
@@ -54,14 +54,14 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     throw new Error(`Elemento #${typeof elementOrId === 'string' ? elementOrId : 'desconocido'} no encontrado en el DOM`);
   }
 
-  // 1. Obtener páginas hijas (.dossier-page) o el contenedor raíz
+  // 1. Obtener pÃ¡ginas hijas (.dossier-page) o el contenedor raÃ­z
   const rawPages = Array.from(targetEl.querySelectorAll('.dossier-page'));
   const pages = rawPages.length > 0 ? rawPages : [targetEl];
 
   // 2. Precargar marca de agua corporativa en Base64
   const watermarkBase64 = await getWatermarkBase64();
 
-  // 3. Crear documento PDF oficial tamaño Carta estándar (612 x 792 pt)
+  // 3. Crear documento PDF oficial tamaÃ±o Carta estÃ¡ndar (612 x 792 pt)
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'pt',
@@ -71,7 +71,7 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
 
-    // Captura limpia y directa del elemento con escala 2 para nitidez tipográfica y colores puros
+    // Captura limpia y directa del elemento con escala 2 para nitidez tipogrÃ¡fica y colores puros
     const canvas = await html2canvas(page, {
       scale: 2,
       useCORS: true,
@@ -96,7 +96,7 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
           });
         }
 
-        // Posicionar el clon como elemento único en la raíz del documento clonado
+        // Posicionar el clon como elemento Ãºnico en la raÃ­z del documento clonado
         clonedDoc.body.innerHTML = '';
         clonedDoc.body.appendChild(clonedEl);
         clonedDoc.body.style.margin = '0';
@@ -136,7 +136,7 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
       pdf.addPage('letter', 'portrait');
     }
 
-    // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt) con proporción matemática exacta
+    // Dibujar ocupando la totalidad de la hoja Carta oficial (612 x 792 pt) con proporciÃ³n matemÃ¡tica exacta
     pdf.addImage(imgData, 'PNG', 0, 0, 612, 792, undefined, 'FAST');
   }
 
@@ -145,9 +145,9 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
 };
 
 /**
- * Genera el PDF Canónico exacto para el paso indicado (1, 2, 3 o 4)
- * Exporta directamente el documento maestro del DOM generado por la aplicación,
- * respetando todos los parámetros reales (si viene con nombre o en blanco).
+ * Genera el PDF CanÃ³nico exacto para el paso indicado (1, 2, 3 o 4)
+ * Exporta directamente el documento maestro del DOM generado por la aplicaciÃ³n,
+ * respetando todos los parÃ¡metros reales (si viene con nombre o en blanco).
  */
 export const generateStepPdfAttachment = async ({
   stepNumber = 1,
@@ -193,7 +193,7 @@ export const generateStepPdfAttachment = async ({
     }
 
     if (!el) {
-      // Reintento breve de 150ms si el elemento se está montando en el DOM
+      // Reintento breve de 150ms si el elemento se estÃ¡ montando en el DOM
       await new Promise((r) => setTimeout(r, 150));
       el = document.getElementById(elementId) || document.querySelector(`[id="${elementId}"]`);
     }
