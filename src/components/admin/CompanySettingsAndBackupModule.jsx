@@ -5872,84 +5872,77 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
                   </div>
 
-                  {/* Cuerpo de la Carta */}
-                  <div className="text-justify text-[10.5px] text-slate-800 leading-snug space-y-1.5">
+                  {/* Cuerpo de la Carta con Fundamentación Ejecutiva */}
+                  <div className="text-justify text-[10.5px] text-slate-800 leading-snug space-y-2">
                     <p>
                       {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim()
                         ? 'Estimados señores miembros del Comité de Administración y vecinos copropietarios:'
                         : `Estimados ${proposalConfig.targetRecipient}:`}
                     </p>
                     <p>
-                      Por medio de la presente, tengo el agrado de presentar a ustedes la postulación formal de
-                      <strong> {empresaForm.provisionalName}</strong> para asumir la administración,
-                      gestión operativa y resguardo patrimonial de{' '}
-                      {proposalConfig.targetCondo?.trim() ? (
-                        <strong>{proposalConfig.targetCondo}</strong>
-                      ) : (
-                        <strong>su distinguida comunidad</strong>
-                      )}{' '}
-                      conforme a las disposiciones de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
+                      Junto con saludarles cordialmente y agradecer la provechosa visita técnica realizada en terreno a sus dependencias, tengo el agrado de presentar a ustedes la <strong>Propuesta Operativa y Económica Definitiva</strong> de <strong>{empresaForm.provisionalName}</strong> para asumir formalmente la administración, fiscalización técnica y custodia patrimonial de {proposalConfig.targetCondo?.trim() ? <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong> : <strong>su distinguida comunidad</strong>}, en estricto cumplimiento de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
                     </p>
                     <p>
-                      {empresaForm.presentationText}
+                      Como es de su conocimiento, nuestra filosofía de trabajo sitúa la transparencia y la rigurosidad constructiva en el centro de la gestión. Entendemos que para un Comité de Administración asumir la transición de una administración anterior suele generar incertidumbres financieras y operativas. Por esta razón, <strong>reiteramos nuestro compromiso formal de homologación: estamos plenamente dispuestos a iniciar nuestro mandato ajustándonos al honorario que la comunidad cancela actualmente a la administración saliente durante un período de transición de 90 días</strong>, garantizando continuidad de servicio sin alterar el presupuesto mensual de los copropietarios.
+                    </p>
+                    <p>
+                      No obstante, para dotar a la comunidad de un estándar técnico sostenible, evitar sorpresas en gastos comunes y asegurar la custodia periódica de sus equipos críticos (sala de bombas, tableros, techumbres y personal), <strong>hemos realizado la tasación técnica rigurosa utilizando la Matriz Oficial de Piso de Honorarios de la Asociación Gremial de Administradores de Chile (AGACECH)</strong>. Dicha evaluación matemática contempla la escala de unidades del condominio, la antigüedad de las instalaciones y el volumen de fiscalización técnica necesaria, fijando el <em>precio justo de equilibrio profesional</em> que se detalla a continuación:
                     </p>
 
-                    {/* Fortalezas y Diferenciadores Técnicos */}
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1 text-xs">
-                      <p className="font-black text-[#0F3D2E] uppercase text-[10px]">
-                        NUESTRAS 4 FORTALEZAS Y VENTAJAS COMPETITIVAS:
-                      </p>
-                      <ul className="list-disc pl-4 space-y-0.5 text-slate-700 text-[10px] leading-snug">
-                        <li>
-                          <strong>Solvencia Técnica Constructor Civil:</strong> Diagnósticos directos en bombas, tableros eléctricos, sellos y cubiertas sin sobrecostos de contratistas externos.
-                        </li>
-                        <li>
-                          <strong>Transparencia Contable Digital 24/7:</strong> Portal y app móvil gratuita donde cada vecino audita con 1 clic las facturas, boletas y cartolas bancarias.
-                        </li>
-                        <li>
-                          <strong>Acreditación Minvu Ley 21.442:</strong> Administrador titular debidamente acreditado conforme a las exigencias legales vigentes.
-                        </li>
-                        <li>
-                          <strong>Cobranza Asistida & Fe Notarial:</strong> Emisión formal de certificados de no deuda, convenios de pago y certificados morosos para compraventas (Art. 36°).
-                        </li>
-                      </ul>
-                    </div>
-
                     {/* Resumen de Propuesta Económica Formal para la Licitación */}
-                    <div className="p-2.5 rounded-xl bg-[#F5F4EF] border border-[#D4B895] space-y-1 text-xs">
-                      <div className="flex items-center justify-between border-b border-[#D4B895]/50 pb-1">
-                        <span className="font-black text-[#0F3D2E] uppercase text-[10px]">
-                          Propuesta Económica & Honorarios de Administración (Ley N° 21.442)
-                        </span>
-                        <span className="font-mono font-bold text-[9px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2 py-0.5 rounded">
+                    <div className="p-3 rounded-2xl bg-gradient-to-br from-[#F5F4EF] via-white to-[#F5F4EF] border-2 border-[#D4B895] space-y-1.5 text-xs shadow-xs">
+                      <div className="flex items-center justify-between border-b border-[#D4B895]/60 pb-1.5">
+                        <div>
+                          <span className="font-black text-[#0F3D2E] uppercase text-[10.5px] block tracking-tight">
+                            Propuesta Económica & Honorarios de Administración (Ley N° 21.442)
+                          </span>
+                          <span className="text-[8.5px] text-slate-500 font-mono">
+                            Tasación referencial basada en el Modelo Oficial de Complejidad AGACECH
+                          </span>
+                        </div>
+                        <span className="font-mono font-bold text-[9px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2.5 py-0.5 rounded-md shadow-2xs">
                           {proposalConfig.taxModality || 'Factura Exenta / Boleta'}
                         </span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-center py-0.5">
-                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                      <div className="grid grid-cols-3 gap-2.5 text-center py-1">
+                        <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
                           <span className="text-[8px] text-slate-500 uppercase block font-bold">Honorario Mensual Propuesto</span>
-                          <strong className="text-xs font-black text-[#0F3D2E]">
+                          <strong className="text-xs md:text-sm font-black text-[#0F3D2E] block mt-0.5">
                             {Number(proposalConfig.proposedMonthlyFee) > 0 ? `${formatCLP(Number(proposalConfig.proposedMonthlyFee))} / mes` : 'A convenir en reunión'}
                           </strong>
+                          <span className="text-[7.5px] text-emerald-800 font-semibold block mt-0.5">
+                            (Flexible a transición saliente)
+                          </span>
                         </div>
-                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                        <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
                           <span className="text-[8px] text-slate-500 uppercase block font-bold">Costo Estimado / Unidad</span>
-                          <strong className="text-xs font-black text-slate-800">
+                          <strong className="text-xs md:text-sm font-black text-slate-800 block mt-0.5">
                             {Number(proposalConfig.proposedMonthlyFee) > 0
                               ? `${formatCLP(Math.round(Number(proposalConfig.proposedMonthlyFee) / Math.max(1, Number(proposalConfig.targetUnits) || 1)))} / unidad`
                               : 'Según dotación'}
                           </strong>
+                          <span className="text-[7.5px] text-slate-500 font-mono block mt-0.5">
+                            Por casa / departamento
+                          </span>
                         </div>
-                        <div className="bg-white p-1.5 rounded-lg border border-slate-200">
+                        <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
                           <span className="text-[8px] text-slate-500 uppercase block font-bold">Comunidad Evaluada</span>
-                          <strong className="text-xs font-black text-slate-800">
+                          <strong className="text-xs md:text-sm font-black text-slate-800 block mt-0.5">
                             {proposalConfig.targetUnits ? `${proposalConfig.targetUnits} Unidades` : 'Por definir en visita'}
                           </strong>
+                          <span className="text-[7.5px] text-slate-500 font-mono block mt-0.5">
+                            Dotación habitacional
+                          </span>
                         </div>
                       </div>
-                      <p className="text-[9px] text-slate-600 leading-snug">
-                        <strong>Incluye sin costo adicional:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}, Suite Web & App Móvil ARANPRO 24/7 para todos los copropietarios, y auditoría de traspaso inicial.
-                      </p>
+                      <div className="p-2 bg-emerald-50/80 rounded-xl border border-emerald-200/80 text-[8.5px] text-slate-700 leading-snug space-y-0.5">
+                        <p>
+                          <strong>✓ Servicios y Beneficios incluidos sin cobros extra:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas presenciales semanales en terreno'}, <strong>Suite Web & App Móvil ARANPRO 100% gratuita para residentes y comité</strong> (cero costos de licencias), auditoría contable de traspaso, supervisión técnica de contratos y atención de emergencias 24/7.
+                        </p>
+                        <p className="text-[#0F3D2E] font-medium">
+                          <strong>Garantía de Ajuste al 3er Mes:</strong> Al término de los 90 días iniciales, una vez normalizada la comunidad y resueltas las urgencias del diagnóstico adjunto, evaluaremos en conjunto mantener el valor de transición o consolidar la tarifa técnica AGACECH.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -6038,10 +6031,20 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
+                  {/* Presentación Formal del Levantamiento Técnico */}
+                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-slate-50 border border-emerald-200/70 text-[9.5px] text-slate-700 leading-snug space-y-1">
+                    <p>
+                      <strong>Alcance del Levantamiento Visual en Terreno:</strong> El presente informe compila las observaciones preliminares levantadas in situ durante el recorrido inspectivo guiado a las instalaciones comunes del condominio. Su objetivo es identificar riesgos latentes de falla, desgastes prematuros y orientar con criterio de <strong>Constructor Civil</strong> al Comité de Administración en la priorización de partidas urgentes antes de asumir costos mayores.
+                    </p>
+                    <p className="text-slate-500 italic">
+                      * <u>Nota de Alcance Técnico:</u> Las partidas no detalladas en esta ficha (tales como transporte vertical/ascensores, cercos perimetrales eléctricos, bombas de pozo o centrales de citofonía) no han sido desestimadas; corresponden a componentes que requieren pruebas de carga, desarme o peritaje de funcionamiento en régimen operativo, lo cual se abordará formalmente en la auditoría técnica profunda durante los primeros 30 días de administración.
+                    </p>
+                  </div>
+
                   {/* Partidas Evaluadas */}
-                  <div className="space-y-2">
-                    <h4 className="text-[10.5px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1">
-                      Evaluación de Estado de Instalaciones Críticas:
+                  <div className="space-y-1.5">
+                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-0.5">
+                      Estado de Instalaciones Críticas Inspeccionadas:
                     </h4>
 
                     <div className="space-y-1.5">
@@ -6113,7 +6116,7 @@ export const CompanySettingsAndBackupModule = ({
                   aria-hidden="true"
                 />
 
-                {/* SECCIÓN SUPERIOR: MEMBRETE, TÍTULO, MATRIZ COMPARATIVA */}
+                {/* SECCIÓN SUPERIOR: MEMBRETE, PRESENTACIÓN INSTITUCIONAL, MATRIZ COMPARATIVA */}
                 <div className="space-y-2 relative z-10">
                   {/* Membrete Maestro Técnico ARANPRO */}
                   <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
@@ -6121,7 +6124,7 @@ export const CompanySettingsAndBackupModule = ({
                       <AranproLogo variant="principal" className="h-11 w-auto" />
                       <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
                         <span className="text-[9.5px] font-black text-[#D4B895] uppercase tracking-widest block">
-                          ANÁLISIS COMPARATIVO DE VALOR AGREGADO
+                          ANÁLISIS COMPARATIVO DE VALOR AGREGADO & PROPUESTA DIFERENCIADORA
                         </span>
                         <h2 className="text-base font-black text-[#0F3D2E] uppercase tracking-tight">
                           ¿Por qué elegir la Gestión Integral de ARANPRO?
@@ -6141,16 +6144,23 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
+                  {/* Presentación Estratégica Comparativa */}
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[9.5px] text-slate-700 leading-snug">
+                    <p>
+                      Frente a los múltiples desafíos que enfrentan los Comités de Administración al evaluar postulaciones externas, contrastamos a continuación el modelo tradicional de corretaje versus el estándar de <strong>Gestión Integral ARANPRO</strong>, fundado en la dirección técnica de un <strong>Constructor Civil</strong> y una <strong>Suite Tecnológica 100% gratuita</strong> para la comunidad:
+                    </p>
+                  </div>
+
                   {/* FILAS DE LA MATRIZ COMPARATIVA */}
                   <div className="space-y-1.5">
                     {[
-                      { p: '1. Supervisión Constructiva', t: 'Visitas esporádicas. No saben de construcción ni bombas; dependen a ciegas de técnicos externos con sobrecostos.', a: 'Administrador Constructor Civil. Audita bombas, sellos, filtraciones y fiscaliza a contratistas en terreno con criterio técnico experto.' },
-                      { p: '2. Transparencia en Cuentas', t: 'Planillas Excel confusas enviadas a fin de mes. Comprobantes bancarios ocultos o extraviados.', a: 'Portal y App móvil 24/7 donde cada vecino audita las facturas y comprobantes bancarios reales de cada gasto con 1 solo clic.' },
-                      { p: '3. Asambleas Ley 21.442', t: 'Falta crónica de quórum presencial. Actas en papel que tardan semanas en protocolizarse.', a: 'Asambleas telemáticas e híbridas con voto digital seguro desde el teléfono celular y quórums automatizados (Art. 15°).' },
-                      { p: '4. Atención de Reclamos', t: 'Mensajes de WhatsApp o llamados informales que quedan en el olvido sin respuesta.', a: 'Libro Oficial de Reclamos y Sugerencias digital foliado con plazo legal estricto de respuesta garantizado (Art. 20°).' },
-                      { p: '5. Cobranzas & Fe Notarial', t: 'Cobranza informal sin protocolos legales ni respaldo jurídico.', a: 'Certificados oficiales foliados de no deuda, convenios de pago y certificados morosos para compraventas (Art. 36°).' }
+                      { p: '1. Supervisión Constructiva & Auditoría de Obras', t: 'Visitas esporádicas. No saben de construcción ni bombas; dependen a ciegas de técnicos externos con sobrecostos y cotizaciones infladas.', a: 'Administrador Constructor Civil. Audita bombas, tableros, cubiertas y fiscaliza a contratistas en terreno con criterio técnico experto.' },
+                      { p: '2. Transparencia Contable & Rendición 24/7', t: 'Planillas Excel confusas enviadas con semanas de retraso. Comprobantes bancarios y facturas ocultos o de difícil acceso.', a: 'Portal Web y App móvil 24/7 sin costo de software: cada vecino audita facturas, cartolas bancarias y comprobantes con 1 solo clic.' },
+                      { p: '3. Asambleas y Quórums Ley N° 21.442', t: 'Falta crónica de quórum presencial. Conflictos entre vecinos y actas en papel que tardan semanas en protocolizarse.', a: 'Asambleas telemáticas e híbridas con votación digital certificada desde el celular (Art. 15°) y quórums automatizados.' },
+                      { p: '4. Canal de Reclamos & Trazabilidad Legal', t: 'Mensajes de WhatsApp perdidos o llamados informales que quedan sin respuesta ni registro vinculante.', a: 'Libro Oficial de Reclamos y Sugerencias digital foliado con plazo legal estricto de respuesta garantizado por sistema (Art. 20°).' },
+                      { p: '5. Cobranzas, Certificaciones & Fe Notarial', t: 'Cobranza informal sin protocolos de corte ni soporte jurídico. Demoras en certificados de venta.', a: 'Emisión inmediata foliada de certificados de no deuda, convenios de pago formales y certificados morosos para notarías (Art. 36°).' }
                     ].map((row, i) => (
-                      <div key={i} className="p-2 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs">
+                      <div key={i} className="p-2 rounded-xl border border-slate-200 bg-white space-y-1 text-xs shadow-2xs">
                         <span className="font-black text-slate-900 text-[10.5px] block">{row.p}</span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
                           <div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-slate-700">
@@ -6158,12 +6168,22 @@ export const CompanySettingsAndBackupModule = ({
                             <p className="mt-0.5 leading-snug">{row.t}</p>
                           </div>
                           <div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-slate-800">
-                            <strong className="text-[#0F3D2E] block text-[9px] uppercase">✓ Con ARANPRO:</strong>
+                            <strong className="text-[#0F3D2E] block text-[9px] uppercase">✓ Con ARANPRO Gestión Integral:</strong>
                             <p className="mt-0.5 leading-snug font-medium">{row.a}</p>
                           </div>
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Cierre Magistral Institucional */}
+                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-[#0F3D2E] via-[#165540] to-[#0A291F] text-white text-[9.5px] leading-snug space-y-1 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#D4B895] font-black text-xs uppercase tracking-wider">★ Voto de Confianza & Compromiso Ético Profesional</span>
+                    </div>
+                    <p className="text-slate-100/90 text-justify">
+                      Elegir a <strong>ARANPRO</strong> no es solo contratar una administración; es incorporar a un socio estratégico en terreno que resguarda la plusvalía del condominio, dignifica la labor del Comité y garantiza cuentas claras ante cada copropietario. Agradecemos su tiempo, confianza y quedamos a su entera disposición para iniciar juntos este camino de orden y excelencia.
+                    </p>
                   </div>
                 </div>
 
