@@ -5820,7 +5820,7 @@ export const CompanySettingsAndBackupModule = ({
                         Carta Formal de Postulación
                       </p>
                       <p className="text-[9.5px] text-slate-500 font-semibold">
-                        {proposalConfig.targetCondo?.trim() || 'Comunidad de Copropietarios'}
+                        {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
                       </p>
                     </div>
                   </div>
@@ -5829,10 +5829,12 @@ export const CompanySettingsAndBackupModule = ({
                   <div className="text-[10.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
                     <p>
                       <strong>Dirigido cordialmente a:</strong>{' '}
-                      {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim() ? (
+                      {proposalConfig.leaveRecipientBlank ? (
                         <span className="font-mono text-slate-400">__________________________________________________________________</span>
-                      ) : (
+                      ) : proposalConfig.targetRecipient?.trim() ? (
                         <strong className="text-slate-900">{proposalConfig.targetRecipient}</strong>
+                      ) : (
+                        <strong className="text-slate-900">Señores Integrantes del Comité de Administración</strong>
                       )}
                     </p>
                     {proposalConfig.targetCondo?.trim() ? (
@@ -5840,13 +5842,16 @@ export const CompanySettingsAndBackupModule = ({
                         <strong>Condominio / Edificio:</strong>{' '}
                         <strong className="text-[#0F3D2E] uppercase">{proposalConfig.targetCondo}</strong>
                       </p>
+                    ) : proposalConfig.leaveRecipientBlank ? (
+                      <p>
+                        <strong>Condominio / Edificio:</strong>{' '}
+                        <span className="font-mono text-slate-400">__________________________________________________________</span>
+                      </p>
                     ) : (
-                      proposalConfig.leaveRecipientBlank && (
-                        <p>
-                          <strong>Condominio / Edificio:</strong>{' '}
-                          <span className="font-mono text-slate-400">__________________________________________________________</span>
-                        </p>
-                      )
+                      <p>
+                        <strong>Condominio / Edificio:</strong>{' '}
+                        <span className="font-semibold text-slate-800">Comunidad de Copropietarios • {empresaForm.city || 'La Serena, Coquimbo'}</span>
+                      </p>
                     )}
                     <p><strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)</p>
                     <p>
@@ -6043,7 +6048,7 @@ export const CompanySettingsAndBackupModule = ({
                         DIAGNÓSTICO TÉCNICO
                       </span>
                       <p className="font-bold text-slate-800 text-[10.5px]">
-                        {proposalConfig.targetCondo?.trim() || inspectionForm.targetCondo || 'Comunidad de Copropietarios'}
+                        {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
                       </p>
                       <span className="text-[9px] text-slate-500 block font-mono">Fecha: {inspectionForm.date || new Date().toISOString().slice(0, 10)}</span>
                     </div>
@@ -6629,7 +6634,7 @@ export const CompanySettingsAndBackupModule = ({
                         Administración Cercana, Orden Financiero & Especialidad Constructiva
                       </p>
                       <p className="text-[9.5px] text-slate-500 font-semibold">
-                        {proposalConfig.targetCondo?.trim() || 'Comunidad de Copropietarios'}
+                        {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
                       </p>
                     </div>
                   </div>
