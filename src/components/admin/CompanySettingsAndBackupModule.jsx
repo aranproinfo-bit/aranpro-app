@@ -583,9 +583,9 @@ export const CompanySettingsAndBackupModule = ({
       case 3:
         return {
           title: 'Paso 3: Propuesta Formal a Medida & Honorarios Mensuales',
-          subject: `Propuesta Formal de Administración & Diagnóstico Técnico • ${condo}`,
-          whatsapp: `Estimado Comité de Administración de *${condo}*:\n\nAgradeciendo la provechosa visita técnica realizada a sus dependencias, hacemos entrega formal de nuestra *Propuesta de Administración y Honorarios a la medida*, junto con el *Informe de Diagnóstico Técnico Inicial* de sus instalaciones críticas levantado en terreno.\n\nNuestra propuesta contempla un honorario mensual de *${feeStr}* para su dotación de *${unitsStr} unidades*, incluyendo visitas técnicas semanales en terreno, plataforma digital 24/7 sin costo de licencias para residentes, auditoría contable de traspaso y atención de emergencias 24/7.\n\nAdjuntamos el documento consolidado oficial (Carta Formal de Postulación + Diagnóstico Técnico de Salas de Bombas y Tableros) para su revisión en sesión de comité. Quedamos a su entera disposición para resolver cualquier duda.\n\nSaludos cordiales,\n*${admin}* • ARANPRO (${phone})`,
-          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nEn seguimiento a la provechosa visita técnica realizada a sus instalaciones, tenemos el agrado de presentar formalmente nuestra Propuesta Operativa y Económica para asumir la administración de su comunidad, junto con el Informe de Diagnóstico Técnico Inicial elaborado a partir de la inspección visual en terreno.\n\nResumen de Condiciones Propuestas:\n• Honorario Mensual Propuesto: ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n• Dotación Considerada: ${unitsStr} unidades (casas / departamentos)\n• Modalidad de Atención: ${proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}\n• Beneficios Incluidos: Suite Web y App Móvil 100% gratuita para residentes y comité, auditoría de traspaso y supervisión técnica directa de obras y contratos.\n\nAdjunto a este correo encontrarán el documento oficial consolidado de 2 páginas que contiene:\n1. Carta Formal de Postulación con desglose de honorarios, SLA y condiciones de servicio.\n2. Informe Oficial de Diagnóstico Técnico Inicial con el estado de sus instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos).\n\nQuedamos a su completa disposición para coordinar los siguientes pasos.\n\nAtentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
+          subject: `Propuesta Formal de Administración, Diagnóstico Técnico & Cuadro Comparativo • ${condo}`,
+          whatsapp: `Estimado Comité de Administración de *${condo}*:\n\nAgradeciendo la provechosa visita técnica realizada a sus dependencias, hacemos entrega formal de nuestra *Propuesta de Administración y Honorarios a la medida*, junto con el *Informe de Diagnóstico Técnico Inicial* y la *Matriz Comparativa de Gestión* (Administración Tradicional vs. ARANPRO).\n\nNuestra propuesta contempla un honorario mensual de *${feeStr}* para su dotación de *${unitsStr} unidades*, incluyendo visitas técnicas semanales en terreno, plataforma digital 24/7 sin costo de licencias para residentes, auditoría contable de traspaso y atención de emergencias 24/7.\n\nAdjuntamos el documento consolidado oficial de 3 páginas (Carta Formal de Postulación + Diagnóstico Técnico de Instalaciones + Matriz Comparativa) para su revisión en sesión de comité. Quedamos a su entera disposición para resolver cualquier duda.\n\nSaludos cordiales,\n*${admin}* • ARANPRO (${phone})`,
+          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nEn seguimiento a la provechosa visita técnica realizada a sus instalaciones, tenemos el agrado de presentar formalmente nuestra Propuesta Operativa y Económica para asumir la administración de su comunidad, junto con el Informe de Diagnóstico Técnico Inicial y la Matriz Comparativa de Gestión.\n\nResumen de Condiciones Propuestas:\n• Honorario Mensual Propuesto: ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n• Dotación Considerada: ${unitsStr} unidades (casas / departamentos)\n• Modalidad de Atención: ${proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}\n• Beneficios Incluidos: Suite Web y App Móvil 100% gratuita para residentes y comité, auditoría de traspaso y supervisión técnica directa de obras y contratos.\n\nAdjunto a este correo encontrarán el documento oficial consolidado de 3 páginas que contiene:\n1. Carta Formal de Postulación con desglose de honorarios, SLA y condiciones de servicio.\n2. Informe Oficial de Diagnóstico Técnico Inicial con el estado de sus instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos).\n3. Matriz Comparativa de Gestión (Administración Tradicional vs. ARANPRO) para facilitar la evaluación de su directiva.\n\nQuedamos a su completa disposición para coordinar los siguientes pasos.\n\nAtentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
       case 4:
         return {
@@ -3499,7 +3499,7 @@ export const CompanySettingsAndBackupModule = ({
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="text-[10px] font-black uppercase tracking-wider text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
-                                Propuesta Económica • Carta + Diagnóstico Técnico (2 Pág)
+                                Propuesta Económica • Carta + Diagnóstico + Cuadro Comparativo (3 Pág)
                               </span>
                               <span className="text-[10px] font-bold text-slate-500">
                                 {proposalConfig.unknownDetails ? 'Por definir tras visita' : `${formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000)} / mes • ${proposalConfig.targetUnits || '60'} Unidades`}
@@ -3546,7 +3546,7 @@ export const CompanySettingsAndBackupModule = ({
                       )}
 
                       <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong>Cuándo usarlo:</strong> Una vez terminada la visita técnica en terreno y completada la Pauta de Inspección, genera tu oferta económica formal adjuntando el Diagnóstico Técnico de salas de bombas, tableros y prioridades detectadas.
+                        <strong>Cuándo usarlo:</strong> Una vez terminada la visita técnica en terreno y completada la Pauta de Inspección, genera tu oferta económica formal adjuntando el Diagnóstico Técnico de salas de bombas, tableros y la Matriz Comparativa frente a administraciones tradicionales.
                       </p>
 
                       {/* Botones de Acción Inmediata Paso 3 */}
@@ -3557,7 +3557,7 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
-                          Ver Propuesta & Diagnóstico (2 Pág)
+                          Ver Propuesta Completa (3 Pág)
                         </button>
                         <button
                           type="button"
@@ -3565,7 +3565,7 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          Imprimir Propuesta (2 Pág)
+                          Imprimir Propuesta (3 Pág)
                         </button>
                         <button
                           type="button"
@@ -3581,7 +3581,7 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <Scale className="w-3.5 h-3.5 text-slate-700" />
-                          Cuadro Comparativo
+                          Editar Cuadro Comparativo
                         </button>
                         <button
                           type="button"
@@ -4174,17 +4174,17 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    {/* 3. PASO 3: CARTA SIMPLE DE POSTULACIÓN A LICITACIÓN (1 PÁGINA CON VALORES) */}
+                    {/* 3. PASO 3: PROPUESTA FORMAL A MEDIDA & DIAGNÓSTICO TÉCNICO (CONSOLIDADO 3 PÁGINAS) */}
                     <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3 flex flex-col justify-between">
                       <div className="space-y-2">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-900 uppercase">
-                          ★ PASO 3 • PROPUESTA CON VALORES
+                          ★ PASO 3 • PROPUESTA CONSOLIDADA (3 PÁG.)
                         </span>
                         <h4 className="text-base font-black text-slate-900">
-                          Carta de Postulación a Licitación (1 Pág.)
+                          Propuesta Formal, Diagnóstico & Matriz Comparativa (3 Pág.)
                         </h4>
                         <p className="text-[11px] text-slate-600 leading-relaxed">
-                          Carta ejecutiva con desglose de honorarios ({formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000)}/mes), unidades ({proposalConfig.targetUnits || '60'}), SLA de visitas técnicas presenciales y firma con sello oficial.
+                          Documento oficial de 3 páginas: 1) Carta Formal con desglose de honorarios ({formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000)}/mes), 2) Informe de Diagnóstico Técnico Inicial y 3) Matriz Comparativa con firma y sello.
                         </p>
                       </div>
 
@@ -5717,7 +5717,7 @@ export const CompanySettingsAndBackupModule = ({
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all active:scale-95"
                 >
                   <Printer className="w-4 h-4 text-[#D4B895]" />
-                  Imprimir / Descargar Propuesta PDF (2 Pág)
+                  Imprimir / Descargar Propuesta PDF (3 Pág)
                 </button>
                 <button
                   onClick={() => setPreviewProposalModal(false)}
@@ -5954,52 +5954,23 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
-                {/* SECCIÓN INFERIOR ANCLADA AL PIE: SELLO, FIRMA Y FOOTER CANÓNICO */}
+                {/* SECCIÓN INFERIOR ANCLADA AL PIE (PÁGINA 1: CONTINÚA EN PÁGINA 2) */}
                 <div className="mt-auto pt-2 space-y-2">
-                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <AranproOfficialSeal
-                        size="sm"
-                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                        rnacNumber=""
-                        showCaption={true}
-                      />
-                      <div className="text-[9.5px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
-                        <p><strong>Fono Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone || '+56 9 5811 8504'}</span></p>
-                        <p><strong>Correo:</strong> <span className="font-mono">{empresaForm.email || 'contacto@aranpro.cl'}</span></p>
-                        <p><strong>Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website || 'https://aranpro.cl'}</span></p>
-                      </div>
+                  <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-[10px] text-slate-600 font-mono">
+                      <span>• Diagnóstico Técnico & Cuadro Comparativo en páginas siguientes</span>
                     </div>
-
-                    <div className="text-center min-w-[240px]">
-                      <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
-                        {signatureImage ? (
-                          <img
-                            src={signatureImage}
-                            alt="Firma Administrador"
-                            className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
-                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                          />
-                        ) : (
-                          <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
-                        )}
-                      </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-1">
-                        <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                        <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                          Constructor Civil • Administrador de Condominios
-                        </p>
-                        <p className="text-[9px] text-slate-600 font-mono">
-                          RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442
-                        </p>
-                      </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                        Continúa en Página 2 →
+                      </span>
                     </div>
                   </div>
 
                   {/* Pie de Página Canónico Maestro */}
                   <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Carta Formal de Postulación a Licitación • Ley N° 21.442 (Pág. 1 de 2)</div>
+                    <div className="font-bold text-[#0F3D2E]">Carta Formal de Postulación a Licitación • Ley N° 21.442 (Pág. 1 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
                   </div>
                 </div>
@@ -6097,7 +6068,106 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
-                {/* SECCIÓN INFERIOR ANCLADA AL PIE */}
+                {/* SECCIÓN INFERIOR ANCLADA AL PIE (PÁGINA 2: CONTINÚA EN PÁGINA 3) */}
+                <div className="mt-auto pt-2 space-y-2 relative z-10">
+                  <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-slate-900 text-[10px]">Conclusión de Inspección Técnica:</p>
+                      <p className="text-[9px] text-slate-600 leading-snug">
+                        Diagnóstico visual in situ sin costo para orientar al Comité de Administración en la priorización de obras preventivas y evitar emergencias de alto costo.
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                        Continúa en Página 3 (Matriz Comparativa) →
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Pie de Página Canónico Maestro */}
+                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                    <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
+                    <div className="font-bold text-[#0F3D2E]">Informe de Diagnóstico Técnico Inicial • Ley N° 21.442 (Pág. 2 de 3)</div>
+                    <div>{empresaForm.city || 'La Serena, Chile'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ==================== PÁGINA 3: MATRIZ COMPARATIVA DE GESTIÓN (TRADICIONAL VS. ARANPRO) & FIRMA OFICIAL ==================== */}
+              <div
+                className="dossier-page page-3 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {/* Filete doble izquierdo Alternativa 4 */}
+                <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
+                  <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
+                  <div className="w-[2px] h-full bg-transparent" />
+                  <div className="w-[1.5px] h-full bg-[#D4B895]" />
+                </div>
+
+                {/* Sello circular como marca de agua central sutil */}
+                <img
+                  src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                  alt=""
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 object-contain opacity-[0.035] pointer-events-none select-none z-0"
+                  aria-hidden="true"
+                />
+
+                {/* SECCIÓN SUPERIOR: MEMBRETE, TÍTULO, MATRIZ COMPARATIVA */}
+                <div className="space-y-2 relative z-10">
+                  {/* Membrete Maestro Técnico ARANPRO */}
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
+                    <div className="flex items-center space-x-3.5">
+                      <AranproLogo variant="principal" className="h-11 w-auto" />
+                      <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
+                        <span className="text-[9.5px] font-black text-[#D4B895] uppercase tracking-widest block">
+                          ANÁLISIS COMPARATIVO DE VALOR AGREGADO
+                        </span>
+                        <h2 className="text-base font-black text-[#0F3D2E] uppercase tracking-tight">
+                          ¿Por qué elegir la Gestión Integral de ARANPRO?
+                        </h2>
+                        <p className="text-[9.5px] text-slate-600 font-mono">
+                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right space-y-0.5 shrink-0">
+                      <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded">
+                        ESTÁNDAR LEY 21.442
+                      </span>
+                      <p className="text-[9.5px] text-slate-500 font-semibold">
+                        {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* FILAS DE LA MATRIZ COMPARATIVA */}
+                  <div className="space-y-1.5">
+                    {[
+                      { p: '1. Supervisión Constructiva', t: 'Visitas esporádicas. No saben de construcción ni bombas; dependen a ciegas de técnicos externos con sobrecostos.', a: 'Administrador Constructor Civil. Audita bombas, sellos, filtraciones y fiscaliza a contratistas en terreno con criterio técnico experto.' },
+                      { p: '2. Transparencia en Cuentas', t: 'Planillas Excel confusas enviadas a fin de mes. Comprobantes bancarios ocultos o extraviados.', a: 'Portal y App móvil 24/7 donde cada vecino audita las facturas y comprobantes bancarios reales de cada gasto con 1 solo clic.' },
+                      { p: '3. Asambleas Ley 21.442', t: 'Falta crónica de quórum presencial. Actas en papel que tardan semanas en protocolizarse.', a: 'Asambleas telemáticas e híbridas con voto digital seguro desde el teléfono celular y quórums automatizados (Art. 15°).' },
+                      { p: '4. Atención de Reclamos', t: 'Mensajes de WhatsApp o llamados informales que quedan en el olvido sin respuesta.', a: 'Libro Oficial de Reclamos y Sugerencias digital foliado con plazo legal estricto de respuesta garantizado (Art. 20°).' },
+                      { p: '5. Cobranzas & Fe Notarial', t: 'Cobranza informal sin protocolos legales ni respaldo jurídico.', a: 'Certificados oficiales foliados de no deuda, convenios de pago y certificados morosos para compraventas (Art. 36°).' }
+                    ].map((row, i) => (
+                      <div key={i} className="p-2 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs">
+                        <span className="font-black text-slate-900 text-[10.5px] block">{row.p}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+                          <div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-slate-700">
+                            <strong className="text-rose-800 block text-[9px] uppercase">✕ Administración Tradicional:</strong>
+                            <p className="mt-0.5 leading-snug">{row.t}</p>
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-slate-800">
+                            <strong className="text-[#0F3D2E] block text-[9px] uppercase">✓ Con ARANPRO:</strong>
+                            <p className="mt-0.5 leading-snug font-medium">{row.a}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* SECCIÓN INFERIOR ANCLADA AL PIE (PÁGINA FINAL CON SELLO Y FIRMA OFICIAL) */}
                 <div className="mt-auto pt-2 space-y-2 relative z-10">
                   <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4 text-xs">
                     <div className="flex items-center gap-3 max-w-md">
@@ -6108,24 +6178,24 @@ export const CompanySettingsAndBackupModule = ({
                         showCaption={true}
                       />
                       <div className="space-y-0.5 border-l border-slate-200 pl-3">
-                        <p className="font-bold text-slate-900 text-[10px]">Conclusión de Inspección Técnica:</p>
+                        <p className="font-bold text-slate-900 text-[10px]">Respaldo Institucional & Compromiso de Gestión:</p>
                         <p className="text-[9.5px] text-slate-600 leading-snug">
-                          Diagnóstico realizado sin costo para orientar al Comité de Administración en la priorización de obras preventivas y evitar emergencias de alto costo.
+                          Propuesta vinculante formalizada conforme a la Ley N° 21.442 de Copropiedad Inmobiliaria, garantizando solvencia técnica y transparencia contable 24/7.
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-center space-y-0.5 min-w-[240px]">
+                    <div className="text-center min-w-[240px]">
                       <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
-                        {signatureImage ? (
+                        {(signatureImage || companySettings?.signatureDataUrl) ? (
                           <img
-                            src={signatureImage}
+                            src={signatureImage || companySettings?.signatureDataUrl}
                             alt="Firma"
                             className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
                             style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                           />
                         ) : (
-                          <div className="h-12"></div>
+                          <div className="h-12 flex items-center justify-center text-[10px] text-slate-400 italic">Firma del Representante Legal</div>
                         )}
                       </div>
                       <div className="border-t-[1.5px] border-slate-800 pt-1 text-[10px]">
@@ -6136,10 +6206,10 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* Pie de Página Canónico Maestro */}
+                  {/* Pie de Página Canónico Maestro Página 3 */}
                   <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Informe de Diagnóstico Técnico Inicial • Ley N° 21.442 (Pág. 2 de 2)</div>
+                    <div className="font-bold text-[#0F3D2E]">Matriz Comparativa de Gestión • Estándar Ley N° 21.442 (Pág. 3 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
                   </div>
                 </div>

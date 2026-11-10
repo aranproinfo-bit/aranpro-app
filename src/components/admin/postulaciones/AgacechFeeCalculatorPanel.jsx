@@ -209,7 +209,7 @@ export const AgacechFeeCalculatorPanel = ({
         targetCondo: calc.condoName || prev.targetCondo,
         targetUnits: String(result.units),
         proposedMonthlyFee: String(result.finalMonthlyCLP),
-        includeEconomicInDossier: true
+        unknownDetails: false
       }));
     }
     if (onApplyToDossier) {
@@ -222,8 +222,8 @@ export const AgacechFeeCalculatorPanel = ({
     }
     if (showAlert) {
       showAlert(
-        '✓ Piso de Honorarios Aplicado al Dossier',
-        `Se transfirió el honorario calculado de ${result.finalMonthlyUF.toFixed(2)} UF (${formatCLP(result.finalMonthlyCLP)} / mes • ${formatCLP(result.feePerUnitCLP)} por unidad) al Dossier Integral y Carta de Presentación.`,
+        '✓ Honorario Aplicado a la Propuesta (Paso 3)',
+        `Se transfirió el honorario calculado de ${result.finalMonthlyUF.toFixed(2)} UF (${formatCLP(result.finalMonthlyCLP)} / mes • ${formatCLP(result.feePerUnitCLP)} por unidad) a la Carta Formal de Propuesta Económica del Paso 3.`,
         'success'
       );
     }
@@ -269,7 +269,7 @@ export const AgacechFeeCalculatorPanel = ({
             className="px-4 py-2.5 rounded-xl bg-[#D4B895] hover:bg-[#c3a57e] text-[#0F3D2E] font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <CheckCircle2 className="w-4 h-4 text-[#0F3D2E]" />
-            Usar este Honorario en mi Dossier
+            Usar este Honorario en Propuesta (Paso 3)
           </button>
           <button
             type="button"
@@ -729,7 +729,7 @@ export const AgacechFeeCalculatorPanel = ({
                 className="w-full py-3 px-4 rounded-2xl bg-[#D4B895] hover:bg-[#c5a77e] text-[#0F3D2E] font-black text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles className="w-4 h-4" />
-                Aplicar {formatCLP(result.finalMonthlyCLP)} al Dossier y Propuesta
+                Aplicar {formatCLP(result.finalMonthlyCLP)} a la Propuesta (Paso 3)
               </button>
               <div className="pt-1">
                 <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact label="Plantilla PDF:" />
