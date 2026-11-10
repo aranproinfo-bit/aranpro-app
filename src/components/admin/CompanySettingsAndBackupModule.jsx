@@ -5800,33 +5800,33 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center space-x-3.5">
                       <AranproLogo variant="principal" className="h-12 w-auto" />
                       <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
+                        <div className="text-[13px] font-black tracking-tight text-[#0F3D2E] uppercase">
                           {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
                         </div>
-                        <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
+                        <p className="text-[10.5px] text-slate-600 font-mono font-semibold">
                           {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
                         </p>
-                        <p className="text-[9px] text-slate-500">
+                        <p className="text-[10px] text-slate-500">
                           {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'La Serena, Chile'}
                         </p>
                       </div>
                     </div>
 
                     <div className="text-right space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded-md border border-[#D4B895]">
+                      <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] text-[10px] font-mono font-bold rounded-md border border-[#D4B895]">
                         PROPUESTA LICITACIÓN {new Date().getFullYear()}
                       </span>
-                      <p className="text-[10.5px] font-bold text-slate-800">
+                      <p className="text-[11.5px] font-bold text-slate-800">
                         Carta Formal de Postulación
                       </p>
-                      <p className="text-[9.5px] text-slate-500 font-semibold">
+                      <p className="text-[10.5px] text-slate-500 font-semibold">
                         {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
                       </p>
                     </div>
                   </div>
 
                   {/* Encabezado Formal Protocolar */}
-                  <div className="text-[10.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
+                  <div className="text-[11.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
                     <p>
                       <strong>Dirigido cordialmente a:</strong>{' '}
                       {proposalConfig.leaveRecipientBlank ? (
@@ -5866,14 +5866,14 @@ export const CompanySettingsAndBackupModule = ({
 
                   {/* Título de la Propuesta */}
                   <div className="text-center py-0.5">
-                    <h1 className="text-xs md:text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
+                    <h1 className="text-sm md:text-[14.5px] font-black text-[#0F3D2E] uppercase tracking-tight">
                       Propuesta Formal de Administración, Rigor Constructivo & Transparencia Digital
                     </h1>
                     <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
                   </div>
 
                   {/* Cuerpo de la Carta con Fundamentación Ejecutiva */}
-                  <div className="text-justify text-[10.5px] text-slate-800 leading-snug space-y-2">
+                  <div className="text-justify text-[11.5px] text-slate-800 leading-relaxed space-y-2">
                     <p>
                       {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim()
                         ? 'Estimados señores miembros del Comité de Administración y vecinos copropietarios:'
@@ -5893,49 +5893,49 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="p-3 rounded-2xl bg-gradient-to-br from-[#F5F4EF] via-white to-[#F5F4EF] border-2 border-[#D4B895] space-y-1.5 text-xs shadow-xs">
                       <div className="flex items-center justify-between border-b border-[#D4B895]/60 pb-1.5">
                         <div>
-                          <span className="font-black text-[#0F3D2E] uppercase text-[10.5px] block tracking-tight">
+                          <span className="font-black text-[#0F3D2E] uppercase text-[11.5px] block tracking-tight">
                             Propuesta Económica & Honorarios de Administración (Ley N° 21.442)
                           </span>
-                          <span className="text-[8.5px] text-slate-500 font-mono">
+                          <span className="text-[9.5px] text-slate-500 font-mono">
                             Tasación referencial basada en el Modelo Oficial de Complejidad AGACECH
                           </span>
                         </div>
-                        <span className="font-mono font-bold text-[9px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2.5 py-0.5 rounded-md shadow-2xs">
+                        <span className="font-mono font-bold text-[10px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2.5 py-0.5 rounded-md shadow-2xs">
                           {proposalConfig.taxModality || 'Factura Exenta / Boleta'}
                         </span>
                       </div>
                       <div className="grid grid-cols-3 gap-2.5 text-center py-1">
                         <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
-                          <span className="text-[8px] text-slate-500 uppercase block font-bold">Honorario Mensual Propuesto</span>
-                          <strong className="text-xs md:text-sm font-black text-[#0F3D2E] block mt-0.5">
+                          <span className="text-[9px] text-slate-500 uppercase block font-bold">Honorario Mensual Propuesto</span>
+                          <strong className="text-sm md:text-[15px] font-black text-[#0F3D2E] block mt-0.5">
                             {Number(proposalConfig.proposedMonthlyFee) > 0 ? `${formatCLP(Number(proposalConfig.proposedMonthlyFee))} / mes` : 'A convenir en reunión'}
                           </strong>
-                          <span className="text-[7.5px] text-emerald-800 font-semibold block mt-0.5">
+                          <span className="text-[8.5px] text-emerald-800 font-semibold block mt-0.5">
                             (Flexible a transición saliente)
                           </span>
                         </div>
                         <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
-                          <span className="text-[8px] text-slate-500 uppercase block font-bold">Costo Estimado / Unidad</span>
-                          <strong className="text-xs md:text-sm font-black text-slate-800 block mt-0.5">
+                          <span className="text-[9px] text-slate-500 uppercase block font-bold">Costo Estimado / Unidad</span>
+                          <strong className="text-sm md:text-[15px] font-black text-slate-800 block mt-0.5">
                             {Number(proposalConfig.proposedMonthlyFee) > 0
                               ? `${formatCLP(Math.round(Number(proposalConfig.proposedMonthlyFee) / Math.max(1, Number(proposalConfig.targetUnits) || 1)))} / unidad`
                               : 'Según dotación'}
                           </strong>
-                          <span className="text-[7.5px] text-slate-500 font-mono block mt-0.5">
+                          <span className="text-[8.5px] text-slate-500 font-mono block mt-0.5">
                             Por casa / departamento
                           </span>
                         </div>
                         <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
-                          <span className="text-[8px] text-slate-500 uppercase block font-bold">Comunidad Evaluada</span>
-                          <strong className="text-xs md:text-sm font-black text-slate-800 block mt-0.5">
+                          <span className="text-[9px] text-slate-500 uppercase block font-bold">Comunidad Evaluada</span>
+                          <strong className="text-sm md:text-[15px] font-black text-slate-800 block mt-0.5">
                             {proposalConfig.targetUnits ? `${proposalConfig.targetUnits} Unidades` : 'Por definir en visita'}
                           </strong>
-                          <span className="text-[7.5px] text-slate-500 font-mono block mt-0.5">
+                          <span className="text-[8.5px] text-slate-500 font-mono block mt-0.5">
                             Dotación habitacional
                           </span>
                         </div>
                       </div>
-                      <div className="p-2 bg-emerald-50/80 rounded-xl border border-emerald-200/80 text-[8.5px] text-slate-700 leading-snug space-y-0.5">
+                      <div className="p-2 bg-emerald-50/80 rounded-xl border border-emerald-200/80 text-[10px] text-slate-700 leading-snug space-y-0.5">
                         <p>
                           <strong>✓ Servicios y Beneficios incluidos sin cobros extra:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas presenciales semanales en terreno'}, <strong>Suite Web & App Móvil ARANPRO 100% gratuita para residentes y comité</strong> (cero costos de licencias), auditoría contable de traspaso, supervisión técnica de contratos y atención de emergencias 24/7.
                         </p>
@@ -5950,7 +5950,7 @@ export const CompanySettingsAndBackupModule = ({
                 {/* SECCIÓN INFERIOR ANCLADA AL PIE (PÁGINA 1: CONTINÚA EN PÁGINA 2) */}
                 <div className="mt-auto pt-2 space-y-2">
                   <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 text-[10px] text-slate-600 font-mono">
+                    <div className="flex items-center gap-2 text-[10.5px] text-slate-600 font-mono">
                       <span>• Diagnóstico Técnico & Cuadro Comparativo en páginas siguientes</span>
                     </div>
                     <div className="text-right">
@@ -5961,7 +5961,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Pie de Página Canónico Maestro */}
-                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Carta Formal de Postulación a Licitación • Ley N° 21.442 (Pág. 1 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
@@ -5996,44 +5996,44 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center space-x-3.5">
                       <AranproLogo variant="principal" className="h-11 w-auto" />
                       <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <span className="text-[9.5px] font-black text-[#D4B895] uppercase tracking-widest block">
+                        <span className="text-[10.5px] font-black text-[#D4B895] uppercase tracking-widest block">
                           DEPARTAMENTO TÉCNICO & AUDITORÍA CONSTRUCTIVA
                         </span>
-                        <h2 className="text-base font-black text-[#0F3D2E] tracking-tight uppercase">
+                        <h2 className="text-[17px] font-black text-[#0F3D2E] tracking-tight uppercase">
                           Informe de Diagnóstico Técnico Inicial
                         </h2>
-                        <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
+                        <p className="text-[10.5px] text-slate-600 font-mono font-semibold">
                           {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad • Fono: {empresaForm.phone || '+56 9 5811 8504'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right text-xs space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] text-[#0F3D2E] text-[9.5px] font-mono font-bold border border-[#D4B895]">
+                      <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] text-[#0F3D2E] text-[10px] font-mono font-bold border border-[#D4B895]">
                         DIAGNÓSTICO TÉCNICO
                       </span>
-                      <p className="font-bold text-slate-800 text-[10.5px]">
+                      <p className="font-bold text-slate-800 text-[11.5px]">
                         {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
                       </p>
-                      <span className="text-[9px] text-slate-500 block font-mono">Fecha: {inspectionForm.date || new Date().toISOString().slice(0, 10)}</span>
+                      <span className="text-[9.5px] text-slate-500 block font-mono">Fecha: {inspectionForm.date || new Date().toISOString().slice(0, 10)}</span>
                     </div>
                   </div>
 
                   {/* Datos del Inspector Técnico */}
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
                     <div>
-                      <span className="text-slate-500 block text-[9.5px] uppercase font-bold tracking-wider">Profesional Evaluador en Terreno:</span>
-                      <strong className="text-slate-900 text-sm font-black">{empresaForm.adminName}</strong>
-                      <span className="text-slate-600 block text-[11px] font-medium">Constructor Civil • Administrador de Condominios (Ley N° 21.442)</span>
+                      <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Profesional Evaluador en Terreno:</span>
+                      <strong className="text-slate-900 text-[15px] font-black">{empresaForm.adminName}</strong>
+                      <span className="text-slate-600 block text-[11.5px] font-medium">Constructor Civil • Administrador de Condominios (Ley N° 21.442)</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-slate-500 block text-[9.5px] uppercase font-bold tracking-wider">Contacto Directo:</span>
-                      <span className="font-mono text-[#0F3D2E] font-bold text-xs">{empresaForm.phone}</span>
+                      <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Contacto Directo:</span>
+                      <span className="font-mono text-[#0F3D2E] font-bold text-sm">{empresaForm.phone}</span>
                     </div>
                   </div>
 
                   {/* Presentación Formal del Levantamiento Técnico */}
                   <div
-                    className="p-2.5 rounded-xl border text-[10px] text-slate-800 leading-relaxed space-y-1.5 shadow-2xs"
+                    className="p-2.5 rounded-xl border text-[11px] text-slate-800 leading-relaxed space-y-1.5 shadow-2xs"
                     style={{
                       backgroundColor: '#f0fdf4',
                       borderColor: '#86efac',
@@ -6043,7 +6043,7 @@ export const CompanySettingsAndBackupModule = ({
                   >
                     <div className="flex items-center gap-1.5 border-b border-emerald-300 pb-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-[#0F3D2E]"></span>
-                      <strong className="text-[#0F3D2E] uppercase text-[10px] tracking-wider">
+                      <strong className="text-[#0F3D2E] uppercase text-[11px] tracking-wider">
                         Alcance & Metodología del Levantamiento Técnico Visual:
                       </strong>
                     </div>
@@ -6051,7 +6051,7 @@ export const CompanySettingsAndBackupModule = ({
                       El presente informe recopila de manera fidedigna las observaciones preliminares levantadas <em>in situ</em> durante el recorrido inspectivo guiado a las áreas e instalaciones de uso común del condominio. Su objetivo primordial es constatar el estado real de conservación, identificar vulnerabilidades operativas tempranas, fatiga o desgaste prematuro de materiales, y orientar con rigor de <strong>Constructor Civil colegiado</strong> al Comité de Administración en la priorización de obras preventivas antes de que deriven en emergencias de alto impacto presupuestario.
                     </p>
                     <div
-                      className="p-1.5 rounded-lg border text-[9.5px] text-slate-700 space-y-0.5"
+                      className="p-1.5 rounded-lg border text-[10px] text-slate-700 space-y-0.5"
                       style={{
                         backgroundColor: '#ffffff',
                         borderColor: '#bbf7d0',
@@ -6059,7 +6059,7 @@ export const CompanySettingsAndBackupModule = ({
                         printColorAdjust: 'exact'
                       }}
                     >
-                      <div className="font-bold text-[#0F3D2E] flex items-center gap-1">
+                      <div className="font-bold text-[#0F3D2E] flex items-center gap-1 text-[10.5px]">
                         <span>ℹ</span>
                         <span>Nota de Alcance Técnico & Auditoría Especializada de 30 Días:</span>
                       </div>
@@ -6071,18 +6071,18 @@ export const CompanySettingsAndBackupModule = ({
 
                   {/* Partidas Evaluadas */}
                   <div className="space-y-1">
-                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-0.5 flex items-center justify-between">
+                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-0.5 flex items-center justify-between">
                       <span>Estado de Instalaciones Críticas Inspeccionadas:</span>
-                      <span className="text-[9px] text-slate-500 font-mono font-normal">Muestra preliminar in situ</span>
+                      <span className="text-[9.5px] text-slate-500 font-mono font-normal">Muestra preliminar in situ</span>
                     </h4>
 
                     <div className="space-y-1">
                       {inspectionForm.items.map((item, idx) => (
                         <div key={item.id} className="p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs break-inside-avoid shadow-2xs">
                           <div className="flex items-center justify-between">
-                            <span className="font-black text-slate-900 text-[10.5px]">{idx + 1}. {item.name}</span>
+                            <span className="font-black text-slate-900 text-[11.5px]">{idx + 1}. {item.name}</span>
                             <span
-                              className="px-2 py-0.5 rounded text-[9px] font-bold border"
+                              className="px-2 py-0.5 rounded text-[9.5px] font-bold border"
                               style={{
                                 backgroundColor: item.status === 'Bueno' ? '#d1fae5' : item.status === 'Requiere Mantención' ? '#fef3c7' : '#ffe4e6',
                                 color: item.status === 'Bueno' ? '#065f46' : item.status === 'Requiere Mantención' ? '#92400e' : '#9f1239',
@@ -6094,7 +6094,7 @@ export const CompanySettingsAndBackupModule = ({
                               {item.status}
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-700 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                          <p className="text-[10.5px] text-slate-700 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100">
                             {item.notes}
                           </p>
                         </div>
@@ -6107,20 +6107,20 @@ export const CompanySettingsAndBackupModule = ({
                 <div className="mt-auto pt-1.5 space-y-1.5 relative z-10">
                   <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-xs">
                     <div className="space-y-0.5 max-w-xl">
-                      <p className="font-bold text-slate-900 text-[10px]">Dictamen Técnico & Criterio Constructivo Preventivo:</p>
-                      <p className="text-[9.5px] text-slate-600 leading-tight">
+                      <p className="font-bold text-slate-900 text-[10.5px]">Dictamen Técnico & Criterio Constructivo Preventivo:</p>
+                      <p className="text-[10px] text-slate-600 leading-tight">
                         Levantamiento ocular y funcional sin costo comercial para respaldar las decisiones estratégicas del Comité de Administración, protegiendo el valor patrimonial y la plusvalía de la copropiedad.
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-[9.5px] font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
+                      <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
                         Continúa en Página 3 (Matriz Comparativa) →
                       </span>
                     </div>
                   </div>
 
                   {/* Pie de Página Canónico Maestro */}
-                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Informe de Diagnóstico Técnico Inicial • Ley N° 21.442 (Pág. 2 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
@@ -6155,22 +6155,22 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center space-x-3.5">
                       <AranproLogo variant="principal" className="h-10 w-auto" />
                       <div className="space-y-0.5 border-l border-slate-300 pl-3">
-                        <span className="text-[9px] font-black text-[#D4B895] uppercase tracking-widest block">
+                        <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
                           ANÁLISIS COMPARATIVO DE VALOR AGREGADO & PROPUESTA DIFERENCIADORA
                         </span>
-                        <h2 className="text-[15px] font-black text-[#0F3D2E] uppercase tracking-tight">
+                        <h2 className="text-[16px] font-black text-[#0F3D2E] uppercase tracking-tight">
                           ¿Por qué elegir la Gestión Integral de ARANPRO?
                         </h2>
-                        <p className="text-[9px] text-slate-600 font-mono">
+                        <p className="text-[10px] text-slate-600 font-mono">
                           {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right space-y-0.5 shrink-0">
-                      <span className="inline-block px-2 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9px] font-mono font-bold rounded">
+                      <span className="inline-block px-2 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[10px] font-mono font-bold rounded">
                         ESTÁNDAR LEY 21.442
                       </span>
-                      <p className="text-[9px] text-slate-500 font-semibold">
+                      <p className="text-[10px] text-slate-500 font-semibold">
                         {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
                       </p>
                     </div>
@@ -6178,7 +6178,7 @@ export const CompanySettingsAndBackupModule = ({
 
                   {/* Presentación Estratégica Comparativa */}
                   <div
-                    className="p-2 rounded-xl border text-[10px] text-slate-800 leading-snug space-y-1 shadow-2xs"
+                    className="p-2 rounded-xl border text-[10.5px] text-slate-800 leading-snug space-y-1 shadow-2xs"
                     style={{
                       backgroundColor: '#f8fafc',
                       borderColor: '#cbd5e1',
@@ -6188,11 +6188,11 @@ export const CompanySettingsAndBackupModule = ({
                   >
                     <div className="flex items-center gap-1.5 border-b border-slate-200 pb-0.5">
                       <span className="inline-block w-2 h-2 rounded-full bg-[#0F3D2E]"></span>
-                      <strong className="text-[#0F3D2E] uppercase text-[10px] tracking-wider">
+                      <strong className="text-[#0F3D2E] uppercase text-[11px] tracking-wider">
                         Fundamentación Comparativa para la Decisión del Comité:
                       </strong>
                     </div>
-                    <p className="text-justify text-[9.5px]">
+                    <p className="text-justify text-[10.5px]">
                       Frente al proceso de licitación, contrastamos el modelo tradicional de administraciones empíricas (que compiten con honorarios ilusorios pero trasladan costos ocultos y carecen de supervisión constructiva) versus el estándar de <strong>Gestión Integral ARANPRO</strong>, fundado en la dirección de un <strong>Constructor Civil</strong> y una <strong>Suite Tecnológica 100% Bonificada</strong> para la comunidad:
                     </p>
                   </div>
@@ -6227,8 +6227,8 @@ export const CompanySettingsAndBackupModule = ({
                       }
                     ].map((row, i) => (
                       <div key={i} className="p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs shadow-2xs">
-                        <span className="font-black text-slate-900 text-[10px] block leading-tight">{row.p}</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[9.5px]">
+                        <span className="font-black text-slate-900 text-[11px] block leading-tight">{row.p}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px]">
                           <div
                             className="p-1.5 rounded-lg border text-slate-700 leading-tight"
                             style={{
@@ -6238,7 +6238,7 @@ export const CompanySettingsAndBackupModule = ({
                               printColorAdjust: 'exact'
                             }}
                           >
-                            <strong className="text-rose-800 block text-[8.5px] uppercase tracking-wide">✕ Administración Tradicional:</strong>
+                            <strong className="text-rose-800 block text-[9px] uppercase tracking-wide">✕ Administración Tradicional:</strong>
                             <p className="mt-0.5 leading-snug">{row.t}</p>
                           </div>
                           <div
@@ -6250,7 +6250,7 @@ export const CompanySettingsAndBackupModule = ({
                               printColorAdjust: 'exact'
                             }}
                           >
-                            <strong className="text-[#0F3D2E] block text-[8.5px] uppercase tracking-wide">✓ Con ARANPRO Gestión Integral:</strong>
+                            <strong className="text-[#0F3D2E] block text-[9px] uppercase tracking-wide">✓ Con ARANPRO Gestión Integral:</strong>
                             <p className="mt-0.5 leading-snug">{row.a}</p>
                           </div>
                         </div>
@@ -6273,18 +6273,18 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="flex items-center justify-between border-b border-[#D4B895]/50 pb-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[#D4B895] text-xs font-black">★</span>
-                        <h4 className="text-[#D4B895] font-black text-[10px] uppercase tracking-wider">
+                        <h4 className="text-[#D4B895] font-black text-[11px] uppercase tracking-wider">
                           Voto de Confianza, Fe Institucional & Compromiso de Excelencia
                         </h4>
                       </div>
                       <span
-                        className="text-[8.5px] font-mono text-emerald-100 px-1.5 py-0.5 rounded border border-white/20"
+                        className="text-[9.5px] font-mono text-emerald-100 px-1.5 py-0.5 rounded border border-white/20"
                         style={{ backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
                       >
                         Liderazgo • Rigor Constructivo • Transparencia Total
                       </span>
                     </div>
-                    <p className="text-slate-100 text-justify leading-snug text-[9.5px]">
+                    <p className="text-slate-100 text-justify leading-snug text-[10.5px]">
                       Asumir la administración de su condominio no es para nosotros un mero encargo comercial ni una función de gabinete; representa un <strong>compromiso ético y profesional indeclinable</strong> con el resguardo patrimonial y la calidad de vida de su comunidad. Ponemos a su entera disposición nuestra solvencia técnica como <strong>Constructor Civil colegiado</strong>, el estricto apego a la <strong>Ley N° 21.442</strong> y una plataforma digital transparente que devolverá al Comité la tranquilidad, el orden y la dignidad directiva que se merece. Agradecemos su confianza y quedamos a su entera disposición para iniciar juntos este camino de excelencia.
                     </p>
                   </div>
@@ -6301,8 +6301,8 @@ export const CompanySettingsAndBackupModule = ({
                         showCaption={true}
                       />
                       <div className="space-y-0.5 border-l border-slate-200 pl-2.5">
-                        <p className="font-bold text-slate-900 text-[9.5px]">Respaldo Institucional & Compromiso de Gestión:</p>
-                        <p className="text-[9px] text-slate-600 leading-tight">
+                        <p className="font-bold text-slate-900 text-[10px]">Respaldo Institucional & Compromiso de Gestión:</p>
+                        <p className="text-[9.5px] text-slate-600 leading-tight">
                           Propuesta vinculante formalizada conforme a la Ley N° 21.442 de Copropiedad Inmobiliaria, garantizando solvencia técnica y transparencia contable 24/7.
                         </p>
                       </div>
@@ -6318,19 +6318,19 @@ export const CompanySettingsAndBackupModule = ({
                             style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                           />
                         ) : (
-                          <div className="h-10 flex items-center justify-center text-[9px] text-slate-400 italic">Firma del Representante Legal</div>
+                          <div className="h-10 flex items-center justify-center text-[9.5px] text-slate-400 italic">Firma del Representante Legal</div>
                         )}
                       </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-0.5 text-[9px]">
-                        <p className="font-black text-slate-900 text-[10.5px] leading-tight">{empresaForm.adminName}</p>
-                        <p className="text-[8.5px] text-[#0F3D2E] font-bold leading-tight">Constructor Civil • Administrador de Condominios</p>
-                        <p className="text-[8.5px] text-slate-600 font-mono">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
+                      <div className="border-t-[1.5px] border-slate-800 pt-0.5 text-[9.5px]">
+                        <p className="font-black text-slate-900 text-[11.5px] leading-tight">{empresaForm.adminName}</p>
+                        <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">Constructor Civil • Administrador de Condominios</p>
+                        <p className="text-[9.5px] text-slate-600 font-mono">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Pie de Página Canónico Maestro Página 3 */}
-                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Matriz Comparativa de Gestión • Estándar Ley N° 21.442 (Pág. 3 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
