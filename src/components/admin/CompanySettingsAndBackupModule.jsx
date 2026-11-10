@@ -9,6 +9,7 @@ import { DocumentLibraryPanel } from './postulaciones/DocumentLibraryPanel';
 import { ReadinessPanel } from './postulaciones/ReadinessPanel';
 import { PipelinePanel } from './postulaciones/PipelinePanel';
 import { AgacechFeeCalculatorPanel } from './postulaciones/AgacechFeeCalculatorPanel';
+import { PitchMasterPanel } from './postulaciones/PitchMasterPanel';
 import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
@@ -5488,89 +5489,20 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               )}
 
-              {/* SECCIÓN 4: LIBRETO DE PITCH (10 MINUTOS) */}
+              {/* SECCIÓN 4: LIBRETO DE PITCH (10 MINUTOS) & ARSENAL DE OBJECIONES */}
               {postulacionSection === 'pitch' && (
-                <div className="space-y-4 animate-in fade-in">
-                  {renderToolboxNavbar()}
-                  <div className="p-5 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] block">
-                        Estrategia Comercial de Cierre
-                      </span>
-                      <h4 className="text-base font-black text-white">
-                        Guía de Pitch: Cómo Ganar la Licitación en 10 Minutos
-                      </h4>
-                      <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                        Estructura probada para exponer ante comités o asambleas. Aborda los dolores del cliente, resalta tu perfil de Constructor Civil y cierra la contratación con solvencia.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={handleCopyPitchToClipboard}
-                        className="px-4 py-2.5 bg-[#D4B895] hover:bg-[#c2a37d] text-[#0F3D2E] font-black text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
-                      >
-                        <Copy className="w-4 h-4 text-[#0F3D2E]" />
-                        Copiar Guion
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowPitchGuideModal(true)}
-                        className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
-                      >
-                        <Eye className="w-4 h-4 text-[#D4B895]" />
-                        Ver Ficha Completa
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* BLOQUES DEL PITCH DE 10 MINUTOS */}
-                  <div className="space-y-4">
-                    {[
-                      {
-                        time: 'Minutos 1 - 2',
-                        title: 'Apertura: Conectar con el Dolor del Comité',
-                        what: 'La mayoría de los comités están agotados por dos cosas: falta de respuesta oportuna y desconfianza en los gastos comunes.',
-                        phrase: '"No les pedimos que confíen ciegamente en nosotros. Les entregamos una plataforma donde cada peso gastado tiene su respaldo bancario visible en línea."'
-                      },
-                      {
-                        time: 'Minutos 3 - 5',
-                        title: 'El Diferenciador de Constructor Civil',
-                        what: 'Explicar que los administradores convencionales son contadores o comerciales sin experiencia en terreno. Tu formación como Constructor Civil ahorra millones a la comunidad.',
-                        phrase: '"Cuando falla una bomba o hay una filtración en cubierta, nosotros diagnosticamos la falla real en terreno antes de llamar a un contratista, evitando que les cobren presupuestos inflados."'
-                      },
-                      {
-                        time: 'Minutos 6 - 8',
-                        title: 'Demostración de la App y Transparencia Radical',
-                        what: 'Abrir el portal en el teléfono o pantalla y mostrar la colilla con el botón de respaldo bancario y el libro digital de reclamos.',
-                        phrase: '"Miren esto: cualquier vecino puede presionar aquí y ver la factura y comprobante de transferencia bancaria de la mantención del ascensor. Cero dudas en la asamblea."'
-                      },
-                      {
-                        time: 'Minutos 9 - 10',
-                        title: 'Cierre y Propuesta de Traspaso Seguro',
-                        what: 'Ofrecer la auditoría de traspaso inicial sin costo y el diagnóstico preventivo de instalaciones bajo la Ley N° 21.442.',
-                        phrase: '"Si eligen a ARANPRO, nosotros nos encargamos del traspaso formal con el administrador saliente, blindando su responsabilidad legal ante la ley."'
-                      }
-                    ].map((step, idx) => (
-                      <div key={idx} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2.5 py-1 rounded-lg bg-[#0F3D2E] text-[#D4B895] font-black text-xs">
-                              {step.time}
-                            </span>
-                            <h6 className="font-black text-xs text-slate-900">{step.title}</h6>
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-400">Paso {idx + 1} de 4</span>
-                        </div>
-                        <p className="text-xs text-slate-600 leading-relaxed">{step.what}</p>
-                        <blockquote className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs italic text-slate-800 font-medium">
-                          {step.phrase}
-                        </blockquote>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <PitchMasterPanel
+                  empresaForm={empresaForm}
+                  currentCommunity={currentCommunity}
+                  proposalConfig={proposalConfig}
+                  pdfStyle={pdfStyle}
+                  setPdfStyle={setPdfStyle}
+                  signatureImage={signatureImage}
+                  signatureScale={signatureScale}
+                  companySettings={companySettings}
+                  showAlert={showAlert}
+                  renderToolboxNavbar={renderToolboxNavbar}
+                />
               )}
 
               {/* SECCIÓN 5: DEMO EN VIVO, CAPTURAS & CÓDIGO QR */}
