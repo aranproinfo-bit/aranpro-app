@@ -73,12 +73,12 @@ export const Step5TransitionPanel = ({
 
   // Acciones de impresión directa
   const handlePrintTerminationNotice = () => {
-    const filename = `ARANPRO_Carta_Preaviso_Termino_Administracion_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const filename = `Carta_Termino_Administracion_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
     printDocumentDirectly('printable-termination-notice', filename, {
       pageSize: 'letter portrait',
       fitPage: true,
       margin: '4mm 6mm 4mm 6mm',
-      pdfStyle
+      pdfStyle: 'neutral'
     });
   };
 
@@ -749,95 +749,67 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
       {/* ========================================================================= */}
       <div className="hidden" aria-hidden="true">
 
-        {/* 1. PRINTABLE CARTA DE PREAVISO Y TÉRMINO (EXACTAMENTE 1 PÁGINA CARTA) */}
-        <div id="printable-termination-notice" data-pdf-style={pdfStyle}>
+        {/* 1. CARTA DE TÉRMINO — DOCUMENTO NEUTRO DEL COMITÉ (sin marca ARANPRO, formato legal, 1 página Carta) */}
+        <div id="printable-termination-notice" data-pdf-style="neutral">
           <div
-            data-pdf-style={pdfStyle}
-            className="dossier-page page-1 bg-white p-6 pl-10 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-snug relative overflow-hidden"
-            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+            data-pdf-style="neutral"
+            className="dossier-page page-1 bg-white text-black"
+            style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '12pt', lineHeight: 1.45 }}
           >
-            {/* Filete doble izquierdo Alternativa 4 */}
-            <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
-              <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
-              <div className="w-[2px] h-full bg-transparent" />
-              <div className="w-[1.5px] h-full bg-[#D4B895]" />
-            </div>
+            <div style={{ padding: '6mm 10mm 0 10mm' }}>
+              <p style={{ textAlign: 'right', margin: '0 0 14px 0' }}>{city}, {noticeDate}</p>
 
-            {/* Sello de agua central sutil */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 opacity-[0.035]" aria-hidden="true">
-              <img src="/brand/ARANPRO_sello_circular_integral_transparente.png" alt="" className="w-[360px] h-[360px] object-contain" />
-            </div>
+              <p style={{ margin: 0 }}>Señor(a)</p>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{outgoingAdmin}</p>
+              <p style={{ margin: 0 }}>Administrador(a) del {condo}</p>
+              <p style={{ margin: '0 0 12px 0' }}>Presente</p>
 
-            <div className="space-y-2.5 relative z-10">
-              {/* Encabezado del Comité con respaldo ARANPRO */}
-              <div className="flex justify-between items-start border-b border-slate-300 pb-2">
-                <div>
-                  <span className="font-black text-[#0F3D2E] text-sm block">COMITÉ DE ADMINISTRACIÓN</span>
-                  <span className="font-bold text-slate-800 text-xs block">{condo.toUpperCase()}</span>
-                  <span className="text-[9.5px] text-slate-500 block font-mono">Ley N° 21.442 sobre Copropiedad Inmobiliaria</span>
+              <p style={{ margin: '0 0 12px 0' }}>
+                <strong>Ref.:</strong> Notificación de término de funciones y aviso de 30 días.
+              </p>
+
+              <p style={{ margin: '0 0 8px 0' }}>Estimado(a):</p>
+              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                Por medio de la presente, el Comité de Administración del <strong>{condo}</strong>, en representación de la comunidad y en ejercicio de las facultades que le confiere la Ley N° 21.442 sobre Copropiedad Inmobiliaria y el Reglamento de Copropiedad, cumple con notificarle formalmente la decisión de poner término a la prestación de sus servicios como Administrador del condominio.
+              </p>
+              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                Con el propósito de asegurar una transición ordenada y dar cumplimiento al plazo de preaviso correspondiente, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{endDate}</strong>.
+              </p>
+              <p style={{ margin: '0 0 6px 0', textAlign: 'justify' }}>
+                Durante este período, y en estricto apego a lo establecido en el Artículo 20 (y concordantes) de la Ley N° 21.442 sobre Copropiedad Inmobiliaria, solicitamos a usted preparar y tener a disposición, para la fecha de término, la siguiente documentación y procesos de cierre:
+              </p>
+
+              <ol style={{ margin: '0 0 8px 0', paddingLeft: '22px', textAlign: 'justify', listStyleType: 'decimal' }}>
+                <li style={{ marginBottom: '4px' }}><strong>Rendición de Cuentas Documentada:</strong> Balance final de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {endDate}.</li>
+                <li style={{ marginBottom: '4px' }}><strong>Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo de gastos comunes, planos, pólizas de seguro, certificados de instalaciones (ascensores, gas) y bitácoras de mantención.</li>
+                <li style={{ marginBottom: '4px' }}><strong>Gestión Laboral y Previsional:</strong> Contratos de trabajo del personal del condominio, comprobantes de pago de cotizaciones (Previred), liquidaciones de sueldo al día y finiquitos en caso de corresponder.</li>
+                <li style={{ marginBottom: '4px' }}><strong>Accesos, Cuentas y Claves:</strong> Traspaso formal de las credenciales de cuentas bancarias (Fondo de Reserva y cuenta ordinaria), portal del SII, Dirección del Trabajo, correos electrónicos y cualquier software de administración utilizado.</li>
+                <li><strong>Caja Chica y Fondos:</strong> Entrega de los fondos en efectivo y detalle de cheques por cobrar o emitidos no cobrados.</li>
+              </ol>
+
+              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                Por nuestra parte, como Comité de Administración, nos comprometemos a facilitar este proceso de transición, a revisar la rendición de cuentas en los plazos legales y a formalizar la recepción mediante un Acta de Traspaso el último día de sus funciones.
+              </p>
+              <p style={{ margin: '0 0 10px 0', textAlign: 'justify' }}>
+                Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
+              </p>
+              <p style={{ margin: '0 0 34px 0' }}>Atentamente,</p>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '30px', fontSize: '11pt' }}>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
+                    <div style={{ fontWeight: 'bold' }}>{committeePresident}</div>
+                    <div>Presidente del Comité de Administración</div>
+                    <div>{condo}</div>
+                  </div>
                 </div>
-                <div className="text-right text-slate-600 font-mono text-[10.5px]">
-                  {city}, {noticeDate}
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
+                    <div style={{ fontWeight: 'bold' }}>Recibí Conforme</div>
+                    <div>Nombre y RUT: ______________________</div>
+                    <div>Fecha de recepción: ____ / ____ / 2026</div>
+                  </div>
                 </div>
-              </div>
-
-              <div className="space-y-0.5 pt-1 text-[10.5px]">
-                <p><strong>Señor(a):</strong> {outgoingAdmin}</p>
-                <p><strong>Administrador(a) del:</strong> {condo}</p>
-                <p><strong>Presente</strong></p>
-                <p className="font-black text-[#0F3D2E] text-[11px] pt-1 uppercase tracking-wide">
-                  REF: Notificación de término de funciones y aviso legal de 30 días.
-                </p>
-              </div>
-
-              <div className="space-y-2 text-[10px] leading-relaxed text-slate-800 text-justify">
-                <p>Estimado(a):</p>
-                <p>
-                  Por medio de la presente, el <strong>Comité de Administración del {condo}</strong>, en representación de la comunidad y en estricto ejercicio de las facultades que le confiere la <strong>Ley N° 21.442 sobre Copropiedad Inmobiliaria</strong> y el Reglamento de Copropiedad del condominio, cumple con notificarle formalmente la decisión de <strong>poner término a la prestación de sus servicios como Administrador del condominio</strong>.
-                </p>
-                <p>
-                  Con el propósito de asegurar una transición ordenada y dar cumplimiento al plazo de preaviso correspondiente, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su <strong>último día de gestión el {endDate}</strong>.
-                </p>
-                <p>
-                  Durante este período, y en estricto apego a lo establecido en el <strong>Artículo 20 (y concordantes) de la nueva Ley de Copropiedad Inmobiliaria (Ley 21.442)</strong>, solicitamos a usted preparar y tener a disposición para la fecha de término la siguiente documentación y procesos de cierre:
-                </p>
-
-                <div className="space-y-1.5 pl-3 border-l-2 border-[#0F3D2E] bg-slate-50/70 p-2 rounded-r-xl text-[9.5px] text-slate-800">
-                  <p><strong>1. Rendición de Cuentas Documentada:</strong> Balance final consolidado de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {endDate}.</p>
-                  <p><strong>2. Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo histórico de gastos comunes, planos, pólizas de seguro vigentes, certificados de instalaciones (sellos de gas SEC, ascensores Minvu) y bitácoras de mantención.</p>
-                  <p><strong>3. Gestión Laboral y Previsional:</strong> Contratos de trabajo y anexos vigentes del personal, comprobantes de pago de cotizaciones previsionales (Previred al día para evitar nulidad de despido Ley Bustos), liquidaciones de sueldo y finiquitos correspondientes.</p>
-                  <p><strong>4. Accesos, Cuentas Bancarias y Claves:</strong> Traspaso formal de credenciales de cuentas corrientes bancarias (Fondo de Reserva y cuenta ordinaria), portales del SII, Dirección del Trabajo, correos electrónicos institucionales y licencias de software utilizadas.</p>
-                  <p><strong>5. Caja Chica, Fondos y Llaves:</strong> Entrega física de los fondos en efectivo disponibles, detalle de cheques por cobrar o emitidos no cobrados, y la totalidad de llaves maestras, tarjetas y controles de acceso.</p>
-                </div>
-
-                <p>
-                  Por nuestra parte, como Comité de Administración, nos comprometemos a facilitar este proceso de transición, a revisar la rendición de cuentas en los plazos legales y a formalizar la recepción definitiva mediante un <strong>Acta de Traspaso</strong> el último día de sus funciones.
-                </p>
-                <p>
-                  Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
-                </p>
-              </div>
-            </div>
-
-            {/* Firmas compactas garantizadas en 1 sola página */}
-            <div className="pt-2 border-t border-slate-200 relative z-10">
-              <div className="grid grid-cols-2 gap-6 text-center text-[10px]">
-                <div className="border-t border-slate-400 pt-1 space-y-0.5">
-                  <p className="font-bold text-slate-900">{committeePresident}</p>
-                  <p className="text-slate-600 font-semibold">Presidente del Comité de Administración</p>
-                  <p className="text-[9px] text-slate-400">{condo}</p>
-                </div>
-                <div className="border-t border-slate-400 pt-1 space-y-0.5 text-left pl-2">
-                  <p className="font-bold text-slate-900">Recibí Conforme (Administrador Saliente):</p>
-                  <p className="text-slate-600">Nombre: ____________________________________</p>
-                  <p className="text-slate-600">RUT: ________________ Fecha: ___/___/2026</p>
-                </div>
-              </div>
-
-              <div className="pt-1.5 mt-1.5 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
-                <div>ARANPRO Gestión Integral • {website}</div>
-                <div className="font-bold text-[#0F3D2E]">Carta de Notificación de Término • Ley N° 21.442 (Pág. 1 de 1)</div>
-                <div>{city}, Chile</div>
               </div>
             </div>
           </div>

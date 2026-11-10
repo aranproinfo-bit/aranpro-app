@@ -41,6 +41,10 @@ export const getActivePdfStyle = (options = {}, el = null) => {
  */
 const buildPdfVisualStyleCss = (pdfStyle, hasDossierPages) => {
   const targetSelector = hasDossierPages ? '.dossier-page' : '.print-wrapper';
+  if (pdfStyle === 'neutral') {
+    return ` { border: none !important; background-image: none !important; padding: 0 !important; justify-content: flex-start !important; }
+      .aranpro-print-watermark { display: none !important; }`;
+  }
 
   if (pdfStyle === 'alt2') {
     // Alternativa 2: Editorial Puro / Minimalista (Sin líneas laterales ni cuadros)
