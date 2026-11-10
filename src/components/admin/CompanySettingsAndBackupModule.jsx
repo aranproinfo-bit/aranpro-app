@@ -978,6 +978,7 @@ export const CompanySettingsAndBackupModule = ({
 
   // Pestaña en simulador de teléfono interactivo
   const [demoScreenTab, setDemoScreenTab] = useState('gastoComun'); // 'gastoComun' | 'comprobantes' | 'reclamos' | 'mural'
+  const [demoViewMode, setDemoViewMode] = useState('capturas'); // 'capturas' | 'simulador'
 
   // Sistemas no inspeccionados por defecto para la Nota de Alcance de 30 Días
   const DEFAULT_UNINSPECTED_SYSTEMS = [
@@ -5448,194 +5449,395 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               )}
 
-              {/* SECCIÓN 5: DEMO EN VIVO & CÓDIGO QR */}
+              {/* SECCIÓN 5: DEMO EN VIVO, CAPTURAS & CÓDIGO QR */}
               {postulacionSection === 'demo' && (
                 <div className="space-y-4 animate-in fade-in">
                   {renderToolboxNavbar()}
                   <div className="p-5 rounded-3xl bg-gradient-to-r from-[#0F3D2E] to-[#165540] text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] block">
-                        Interacción en Tiempo Real
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] bg-black/25 px-2 py-0.5 rounded-md">
+                          Paso 4 • Interacción en Tiempo Real
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 font-mono">
+                          100% Bonificada • Cero Licencias
+                        </span>
+                      </div>
                       <h4 className="text-base font-black text-white">
-                        Demostración en Vivo & Código QR para el Comité
+                        Tu Comunidad, Visible desde el Celular • Portal & App Móvil
                       </h4>
                       <p className="text-xs text-emerald-100/90 max-w-2xl leading-relaxed">
-                        Permite que los integrantes del comité escaneen el código QR con sus propios teléfonos para experimentar la plataforma antes de votar.
+                        Permite que el comité y los copropietarios experimenten la transparencia radical: cobros, boletas, comprobantes bancarios, avisos y documentos oficiales reunidos en la palma de su mano.
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewBrochureModal(true)}
+                        className="px-3.5 py-2.5 bg-[#D4B895] hover:bg-[#c2a37d] text-[#0F3D2E] font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Ver Brochure con Celulares
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePrintBrochure}
+                        className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Printer className="w-4 h-4 text-[#D4B895]" />
+                        Imprimir Brochure
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleShareDemoWhatsApp()}
-                        className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                        className="px-3.5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         <Send className="w-4 h-4" />
-                        Enviar Demo por WhatsApp
+                        Enviar Demo WhatsApp
                       </button>
                     </div>
                   </div>
 
-                  {/* QR Y SIMULADOR DE APP EN PANTALLA */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    {/* PANEL IZQUIERDO: CÓDIGO QR Y ENLACE (COL 5) */}
-                    <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs text-center space-y-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase text-[#0F3D2E] block">Escanear con Teléfono</span>
-                        <h5 className="font-black text-sm text-slate-900">Código QR de Demostración</h5>
-                        <p className="text-xs text-slate-500">Apunta la cámara de tu celular para abrir el portal de copropietarios en vivo.</p>
-                      </div>
-
-                      {/* CÓDIGO QR REAL ESCANEABLE */}
-                      <div className="p-4 bg-white rounded-2xl border-2 border-dashed border-[#0F3D2E]/30 inline-block shadow-xs">
-                        <AranproQrCode 
-                          value="https://aranpro.cl/?demo=comunidad" 
-                          size={176} 
-                          alt="Código QR Demo Escaneable ARANPRO" 
-                        />
-                      </div>
-
-                      <div className="pt-2 space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(window.location.origin);
-                            showAlert('✓ Enlace Copiado', 'El enlace de la demo se ha copiado al portapapeles.', 'success');
-                          }}
-                          className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2"
-                        >
-                          <Copy className="w-3.5 h-3.5 text-slate-600" />
-                          Copiar Enlace de Demo
-                        </button>
-                      </div>
+                  {/* SELECTOR DE VISTA: CAPTURAS REALES DE LA APP VS. SIMULADOR INTERACTIVO */}
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDemoViewMode('capturas')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          demoViewMode === 'capturas'
+                            ? 'bg-[#0F3D2E] text-[#D4B895] shadow-xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        <Smartphone className="w-3.5 h-3.5" />
+                        <span>Capturas Reales en Celular (Campaña Oficial)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDemoViewMode('simulador')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          demoViewMode === 'simulador'
+                            ? 'bg-[#0F3D2E] text-[#D4B895] shadow-xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Simulador Interactivo de Pantalla</span>
+                      </button>
                     </div>
 
-                    {/* PANEL DERECHO: SIMULADOR DE APP EN CELULAR (COL 7) */}
-                    <div className="lg:col-span-7 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl text-white space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div className="flex items-center gap-2">
-                          <Smartphone className="w-4 h-4 text-[#D4B895]" />
-                          <span className="font-bold text-xs text-white">Simulador Interactivo de la App</span>
-                        </div>
-                        <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
-                          En Línea • Vista Copropietario
-                        </span>
-                      </div>
+                    <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">
+                      Entorno Demo: <strong className="text-[#0F3D2E]">https://aranpro.cl/?demo=comunidad</strong>
+                    </span>
+                  </div>
 
-                      {/* BOTONES DE PESTAÑAS DEL SIMULADOR */}
-                      <div className="flex items-center gap-1.5 p-1 bg-slate-800 rounded-xl text-[11px] font-bold">
-                        {[
-                          { id: 'gastoComun', label: 'Colilla Digital' },
-                          { id: 'comprobantes', label: 'Auditoría Bancaria' },
-                          { id: 'reclamos', label: 'Libro Reclamos' },
-                          { id: 'mural', label: 'Mural Avisos' }
-                        ].map(t => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => setDemoScreenTab(t.id)}
-                            className={`flex-1 py-1.5 rounded-lg transition-all ${
-                              demoScreenTab === t.id ? 'bg-[#0F3D2E] text-white shadow-xs' : 'text-slate-400 hover:text-white'
-                            }`}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
-                      </div>
+                  {/* VISTA 1: CAPTURAS DE PANTALLA EN CELULARES (SHOWCASE DE CAMPAÑA) */}
+                  {demoViewMode === 'capturas' && (
+                    <div className="space-y-4 animate-in fade-in">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* CELULAR 1: INICIO & CUENTA */}
+                        <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between">
+                          <div className="space-y-1.5 text-center">
+                            <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#0F3D2E] border border-emerald-200 text-[9.5px] font-black uppercase tracking-wider">
+                              01 / TU CUENTA
+                            </span>
+                            <h5 className="font-black text-sm text-slate-900 leading-tight">
+                              Tu estado de cuenta, a mano
+                            </h5>
+                            <p className="text-[11px] text-slate-600 leading-snug">
+                              El residente consulta cobros, alícuotas, Fondo de Reserva (Art. 39°) y accede al botón de pago en línea Webpay en 1 clic.
+                            </p>
+                          </div>
 
-                      {/* PANTALLA SIMULADA */}
-                      <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 min-h-[260px] text-xs space-y-3">
-                        {demoScreenTab === 'gastoComun' && (
-                          <div className="space-y-3 animate-in fade-in">
-                            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                              <div>
-                                <span className="text-[10px] text-slate-400 block font-mono">UNIDAD N° 12</span>
-                                <strong className="text-white text-sm">Gasto Común: $48.500</strong>
-                              </div>
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-900/60 text-emerald-400 border border-emerald-700">
-                                Al Día
+                          {/* Marco de Teléfono */}
+                          <div className="relative mx-auto w-[160px] aspect-[860/1860] bg-slate-900 rounded-[24px] p-[5px] shadow-xl border-[2.5px] border-slate-800">
+                            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-2 bg-slate-900 rounded-full z-10" />
+                            <div className="w-full h-full rounded-[19px] overflow-hidden bg-slate-950 relative">
+                              <img
+                                src="/brand/portal_demo/02_portal_inicio.png"
+                                alt="Pantalla de Inicio del Portal"
+                                className="w-full h-full object-cover"
+                              />
+                              <span className="absolute bottom-1.5 right-1.5 text-[7px] font-mono font-bold bg-black/75 text-[#D4B895] px-1.5 py-0.5 rounded">
+                                VISTA DEMO REAL
                               </span>
                             </div>
-                            <div className="space-y-1.5 text-[11px] text-slate-300">
-                              <div className="flex justify-between"><span>Gasto Operacional Base:</span><span className="font-mono">$38.000</span></div>
-                              <div className="flex justify-between"><span>Fondo de Reserva (5% Ley 21.442):</span><span className="font-mono text-emerald-400">$2.500</span></div>
-                              <div className="flex justify-between"><span>Consumo Agua / Remarcador:</span><span className="font-mono">$8.000</span></div>
+                          </div>
+                        </div>
+
+                        {/* CELULAR 2: GASTOS & BOLETAS CON RESPALDO */}
+                        <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between">
+                          <div className="space-y-1.5 text-center">
+                            <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-[9.5px] font-black uppercase tracking-wider">
+                              02 / GASTOS Y RESPALDOS
+                            </span>
+                            <h5 className="font-black text-sm text-slate-900 leading-tight">
+                              El cobro debe poder revisarse
+                            </h5>
+                            <p className="text-[11px] text-slate-600 leading-snug">
+                              Transparencia radical: cada factura electrónica, boleta y comprobante bancario está digitalizado y abierto a consulta vecinal.
+                            </p>
+                          </div>
+
+                          {/* Marco de Teléfono */}
+                          <div className="relative mx-auto w-[160px] aspect-[860/1860] bg-slate-900 rounded-[24px] p-[5px] shadow-xl border-[2.5px] border-slate-800">
+                            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-2 bg-slate-900 rounded-full z-10" />
+                            <div className="w-full h-full rounded-[19px] overflow-hidden bg-slate-950 relative">
+                              <img
+                                src="/brand/portal_demo/03_boletas.png"
+                                alt="Gastos y Boletas con Respaldo"
+                                className="w-full h-full object-cover"
+                              />
+                              <span className="absolute bottom-1.5 right-1.5 text-[7px] font-mono font-bold bg-black/75 text-[#D4B895] px-1.5 py-0.5 rounded">
+                                VISTA DEMO REAL
+                              </span>
                             </div>
+                          </div>
+                        </div>
+
+                        {/* CELULAR 3: MURAL & DOCUMENTOS OFICIALES */}
+                        <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between">
+                          <div className="space-y-1.5 text-center">
+                            <span className="inline-block px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-900 border border-blue-200 text-[9.5px] font-black uppercase tracking-wider">
+                              03 / INFORMACIÓN & LEY 21.442
+                            </span>
+                            <h5 className="font-black text-sm text-slate-900 leading-tight">
+                              Avisos y documentos en un lugar
+                            </h5>
+                            <p className="text-[11px] text-slate-600 leading-snug">
+                              Mural de comunicados, biblioteca de actas, reglamentos de copropiedad y Libro Oficial de Reclamos foliado (Art. 20°).
+                            </p>
+                          </div>
+
+                          {/* Marco de Teléfono */}
+                          <div className="relative mx-auto w-[160px] aspect-[860/1860] bg-slate-900 rounded-[24px] p-[5px] shadow-xl border-[2.5px] border-slate-800">
+                            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-2 bg-slate-900 rounded-full z-10" />
+                            <div className="w-full h-full rounded-[19px] overflow-hidden bg-slate-950 relative">
+                              <img
+                                src="/brand/portal_demo/04_mural.png"
+                                alt="Mural Digital y Documentos"
+                                className="w-full h-full object-cover"
+                              />
+                              <span className="absolute bottom-1.5 right-1.5 text-[7px] font-mono font-bold bg-black/75 text-[#D4B895] px-1.5 py-0.5 rounded">
+                                VISTA DEMO REAL
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BANNER INFERIOR CON QR GRANDE PARA ESCANEAR EN REUNIONES O ASAMBLEAS */}
+                      <div className="p-5 rounded-3xl bg-[#F5F4EF] border-2 border-[#0F3D2E] flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+                        <div className="space-y-2">
+                          <div className="inline-block px-3 py-1 rounded-full bg-[#0F3D2E] text-[#D4B895] text-[10px] font-black font-mono uppercase">
+                            ★ Código QR de Acceso Inmediato
+                          </div>
+                          <h4 className="text-base font-black text-[#0F3D2E]">
+                            Invita al Comité o la Asamblea a Probar el Portal en Vivo
+                          </h4>
+                          <p className="text-xs text-slate-700 max-w-xl leading-relaxed">
+                            Proyecta esta pantalla o comparte el brochure para que cada vecino apunte su teléfono: podrán recorrer las pantallas de gastos, simular pagos y comprobar por sí mismos el estándar de transparencia antes de votar.
+                          </p>
+                          <div className="flex flex-wrap items-center gap-3 pt-1">
                             <button
                               type="button"
-                              onClick={() => showAlert('Simulación de Pago', 'En la versión real, el vecino paga en 1 clic mediante Webpay / Flow integrado.', 'info')}
-                              className="w-full py-2 bg-[#D4B895] hover:bg-[#c2a37d] text-[#0F3D2E] font-black rounded-xl text-xs transition-all"
+                              onClick={() => {
+                                navigator.clipboard.writeText('https://aranpro.cl/?demo=comunidad');
+                                showAlert('✓ Enlace Copiado', 'Enlace de la demo copiado al portapapeles: https://aranpro.cl/?demo=comunidad', 'success');
+                              }}
+                              className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-300 transition-all flex items-center gap-1.5 cursor-pointer"
                             >
-                              Pagar Gasto Común en Línea
+                              <Copy className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                              Copiar URL de la Demo
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewBrochureModal(true)}
+                              className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              Ver Brochure Imprimible
                             </button>
                           </div>
-                        )}
+                        </div>
 
-                        {demoScreenTab === 'comprobantes' && (
-                          <div className="space-y-2.5 animate-in fade-in">
-                            <span className="text-[10px] font-bold text-[#D4B895] uppercase block">
-                              Transparencia Radical • Clic para ver Comprobante Real:
-                            </span>
-                            <div className="space-y-1.5">
-                              {[
-                                { prov: 'HidroBombas Ltda.', mat: 'Mantención Sala de Bombas', monto: '$180.000', folio: 'FAC-8901' },
-                                { prov: 'Chilquinta Energía', mat: 'Consumo Eléctrico Espacios Comunes', monto: '$245.800', folio: 'BOL-4412' },
-                                { prov: 'Jardines del Valle', mat: 'Mantención Áreas Verdes & Poda', monto: '$95.000', folio: 'FAC-1029' }
-                              ].map((eg, i) => (
-                                <div key={i} className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-[11px]">
-                                  <div>
-                                    <p className="font-bold text-white">{eg.prov}</p>
-                                    <p className="text-[10px] text-slate-400">{eg.mat}</p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="font-mono font-bold text-emerald-400">{eg.monto}</p>
-                                    <span className="text-[9px] text-[#D4B895] underline cursor-pointer">Ver Comprobante</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {demoScreenTab === 'reclamos' && (
-                          <div className="space-y-2.5 animate-in fade-in">
-                            <span className="text-[10px] font-bold text-[#D4B895] uppercase block">
-                              Libro Oficial Foliado (Art. 20° Ley N° 21.442)
-                            </span>
-                            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
-                              <div className="flex items-center justify-between text-[10px]">
-                                <span className="font-mono text-emerald-400 font-bold">REC-2026-004</span>
-                                <span className="text-slate-400">Casa 4 • Hace 2 días</span>
-                              </div>
-                              <p className="font-bold text-white text-xs">Ajuste de presión en bomba de piso 3</p>
-                              <p className="text-[10px] text-slate-300">"Se percibe baja presión en horario punta."</p>
-                              <div className="p-1.5 bg-slate-950 rounded border border-slate-800 text-[10px] text-emerald-300 font-medium">
-                                ✓ Respuesta ARANPRO: Técnico inspeccionó presostato ayer a las 16:00 hrs. Falla resuelta.
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {demoScreenTab === 'mural' && (
-                          <div className="space-y-2.5 animate-in fade-in">
-                            <span className="text-[10px] font-bold text-[#D4B895] uppercase block">
-                              Diario Mural Digital Comunitario
-                            </span>
-                            <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-300">
-                                Aviso Importante
-                              </span>
-                              <h6 className="font-bold text-white text-xs">Corte Programado por Limpieza de Estanques</h6>
-                              <p className="text-[10px] text-slate-300 leading-relaxed">
-                                Este jueves entre 10:00 y 13:00 hrs se realizará lavado de estanques conforme a norma sanitaria.
-                              </p>
-                            </div>
-                          </div>
-                        )}
+                        <div className="shrink-0 p-3 bg-white rounded-2xl border-2 border-[#D4B895] text-center shadow-md">
+                          <AranproQrCode 
+                            value="https://aranpro.cl/?demo=comunidad" 
+                            size={132} 
+                            alt="Código QR Demo Escaneable ARANPRO" 
+                          />
+                          <span className="text-[9px] font-mono font-bold text-[#0F3D2E] block mt-1 tracking-tight uppercase">
+                            ESCANEAR CON CELULAR
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* VISTA 2: SIMULADOR INTERACTIVO DE PANTALLA */}
+                  {demoViewMode === 'simulador' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-in fade-in">
+                      {/* PANEL IZQUIERDO: CÓDIGO QR Y ENLACE (COL 5) */}
+                      <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs text-center space-y-4">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold uppercase text-[#0F3D2E] block">Escanear con Teléfono</span>
+                          <h5 className="font-black text-sm text-slate-900">Código QR de Demostración</h5>
+                          <p className="text-xs text-slate-500">Apunta la cámara de tu celular para abrir el portal de copropietarios en vivo.</p>
+                        </div>
+
+                        {/* CÓDIGO QR REAL ESCANEABLE */}
+                        <div className="p-4 bg-white rounded-2xl border-2 border-dashed border-[#0F3D2E]/30 inline-block shadow-xs">
+                          <AranproQrCode 
+                            value="https://aranpro.cl/?demo=comunidad" 
+                            size={176} 
+                            alt="Código QR Demo Escaneable ARANPRO" 
+                          />
+                        </div>
+
+                        <div className="pt-2 space-y-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText('https://aranpro.cl/?demo=comunidad');
+                              showAlert('✓ Enlace Copiado', 'El enlace de la demo se ha copiado al portapapeles.', 'success');
+                            }}
+                            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                          >
+                            <Copy className="w-3.5 h-3.5 text-slate-600" />
+                            Copiar Enlace de Demo
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* PANEL DERECHO: SIMULADOR DE APP EN CELULAR (COL 7) */}
+                      <div className="lg:col-span-7 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl text-white space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                          <div className="flex items-center gap-2">
+                            <Smartphone className="w-4 h-4 text-[#D4B895]" />
+                            <span className="font-bold text-xs text-white">Simulador Interactivo de la App</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+                            En Línea • Vista Copropietario
+                          </span>
+                        </div>
+
+                        {/* BOTONES DE PESTAÑAS DEL SIMULADOR */}
+                        <div className="flex items-center gap-1.5 p-1 bg-slate-800 rounded-xl text-[11px] font-bold">
+                          {[
+                            { id: 'gastoComun', label: 'Colilla Digital' },
+                            { id: 'comprobantes', label: 'Auditoría Bancaria' },
+                            { id: 'reclamos', label: 'Libro Reclamos' },
+                            { id: 'mural', label: 'Mural Avisos' }
+                          ].map(t => (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => setDemoScreenTab(t.id)}
+                              className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${
+                                demoScreenTab === t.id ? 'bg-[#0F3D2E] text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                              }`}
+                            >
+                              {t.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* PANTALLA SIMULADA */}
+                        <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 min-h-[260px] text-xs space-y-3">
+                          {demoScreenTab === 'gastoComun' && (
+                            <div className="space-y-3 animate-in fade-in">
+                              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <div>
+                                  <span className="text-[10px] text-slate-400 block font-mono">UNIDAD N° 12</span>
+                                  <strong className="text-white text-sm">Gasto Común: $48.500</strong>
+                                </div>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-900/60 text-emerald-400 border border-emerald-700">
+                                  Al Día
+                                </span>
+                              </div>
+                              <div className="space-y-1.5 text-[11px] text-slate-300">
+                                <div className="flex justify-between"><span>Gasto Operacional Base:</span><span className="font-mono">$38.000</span></div>
+                                <div className="flex justify-between"><span>Fondo de Reserva (5% Ley 21.442):</span><span className="font-mono text-emerald-400">$2.500</span></div>
+                                <div className="flex justify-between"><span>Consumo Agua / Remarcador:</span><span className="font-mono">$8.000</span></div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => showAlert('Simulación de Pago', 'En la versión real, el vecino paga en 1 clic mediante Webpay / Flow integrado.', 'info')}
+                                className="w-full py-2 bg-[#D4B895] hover:bg-[#c2a37d] text-[#0F3D2E] font-black rounded-xl text-xs transition-all cursor-pointer"
+                              >
+                                Pagar Gasto Común en Línea
+                              </button>
+                            </div>
+                          )}
+
+                          {demoScreenTab === 'comprobantes' && (
+                            <div className="space-y-2.5 animate-in fade-in">
+                              <span className="text-[10px] font-bold text-[#D4B895] uppercase block">
+                                Transparencia Radical • Clic para ver Comprobante Real:
+                              </span>
+                              <div className="space-y-1.5">
+                                {[
+                                  { prov: 'HidroBombas Ltda.', mat: 'Mantención Sala de Bombas', monto: '$180.000', folio: 'FAC-8901' },
+                                  { prov: 'Chilquinta Energía', mat: 'Consumo Eléctrico Espacios Comunes', monto: '$245.800', folio: 'BOL-4412' },
+                                  { prov: 'Jardines del Valle', mat: 'Mantención Áreas Verdes & Poda', monto: '$95.000', folio: 'FAC-1029' }
+                                ].map((eg, i) => (
+                                  <div key={i} className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-[11px]">
+                                    <div>
+                                      <p className="font-bold text-white">{eg.prov}</p>
+                                      <p className="text-[10px] text-slate-400">{eg.mat}</p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="font-mono font-bold text-emerald-400">{eg.monto}</p>
+                                      <span className="text-[9px] text-[#D4B895] underline cursor-pointer">Ver Comprobante</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {demoScreenTab === 'reclamos' && (
+                            <div className="space-y-2.5 animate-in fade-in">
+                              <span className="text-[10px] font-bold text-[#D4B895] uppercase block">
+                                Libro Oficial Foliado (Art. 20° Ley N° 21.442)
+                              </span>
+                              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="font-mono text-emerald-400 font-bold">REC-2026-004</span>
+                                  <span className="text-slate-400">Casa 4 • Hace 2 días</span>
+                                </div>
+                                <p className="font-bold text-white text-xs">Ajuste de presión en bomba de piso 3</p>
+                                <p className="text-[10px] text-slate-300">"Se percibe baja presión en horario punta."</p>
+                                <div className="p-1.5 bg-slate-950 rounded border border-slate-800 text-[10px] text-emerald-300 font-medium">
+                                  ✓ Respuesta ARANPRO: Técnico inspeccionó presostato ayer a las 16:00 hrs. Falla resuelta.
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {demoScreenTab === 'mural' && (
+                            <div className="space-y-2.5 animate-in fade-in">
+                              <span className="text-[10px] font-bold text-[#D4B895] uppercase block">
+                                Diario Mural Digital Comunitario
+                              </span>
+                              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1">
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-300">
+                                  Aviso Importante
+                                </span>
+                                <h6 className="font-bold text-white text-xs">Corte Programado por Limpieza de Estanques</h6>
+                                <p className="text-[10px] text-slate-300 leading-relaxed">
+                                  Este jueves entre 10:00 y 13:00 hrs se realizará lavado de estanques conforme a norma sanitaria.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -8970,129 +9172,225 @@ export const CompanySettingsAndBackupModule = ({
                 style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
               >
                 {/* SECCIÓN SUPERIOR */}
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {/* Membrete Maestro del Brochure ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
+                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
                     <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-11 w-auto" />
+                      <AranproLogo variant="principal" className="h-10 w-auto" />
                       <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <span className="text-[9.5px] font-black text-[#D4B895] uppercase tracking-widest block">
-                          SUITE DIGITAL PARA CONDOMINIOS • LEY N° 21.442
+                        <span className="text-[9px] font-black text-[#D4B895] uppercase tracking-widest block">
+                          TECNOLOGÍA & TRANSFORMACIÓN DIGITAL • LEY N° 21.442
                         </span>
                         <h2 className="text-base font-black text-[#0F3D2E] tracking-tight uppercase leading-none">
                           Portal Web & App Móvil ARANPRO
                         </h2>
-                        <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
-                        </p>
-                        <p className="text-[9px] text-slate-500 font-mono">
-                          {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.website || 'https://aranpro.cl'}
+                        <p className="text-[9px] text-slate-600 font-mono font-semibold">
+                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Fono: {empresaForm.phone || '+56 9 5811 8504'} • Web: {empresaForm.website || 'https://aranpro.cl'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9.5px] font-bold font-mono">
-                        ACCESO 24/7 EN LÍNEA
+                      <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9px] font-bold font-mono">
+                        SUITE 100% BONIFICADA
                       </span>
-                      <p className="text-[9.5px] text-slate-500 font-semibold">
+                      <p className="text-[9.5px] text-slate-600 font-semibold">
                         {proposalConfig.targetCondo || 'Comunidad de Copropietarios'}
                       </p>
+                      <span className="text-[8px] text-emerald-700 block font-bold">Cero costo de licencias</span>
                     </div>
                   </div>
 
-                  {/* 6 Pilares Tecnológicos */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <h5 className="font-black text-[10.5px]">1. Certificados Oficiales en Línea (Ley 21.442)</h5>
+                  {/* Franja de Campaña / Titular Rector */}
+                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-50 via-[#F5F4EF] to-amber-50/50 border border-emerald-200/80 flex items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#0F3D2E] block">
+                        Campaña Oficial • Portal de Residentes
+                      </span>
+                      <h3 className="text-sm font-black text-slate-900 leading-tight">
+                        Tu comunidad, visible desde el celular
+                      </h3>
+                      <p className="text-[10px] text-slate-600 leading-snug">
+                        ¿Dónde está la información de tu comunidad? En ARANPRO cada copropietario y miembro del Comité tiene sus cobros, boletas, comprobantes bancarios, avisos y documentos oficiales reunidos en la palma de su mano.
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-center pl-2 border-l border-emerald-200">
+                      <span className="text-[8.5px] font-mono font-bold text-slate-500 uppercase block">Compatibilidad</span>
+                      <span className="text-[10px] font-black text-[#0F3D2E] block">Android • iOS • Web</span>
+                      <span className="text-[8px] text-slate-400 block font-mono">24/7 sin descargas</span>
+                    </div>
+                  </div>
+
+                  {/* SHOWCASE CENTRAL DE 3 SMARTPHONES CON CAPTURAS REALES DEL PORTAL */}
+                  <div className="grid grid-cols-3 gap-2.5 pt-0.5">
+                    {/* CELULAR 1: TU CUENTA & PAGOS */}
+                    <div className="p-2 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1.5 shadow-2xs">
+                      <div className="inline-block px-2 py-0.5 rounded bg-emerald-100 text-[#0F3D2E] text-[8.5px] font-bold uppercase tracking-wider">
+                        01 / TU CUENTA
                       </div>
-                      <p className="text-[9px] text-slate-600 leading-snug">
-                        Emisión instantánea de <strong>Certificados de Gastos al Día (No Deuda)</strong> para compraventas y notarías (Arts. 20° y 36°), Certificados de Residencia y Copropietario con folio, código QR y firma digital.
+                      <h5 className="font-black text-[10.5px] text-slate-900 leading-tight">
+                        Tu estado de cuenta, a mano
+                      </h5>
+                      {/* Marco de Smartphone */}
+                      <div className="relative mx-auto w-[122px] aspect-[860/1860] bg-slate-900 rounded-[18px] p-[4px] shadow-md border-[2px] border-slate-800">
+                        {/* Notch / Dynamic Island */}
+                        <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-slate-900 rounded-full z-10" />
+                        <div className="w-full h-full rounded-[14px] overflow-hidden bg-slate-950 relative">
+                          <img
+                            src="/brand/portal_demo/02_portal_inicio.png"
+                            alt="Pantalla de Inicio y Cuenta"
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute bottom-1 right-1 text-[6.5px] font-mono font-bold bg-black/70 text-[#D4B895] px-1 rounded">
+                            VISTA DEMO
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[8.5px] text-slate-600 leading-tight px-1">
+                        Consulta tu saldo al día, desglose legal de alícuotas, Fondo de Reserva (Art. 39°) y pago en 1 clic.
                       </p>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <h5 className="font-black text-[10.5px]">2. Notificación de Pagos con Respaldo Adjunto</h5>
+                    {/* CELULAR 2: GASTOS & BOLETAS */}
+                    <div className="p-2 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1.5 shadow-2xs">
+                      <div className="inline-block px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[8.5px] font-bold uppercase tracking-wider">
+                        02 / GASTOS Y RESPALDOS
                       </div>
-                      <p className="text-[9px] text-slate-600 leading-snug">
-                        El vecino informa su transferencia subiendo la foto o PDF del comprobante desde el celular. Se coteja con la cartola bancaria y se emite el <strong>Recibo Oficial Foliado con timbre digital</strong>.
+                      <h5 className="font-black text-[10.5px] text-slate-900 leading-tight">
+                        El cobro debe poder revisarse
+                      </h5>
+                      {/* Marco de Smartphone */}
+                      <div className="relative mx-auto w-[122px] aspect-[860/1860] bg-slate-900 rounded-[18px] p-[4px] shadow-md border-[2px] border-slate-800">
+                        {/* Notch / Dynamic Island */}
+                        <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-slate-900 rounded-full z-10" />
+                        <div className="w-full h-full rounded-[14px] overflow-hidden bg-slate-950 relative">
+                          <img
+                            src="/brand/portal_demo/03_boletas.png"
+                            alt="Gastos y Boletas Digitalizadas"
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute bottom-1 right-1 text-[6.5px] font-mono font-bold bg-black/70 text-[#D4B895] px-1 rounded">
+                            VISTA DEMO
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[8.5px] text-slate-600 leading-tight px-1">
+                        Transparencia radical: revisa las facturas y comprobantes bancarios reales de cada gasto común.
                       </p>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <h5 className="font-black text-[10.5px]">3. Colilla Digital, Prorrateo & WhatsApp</h5>
+                    {/* CELULAR 3: MURAL & DOCUMENTOS */}
+                    <div className="p-2 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1.5 shadow-2xs">
+                      <div className="inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-900 text-[8.5px] font-bold uppercase tracking-wider">
+                        03 / INFORMACIÓN
                       </div>
-                      <p className="text-[9px] text-slate-600 leading-snug">
-                        Desglose legal de alícuotas, Fondo de Reserva obligatorio (Art. 39°), convenios de repactación histórica y botón directo para compartir la colilla con datos de transferencia por WhatsApp.
-                      </p>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <h5 className="font-black text-[10.5px]">4. Auditoría Bancaria 24/7 para el Comité</h5>
+                      <h5 className="font-black text-[10.5px] text-slate-900 leading-tight">
+                        Avisos y documentos en un lugar
+                      </h5>
+                      {/* Marco de Smartphone */}
+                      <div className="relative mx-auto w-[122px] aspect-[860/1860] bg-slate-900 rounded-[18px] p-[4px] shadow-md border-[2px] border-slate-800">
+                        {/* Notch / Dynamic Island */}
+                        <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-slate-900 rounded-full z-10" />
+                        <div className="w-full h-full rounded-[14px] overflow-hidden bg-slate-950 relative">
+                          <img
+                            src="/brand/portal_demo/04_mural.png"
+                            alt="Mural y Documentos Oficiales"
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute bottom-1 right-1 text-[6.5px] font-mono font-bold bg-black/70 text-[#D4B895] px-1 rounded">
+                            VISTA DEMO
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-[9px] text-slate-600 leading-snug">
-                        Cada factura electrónica, boleta de honorarios y comprobante bancario está disponible en línea para consulta inmediata de cualquier miembro del Comité. Cero gastos sin respaldo.
-                      </p>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <h5 className="font-black text-[10.5px]">5. Rendición Oficial Mensual (Art. 20°)</h5>
-                      </div>
-                      <p className="text-[9px] text-slate-600 leading-snug">
-                        Generación con 1 clic del informe estandarizado de rendición: nómina de proveedores, clasificación contable, libro diario y balance de caja en PDF descargable para la comunidad.
-                      </p>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
-                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <h5 className="font-black text-[10.5px]">6. Asambleas Híbridas & Libro de Reclamos</h5>
-                      </div>
-                      <p className="text-[9px] text-slate-600 leading-snug">
-                        Votaciones telemáticas legales (Art. 15°) y Libro Digital de Reclamos y Sugerencias inalterable (Art. 20°) con folios correlativos y plazos de respuesta obligatorios.
+                      <p className="text-[8.5px] text-slate-600 leading-tight px-1">
+                        Mural oficial de avisos, biblioteca de actas, reglamentos y Libro de Reclamos foliado (Art. 20°).
                       </p>
                     </div>
                   </div>
 
-                  {/* Demostración Interactiva en Vivo & Código QR para Probar la App */}
-                  <div className="p-3 rounded-2xl bg-[#F5F4EF] border-2 border-[#0F3D2E] flex items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="inline-block px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] text-[8.5px] font-bold font-mono uppercase">
-                        ★ Demo Interactiva en Vivo
+                  {/* 4 PILARES ESTRATÉGICOS DE BENEFICIO */}
+                  <div className="grid grid-cols-2 gap-2 pt-0.5">
+                    <div className="p-2 rounded-xl bg-white border border-slate-200 space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <strong className="text-[10px] text-slate-900">Auditoría Bancaria 24/7 para el Comité</strong>
                       </div>
-                      <h4 className="text-xs md:text-sm font-black text-[#0F3D2E] leading-tight">
+                      <p className="text-[8.5px] text-slate-600 leading-snug">
+                        Facturas electrónicas, boletas de honorarios y cartolas bancarias digitalizadas en línea. Cero gastos sin respaldo contable comprobable.
+                      </p>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-white border border-slate-200 space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <strong className="text-[10px] text-slate-900">Certificados Oficiales con Firma & QR</strong>
+                      </div>
+                      <p className="text-[8.5px] text-slate-600 leading-snug">
+                        Emisión instantánea de Certificados de Gastos al Día (No Deuda) para compraventas y notarías (Arts. 20° y 36°), foliados y con validación digital.
+                      </p>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-white border border-slate-200 space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <strong className="text-[10px] text-slate-900">Asambleas Híbridas & Votaciones Celular</strong>
+                      </div>
+                      <p className="text-[8.5px] text-slate-600 leading-snug">
+                        Solución a la falta de quórum presencial: convocatorias y votaciones telemáticas seguras con cálculo de quórums en vivo según Art. 15° Ley 21.442.
+                      </p>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-white border border-slate-200 space-y-0.5">
+                      <div className="flex items-center gap-1.5 text-[#0F3D2E]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <strong className="text-[10px] text-slate-900">Suite 100% Bonificada (Cero Costo Software)</strong>
+                      </div>
+                      <p className="text-[8.5px] text-slate-600 leading-snug">
+                        Incluida en el servicio de administración ARANPRO. La comunidad no asume ningún costo de licencias ni cargos extra por residente.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* CAJA DE EXPERIENCIA EN VIVO & CÓDIGO QR DESTACADO */}
+                  <div
+                    className="p-2.5 rounded-2xl border-2 flex items-center justify-between gap-3 shadow-xs"
+                    style={{
+                      backgroundColor: '#0F3D2E',
+                      borderColor: '#D4B895',
+                      color: '#ffffff',
+                      WebkitPrintColorAdjust: 'exact',
+                      printColorAdjust: 'exact'
+                    }}
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[#D4B895] text-xs font-black">★</span>
+                        <span className="text-[9px] font-black uppercase tracking-wider text-[#D4B895]">
+                          Demostración Guiada & Acceso en Vivo
+                        </span>
+                      </div>
+                      <h4 className="text-xs md:text-sm font-black text-white leading-tight">
                         Pruebe la experiencia de los residentes de {proposalConfig.targetCondo || 'su comunidad'}
                       </h4>
-                      <p className="text-[9.5px] text-slate-700 leading-snug">
-                        Escanee este código QR con la cámara de su teléfono móvil o ingrese a <strong>{empresaForm.website || 'https://aranpro.cl'}</strong> para probar la plataforma en tiempo real: consulte colillas, respalde gastos con un clic y revise el libro de reclamos digital.
+                      <p className="text-[9px] text-emerald-100/90 leading-snug max-w-lg">
+                        Escanee este código QR con la cámara de su teléfono móvil o ingrese a <strong>{empresaForm.website || 'https://aranpro.cl'}</strong> para probar el portal interactivo de demostración en tiempo real: consulte colillas, explore boletas y pruebe el libro de reclamos digital.
                       </p>
-                      <div className="text-[8.5px] font-mono font-bold text-[#0F3D2E]">
-                        100% Gratuita para la comunidad • Cero costos de licencias o software
-                      </div>
                     </div>
-                    <div className="shrink-0 p-2 bg-white rounded-xl border border-slate-300 shadow-sm text-center">
-                      <AranproQrCode 
-                        value="https://aranpro.cl/?demo=comunidad" 
-                        size={68} 
-                        alt="Código QR Demo Escaneable ARANPRO" 
+                    <div className="shrink-0 p-1.5 bg-white rounded-xl border-2 border-[#D4B895] text-center shadow-md">
+                      <AranproQrCode
+                        value="https://aranpro.cl/?demo=comunidad"
+                        size={64}
+                        alt="Código QR Demo Escaneable ARANPRO"
                       />
-                      <span className="text-[7px] font-mono font-bold text-slate-500 block mt-0.5 tracking-tight">ESCANEAR CON CELULAR</span>
+                      <span className="text-[6.5px] font-mono font-bold text-[#0F3D2E] block mt-0.5 tracking-tight uppercase">
+                        ESCANEAR CON CELULAR
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 {/* SECCIÓN INFERIOR ANCLADA AL PIE */}
-                <div className="mt-auto pt-2 space-y-2">
-                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
+                <div className="mt-auto pt-2 space-y-1.5">
+                  <div className="pt-1.5 border-t border-slate-200 flex items-end justify-between gap-4">
                     <div className="flex items-center gap-3">
                       <AranproOfficialSeal
                         size="sm"
@@ -9100,34 +9398,34 @@ export const CompanySettingsAndBackupModule = ({
                         rnacNumber=""
                         showCaption={true}
                       />
-                      <div className="text-[9.5px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
-                        <p><strong>Fono Comercial:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone || '+56 9 5811 8504'}</span></p>
+                      <div className="text-[9px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
+                        <p><strong>Contacto Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone || '+56 9 5811 8504'}</span></p>
                         <p><strong>Correo:</strong> <span className="font-mono">{empresaForm.email || 'contacto@aranpro.cl'}</span></p>
                         <p><strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website || 'https://aranpro.cl'}</span></p>
                       </div>
                     </div>
 
-                    <div className="text-center min-w-[240px]">
-                      <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
+                    <div className="text-center min-w-[220px]">
+                      <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
                         {(signatureImage || companySettings?.signatureDataUrl) && (
                           <img
                             src={signatureImage || companySettings?.signatureDataUrl}
                             alt="Firma"
-                            className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
+                            className="h-11 max-h-12 w-auto max-w-[220px] object-contain mx-auto"
                             style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
                           />
                         )}
                       </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-1">
-                        <span className="text-[11px] font-black text-slate-900 block leading-tight">{empresaForm.adminName}</span>
-                        <span className="text-[9px] text-[#0F3D2E] font-bold block leading-tight">Constructor Civil • Administrador de Condominios</span>
-                        <span className="text-[9px] text-slate-600 font-mono block">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</span>
+                      <div className="border-t-[1.5px] border-slate-800 pt-0.5">
+                        <span className="text-[10.5px] font-black text-slate-900 block leading-tight">{empresaForm.adminName}</span>
+                        <span className="text-[8.5px] text-[#0F3D2E] font-bold block leading-tight">Constructor Civil • Administrador de Condominios</span>
+                        <span className="text-[8.5px] text-slate-600 font-mono block">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Pie de Página Canónico Maestro */}
-                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Brochure Tecnológico • Suite Web & App Móvil • Ley N° 21.442 (Pág. 1 de 1)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
