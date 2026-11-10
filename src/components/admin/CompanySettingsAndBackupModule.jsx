@@ -3311,17 +3311,6 @@ export const CompanySettingsAndBackupModule = ({
                             </h4>
                           </div>
                         </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => setPostulacionSection('inspeccion')}
-                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 cursor-pointer"
-                          >
-                            <HardHat className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                            Abrir Pauta Técnica
-                          </button>
-                        </div>
                       </div>
 
                       <p className="text-xs text-slate-600 leading-relaxed">
