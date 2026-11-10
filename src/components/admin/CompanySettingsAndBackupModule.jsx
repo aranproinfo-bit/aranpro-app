@@ -22,7 +22,7 @@ import {
   HelpCircle, Settings, Smartphone, Layers, CheckSquare, MessageCircle,
   Paperclip, FileUp, QrCode, Presentation, Compass, ClipboardCheck,
   ArrowRight, Scale, ChevronRight, ChevronDown, ChevronUp, Users, UserPlus, ShieldAlert, Kanban, Calculator,
-  Mail, GraduationCap
+  Mail, GraduationCap, Info, Edit3
 } from 'lucide-react';
 
 // Recorta automáticamente márgenes blancos/transparentes alrededor de la firma manuscrita
