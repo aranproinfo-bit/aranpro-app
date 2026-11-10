@@ -397,17 +397,17 @@ export const CompanyEnterpriseHub = ({
     { id: 'comparativa', label: 'Cuadro Comparativo', icon: Scale },
     { id: 'demo', label: 'Demo en Vivo & QR', icon: QrCode },
     { id: 'pitch', label: 'Libreto Pitch (10 Min)', icon: Presentation },
-    { id: 'preparacion', label: 'Checklist & Semáforo', icon: ClipboardCheck },
   ];
 
   // Submenús organizados jerárquicamente para Postulaciones & CRM
   const POSTULACION_SUB_ITEMS = [
     { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send },
-    { id: 'material', label: '2. Documentos & Cartas PDF', icon: FileText },
+    { id: 'material', label: '2. Bandeja de Documentos Rápidos', icon: FileText },
     { id: 'pipeline', label: '3. CRM de Postulaciones', icon: Briefcase },
+    { id: 'preparacion', label: '4. Checklist & Semáforo', icon: ClipboardCheck },
     {
       id: 'herramientas',
-      label: '4. Caja de Herramientas',
+      label: '5. Caja de Herramientas',
       icon: Calculator,
       isGroup: true,
       subItems: TOOLBOX_ITEMS
@@ -565,9 +565,9 @@ export const CompanyEnterpriseHub = ({
                   {POSTULACION_SUB_ITEMS.map((sub) => {
                     const SubIcon = sub.icon;
 
-                    // Grupo Anidado (4. Caja de Herramientas)
+                    // Grupo Anidado (5. Caja de Herramientas)
                     if (sub.isGroup) {
-                      const isToolboxChildActive = ['herramientas', 'calculadora', 'inspeccion', 'comparativa', 'demo', 'pitch', 'preparacion'].includes(postulacionSection);
+                      const isToolboxChildActive = ['herramientas', 'calculadora', 'inspeccion', 'comparativa', 'demo', 'pitch'].includes(postulacionSection);
                       const isGroupOpen = toolboxExpanded || isToolboxChildActive;
 
                       return (

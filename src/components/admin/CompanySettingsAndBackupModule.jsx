@@ -10,6 +10,7 @@ import { ReadinessPanel } from './postulaciones/ReadinessPanel';
 import { PipelinePanel } from './postulaciones/PipelinePanel';
 import { AgacechFeeCalculatorPanel } from './postulaciones/AgacechFeeCalculatorPanel';
 import { PitchMasterPanel } from './postulaciones/PitchMasterPanel';
+import { QuickDocumentsPanel } from './postulaciones/QuickDocumentsPanel';
 import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
@@ -2374,7 +2375,6 @@ export const CompanySettingsAndBackupModule = ({
           { id: 'comparativa', label: 'Cuadro Comparativo', icon: Scale },
           { id: 'demo', label: 'Demo en Vivo & QR', icon: QrCode },
           { id: 'pitch', label: 'Libreto Pitch (10 Min)', icon: Presentation },
-          { id: 'preparacion', label: 'Checklist & Semáforo', icon: ClipboardCheck },
         ].map((tool) => {
           const ToolIcon = tool.icon;
           const isSelected =
@@ -3419,18 +3419,19 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               )}
 
-              {/* SELECTOR MODULAR PRINCIPAL (4 PESTAÑAS ESTRUCTURADAS Y AMIGABLES) */}
+              {/* SELECTOR MODULAR PRINCIPAL (5 PESTAÑAS ESTRUCTURADAS Y AMIGABLES) */}
               {!hidePostulacionSubNav && (
                 <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
                   {[
                     { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send, badge: '4 Pasos' },
-                    { id: 'material', label: '2. Documentos & Cartas PDF', icon: FileText },
+                    { id: 'material', label: '2. Bandeja de Documentos Rápidos', icon: FileText },
                     { id: 'pipeline', label: `3. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
-                    { id: 'herramientas', label: '4. Caja de Herramientas (Honorarios & Pitch)', icon: Calculator }
+                    { id: 'preparacion', label: `4. Checklist & Semáforo (${readinessReport.score}/100)`, icon: ClipboardCheck },
+                    { id: 'herramientas', label: '5. Caja de Herramientas', icon: Calculator }
                   ].map((tab) => {
                     const IconC = tab.icon;
                     const isAct = postulacionSection === tab.id ||
-                      (tab.id === 'herramientas' && ['calculadora', 'inspeccion', 'comparativa', 'pitch', 'demo', 'preparacion'].includes(postulacionSection));
+                      (tab.id === 'herramientas' && ['calculadora', 'inspeccion', 'comparativa', 'pitch', 'demo'].includes(postulacionSection));
                     return (
                       <button
                         key={tab.id}
@@ -4290,10 +4291,32 @@ export const CompanySettingsAndBackupModule = ({
 
 
 
-              {/* SECCIÓN 1: CHECKLIST & SEMÁFORO DE PREPARACIÓN */}
+              {/* SECCIÓN 4: CHECKLIST & SEMÁFORO DE PREPARACIÓN */}
               {postulacionSection === 'preparacion' && (
                 <div className="space-y-4 animate-in fade-in">
-                  {renderToolboxNavbar()}
+                  <div className="border-b border-slate-200/80 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] font-bold text-[#0F3D2E] uppercase tracking-wider block">
+                        Auditoría Legal & Operativa • Ley N° 21.442
+                      </span>
+                      <h2 className="text-base font-black text-slate-900">
+                        Checklist & Semáforo de Preparación para Licitaciones
+                      </h2>
+                      <p className="text-xs text-slate-500">
+                        Audita el 100% de los requisitos legales, habituales y diferenciadores antes de presentar tu propuesta.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewDossierModal(true)}
+                        className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                        Ver Dossier Maestro
+                      </button>
+                    </div>
+                  </div>
                   <ReadinessPanel
                     readiness={readinessReport}
                     onAction={handleReadinessAction}
@@ -4392,584 +4415,48 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               )}
 
-              {/* SECCIÓN 3: DOSSIER, PROPUESTA ECONÓMICA, CARTAS Y REFERENCIAS */}
+              {/* SECCIÓN 2: BANDEJA RÁPIDA DE DOCUMENTOS DESCARGABLES */}
               {postulacionSection === 'material' && (
-                <div className="space-y-6 animate-in fade-in">
-                  {/* CONFIGURACIÓN DE DESTINATARIO Y PROPUESTA ECONÓMICA */}
-                  <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-800 border border-amber-200">
-                          <PenTool className="w-4 h-4 text-[#0F3D2E]" />
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                            Personalización de la Comunidad, Destinatario & Propuesta Económica
-                          </h4>
-                          <p className="text-[11px] text-slate-500">
-                            Configura los datos del condominio objetivo y la oferta de honorarios que se integrará en tu Carta y Dossier.
-                          </p>
-                        </div>
-                      </div>
-                      {proposalConfig.targetCondo || (!proposalConfig.leaveRecipientBlank && proposalConfig.targetRecipient) ? (
-                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
-                          ✓ Personalizado para {proposalConfig.targetCondo || 'Comité'}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 self-start sm:self-auto">
-                          Formato Abierto / Genérico
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Campo 1: Condominio a Postular */}
-                      <div className="space-y-1">
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Condominio o Edificio Objetivo
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Ej: Condominio Mirador de San Joaquín"
-                          value={proposalConfig.targetCondo}
-                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
-                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                        />
-                      </div>
-
-                      {/* Campo 2: Ciudad / Comuna */}
-                      <div className="space-y-1">
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Ciudad / Comuna
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Ej: La Serena, Región de Coquimbo"
-                          value={proposalConfig.targetCity}
-                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetCity: e.target.value })}
-                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                        />
-                      </div>
-
-                      {/* Campo 3: N° Unidades estimadas */}
-                      <div className="space-y-1">
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          N° de Unidades (Casas/Deptos)
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder="Ej: 64"
-                          value={proposalConfig.targetUnits}
-                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetUnits: e.target.value })}
-                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Destinatario */}
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          A la atención de / Destinatario de la Propuesta:
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setProposalConfig({ ...proposalConfig, targetRecipient: '', leaveRecipientBlank: true })}
-                          className="text-[11px] font-bold text-rose-600 hover:underline"
-                        >
-                          Limpiar / Dejar en blanco
-                        </button>
-                      </div>
-
-                      <input
-                        type="text"
-                        placeholder="Escribe el destinatario o selecciona una opción rápida abajo..."
-                        value={proposalConfig.leaveRecipientBlank ? '' : proposalConfig.targetRecipient}
-                        disabled={proposalConfig.leaveRecipientBlank}
-                        onChange={(e) => setProposalConfig({ ...proposalConfig, targetRecipient: e.target.value, leaveRecipientBlank: false })}
-                        className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#0F3D2E] transition-all ${
-                          proposalConfig.leaveRecipientBlank
-                            ? 'bg-slate-100 text-slate-400 border-dashed border-slate-300'
-                            : 'bg-slate-50 text-slate-800 border-slate-200'
-                        }`}
-                      />
-
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        <span className="text-[10px] font-bold uppercase text-slate-400 mr-1">Opciones Rápidas:</span>
-                        {[
-                          { label: 'Comité de Administración', value: 'Señores Miembros del Comité de Administración' },
-                          { label: 'Presidente(a) del Comité', value: 'Señor(a) Presidente(a) del Comité de Administración' },
-                          { label: 'Directiva del Condominio', value: 'Señores Miembros de la Directiva del Condominio' },
-                          { label: 'Asamblea de Copropietarios', value: 'Asamblea de Copropietarios & Comité de Administración' },
-                          { label: 'Comisión de Licitación', value: 'Señores Integrantes de la Comisión de Licitación' },
-                          { label: 'Dejar en Blanco', value: '', isBlank: true }
-                        ].map((preset) => {
-                          const isSelected = preset.isBlank
-                            ? proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient
-                            : !proposalConfig.leaveRecipientBlank && proposalConfig.targetRecipient === preset.value;
-
-                          return (
-                            <button
-                              key={preset.label}
-                              type="button"
-                              onClick={() => {
-                                if (preset.isBlank) {
-                                  setProposalConfig({ ...proposalConfig, targetRecipient: '', leaveRecipientBlank: true });
-                                } else {
-                                  setProposalConfig({ ...proposalConfig, targetRecipient: preset.value, leaveRecipientBlank: false });
-                                }
-                              }}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
-                                isSelected
-                                  ? 'bg-[#0F3D2E] text-white border-[#0F3D2E] shadow-xs'
-                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                              }`}
-                            >
-                              {preset.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* PROPUESTA ECONÓMICA Y ALCANCE DEL SERVICIO (NUEVO) */}
-                    <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-4 h-4 text-[#0F3D2E]" />
-                          <h5 className="text-xs font-black uppercase tracking-wider text-[#0F3D2E]">
-                            Propuesta Económica de Honorarios & Alcance Garantizado (SLA)
-                          </h5>
-                        </div>
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={proposalConfig.includeEconomicInDossier !== false}
-                            onChange={(e) => setProposalConfig({ ...proposalConfig, includeEconomicInDossier: e.target.checked })}
-                            className="w-4 h-4 rounded text-[#0F3D2E] focus:ring-[#0F3D2E] border-slate-300"
-                          />
-                          <span className="text-xs font-bold text-[#0F3D2E]">
-                            Incluir oferta económica impresa en el Dossier
-                          </span>
-                        </label>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                        <div className="space-y-1">
-                          <label className="block text-[10px] font-bold text-slate-600 uppercase">
-                            Honorario Mensual Propuesto (CLP)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            step="10000"
-                            value={proposalConfig.proposedMonthlyFee}
-                            onChange={(e) => setProposalConfig({ ...proposalConfig, proposedMonthlyFee: e.target.value })}
-                            className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-black text-[#0F3D2E]"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="block text-[10px] font-bold text-slate-600 uppercase">
-                            Costo Promedio por Unidad
-                          </label>
-                          <div className="px-3 py-2 bg-white/80 border border-slate-200 rounded-xl text-xs font-black text-slate-800 flex items-center justify-between">
-                            <span>
-                              {formatCLP(
-                                Math.round(
-                                  (Number(proposalConfig.proposedMonthlyFee) || 0) /
-                                    Math.max(1, Number(proposalConfig.targetUnits) || 1)
-                                )
-                              )}
-                            </span>
-                            <span className="text-[10px] font-semibold text-slate-400">/ depto mes</span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="block text-[10px] font-bold text-slate-600 uppercase">
-                            Modalidad Tributaria
-                          </label>
-                          <select
-                            value={proposalConfig.taxModality}
-                            onChange={(e) => setProposalConfig({ ...proposalConfig, taxModality: e.target.value })}
-                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800"
-                          >
-                            <option value="Factura Exenta / Boleta de Honorarios Profesional">Factura Exenta / Boleta Honorarios</option>
-                            <option value="Factura Electrónica SII (+ IVA)">Factura Electrónica (+ IVA)</option>
-                            <option value="Valor Total Impuestos Incluidos">Valor Total Impuestos Incluidos</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="block text-[10px] font-bold text-slate-600 uppercase">
-                            Presencia Técnica en Terreno
-                          </label>
-                          <input
-                            type="text"
-                            value={proposalConfig.visitFrequency}
-                            onChange={(e) => setProposalConfig({ ...proposalConfig, visitFrequency: e.target.value })}
-                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* TARJETAS DE EMISIÓN DE DOCUMENTOS EN EL ORDEN DEL EMBUDO (PASOS 1, 2, 3, 4 + HERRAMIENTAS) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    {/* 1. PASO 1: CARTA DE VALOR & PROSPECCIÓN RÁPIDA (PUERTA EN FRÍO / CONSERJERÍA) */}
-                    <div className="bg-gradient-to-br from-emerald-50 via-teal-50/60 to-white p-5 rounded-3xl border-2 border-[#0F3D2E]/25 shadow-xs space-y-3 flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#0F3D2E] text-[#D4B895] uppercase tracking-wider">
-                          ★ PASO 1 • PUERTA EN FRÍO
-                        </span>
-                        <h4 className="text-base font-black text-slate-900">
-                          Carta de Valor al Comité (Sin Conocer Estatus)
-                        </h4>
-                        <p className="text-[11px] text-slate-600 leading-relaxed">
-                          Ideal para dejar en conserjería cuando aún no conoces la realidad del condominio. <strong>Sin precios;</strong> presenta tu respaldo en Construcción, App 24/7 y ofrece un Diagnóstico Técnico Gratuito.
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewColdLetterModal(true)}
-                          className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
-                          Ver Carta Valor
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handlePrintColdLetter}
-                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          Imprimir
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 2. PASO 2: DOSSIER INTEGRAL COMPLETO (LICITACIÓN EN TERRENO) */}
-                    <div
-                      className="bg-[#0F3D2E] bg-gradient-to-br from-[#0F3D2E] to-[#164D3A] text-white p-5 rounded-3xl shadow-lg border border-emerald-900/40 space-y-3 relative overflow-hidden flex flex-col justify-between"
-                      style={{ backgroundColor: '#0F3D2E' }}
-                    >
-                      <div className="space-y-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#D4B895] text-[#0F3D2E] uppercase tracking-wider">
-                          ★ PASO 2 • LICITACIÓN (3 PÁGS)
-                        </span>
-                        <h4 className="text-base font-black tracking-tight text-white">
-                          Dossier Integral de Postulación
-                        </h4>
-                        <p className="text-[11px] text-emerald-100/90 leading-relaxed">
-                          Compila en un PDF: Portada oficial, Carta de Presentación, Ficha Técnica Constructiva, Acreditaciones Legales ({accreditationDocs.filter(d => d.includeInDossier !== false).length}), Diplomas ({academicRecords.filter(r => r.includeInProposal !== false).length}) y Referencias.
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewDossierModal(true)}
-                          className="px-3.5 py-2 bg-[#D4B895] hover:bg-[#c2a37d] text-[#0F3D2E] font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          Ver Dossier
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handlePrintDossier}
-                          className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
-                          Imprimir
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 3. PASO 3: PROPUESTA FORMAL A MEDIDA & DIAGNÓSTICO TÉCNICO (CONSOLIDADO 3 PÁGINAS) */}
-                    <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3 flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-900 uppercase">
-                          ★ PASO 3 • PROPUESTA CONSOLIDADA (3 PÁG.)
-                        </span>
-                        <h4 className="text-base font-black text-slate-900">
-                          Propuesta Formal, Diagnóstico & Matriz Comparativa (3 Pág.)
-                        </h4>
-                        <p className="text-[11px] text-slate-600 leading-relaxed">
-                          Documento oficial de 3 páginas: 1) Carta Formal con desglose de honorarios ({formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000)}/mes), 2) Informe de Diagnóstico Técnico Inicial y 3) Matriz Comparativa con firma y sello.
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewProposalModal(true)}
-                          className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
-                          Ver Carta
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handlePrintProposal}
-                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          Imprimir
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 4. PASO 4: BROCHURE COMERCIAL DE LA APP & WEB CON QR */}
-                    <div className="bg-gradient-to-br from-amber-50 to-orange-50/40 p-5 rounded-3xl border border-amber-200/80 space-y-3 flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-200 text-amber-900 uppercase">
-                          ★ PASO 4 • TECNOLOGÍA & DEMO QR
-                        </span>
-                        <h4 className="text-base font-black text-slate-900">
-                          Brochure de la App & Portal Web
-                        </h4>
-                        <p className="text-[11px] text-slate-600 leading-relaxed">
-                          Ficha comercial ejecutiva con código QR en vivo para que el Comité y vecinos prueben la demo interactiva en su celular y vean cómo auditar facturas 24/7.
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewBrochureModal(true)}
-                          className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
-                          Ver Brochure
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handlePrintBrochure}
-                          className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          Imprimir
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* DOCUMENTOS COMPLEMENTARIOS DE APOYO TÉCNICO Y COMPARATIVO */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-[#0F3D2E] text-[#D4B895]">
-                          <HardHat className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h5 className="font-black text-xs text-slate-900">
-                            Informe de Diagnóstico Técnico Inicial Gratuito
-                          </h5>
-                          <p className="text-[11px] text-slate-500">
-                            Plantilla técnica para sala de bombas, tableros y cubiertas tras la visita en terreno.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewInspectionModal(true)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 cursor-pointer"
-                        >
-                          <Eye className="w-3 h-3 text-[#0F3D2E]" />
-                          Ver
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handlePrintInspectionReport}
-                          className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          title="Imprimir Pauta"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-[#D4B895] text-[#0F3D2E]">
-                          <Scale className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h5 className="font-black text-xs text-slate-900">
-                            Matriz de Cuadro Comparativo
-                          </h5>
-                          <p className="text-[11px] text-slate-500">
-                            Comparativa de 10 puntos clave: Administración Tradicional vs ARANPRO.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewComparisonModal(true)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 cursor-pointer"
-                        >
-                          <Eye className="w-3 h-3 text-[#0F3D2E]" />
-                          Ver
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handlePrintComparisonMatrix}
-                          className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          title="Imprimir Cuadro Comparativo"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SELECTOR RÁPIDO DE DOCUMENTOS Y DIPLOMAS ADJUNTOS AL DOSSIER */}
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                        <Award className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                        Anexos Técnicos y Legales Marcados para el Dossier
-                      </h4>
-                      <button
-                        type="button"
-                        onClick={handleDownloadPackage}
-                        className="text-[11px] font-bold text-[#0F3D2E] hover:underline flex items-center gap-1"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        Descargar todos los archivos adjuntos numerados
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {academicRecords.map(item => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => handleToggleIncludeInProposal(item.id)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
-                            item.includeInProposal !== false
-                              ? 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-xs'
-                              : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
-                          }`}
-                        >
-                          <span>{item.includeInProposal !== false ? '✓' : '+'}</span>
-                          <span>🎓 {item.title}</span>
-                        </button>
-                      ))}
-                      {accreditationDocs.map(doc => (
-                        <button
-                          key={doc.id}
-                          type="button"
-                          onClick={() => {
-                            setAccreditationDocs(prev =>
-                              prev.map(d => d.id === doc.id ? { ...d, includeInDossier: d.includeInDossier === false } : d)
-                            );
-                          }}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
-                            doc.includeInDossier !== false
-                              ? 'bg-amber-50 text-amber-900 border-amber-300 shadow-xs'
-                              : 'bg-white text-slate-400 border-slate-200 hover:text-slate-600'
-                          }`}
-                        >
-                          <span>{doc.includeInDossier !== false ? '✓' : '+'}</span>
-                          <span>📄 {doc.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* CRUD COMPLETO DE CARTAS DE RECOMENDACIÓN & REFERENCIAS DE COMITÉS */}
-                  <div className="pt-2 border-t border-slate-100 space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                          <MessageCircle className="w-4 h-4 text-[#0F3D2E]" />
-                          Referencias Comprobables & Cartas de Recomendación de Comités ({committeeReferences.length})
-                        </h4>
-                        <p className="text-[11px] text-slate-500">
-                          Registra presidentes o tesoreros de comunidades administradas para que el comité evaluador pueda llamarlos y verificar tu gestión.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleOpenAddRef}
-                        className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5"
-                      >
-                        <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
-                        Agregar Referencia de Comité
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {committeeReferences.map(ref => (
-                        <div key={ref.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 flex flex-col justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <div className="font-black text-xs text-slate-900 flex items-center gap-1.5 flex-wrap">
-                                  <span>{ref.contactName}</span>
-                                  <span className="text-[#0F3D2E] font-bold">• {ref.role}</span>
-                                </div>
-                                <p className="text-[11px] text-slate-500 font-medium">
-                                  {ref.communityName} • Tel: <span className="font-mono">{ref.phone || 'S/N'}</span>
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleToggleConfirmRef(ref.id)}
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                                  ref.confirmed !== false
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                                }`}
-                              >
-                                {ref.confirmed !== false ? '✓ Autorizada' : '⏳ Por confirmar'}
-                              </button>
-                            </div>
-                            <blockquote className="text-xs text-slate-600 italic bg-white p-2.5 rounded-xl border border-slate-200">
-                              "{ref.quote}"
-                            </blockquote>
-                          </div>
-
-                          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-200/70">
-                            <button
-                              type="button"
-                              onClick={() => handleRequestReferenceWhatsApp(ref)}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl shadow-xs transition-all flex items-center gap-1.5"
-                            >
-                              <Send className="w-3 h-3" />
-                              Pedir Carta por WhatsApp
-                            </button>
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEditRef(ref)}
-                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200/70 transition-all"
-                                title="Editar referencia"
-                              >
-                                <PenTool className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteRef(ref)}
-                                className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-all"
-                                title="Eliminar referencia"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <QuickDocumentsPanel
+                  proposalConfig={proposalConfig}
+                  setProposalConfig={setProposalConfig}
+                  empresaForm={empresaForm}
+                  accreditationDocs={accreditationDocs}
+                  setAccreditationDocs={setAccreditationDocs}
+                  academicRecords={academicRecords}
+                  committeeReferences={committeeReferences}
+                  handleOpenAddRef={handleOpenAddRef}
+                  handleOpenEditRef={handleOpenEditRef}
+                  handleDeleteRef={handleDeleteRef}
+                  handleToggleConfirmRef={handleToggleConfirmRef}
+                  handleRequestReferenceWhatsApp={handleRequestReferenceWhatsApp}
+                  packageFilesCount={packageFilesCount}
+                  handleDownloadPackage={handleDownloadPackage}
+                  handlePrintColdLetter={handlePrintColdLetter}
+                  setPreviewColdLetterModal={setPreviewColdLetterModal}
+                  handlePrintDossier={handlePrintDossier}
+                  setPreviewDossierModal={setPreviewDossierModal}
+                  handlePrintProposal={handlePrintProposal}
+                  setPreviewProposalModal={setPreviewProposalModal}
+                  handlePrintInspectionReport={handlePrintInspectionReport}
+                  setPreviewInspectionModal={setPreviewInspectionModal}
+                  handlePrintBrochure={handlePrintBrochure}
+                  setPreviewBrochureModal={setPreviewBrochureModal}
+                  handlePrintComparisonMatrix={handlePrintComparisonMatrix}
+                  setPreviewComparisonModal={setPreviewComparisonModal}
+                  handlePrintPitchDoc={handlePrintPitchDoc}
+                  setPreviewPitchModal={setPreviewPitchModal}
+                  handlePrintFeeSheet={handlePrintFeeSheet}
+                  handleShareWhatsApp={handleShareWhatsApp}
+                  onNavigateToBoveda={(reqKey) => {
+                    if (onNavigateToModule) {
+                      onNavigateToModule('empresa', 'documents');
+                    }
+                    setActiveSubTab('empresa');
+                    setEmpresaSection('documents');
+                  }}
+                  showAlert={showAlert}
+                />
               )}
 
               {/* SECCIÓN 4: INSPECCIÓN TÉCNICA INICIAL DE ENTRADA (CHECKLIST GRATUITO) */}
