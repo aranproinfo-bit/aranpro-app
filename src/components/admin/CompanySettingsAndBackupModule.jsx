@@ -5815,7 +5815,7 @@ export const CompanySettingsAndBackupModule = ({
                         Carta Formal de Postulación
                       </p>
                       <p className="text-[9.5px] text-slate-500 font-semibold">
-                        {proposalConfig.targetCondo || 'Comunidad de Copropietarios'}
+                        {proposalConfig.targetCondo?.trim() || 'Comunidad de Copropietarios'}
                       </p>
                     </div>
                   </div>
@@ -6483,7 +6483,7 @@ export const CompanySettingsAndBackupModule = ({
                         Administración Cercana, Orden Financiero & Especialidad Constructiva
                       </p>
                       <p className="text-[9.5px] text-slate-500 font-semibold">
-                        {proposalConfig.targetCondo || 'Comunidad de Copropietarios'}
+                        {proposalConfig.targetCondo?.trim() || 'Comunidad de Copropietarios'}
                       </p>
                     </div>
                   </div>
@@ -6492,18 +6492,20 @@ export const CompanySettingsAndBackupModule = ({
                   <div className="text-[10px] text-slate-700 space-y-0.5 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
                     <p>
                       <strong>Dirigido cordialmente a:</strong>{' '}
-                      {proposalConfig.leaveRecipientBlank || !proposalConfig.targetRecipient?.trim() ? (
+                      {proposalConfig.leaveRecipientBlank ? (
                         <span className="font-mono text-slate-400">__________________________________________________________________</span>
                       ) : (
-                        <strong className="text-slate-900">{proposalConfig.targetRecipient}</strong>
+                        <strong className="text-slate-900">{proposalConfig.targetRecipient?.trim() || 'Señores Integrantes del Comité de Administración'}</strong>
                       )}
                     </p>
                     <p>
                       <strong>Condominio / Edificio:</strong>{' '}
                       {proposalConfig.targetCondo?.trim() ? (
                         <strong className="text-[#0F3D2E] uppercase">{proposalConfig.targetCondo}</strong>
-                      ) : (
+                      ) : proposalConfig.leaveRecipientBlank ? (
                         <span className="font-mono text-slate-400">__________________________________________________________</span>
+                      ) : (
+                        <span className="font-semibold text-slate-800">Comunidad de Copropietarios • {empresaForm.city || 'La Serena, Coquimbo'}</span>
                       )}
                     </p>
                     <p>
