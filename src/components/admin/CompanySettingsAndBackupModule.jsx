@@ -543,22 +543,89 @@ export const CompanySettingsAndBackupModule = ({
   const [expandedStepMsg, setExpandedStepMsg] = useState(null);
   const [activeHerramientaTab, setActiveHerramientaTab] = useState('calculadora');
 
-  // Genera los mensajes propuestos para WhatsApp y Correo por cada paso del embudo
+  // Sistemas no inspeccionados por defecto para la Nota de Alcance de 30 Días
+  const DEFAULT_UNINSPECTED_SYSTEMS = [
+    'transporte vertical/ascensores certificados Minvu',
+    'cercos perimetrales eléctricos energizados',
+    'bombas de pozo profundo o sentina',
+    'calderas y salas térmicas',
+    'centrales de citofonía'
+  ];
+
+  const PRESET_SYSTEM_SUGGESTIONS = [
+    'transporte vertical/ascensores certificados Minvu',
+    'cercos perimetrales eléctricos energizados',
+    'bombas de pozo profundo o sentina',
+    'calderas y salas térmicas',
+    'centrales de citofonía',
+    'portones automáticos & barreras vehiculares',
+    'grupo electrógeno en transferencia de carga',
+    'piscina temperada & filtros',
+    'paneles solares térmicos / fotovoltaicos',
+    'planta elevadora / tratamiento de aguas'
+  ];
+
+  // Formulario de Inspección Técnica Inicial de Entrada (Diagnóstico Gratuito)
+  const [inspectionForm, setInspectionForm] = useState({
+    targetCondo: proposalConfig.targetCondo || 'Condominio en Evaluación',
+    inspector: empresaForm.adminName,
+    date: new Date().toISOString().split('T')[0],
+    items: [
+      { id: 'bombas', name: 'Sala de Bombas & Sistema Hidroneumático', status: 'Requiere Mantención', notes: 'Bombas operativas con fuga leve en sello mecánico de Bomba 2. Manómetro principal descalibrado; requiere regulación de presostato.' },
+      { id: 'cubiertas', name: 'Cubiertas, Techumbres & Bajadas de Agua', status: 'Crítico', notes: 'Membrana asfáltica con fisuras en sector poniente; canaletas con acumulación de sedimentos. Riesgo de filtración en temporada de lluvias.' },
+      { id: 'electricidad', name: 'Tableros Eléctricos & Grupo Electrógeno', status: 'Bueno', notes: 'Tablero general rotulado según norma SEC. Generador de emergencia operativo con transferencia automática probada.' },
+      { id: 'incendios', name: 'Red Húmeda, Red Seca & Seguro Colectivo (Art. 43°)', status: 'Requiere Mantención', notes: 'Extintores con certificación vencida en pisos 3 y 4. Mangueras de red húmeda operativas con presión adecuada.' },
+      { id: 'contable', name: 'Fondo de Reserva Legal & Estado Contable (Art. 39° Ley 21.442)', status: 'Crítico', notes: 'La comunidad requiere regularizar la tasa mínima del 5% de recargo para el Fondo de Reserva exigida por el Art. 39° de la Ley N° 21.442.' }
+    ],
+    uninspectedSystems: DEFAULT_UNINSPECTED_SYSTEMS,
+    customScopeText: ''
+  });
+
+  const [newUninspectedInput, setNewUninspectedInput] = useState('');
+  const [showScopeEditorInModal, setShowScopeEditorInModal] = useState(false);
+  const [isEditingCustomScopeText, setIsEditingCustomScopeText] = useState(false);
+
+  // Genera los mensajes propuestos para WhatsApp y Correo por cada paso del embudo (Específicos y con Enlace Directo)
   const getStepMessages = (stepNumber) => {
-    const condo = proposalConfig.targetCondo?.trim() || 'su Comunidad';
+    const rawCondo = proposalConfig.targetCondo?.trim();
+    const condo = (rawCondo && rawCondo !== 'su Comunidad' && rawCondo !== 'Comunidad')
+      ? rawCondo
+      : (currentCommunity?.name || 'su Condominio');
     const recipient = proposalConfig.targetRecipient?.trim() || 'Señores Miembros del Comité de Administración';
     const admin = empresaForm.adminName || 'John Andrés Arancibia Maureira';
     const phone = empresaForm.phone || '+56 9 5811 8504';
     const feeStr = formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000);
     const unitsStr = proposalConfig.targetUnits || '60';
+    const demoLink = typeof window !== 'undefined'
+      ? `${window.location.origin}/?demo=comunidad`
+      : 'https://administracion.aranpro.cl/?demo=comunidad';
 
     switch (stepNumber) {
       case 1:
         return {
           title: 'Paso 1: Primer Contacto / Carta de Valor (Puerta en Frío)',
           subject: `Presentación Oficial de Administración • ARANPRO Gestión Integral para ${condo}`,
-          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\nJunto con saludarles muy cordialmente, les escribe *${admin}*, Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442.\n\nNos dirigimos a ustedes para presentarles los servicios de *ARANPRO Gestión Integral*. Reconociendo la enorme dedicación y tiempo que entregan a sus vecinos, ponemos a su disposición un modelo de gestión basado en supervisión técnica en terreno, cuentas 100% transparentes y *plataforma digital + app móvil 100% gratuita para toda la comunidad* (sin cobro de software ni licencias).\n\nNos encantaría coordinar una breve reunión de presentación y una *visita inicial de diagnóstico técnico sin costo ni compromiso* para conocer sus instalaciones críticas y prioridades.\n\nLes comparto adjunta nuestra Carta Oficial de Presentación. Quedo muy atento a su grata respuesta.\n\nAtentamente,\n*${admin}*\nConstructor Civil • Administrador de Condominios\nFono / WhatsApp: ${phone}\nSitio Web: https://aranpro.cl`,
-          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nJunto con saludarles cordialmente y reconociendo el importante compromiso y tiempo que dedican a su comunidad, me dirijo a ustedes para presentar los servicios de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\nNuestra propuesta se fundamenta en tres pilares operativos:\n1. Gestión Financiera & Plataforma Digital 100% Gratuita para el Comité y residentes (sin costos de licencias ni cobros de software para el condominio).\n2. Mantención Técnica en Terreno con Criterio de Constructor Civil (supervisión directa de salas de bombas, tableros y contratos de contratistas para frenar sobrecostos).\n3. Gestión Documental de Personal bajo Ley Karin, RIOHS y normativa de la Dirección del Trabajo.\n\nLes propongo coordinar una visita inicial en terreno y reunión de presentación sin costo ni compromiso para conocer sus prioridades.\n\nAdjunto nuestra Carta Oficial de Presentación.\n\nSaludos cordiales,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
+          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
+            `Junto con saludarles cordialmente, les escribe *${admin}*, Constructor Civil y Administrador de Condominios acreditado bajo la Ley N° 21.442.\n\n` +
+            `Nos dirigimos a su directiva para hacerles entrega formal de nuestra *Carta Oficial de Presentación y Valor al Comité*, diseñada para apoyar su labor con tres compromisos concretos:\n\n` +
+            `1️⃣ *Supervisión Técnica con Criterio de Constructor Civil:* Cuidado preventivo de sus bienes comunes (sala de bombas, tableros eléctricos, techumbres) y fiscalización rigurosa de cotizaciones de contratistas para frenar sobrecostos.\n` +
+            `2️⃣ *Transparencia Radical 24/7:* Cada gasto, factura electrónica y cartola bancaria con respaldo digital auditable para directiva y copropietarios.\n` +
+            `3️⃣ *Suite Digital & App Móvil 100% Gratuita para ${condo}:* Cero cobros de licencias o costos de software para la comunidad.\n\n` +
+            `🎁 *Diagnóstico Técnico Inicial Gratuito:* Ponemos a su disposición una *visita técnica inicial de diagnóstico en terreno (100% sin costo ni compromiso)*, para evaluar sus instalaciones críticas y conocer las prioridades de su directiva.\n\n` +
+            `📱 *Prueben la plataforma vecinal en vivo desde su celular aquí:* \n` +
+            `🔗 ${demoLink}\n\n` +
+            `Adjuntamos a este mensaje nuestra Carta Oficial de Presentación en PDF. ¿Les acomodaría coordinar una breve reunión presencial o telemática esta semana?\n\n` +
+            `Atentamente,\n*${admin}*\nConstructor Civil • Administrador de Condominios\nFono / WhatsApp: ${phone}\nSitio Web: https://aranpro.cl`,
+          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\n` +
+            `Junto con saludarles cordialmente y reconociendo el importante compromiso y tiempo que dedican a su comunidad, me dirijo a ustedes para presentar los servicios de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\n` +
+            `Nuestra propuesta se fundamenta en tres pilares operativos:\n` +
+            `1. Gestión Financiera & Plataforma Digital 100% Gratuita para el Comité y residentes (sin costos de licencias ni cobros de software para el condominio).\n` +
+            `2. Mantención Técnica en Terreno con Criterio de Constructor Civil (supervisión directa de salas de bombas, tableros y contratos de contratistas para frenar sobrecostos).\n` +
+            `3. Gestión Documental de Personal bajo Ley Karin, RIOHS y normativa de la Dirección del Trabajo.\n\n` +
+            `Pueden explorar la plataforma digital en vivo en: ${demoLink}\n\n` +
+            `Les propongo coordinar una visita inicial en terreno y reunión de presentación sin costo ni compromiso para conocer sus prioridades.\n\n` +
+            `Adjunto nuestra Carta Oficial de Presentación.\n\n` +
+            `Saludos cordiales,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
       case 2: {
         const mode = proposalConfig.step2Mode || 'con_visita';
@@ -568,32 +635,133 @@ export const CompanySettingsAndBackupModule = ({
           return {
             title: 'Paso 2: Presentación Oficial de Dossier Integral (Para Motivar Visita)',
             subject: `Dossier Integral de Gestión & Presentación de Administración • ARANPRO para ${condo}`,
-            whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\nJunto con saludarles cordialmente, les escribe *${admin}*, Especialista Constructor Civil y Administrador de Condominios (Ley N° 21.442).\n\nPonemos a su disposición nuestro *Dossier Integral de Gestión y Presentación Institucional*, diseñado para transparentar nuestra metodología de trabajo, acreditaciones profesionales, cartas de recomendación y el estándar técnico que aplicamos en el cuidado de los bienes comunes.\n\nNuestra propuesta para ${condo} contempla:\n• *Supervisión Técnica en Terreno:* Criterio de Constructor Civil en bombas, tableros eléctricos, cubiertas y contratos de contratistas.\n• *Transparencia Total 24/7:* Cartolas bancarias y facturas visibles con 1 clic para el Comité y copropietarios.\n• *Suite Digital & App Móvil 100% Gratuita:* Cero costos de licencias ni cobros de software para el condominio.\n• *Período de Transición:* Homologación al honorario vigente durante los primeros 3 meses de diagnóstico inicial.\n\nNos encantaría coordinar una *visita técnica de diagnóstico inicial sin costo ni compromiso* a sus instalaciones para conocer en detalle sus prioridades.\n\nLes comparto adjunto nuestro Dossier Integral en PDF. Quedamos a su entera disposición.\n\nAtentamente,\n*${admin}*\nConstructor Civil • Administrador de Condominios\nFono / WhatsApp: ${phone}\nSitio Web: https://aranpro.cl`,
-            email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nJunto con saludarles cordialmente, me dirijo a ustedes para presentarles formalmente el Dossier Institucional de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\nComo Especialista Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442, nuestro enfoque combina orden financiero, presencia en terreno y herramientas digitales gratuitas para que el Comité pueda decidir con antecedentes claros y sin sobrecostos.\n\nPuntos centrales de nuestra gestión:\n1. Supervisión Técnica de Especialista: Fiscalización directa de salas de bombas, grupos electrógenos, tableros eléctricos y techumbres, con revisión rigurosa de cotizaciones y contratos.\n2. Rendición de Cuentas en Línea: Conciliaciones bancarias al día, libros abiertos y acceso permanente a facturas y comprobantes respaldados.\n3. Suite Digital ARANPRO sin costo: Plataforma web y app móvil para residentes y comité 100% gratuita (sin licencias de software para la comunidad).\n4. Transición de 3 meses: Nos ajustamos al valor actual de honorarios de la comunidad mientras realizamos el diagnóstico real y estructuramos la propuesta definitiva con el Comité.\n\nCon el fin de evaluar sus instalaciones y conocer sus principales inquietudes, les propongo coordinar una visita técnica de diagnóstico en terreno sin costo ni compromiso alguno.\n\nAdjunto a este correo encontrarán nuestro Dossier Integral oficial (Ficha Técnica Constructiva, Títulos, Acreditaciones y referencias).\n\nQuedo a su disposición para coordinar nuestra reunión.\n\nAtentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
+            whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
+              `Junto con saludarles cordialmente, les escribe *${admin}*, Constructor Civil y Administrador de Condominios acreditado bajo la Ley N° 21.442.\n\n` +
+              `Hacemos entrega formal de nuestro *Dossier Integral de Gestión y Acreditación Institucional (4 Páginas)* para poner a su consideración nuestra administración profesional en ${condo}.\n\n` +
+              `El documento adjunto respalda con hechos concretos nuestro estándar de trabajo:\n` +
+              `📄 *Pág. 1 • Metodología de Gestión:* Presencia técnica en terreno, SLA de respuesta en menos de 2 horas y emergencias 24/7.\n` +
+              `📄 *Pág. 2 • Ficha Técnica de Especialista:* Constructor Civil colegiado, control directo de contratistas y fiscalización de mantenciones preventivas.\n` +
+              `📄 *Pág. 3 • Respaldo Legal y Profesional:* Registro Nacional Minvu de Administradores, certificaciones SEC, RIOHS laboral y póliza de seguro.\n` +
+              `📄 *Pág. 4 • Recomendaciones Comprobables & Suite Digital:* Cartas de respaldo de presidentes de comités vigentes y plataforma 100% gratuita para residentes.\n\n` +
+              `🛡️ *Garantía de Transición:* Para facilitar el traspaso, durante los primeros 3 meses homologamos el honorario que su comunidad paga actualmente mientras ejecutamos la auditoría de entrada sin costo.\n\n` +
+              `📱 *Demostración en Vivo de la Suite (1-Clic):* \n` +
+              `🔗 ${demoLink}\n\n` +
+              `Nos encantaría coordinar una visita técnica en terreno sin costo para levantar su diagnóstico inicial. Quedamos a su entera disposición.\n\n` +
+              `Atentamente,\n*${admin}*\nConstructor Civil • ARANPRO (${phone})\nSitio Web: https://aranpro.cl`,
+            email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\n` +
+              `Junto con saludarles cordialmente, me dirijo a ustedes para presentarles formalmente el Dossier Institucional de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\n` +
+              `Como Especialista Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442, nuestro enfoque combina orden financiero, presencia en terreno y herramientas digitales gratuitas para que el Comité pueda decidir con antecedentes claros y sin sobrecostos.\n\n` +
+              `Puntos centrales de nuestra gestión respaldados en el Dossier (4 Páginas):\n` +
+              `1. Supervisión Técnica de Especialista: Fiscalización directa de salas de bombas, grupos electrógenos, tableros eléctricos y techumbres, con revisión rigurosa de cotizaciones y contratos.\n` +
+              `2. Rendición de Cuentas en Línea: Conciliaciones bancarias al día, libros abiertos y acceso permanente a facturas y comprobantes respaldados.\n` +
+              `3. Suite Digital ARANPRO sin costo: Plataforma web y app móvil para residentes y comité 100% gratuita (sin licencias de software para la comunidad). Demo en: ${demoLink}\n` +
+              `4. Transición de 3 meses: Nos ajustamos al valor actual de honorarios de la comunidad mientras realizamos el diagnóstico real y estructuramos la propuesta definitiva con el Comité.\n\n` +
+              `Con el fin de evaluar sus instalaciones y conocer sus principales inquietudes, les propongo coordinar una visita técnica de diagnóstico en terreno sin costo ni compromiso alguno.\n\n` +
+              `Adjunto a este correo encontrarán nuestro Dossier Integral oficial (Ficha Técnica Constructiva, Títulos, Acreditaciones y referencias).\n\n` +
+              `Quedo a su disposición para coordinar nuestra reunión.\n\n` +
+              `Atentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
           };
         }
 
         return {
           title: 'Paso 2: Confirmación de Visita Técnica en Terreno & Entrega de Dossier',
           subject: `Confirmación de Visita Técnica en Terreno & Dossier Integral • ${condo}`,
-          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\nMuchas gracias por la excelente disposición a reunirnos. Confirmamos nuestra *visita técnica inicial de diagnóstico* a las instalaciones de su condominio para el día *${visitTime}*.\n\nDurante el recorrido realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos). Asimismo, les haremos entrega de nuestro *Dossier Integral de Presentación* con nuestras credenciales de Constructor Civil, certificaciones legales, referencias comprobables y las credenciales de prueba de nuestra Suite Digital.\n\n¡Nos vemos en terreno!\n\nAtentamente,\n*${admin}*\nConstructor Civil • ARANPRO (${phone})\nSitio Web: https://aranpro.cl`,
-          email: `Estimado Comité de Administración de ${condo}:\n\nJunto con agradecer su disposición a reunirnos, confirmamos formalmente nuestra visita técnica y reunión de diagnóstico para el día ${visitTime}.\n\nDurante la visita realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos) y revisaremos en conjunto las principales prioridades de mantenimiento de la comunidad. Llevaremos una copia de nuestro Dossier Integral de Postulación (Ficha Técnica Constructiva, Título Profesional, Acreditaciones Legales y Referencias Comprobables).\n\nAdjuntamos en este correo el Dossier Integral en formato PDF para su conocimiento previo.\n\nQuedamos a su entera disposición ante cualquier coordinación previa.\n\nAtentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
+          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
+            `Agradeciendo su excelente disposición a reunirnos, confirmamos formalmente nuestra *Visita Técnica de Diagnóstico Inicial en Terreno* para el día *${visitTime}*.\n\n` +
+            `Durante nuestro recorrido conjunto realizaremos:\n` +
+            `• *Inspección Visual de Instalaciones Críticas:* Sala de bombas e hidroneumático, tableros eléctricos y generador, cubiertas/techumbres y portones/accesos.\n` +
+            `• *Levantamiento de Prioridades:* Detección de riesgos latentes de falla y gastos evitables antes del invierno o temporadas de alta demanda.\n` +
+            `• *Entrega Física de nuestro Dossier Integral de 4 Páginas:* Ficha Técnica de Constructor Civil, acreditación en el Registro Nacional Minvu (Ley 21.442), cartas de recomendación de otros comités y credenciales de prueba.\n\n` +
+            `📱 *Pueden adelantar la revisión de nuestra plataforma interactiva desde su celular:* \n` +
+            `🔗 ${demoLink}\n\n` +
+            `¡Nos vemos en terreno en ${condo}!\n\n` +
+            `Atentamente,\n*${admin}*\nConstructor Civil • ARANPRO (${phone})\nSitio Web: https://aranpro.cl`,
+          email: `Estimado Comité de Administración de ${condo}:\n\n` +
+            `Junto con agradecer su disposición a reunirnos, confirmamos formalmente nuestra visita técnica y reunión de diagnóstico para el día ${visitTime}.\n\n` +
+            `Durante la visita realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos) y revisaremos en conjunto las principales prioridades de mantenimiento de la comunidad. Llevaremos una copia de nuestro Dossier Integral de Postulación (Ficha Técnica Constructiva, Título Profesional, Acreditaciones Legales y Referencias Comprobables).\n\n` +
+            `Pueden explorar la plataforma digital anticipadamente en: ${demoLink}\n\n` +
+            `Adjuntamos en este correo el Dossier Integral en formato PDF para su conocimiento previo.\n\n` +
+            `Quedamos a su entera disposición ante cualquier coordinación previa.\n\n` +
+            `Atentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
       }
-      case 3:
+      case 3: {
+        const diagnosticList = (inspectionForm?.items || [])
+          .map(item => {
+            const icon = item.status === 'Crítico' ? '🔴' : (item.status === 'Requiere Mantención' ? '🟡' : '🟢');
+            return `• ${icon} *${item.name}:* ${item.status}${item.notes ? ` — ${item.notes.slice(0, 95)}...` : ''}`;
+          })
+          .slice(0, 4)
+          .join('\n');
+
         return {
           title: 'Paso 3: Propuesta Formal a Medida & Honorarios Mensuales',
           subject: `Propuesta Formal de Administración, Diagnóstico Técnico & Cuadro Comparativo • ${condo}`,
-          whatsapp: `Estimado Comité de Administración de *${condo}*:\n\nAgradeciendo la provechosa visita técnica realizada a sus dependencias, hacemos entrega formal de nuestra *Propuesta de Administración y Honorarios a la medida*, junto con el *Informe de Diagnóstico Técnico Inicial* y la *Matriz Comparativa de Gestión* (Administración Tradicional vs. ARANPRO).\n\nNuestra propuesta contempla un honorario mensual de *${feeStr}* para su dotación de *${unitsStr} unidades*, incluyendo visitas técnicas semanales en terreno, plataforma digital 24/7 sin costo de licencias para residentes, auditoría contable de traspaso y atención de emergencias 24/7.\n\nAdjuntamos el documento consolidado oficial de 3 páginas (Carta Formal de Postulación + Diagnóstico Técnico de Instalaciones + Matriz Comparativa) para su revisión en sesión de comité. Quedamos a su entera disposición para resolver cualquier duda.\n\nSaludos cordiales,\n*${admin}* • ARANPRO (${phone})`,
-          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nEn seguimiento a la provechosa visita técnica realizada a sus instalaciones, tenemos el agrado de presentar formalmente nuestra Propuesta Operativa y Económica para asumir la administración de su comunidad, junto con el Informe de Diagnóstico Técnico Inicial y la Matriz Comparativa de Gestión.\n\nResumen de Condiciones Propuestas:\n• Honorario Mensual Propuesto: ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n• Dotación Considerada: ${unitsStr} unidades (casas / departamentos)\n• Modalidad de Atención: ${proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}\n• Beneficios Incluidos: Suite Web y App Móvil 100% gratuita para residentes y comité, auditoría de traspaso y supervisión técnica directa de obras y contratos.\n\nAdjunto a este correo encontrarán el documento oficial consolidado de 3 páginas que contiene:\n1. Carta Formal de Postulación con desglose de honorarios, SLA y condiciones de servicio.\n2. Informe Oficial de Diagnóstico Técnico Inicial con el estado de sus instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos).\n3. Matriz Comparativa de Gestión (Administración Tradicional vs. ARANPRO) para facilitar la evaluación de su directiva.\n\nQuedamos a su completa disposición para coordinar los siguientes pasos.\n\nAtentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
+          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
+            `Agradeciendo la provechosa visita técnica realizada a sus dependencias, hacemos entrega formal de nuestra *Propuesta de Administración a la Medida, Diagnóstico Técnico de Instalaciones y Matriz Comparativa* (Documento Oficial Consolidado de 3 Páginas).\n\n` +
+            `Resumen Ejecutivo de las Condiciones Propuestas:\n` +
+            `💰 *Honorario Mensual Propuesto:* ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n` +
+            `🏢 *Dotación Considerada:* ${unitsStr} unidades habitacionales\n` +
+            `👷 *Modalidad Operativa:* ${proposalConfig.visitFrequency || '2 visitas técnicas presenciales semanales'} + Atención de emergencias 24/7\n` +
+            `💻 *Suite Digital & App Móvil:* 100% Gratuita para el Comité y copropietarios (cero costo de licencias de software)\n` +
+            `📋 *Auditoría Inicial de Traspaso:* Auditoría contable y técnica de los primeros 30 días incluida sin cobro extra.\n\n` +
+            `🔍 *Resumen del Diagnóstico Técnico de sus Instalaciones (Pág. 2 del informe):*\n` +
+            `${diagnosticList || '• Inspección visual completa realizada a bombas, tableros eléctricos, techumbres y accesos.'}\n\n` +
+            `⚖️ *Matriz Comparativa de Gestión (Pág. 3 del informe):*\n` +
+            `Contrastamos nuestro estándar frente a la administración tradicional: cuentas abiertas 24/7 con facturas visibles al 100%, supervisión en terreno con criterio de Constructor Civil y defensa activa del presupuesto comunitario frente a sobreprecios.\n\n` +
+            `📱 *Prueben en vivo la plataforma digital configurada para su comunidad:* \n` +
+            `🔗 ${demoLink}\n\n` +
+            `Adjuntamos el documento consolidado oficial en PDF para su revisión en sesión de comité. Quedamos a su total disposición para exponer esta propuesta presencialmente ante su directiva o en Asamblea.\n\n` +
+            `Saludos cordiales,\n*${admin}*\nConstructor Civil • Administrador de Condominios\nFono / WhatsApp: ${phone}`,
+          email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\n` +
+            `En seguimiento a la provechosa visita técnica realizada a sus instalaciones, tenemos el agrado de presentar formalmente nuestra Propuesta Operativa y Económica para asumir la administración de su comunidad, junto con el Informe de Diagnóstico Técnico Inicial y la Matriz Comparativa de Gestión.\n\n` +
+            `Resumen de Condiciones Propuestas:\n` +
+            `• Honorario Mensual Propuesto: ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n` +
+            `• Dotación Considerada: ${unitsStr} unidades (casas / departamentos)\n` +
+            `• Modalidad de Atención: ${proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}\n` +
+            `• Beneficios Incluidos: Suite Web y App Móvil 100% gratuita para residentes y comité, auditoría de traspaso y supervisión técnica directa de obras y contratos.\n\n` +
+            `Adjunto a este correo encontrarán el documento oficial consolidado de 3 páginas que contiene:\n` +
+            `1. Carta Formal de Postulación con desglose de honorarios, SLA y condiciones de servicio.\n` +
+            `2. Informe Oficial de Diagnóstico Técnico Inicial con el estado de sus instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos).\n` +
+            `3. Matriz Comparativa de Gestión (Administración Tradicional vs. ARANPRO) para facilitar la evaluación de su directiva.\n\n` +
+            `Demo Interactiva de la Suite: ${demoLink}\n\n` +
+            `Quedamos a su completa disposición para coordinar los siguientes pasos.\n\n` +
+            `Atentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
+      }
       case 4: {
-        const demoLink = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad';
         return {
           title: 'Paso 4: Cierre Tecnológico & Demostración de App en Vivo',
           subject: `Acceso a Demo en Vivo de Plataforma & Brochure App ARANPRO • ${condo}`,
-          whatsapp: `Estimados integrantes del Comité de *${condo}*:\n\nPara que ustedes y los copropietarios puedan experimentar en primera persona la transparencia y modernidad de nuestra gestión, les compartimos el acceso a la *Demo en Vivo de la Suite Digital y App Móvil ARANPRO* (100% gratuita para su condominio).\n\nPueden probarla directamente desde su teléfono celular escaneando el código QR del brochure adjunto o ingresando con 1 clic al siguiente enlace oficial:\n🔗 ${demoLink}\n\nPodrán ver cómo se consultan los gastos comunes con un clic, la auditoría en vivo de comprobantes de pago y facturas, y el libro de reclamos digital.\n\n¡Quedamos muy atentos a sus comentarios!\n*${admin}* • ARANPRO (${phone})`,
-          email: `Estimado Comité de Administración de ${condo}:\n\nCon el objetivo de respaldar nuestra propuesta de gestión con tecnología real, ponemos a su disposición el Brochure Oficial y el acceso a la Demo Interactiva de la Suite ARANPRO.\n\nPrincipales ventajas para ${condo}:\n• 100% Gratuita para la comunidad: Cero cobros de licencias o costos de software para el condominio.\n• Transparencia total 24/7: Comprobantes bancarios y facturas visibles con 1 clic para copropietarios y directiva.\n• Gestión móvil: Votaciones, libro de reclamos foliado y comunicación oficial en la palma de la mano.\n\nPueden explorar la demo interactiva directamente en:\n${demoLink}\n(O mediante el código QR incluido en el archivo adjunto).\n\nSaludos cordiales,\n${admin} • ARANPRO Gestión Integral\n${phone} | https://aranpro.cl`
+          whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
+            `Para que su directiva y los copropietarios puedan experimentar en primera persona la transparencia y modernidad de nuestra gestión, les compartimos el acceso directo a la *Demo en Vivo de la Suite Digital y App Móvil ARANPRO* (100% gratuita para su condominio).\n\n` +
+            `🔗 *Enlace de Acceso Inmediato en 1 Clic (Sin claves ni registros):*\n` +
+            `👉 ${demoLink}\n\n` +
+            `Al ingresar desde su teléfono celular o computador, podrán evaluar los 3 perfiles reales:\n\n` +
+            `🛡️ *1. Vista Comité de Administración (Casa 1):*\n` +
+            `• Auditen facturas electrónicas y comprobantes bancarios en 1 clic.\n` +
+            `• Consulten cartolas bancarias y estado del Fondo de Reserva en tiempo real.\n` +
+            `• Gestionen el Libro Oficial de Reclamos digital foliado (Art. 20° Ley 21.442).\n\n` +
+            `🏠 *2. Vista Copropietario al Día (Casa 6):*\n` +
+            `• Revisen la colilla de cobro con desglose legal estricto (Art. 6° Ley 21.442).\n` +
+            `• Descarguen Certificados de Deuda en PDF emitidos para notarías.\n` +
+            `• Informen pagos y transferencias en línea con comprobante adjunto.\n\n` +
+            `⚠️ *3. Vista Copropietario con Saldo Pendiente (Casa 3):*\n` +
+            `• Visualicen el cálculo transparente de intereses y detalle de cuotas.\n\n` +
+            `✨ *Condiciones Clave para ${condo}:*\n` +
+            `• *100% Gratuito:* Cero costos de licencias ni cobros mensuales de software para la comunidad.\n` +
+            `• *Acceso Instantáneo:* No requiere descargar aplicaciones pesadas ni crear cuentas previas.\n\n` +
+            `Adjuntamos el Brochure Oficial con capturas de pantalla para su revisión en sesión de comité. ¡Quedamos muy atentos a sus impresiones!\n\n` +
+            `Atentamente,\n*${admin}* • ARANPRO Gestión Integral\nFono / WhatsApp: ${phone}\nSitio Web: https://aranpro.cl`,
+          email: `Estimado Comité de Administración de ${condo}:\n\n` +
+            `Con el objetivo de respaldar nuestra propuesta de gestión con tecnología real, ponemos a su disposición el Brochure Oficial y el acceso a la Demo Interactiva de la Suite ARANPRO.\n\n` +
+            `Principales ventajas para ${condo}:\n` +
+            `• 100% Gratuita para la comunidad: Cero cobros de licencias o costos de software para el condominio.\n` +
+            `• Transparencia total 24/7: Comprobantes bancarios y facturas visibles con 1 clic para copropietarios y directiva.\n` +
+            `• Gestión móvil: Votaciones, libro de reclamos foliado y comunicación oficial en la palma de la mano.\n\n` +
+            `Acceso directo a la Demo en Vivo (1-clic):\n${demoLink}\n\n` +
+            `Adjuntamos el Brochure Oficial con capturas reales para su revisión.\n\n` +
+            `Saludos cordiales,\n${admin} • ARANPRO Gestión Integral\n${phone} | https://aranpro.cl`
         };
       }
       default:
@@ -981,48 +1149,6 @@ export const CompanySettingsAndBackupModule = ({
   // Pestaña en simulador de teléfono interactivo
   const [demoScreenTab, setDemoScreenTab] = useState('gastoComun'); // 'gastoComun' | 'comprobantes' | 'reclamos' | 'mural'
   const [demoViewMode, setDemoViewMode] = useState('capturas'); // 'capturas' | 'simulador'
-
-  // Sistemas no inspeccionados por defecto para la Nota de Alcance de 30 Días
-  const DEFAULT_UNINSPECTED_SYSTEMS = [
-    'transporte vertical/ascensores certificados Minvu',
-    'cercos perimetrales eléctricos energizados',
-    'bombas de pozo profundo o sentina',
-    'calderas y salas térmicas',
-    'centrales de citofonía'
-  ];
-
-  const PRESET_SYSTEM_SUGGESTIONS = [
-    'transporte vertical/ascensores certificados Minvu',
-    'cercos perimetrales eléctricos energizados',
-    'bombas de pozo profundo o sentina',
-    'calderas y salas térmicas',
-    'centrales de citofonía',
-    'portones automáticos & barreras vehiculares',
-    'grupo electrógeno en transferencia de carga',
-    'piscina temperada & filtros',
-    'paneles solares térmicos / fotovoltaicos',
-    'planta elevadora / tratamiento de aguas'
-  ];
-
-  // Formulario de Inspección Técnica Inicial de Entrada (Diagnóstico Gratuito)
-  const [inspectionForm, setInspectionForm] = useState({
-    targetCondo: proposalConfig.targetCondo || 'Condominio en Evaluación',
-    inspector: empresaForm.adminName,
-    date: new Date().toISOString().split('T')[0],
-    items: [
-      { id: 'bombas', name: 'Sala de Bombas & Sistema Hidroneumático', status: 'Requiere Mantención', notes: 'Bombas operativas con fuga leve en sello mecánico de Bomba 2. Manómetro principal descalibrado; requiere regulación de presostato.' },
-      { id: 'cubiertas', name: 'Cubiertas, Techumbres & Bajadas de Agua', status: 'Crítico', notes: 'Membrana asfáltica con fisuras en sector poniente; canaletas con acumulación de sedimentos. Riesgo de filtración en temporada de lluvias.' },
-      { id: 'electricidad', name: 'Tableros Eléctricos & Grupo Electrógeno', status: 'Bueno', notes: 'Tablero general rotulado según norma SEC. Generador de emergencia operativo con transferencia automática probada.' },
-      { id: 'incendios', name: 'Red Húmeda, Red Seca & Seguro Colectivo (Art. 43°)', status: 'Requiere Mantención', notes: 'Extintores con certificación vencida en pisos 3 y 4. Mangueras de red húmeda operativas con presión adecuada.' },
-      { id: 'contable', name: 'Fondo de Reserva Legal & Estado Contable (Art. 39° Ley 21.442)', status: 'Crítico', notes: 'La comunidad requiere regularizar la tasa mínima del 5% de recargo para el Fondo de Reserva exigida por el Art. 39° de la Ley N° 21.442.' }
-    ],
-    uninspectedSystems: DEFAULT_UNINSPECTED_SYSTEMS,
-    customScopeText: ''
-  });
-
-  const [newUninspectedInput, setNewUninspectedInput] = useState('');
-  const [showScopeEditorInModal, setShowScopeEditorInModal] = useState(false);
-  const [isEditingCustomScopeText, setIsEditingCustomScopeText] = useState(false);
 
   // Plantillas de Matriz Comparativa por Especialidad / Perfil Profesional
   const COMPARISON_PRESETS = {
@@ -2175,16 +2301,8 @@ export const CompanySettingsAndBackupModule = ({
     if (rawPhone) {
       phoneClean = rawPhone.startsWith('56') ? rawPhone : (rawPhone.length === 9 ? `56${rawPhone}` : rawPhone);
     }
-    const demoUrl = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad';
-    const msg = `*INVITACIÓN DEMO INTERACTIVA • ADMINISTRACIÓN ARANPRO*\n` +
-      `Estimados miembros del Comité de Administración de *${proposalConfig.targetCondo || 'su Condominio'}*:\n\n` +
-      `Junto con saludarles, los invitamos a probar en vivo y en directo la plataforma digital y aplicación móvil que implementamos para su comunidad.\n\n` +
-      `🔗 *Enlace de Demostración para Copropietarios (1-Clic sin claves):*\n${demoUrl}\n\n` +
-      `Podrán experimentar la transparencia 100% en vivo: colillas con desglose legal, auditoría de facturas y boletas con un solo clic, y el libro oficial de reclamos.\n\n` +
-      `Quedamos a su disposición para coordinar una reunión presencial o telemática.\n` +
-      `*${empresaForm.adminName}* • Fono: ${empresaForm.phone}`;
-
-    const url = phoneClean ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    const msgObj = getStepMessages(4);
+    const url = phoneClean ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(msgObj.whatsapp)}` : `https://wa.me/?text=${encodeURIComponent(msgObj.whatsapp)}`;
     window.open(url, '_blank');
   };
 
