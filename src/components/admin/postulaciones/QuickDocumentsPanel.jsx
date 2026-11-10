@@ -80,7 +80,7 @@ export const QuickDocumentsPanel = ({
     printDocumentDirectly('printable-termination-notice', `ARANPRO_Carta_Preaviso_Termino_${targetClean}`, {
       pageSize: 'letter portrait',
       fitPage: true,
-      margin: '6mm 8mm 6mm 8mm'
+      margin: '4mm 6mm 4mm 6mm'
     });
   };
 
@@ -89,7 +89,7 @@ export const QuickDocumentsPanel = ({
     printDocumentDirectly('printable-transition-checklist', `ARANPRO_Pauta_Checklist_Traspaso_3Pags_${targetClean}`, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '6mm 6mm 6mm 6mm'
+      margin: '4mm 6mm 4mm 6mm'
     });
   };
 
@@ -98,16 +98,16 @@ export const QuickDocumentsPanel = ({
     printDocumentDirectly('printable-management-contract', `ARANPRO_Contrato_Servicios_Administracion_${targetClean}`, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '6mm 8mm 6mm 8mm'
+      margin: '4mm 6mm 4mm 6mm'
     });
   };
 
   const handlePrintLegalGuides = () => {
     const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
     printDocumentDirectly('printable-legal-advisory-sheet', `ARANPRO_Guias_Legales_Asambleas_y_Quorums_${targetClean}`, {
-      pageSize: 'letter landscape',
-      fitPage: true,
-      margin: '5mm 5mm 5mm 5mm'
+      pageSize: 'letter portrait',
+      fitPage: false,
+      margin: '4mm 6mm 4mm 6mm'
     });
   };
 

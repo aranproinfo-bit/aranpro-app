@@ -137,7 +137,12 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
       'printable-app-brochure',
       'printable-technical-inspection',
       'printable-comparison-matrix',
-      'printable-agacech-fee-sheet'
+      'printable-agacech-fee-sheet',
+      'printable-termination-notice',
+      'printable-transition-checklist',
+      'printable-management-contract',
+      'printable-legal-advisory-sheet',
+      'printable-transition-package'
     ].includes(elementOrId);
 
   let hasDossierPages = isDossierDoc;
@@ -354,6 +359,11 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
             #printable-app-brochure,
             #printable-technical-inspection,
             #printable-comparison-matrix,
+            #printable-termination-notice,
+            #printable-transition-checklist,
+            #printable-management-contract,
+            #printable-legal-advisory-sheet,
+            #printable-transition-package,
             #printable-official-certificate,
             #unit-bill-printable-doc,
             #resident-bill-printable-doc,
