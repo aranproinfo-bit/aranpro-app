@@ -4444,16 +4444,13 @@ export const CompanySettingsAndBackupModule = ({
                   setPreviewBrochureModal={setPreviewBrochureModal}
                   handlePrintComparisonMatrix={handlePrintComparisonMatrix}
                   setPreviewComparisonModal={setPreviewComparisonModal}
-                  handlePrintPitchDoc={handlePrintPitchDoc}
-                  setPreviewPitchModal={setPreviewPitchModal}
-                  handlePrintFeeSheet={handlePrintFeeSheet}
+                  onNavigateToSection={(sec) => setPostulacionSection(sec)}
                   handleShareWhatsApp={handleShareWhatsApp}
                   onNavigateToBoveda={(reqKey) => {
                     if (onNavigateToModule) {
                       onNavigateToModule('empresa', 'documents');
                     }
                     setActiveSubTab('empresa');
-                    setEmpresaSection('documents');
                   }}
                   showAlert={showAlert}
                 />

@@ -36,12 +36,9 @@ export const QuickDocumentsPanel = ({
   setPreviewBrochureModal = () => {},
   handlePrintComparisonMatrix = () => {},
   setPreviewComparisonModal = () => {},
-  handlePrintPitchDoc = () => {},
-  setPreviewPitchModal = () => {},
-  handlePrintFeeSheet = () => {},
+  onNavigateToSection = () => {},
   handleShareWhatsApp = () => {},
   onNavigateToBoveda = () => {},
-  onNavigateToSection = () => {},
   showAlert = () => {}
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,6 +48,7 @@ export const QuickDocumentsPanel = ({
   // Helper para verificar si un documento de la bóveda está cargado
   const findVaultDoc = (keyOrRegex) => {
     return (accreditationDocs || []).find(doc => {
+      if (!doc) return false;
       if (doc.requirementKey && doc.requirementKey === keyOrRegex) return true;
       if (typeof keyOrRegex === 'string') {
         return (doc.name || '').toLowerCase().includes(keyOrRegex.toLowerCase());
@@ -178,12 +176,12 @@ export const QuickDocumentsPanel = ({
       subtitle: 'Guion maestro estructurado con 10 respuestas a preguntas difíciles de comités y fundamentación de honorarios.',
       badge: 'Herramienta Comercial',
       badgeColor: 'purple',
-      format: 'Ficha Ejecutiva (2 Págs)',
+      format: 'Herramienta Interactiva',
       type: 'generado',
       category: 'fichas',
       ready: true,
-      onPreview: () => setPreviewPitchModal?.(true),
-      onPrint: handlePrintPitchDoc,
+      onOpen: () => onNavigateToSection?.('pitch'),
+      openLabel: 'Abrir Libreto Pitch',
       stepNumber: null,
       icon: Presentation
     },
@@ -193,12 +191,12 @@ export const QuickDocumentsPanel = ({
       subtitle: 'Estudio técnico pericial que fundamenta el piso tarifario según tipología, subsectores contables y equipamiento crítico.',
       badge: 'Herramienta Pericial',
       badgeColor: 'emerald',
-      format: 'PDF Oficial A4 (1 Pág)',
+      format: 'Calculadora & Memoria',
       type: 'generado',
       category: 'fichas',
       ready: true,
-      onPreview: null,
-      onPrint: handlePrintFeeSheet,
+      onOpen: () => onNavigateToSection?.('calculadora'),
+      openLabel: 'Abrir Calculadora & Memoria',
       stepNumber: null,
       icon: Calculator
     }
@@ -209,8 +207,7 @@ export const QuickDocumentsPanel = ({
     setPreviewInspectionModal, handlePrintInspectionReport,
     setPreviewBrochureModal, handlePrintBrochure,
     setPreviewComparisonModal, handlePrintComparisonMatrix,
-    setPreviewPitchModal, handlePrintPitchDoc,
-    handlePrintFeeSheet
+    onNavigateToSection
   ]);
 
   // 2. DOCUMENTOS Y ACREDITACIONES DE LA BÓVEDA DIGITAL
@@ -305,7 +302,7 @@ export const QuickDocumentsPanel = ({
     });
 
     // Diplomas académicos de academicRecords
-    (academicRecords || []).forEach((record, idx) => {
+    (academicRecords || []).filter(Boolean).forEach((record, idx) => {
       mapped.push({
         id: `academic-${record.id || idx}`,
         title: record.title || 'Diploma / Especialización Académica',
@@ -327,7 +324,7 @@ export const QuickDocumentsPanel = ({
     });
 
     // Documentos adicionales personalizados en bóveda
-    (accreditationDocs || []).forEach(doc => {
+    (accreditationDocs || []).filter(Boolean).forEach(doc => {
       const alreadyIncluded = standardRequirements.some(r => r.reqKey === doc.requirementKey);
       if (!alreadyIncluded && doc.name) {
         mapped.push({
@@ -356,10 +353,10 @@ export const QuickDocumentsPanel = ({
 
   // 3. REFERENCIAS Y CARTAS DE RECOMENDACIÓN DE COMITÉS
   const refDocs = useMemo(() => {
-    return (committeeReferences || []).map(ref => ({
-      id: `ref-${ref.id}`,
+    return (committeeReferences || []).filter(Boolean).map(ref => ({
+      id: `ref-${ref.id || Math.random()}`,
       title: `Carta de Referencia • ${ref.communityName || 'Condominio'}`,
-      subtitle: `Contacto: ${ref.contactName} (${ref.role}) • Tel: ${ref.phone || 'S/N'} • "${(ref.quote || '').slice(0, 80)}..."`,
+      subtitle: `Contacto: ${ref.contactName || 'Contacto'} (${ref.role || 'Comité'}) • Tel: ${ref.phone || 'S/N'} • "${(ref.quote || '').slice(0, 80)}..."`,
       badge: ref.confirmed !== false ? 'Referencia Verificada' : 'Por Confirmar',
       badgeColor: ref.confirmed !== false ? 'emerald' : 'amber',
       format: 'Recomendación Comité',
@@ -687,6 +684,18 @@ export const QuickDocumentsPanel = ({
                     {/* ACCIÓN PARA DOCUMENTOS GENERADOS POR PLATAFORMA */}
                     {doc.type === 'generado' && (
                       <>
+                        {doc.onOpen && (
+                          <button
+                            type="button"
+                            onClick={doc.onOpen}
+                            className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                            title={doc.openLabel || 'Abrir herramienta'}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 text-[#D4B895]" />
+                            <span>{doc.openLabel || 'Abrir'}</span>
+                          </button>
+                        )}
+
                         {doc.onPreview && (
                           <button
                             type="button"
