@@ -1621,19 +1621,22 @@ export const CompanySettingsAndBackupModule = ({
       documents: accreditationDocs,
       academicRecords,
       references: committeeReferences,
-      hasSignature: Boolean(signatureImage),
+      hasSignature: Boolean(signatureImage || companySettings?.signatureDataUrl),
       empresaForm,
       adminPin,
-      portfolio: portfolioStats
+      portfolio: portfolioStats,
+      proposalConfig
     });
   }, [
     accreditationDocs,
     academicRecords,
     committeeReferences,
     signatureImage,
+    companySettings?.signatureDataUrl,
     empresaForm,
     adminPin,
-    portfolioStats
+    portfolioStats,
+    proposalConfig
   ]);
 
   // Portafolio de Certificaciones Técnicas y Acreditaciones Oficiales del Dossier (sin hooks adicionales)
@@ -1785,17 +1788,45 @@ export const CompanySettingsAndBackupModule = ({
     );
   }, [accreditationDocs, academicRecords]);
 
-  // Navegación desde el botón "Resolver" del Semáforo de Preparación
+  // Navegación desde el botón "Resolver" / "Editar o Revisar" del Semáforo de Preparación
   const handleReadinessAction = (actionKey) => {
     if (actionKey === 'documents') {
+      if (onNavigateToModule) onNavigateToModule('empresa', 'acreditacion');
       setActiveSubTab('acreditacion');
     } else if (actionKey === 'signature') {
+      if (onNavigateToModule) onNavigateToModule('empresa', 'firma');
       setActiveSubTab('firma');
     } else if (actionKey === 'company') {
+      if (onNavigateToModule) onNavigateToModule('empresa', 'empresa');
       setActiveSubTab('empresa');
     } else if (actionKey === 'references') {
+      if (onNavigateToModule) onNavigateToModule('postulaciones', 'material');
       setActiveSubTab('postulaciones');
       setPostulacionSection('material');
+    } else if (actionKey === 'step1') {
+      if (onNavigateToModule) onNavigateToModule('postulaciones', 'flujo');
+      setActiveSubTab('postulaciones');
+      setPostulacionSection('flujo');
+      setPreviewColdLetterModal(true);
+    } else if (actionKey === 'step2') {
+      if (onNavigateToModule) onNavigateToModule('postulaciones', 'flujo');
+      setActiveSubTab('postulaciones');
+      setPostulacionSection('flujo');
+      setPreviewDossierModal(true);
+    } else if (actionKey === 'step3') {
+      if (onNavigateToModule) onNavigateToModule('postulaciones', 'flujo');
+      setActiveSubTab('postulaciones');
+      setPostulacionSection('flujo');
+      setPreviewProposalModal(true);
+    } else if (actionKey === 'step4') {
+      if (onNavigateToModule) onNavigateToModule('postulaciones', 'flujo');
+      setActiveSubTab('postulaciones');
+      setPostulacionSection('flujo');
+      setPreviewBrochureModal(true);
+    } else if (actionKey === 'calculadora') {
+      if (onNavigateToModule) onNavigateToModule('postulaciones', 'calculadora');
+      setActiveSubTab('postulaciones');
+      setPostulacionSection('calculadora');
     }
   };
 
