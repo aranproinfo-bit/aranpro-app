@@ -979,6 +979,28 @@ export const CompanySettingsAndBackupModule = ({
   // Pestaña en simulador de teléfono interactivo
   const [demoScreenTab, setDemoScreenTab] = useState('gastoComun'); // 'gastoComun' | 'comprobantes' | 'reclamos' | 'mural'
 
+  // Sistemas no inspeccionados por defecto para la Nota de Alcance de 30 Días
+  const DEFAULT_UNINSPECTED_SYSTEMS = [
+    'transporte vertical/ascensores certificados Minvu',
+    'cercos perimetrales eléctricos energizados',
+    'bombas de pozo profundo o sentina',
+    'calderas y salas térmicas',
+    'centrales de citofonía'
+  ];
+
+  const PRESET_SYSTEM_SUGGESTIONS = [
+    'transporte vertical/ascensores certificados Minvu',
+    'cercos perimetrales eléctricos energizados',
+    'bombas de pozo profundo o sentina',
+    'calderas y salas térmicas',
+    'centrales de citofonía',
+    'portones automáticos & barreras vehiculares',
+    'grupo electrógeno en transferencia de carga',
+    'piscina temperada & filtros',
+    'paneles solares térmicos / fotovoltaicos',
+    'planta elevadora / tratamiento de aguas'
+  ];
+
   // Formulario de Inspección Técnica Inicial de Entrada (Diagnóstico Gratuito)
   const [inspectionForm, setInspectionForm] = useState({
     targetCondo: proposalConfig.targetCondo || 'Condominio en Evaluación',
@@ -990,8 +1012,14 @@ export const CompanySettingsAndBackupModule = ({
       { id: 'electricidad', name: 'Tableros Eléctricos & Grupo Electrógeno', status: 'Bueno', notes: 'Tablero general rotulado según norma SEC. Generador de emergencia operativo con transferencia automática probada.' },
       { id: 'incendios', name: 'Red Húmeda, Red Seca & Seguro Colectivo (Art. 43°)', status: 'Requiere Mantención', notes: 'Extintores con certificación vencida en pisos 3 y 4. Mangueras de red húmeda operativas con presión adecuada.' },
       { id: 'contable', name: 'Fondo de Reserva Legal & Estado Contable (Art. 39° Ley 21.442)', status: 'Crítico', notes: 'La comunidad requiere regularizar la tasa mínima del 5% de recargo para el Fondo de Reserva exigida por el Art. 39° de la Ley N° 21.442.' }
-    ]
+    ],
+    uninspectedSystems: DEFAULT_UNINSPECTED_SYSTEMS,
+    customScopeText: ''
   });
+
+  const [newUninspectedInput, setNewUninspectedInput] = useState('');
+  const [showScopeEditorInModal, setShowScopeEditorInModal] = useState(false);
+  const [isEditingCustomScopeText, setIsEditingCustomScopeText] = useState(false);
 
   // Estados de Asistentes & Auditoría Supabase (Ley 21.442)
   const [assistantsList, setAssistantsList] = useState([]);
@@ -1545,6 +1573,73 @@ export const CompanySettingsAndBackupModule = ({
       ...prev,
       items: prev.items.filter(it => it.id !== id)
     }));
+  };
+
+  // --- GESTIÓN DE SISTEMAS PARA LA NOTA DE ALCANCE TÉCNICO (30 DÍAS) ---
+  const toggleUninspectedSystem = (systemName) => {
+    setInspectionForm(prev => {
+      const current = prev.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS;
+      const exists = current.some(s => s.toLowerCase() === systemName.toLowerCase());
+      const updated = exists
+        ? current.filter(s => s.toLowerCase() !== systemName.toLowerCase())
+        : [...current, systemName];
+      return { ...prev, uninspectedSystems: updated };
+    });
+  };
+
+  const handleAddCustomUninspectedSystem = () => {
+    if (!newUninspectedInput.trim()) return;
+    const nameClean = newUninspectedInput.trim();
+    setInspectionForm(prev => {
+      const current = prev.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS;
+      if (current.some(s => s.toLowerCase() === nameClean.toLowerCase())) {
+        return prev;
+      }
+      return {
+        ...prev,
+        uninspectedSystems: [...current, nameClean]
+      };
+    });
+    setNewUninspectedInput('');
+  };
+
+  const handleRemoveUninspectedSystem = (systemName) => {
+    setInspectionForm(prev => ({
+      ...prev,
+      uninspectedSystems: (prev.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS).filter(s => s.toLowerCase() !== systemName.toLowerCase())
+    }));
+  };
+
+  const handleResetUninspectedSystems = () => {
+    setInspectionForm(prev => ({
+      ...prev,
+      uninspectedSystems: DEFAULT_UNINSPECTED_SYSTEMS,
+      customScopeText: ''
+    }));
+    setIsEditingCustomScopeText(false);
+  };
+
+  const renderAuditScopeText = () => {
+    if (inspectionForm.customScopeText?.trim()) {
+      return inspectionForm.customScopeText;
+    }
+    const systems = inspectionForm.uninspectedSystems && inspectionForm.uninspectedSystems.length > 0
+      ? inspectionForm.uninspectedSystems
+      : DEFAULT_UNINSPECTED_SYSTEMS;
+
+    if (systems.length === 0) {
+      return (
+        <>
+          Aquellas instalaciones o subsistemas de alta complejidad técnica no individualizados en el detalle inferior <u>no han sido desestimados ni omitidos</u> bajo ninguna circunstancia. Debido a su naturaleza crítica, su diagnóstico certero exige protocolos dinámicos de prueba de esfuerzo, apertura técnica con instrumental y fiscalización de los libros de mantención de las empresas vigentes, lo cual se abordará con exhaustividad técnica en el <strong>Plan de Auditoría e Inventario Inicial durante los primeros 30 días</strong> al asumir la gestión.
+        </>
+      );
+    }
+
+    return (
+      <>
+        Aquellas instalaciones o subsistemas no individualizados en el detalle inferior (tales como <strong>{systems.join(', ')}</strong>) <u>no han sido desestimados ni omitidos</u> bajo ninguna circunstancia. Debido a su naturaleza crítica, su diagnóstico certero exige protocolos dinámicos de prueba de esfuerzo, apertura técnica con instrumental y fiscalización de los libros de mantención de las empresas vigentes, lo cual se abordará con exhaustividad técnica en el <strong>Plan de Auditoría e Inventario Inicial durante los primeros 30 días</strong> al asumir la gestión.
+      </>
+    );
   };
 
   // --- LÓGICA DEL CANVAS DE DIBUJO DE FIRMA DIGITAL ---
@@ -4494,6 +4589,139 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
+                  {/* PANEL DE PERSONALIZACIÓN DE INSTALACIONES PARA NOTA DE ALCANCE (PÁGINA 2) */}
+                  <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1 rounded-lg bg-emerald-100 text-[#0F3D2E]">
+                            <Info className="w-3.5 h-3.5" />
+                          </span>
+                          <h5 className="font-black text-xs text-slate-900">
+                            Instalaciones para Nota de Alcance & Auditoría de 30 Días (Pág. 2)
+                          </h5>
+                        </div>
+                        <p className="text-[11px] text-slate-500">
+                          Ajusta qué instalaciones complejas se aclaran que serán auditadas en los primeros 30 días (ej: desmarca ascensores si es condominio de casas, agrega calderas, piscina o cerco eléctrico según la realidad de la comunidad).
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingCustomScopeText(!isEditingCustomScopeText)}
+                          className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Edit3 className="w-3 h-3 text-[#0F3D2E]" />
+                          {isEditingCustomScopeText ? 'Ver Selección de Tags' : 'Escribir Texto Libre'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleResetUninspectedSystems}
+                          className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                          title="Restablecer sugerencias iniciales"
+                        >
+                          Restablecer
+                        </button>
+                      </div>
+                    </div>
+
+                    {!isEditingCustomScopeText ? (
+                      <div className="space-y-3">
+                        {/* Tags actualmente seleccionados */}
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                            Instalaciones actualmente incluidas en la nota ({inspectionForm.uninspectedSystems?.length || 0}):
+                          </span>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {(inspectionForm.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS).map((sys) => (
+                              <span
+                                key={sys}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-300 text-[#0F3D2E] text-[11px] font-semibold shadow-2xs"
+                              >
+                                <span>{sys}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveUninspectedSystem(sys)}
+                                  className="w-4 h-4 rounded-full hover:bg-emerald-200 flex items-center justify-center text-emerald-800 transition-colors cursor-pointer"
+                                  title="Quitar de la nota"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                            {(inspectionForm.uninspectedSystems?.length || 0) === 0 && (
+                              <span className="text-xs text-slate-400 italic">No hay instalaciones seleccionadas (se usará cláusula técnica genérica).</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Agregar instalación personalizada y sugerencias rápidas */}
+                        <div className="space-y-2 pt-1 border-t border-slate-100">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <input
+                              type="text"
+                              value={newUninspectedInput}
+                              onChange={(e) => setNewUninspectedInput(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomUninspectedSystem(); } }}
+                              placeholder="Escribe otra instalación para la nota (ej: Piscina temperada, Barreras automáticas)..."
+                              className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleAddCustomUninspectedSystem}
+                              className="px-3 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
+                              Agregar a la Nota
+                            </button>
+                          </div>
+
+                          {/* Chips sugeridos rápidos */}
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                            <span className="text-[10px] text-slate-400 font-bold mr-1">Sugerencias rápidas:</span>
+                            {PRESET_SYSTEM_SUGGESTIONS
+                              .filter(s => !(inspectionForm.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS).some(it => it.toLowerCase() === s.toLowerCase()))
+                              .map(sug => (
+                                <button
+                                  key={sug}
+                                  type="button"
+                                  onClick={() => toggleUninspectedSystem(sug)}
+                                  className="px-2 py-0.5 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-200 text-slate-600 hover:text-[#0F3D2E] text-[10px] font-medium transition-all flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Plus className="w-2.5 h-2.5 text-[#0F3D2E]" />
+                                  <span>{sug}</span>
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Redacción Libre Personalizada */
+                      <div className="space-y-1.5">
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase">
+                          Texto personalizado completo para la Nota de Alcance (reemplaza el texto automático):
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={inspectionForm.customScopeText}
+                          onChange={(e) => setInspectionForm({ ...inspectionForm, customScopeText: e.target.value })}
+                          placeholder="Escribe la nota de alcance tal como deseas que aparezca en la Página 2 del documento..."
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
+                        />
+                      </div>
+                    )}
+
+                    {/* Previsualización en vivo de la nota */}
+                    <div className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-200/70 text-[10.5px] text-slate-700 space-y-0.5">
+                      <span className="font-bold text-[#0F3D2E] block text-[9.5px] uppercase tracking-wider">
+                        Vista Previa en Página 2 del Documento:
+                      </span>
+                      <p className="leading-snug text-slate-600 italic">
+                        {renderAuditScopeText()}
+                      </p>
+                    </div>
+                  </div>
+
                   {/* AGREGAR NUEVA PARTIDA PERSONALIZADA AL DIAGNÓSTICO */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                     <input
@@ -5730,7 +5958,8 @@ export const CompanySettingsAndBackupModule = ({
           )}
 
           {previewProposalModal && (
-            /* BARRA DE AJUSTE RÁPIDO DE DESTINATARIO */
+            <>
+            {/* BARRA DE AJUSTE RÁPIDO DE DESTINATARIO */}
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs mb-4">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold text-slate-700">Condominio a Postular:</span>
@@ -5762,8 +5991,131 @@ export const CompanySettingsAndBackupModule = ({
                   <span>En blanco</span>
                 </label>
               </div>
-              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowScopeEditorInModal(!showScopeEditorInModal)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                    showScopeEditorInModal
+                      ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
+                      : 'bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E] border-emerald-300'
+                  }`}
+                  title="Ajustar qué instalaciones se mencionan en la Nota de Alcance de la Página 2"
+                >
+                  <HardHat className="w-3.5 h-3.5" />
+                  <span>Instalaciones Nota Pág. 2 ({(inspectionForm.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS).length})</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showScopeEditorInModal ? 'rotate-180' : ''}`} />
+                </button>
+                <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+              </div>
             </div>
+
+            {/* PANEL DESPLEGABLE RÁPIDO DE INSTALACIONES DENTRO DE LA VISTA PREVIA DE PROPUESTA */}
+            {showScopeEditorInModal && (
+              <div className="bg-white p-3.5 rounded-2xl border-2 border-emerald-300 shadow-sm mb-4 space-y-2.5 animate-in fade-in text-xs">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 rounded-lg bg-emerald-100 text-[#0F3D2E]">
+                      <Info className="w-3.5 h-3.5" />
+                    </span>
+                    <strong className="text-slate-900 text-xs">
+                      Ajuste de Instalaciones para Nota de Auditoría de 30 Días (Pág. 2):
+                    </strong>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingCustomScopeText(!isEditingCustomScopeText)}
+                      className="px-2 py-0.5 rounded-lg text-[10px] font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 cursor-pointer"
+                    >
+                      {isEditingCustomScopeText ? 'Ver Selección de Tags' : 'Escribir Texto Libre'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetUninspectedSystems}
+                      className="text-[10px] font-bold text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      Restablecer
+                    </button>
+                  </div>
+                </div>
+
+                {!isEditingCustomScopeText ? (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] text-slate-500 font-bold mr-1">Incluidas en la nota:</span>
+                      {(inspectionForm.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS).map((sys) => (
+                        <span
+                          key={sys}
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-50 border border-emerald-300 text-[#0F3D2E] text-[10.5px] font-semibold"
+                        >
+                          <span>{sys}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveUninspectedSystem(sys)}
+                            className="w-3.5 h-3.5 rounded-full hover:bg-emerald-200 flex items-center justify-center text-emerald-800 cursor-pointer font-bold"
+                            title="Quitar"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1 border-t border-slate-100">
+                      <input
+                        type="text"
+                        value={newUninspectedInput}
+                        onChange={(e) => setNewUninspectedInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomUninspectedSystem(); } }}
+                        placeholder="Escribe otra instalación (ej: Piscina temperada, Calderas, Barreras)..."
+                        className="flex-1 px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCustomUninspectedSystem}
+                        className="px-3 py-1 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
+                      >
+                        <Plus className="w-3 h-3 text-[#D4B895]" />
+                        Agregar
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span className="text-[10px] text-slate-400 font-bold mr-1">Sugerencias rápidas:</span>
+                      {PRESET_SYSTEM_SUGGESTIONS
+                        .filter(s => !(inspectionForm.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS).some(it => it.toLowerCase() === s.toLowerCase()))
+                        .map(sug => (
+                          <button
+                            key={sug}
+                            type="button"
+                            onClick={() => toggleUninspectedSystem(sug)}
+                            className="px-2 py-0.5 rounded-md border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-200 text-slate-600 hover:text-[#0F3D2E] text-[10px] font-medium transition-all flex items-center gap-1 cursor-pointer"
+                          >
+                            <Plus className="w-2.5 h-2.5 text-[#0F3D2E]" />
+                            <span>{sug}</span>
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase">
+                      Redactar texto libre para la Nota de Alcance (Pág. 2):
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={inspectionForm.customScopeText}
+                      onChange={(e) => setInspectionForm({ ...inspectionForm, customScopeText: e.target.value })}
+                      placeholder="Escribe el párrafo completo que reemplazará el texto automático..."
+                      className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            </>
           )}
 
           {/* CONTENEDOR DE LA PROPUESTA ECONÓMICA + DIAGNÓSTICO TÉCNICO IMPRIMIBLE (CONSOLIDADO 2 PÁGINAS) */}
@@ -6064,7 +6416,7 @@ export const CompanySettingsAndBackupModule = ({
                         <span>Nota de Alcance Técnico & Auditoría Especializada de 30 Días:</span>
                       </div>
                       <p className="leading-snug text-justify text-slate-600">
-                        Aquellas instalaciones o subsistemas no individualizados en el detalle inferior (tales como <strong>transporte vertical/ascensores certificados Minvu, cercos perimetrales eléctricos energizados, bombas de pozo profundo o sentina, calderas y centrales de citofonía</strong>) <u>no han sido desestimados ni omitidos</u> bajo ninguna circunstancia. Debido a su naturaleza crítica, su diagnóstico certero exige protocolos dinámicos de prueba de esfuerzo, apertura técnica con instrumental y fiscalización de los libros de mantención de las empresas vigentes, lo cual se abordará con exhaustividad técnica en el <strong>Plan de Auditoría e Inventario Inicial durante los primeros 30 días</strong> al asumir la gestión.
+                        {renderAuditScopeText()}
                       </p>
                     </div>
                   </div>
@@ -6764,7 +7116,10 @@ export const CompanySettingsAndBackupModule = ({
                   <span>En blanco</span>
                 </label>
               </div>
-              <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+
+              <div className="flex flex-wrap items-center gap-2">
+                <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
+              </div>
             </div>
           )}
 
