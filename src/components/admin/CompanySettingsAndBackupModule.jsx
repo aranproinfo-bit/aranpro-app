@@ -1021,6 +1021,270 @@ export const CompanySettingsAndBackupModule = ({
   const [showScopeEditorInModal, setShowScopeEditorInModal] = useState(false);
   const [isEditingCustomScopeText, setIsEditingCustomScopeText] = useState(false);
 
+  // Plantillas de Matriz Comparativa por Especialidad / Perfil Profesional
+  const COMPARISON_PRESETS = {
+    tecnico: {
+      name: 'Técnico / Obras (Constructor Civil)',
+      badge: 'Perfil ARANPRO',
+      description: 'Enfocado en auditoría de infraestructura, supervisión directa de contratistas y mantenciones.',
+      rows: [
+        {
+          id: 'pilar_sup_obras',
+          title: 'Supervisión Constructiva & Auditoría de Obras en Terreno',
+          trad: 'Visitas esporádicas. Desconocimiento constructivo; dependencia ciega de cotizaciones externas que inflan costos.',
+          propuesta: 'Liderazgo directo de Constructor Civil. Inspección técnica in situ de bombas, tableros y mantenciones para cuidar el gasto común.',
+          active: true
+        },
+        {
+          id: 'pilar_transp_247',
+          title: 'Transparencia Financiera, Bancaria & Rendición 24/7',
+          trad: 'Planillas Excel estáticas tardías. Cartolas bancarias y facturas ocultas o de difícil acceso para los vecinos.',
+          propuesta: 'Portal Web y App Móvil 24/7 sin costo: cada vecino audita facturas digitalizadas y conciliaciones bancarias con 1 clic.',
+          active: true
+        },
+        {
+          id: 'pilar_asambleas_ley',
+          title: 'Cumplimiento Ley N° 21.442, Asambleas & Quórums Validados',
+          trad: 'Falta crónica de quórum presencial. Conflictos, actas demoradas y reglamentos desactualizados con riesgo de nulidad.',
+          propuesta: 'Asambleas telemáticas e híbridas con votación digital celular (Art. 15°), quórums automáticos y marco Ley 21.442.',
+          active: true
+        },
+        {
+          id: 'pilar_libro_reclamos',
+          title: 'Trazabilidad de Reclamos & Libro Oficial Art. 20°',
+          trad: 'Mensajes dispersos de WhatsApp o llamados informales que quedan sin respuesta ni registro legal formal.',
+          propuesta: 'Libro Oficial de Reclamos digital y foliado conforme a Ley 21.442. Ticket de seguimiento y plazos legales de respuesta.',
+          active: true
+        },
+        {
+          id: 'pilar_cobranza_legal',
+          title: 'Estrategia de Cobranza Legal, Fe Notarial & Certificaciones',
+          trad: 'Cobranza informal reactiva y demoras injustificadas en entrega de certificados de deuda para notarías.',
+          propuesta: 'Protocolos de corte legal automatizados, convenios de pago formales y certificados para notarías inmediatos (Art. 36°).',
+          active: true
+        },
+        {
+          id: 'pilar_traspaso_auditoria',
+          title: 'Traspaso & Auditoría Inicial de Entrada',
+          trad: 'Asumen la administración sin auditar deudas anteriores, trasladando problemas históricos al nuevo comité.',
+          propuesta: 'Auditoría de traspaso formal y diagnóstico preventivo gratuito para blindar la responsabilidad del nuevo comité.',
+          active: false
+        }
+      ]
+    },
+    financiero: {
+      name: 'Financiero & Auditoría Contable',
+      badge: 'Contador / Auditor',
+      description: 'Enfocado en auditoría tributaria, conciliación bancaria diaria y optimización de gastos comunes.',
+      rows: [
+        {
+          id: 'pilar_conciliacion_diaria',
+          title: 'Conciliación Bancaria Diaria & Cuentas Claras',
+          trad: 'Diferencias no explicadas en la cartola bancaria y descuadres en el saldo de fin de mes.',
+          propuesta: 'Conciliación bancaria diaria al centavo con publicación inmediata en el portal web de la comunidad.',
+          active: true
+        },
+        {
+          id: 'pilar_ahorro_presupuestos',
+          title: 'Optimización de Proveedores & Licitaciones Transparentes',
+          trad: 'Renovación automática de contratos caros sin licitar ni revisar tarifas de mercado.',
+          propuesta: 'Licitaciones transparentes de servicios con 3 cotizaciones comparativas para abaratar costos comunes.',
+          active: true
+        },
+        {
+          id: 'pilar_fondo_reserva',
+          title: 'Fondo de Reserva Legal & Plan Financiero Plurianual',
+          trad: 'Gastos extraordinarios imprevistos por falta de provisión del Fondo de Reserva legal.',
+          propuesta: 'Control estricto del Art. 39° Ley 21.442 con informes de proyección presupuestaria a 12 meses.',
+          active: true
+        },
+        {
+          id: 'pilar_rendicion_digital',
+          title: 'Portal Web 24/7 con Comprobantes Digitalizados',
+          trad: 'Facturas en archivadores físicos que solo se pueden revisar previa cita con el administrador.',
+          propuesta: '100% de los comprobantes y egresos respaldados digitalmente a la vista de cualquier copropietario.',
+          active: true
+        },
+        {
+          id: 'pilar_cobranza_ejecutiva',
+          title: 'Cobranza Preventiva de Morosidad con Certificación Notarial',
+          trad: 'Morosidad descontrolada por falta de avisos oportunos o acciones legales formales.',
+          propuesta: 'Avisos automatizados preventivos, convenios de pago foliados y certificados ejecutivos Art. 36°.',
+          active: true
+        }
+      ]
+    },
+    legal: {
+      name: 'Legal & Cumplimiento Normativo',
+      badge: 'Enfoque Jurídico',
+      description: 'Enfocado en blindaje legal del Comité, reglamentos actualizados y cobranza prejudicial.',
+      rows: [
+        {
+          id: 'pilar_blindaje_comite',
+          title: 'Blindaje Jurídico & Responsabilidad Solidaria del Comité',
+          trad: 'Decisiones directivas que infringen la Ley 21.442, exponiendo a los miembros del Comité a sanciones.',
+          propuesta: 'Asesoría normativa permanente en cada acuerdo directivo para blindar la responsabilidad del Comité.',
+          active: true
+        },
+        {
+          id: 'pilar_reglamento_coprop',
+          title: 'Reglamento de Copropiedad Alineado a Ley N° 21.442',
+          trad: 'Reglamentos obsoletos redactados bajo la antigua Ley 19.537 que provocan nulidad de multas y asambleas.',
+          propuesta: 'Actualización y protocolización de reglamentos de copropiedad conforme a los nuevos estándares MINVU.',
+          active: true
+        },
+        {
+          id: 'pilar_asambleas_validas',
+          title: 'Asambleas Telemáticas & Votaciones con Plena Validez Legal',
+          trad: 'Falta de quórum o asambleas impugnadas por errores de citación y padrón de votantes.',
+          propuesta: 'Convocatorias y votaciones digitales con validación biométrica y folios notariales (Art. 15°).',
+          active: true
+        },
+        {
+          id: 'pilar_cobranza_judicial',
+          title: 'Cobranza Prejudicial Ejecutiva & Fe Pública Notarial',
+          trad: 'Cartas informales de cobranza sin mérito ejecutivo ante los Juzgados de Policía Local.',
+          propuesta: 'Certificados de deuda con firma electrónica avanzada válidos como título ejecutivo para embargo.',
+          active: true
+        },
+        {
+          id: 'pilar_derechos_laborales',
+          title: 'Fiscalización Laboral de Conserjes & Subcontratación',
+          trad: 'Demandas laborales millonarias de guardias o personal de aseo contra la comunidad.',
+          propuesta: 'Control estricto de libros de asistencia, cotizaciones previsionales y finiquitos ante la Dirección del Trabajo.',
+          active: true
+        }
+      ]
+    },
+    tecnologico: {
+      name: 'Tecnológico & Transformación Digital',
+      badge: 'Smart Condo',
+      description: 'Enfocado en suite web y app móvil para residentes, automatización y comunicación en tiempo real.',
+      rows: [
+        {
+          id: 'pilar_app_residentes',
+          title: 'App Móvil & Portal Web 24/7 Bonificado para Residentes',
+          trad: 'Comunicación por carteleras de papel desactualizadas y filas en conserjería para pagar.',
+          propuesta: 'Aplicación para celular donde los copropietarios pagan en línea, reservan quinchos y ven sus colillas al instante.',
+          active: true
+        },
+        {
+          id: 'pilar_reclamos_art20',
+          title: 'Mesa de Ayuda Digital & Libro de Reclamos Automatizado',
+          trad: 'Reclamos por WhatsApp que se pierden sin seguimiento ni responsable asignado.',
+          propuesta: 'Sistema de tickets con notificación por correo y seguimiento en tiempo real con tiempos de respuesta garantizados.',
+          active: true
+        },
+        {
+          id: 'pilar_votaciones_online',
+          title: 'Votaciones Online & Consultas Rápidas desde el Celular',
+          trad: 'Semanas de espera para coordinar una reunión presencial para decisiones menores.',
+          propuesta: 'Votaciones express y encuestas comunitarias seguras desde el teléfono móvil en minutos.',
+          active: true
+        },
+        {
+          id: 'pilar_seguridad_accesos',
+          title: 'Control Digital de Visitas & Encomiendas con Código QR',
+          trad: 'Cuadernos de portería con letra ilegible y extravío recurrente de paquetes de compras.',
+          propuesta: 'Registro fotográfico digital de visitantes y notificación automática al residente al llegar encomiendas.',
+          active: true
+        },
+        {
+          id: 'pilar_mantenimiento_preventivo',
+          title: 'Bitácora Digital de Mantenimientos & Recordatorios SEC',
+          trad: 'Mantenciones olvidadas de bombas y generadores que provocan cortes sorpresa.',
+          propuesta: 'Alertas automáticas preventivas antes de que venzan las certificaciones obligatorias de equipos críticos.',
+          active: true
+        }
+      ]
+    }
+  };
+
+  // Matriz Comparativa Dinámica (Tradicional vs. Propuesta de Valor)
+  const [comparisonRows, setComparisonRows] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aranpro_custom_comparison_matrix');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Error reading comparison matrix from storage', e);
+    }
+    return COMPARISON_PRESETS.tecnico.rows;
+  });
+
+  const [activeComparisonPreset, setActiveComparisonPreset] = useState('tecnico');
+  const [editingComparisonId, setEditingComparisonId] = useState(null);
+  const [showAddComparisonForm, setShowAddComparisonForm] = useState(false);
+  const [newComparisonForm, setNewComparisonForm] = useState({
+    title: '',
+    trad: '',
+    propuesta: ''
+  });
+  const [showComparisonEditorInModal, setShowComparisonEditorInModal] = useState(false);
+
+  // Guardar matriz en localStorage al cambiar
+  useEffect(() => {
+    try {
+      localStorage.setItem('aranpro_custom_comparison_matrix', JSON.stringify(comparisonRows));
+    } catch (e) {
+      console.warn('Error saving comparison matrix', e);
+    }
+  }, [comparisonRows]);
+
+  // Pilares activos para documentos impresos
+  const activeComparisonRows = useMemo(() => {
+    return (comparisonRows || []).filter(r => r.active !== false);
+  }, [comparisonRows]);
+
+  // Alternar estado activo / desistido de un pilar comparativo
+  const toggleComparisonRow = (id) => {
+    setComparisonRows(prev => prev.map(r => r.id === id ? { ...r, active: !r.active } : r));
+  };
+
+  // Modificar textos de un pilar comparativo
+  const handleUpdateComparisonRow = (id, field, value) => {
+    setComparisonRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+  };
+
+  // Agregar nuevo pilar comparativo personalizado
+  const handleAddComparisonRow = () => {
+    if (!newComparisonForm.title.trim()) {
+      alert('Por favor ingresa al menos el título o concepto del pilar.');
+      return;
+    }
+    const newRow = {
+      id: `custom_${Date.now()}`,
+      title: newComparisonForm.title.trim(),
+      trad: newComparisonForm.trad.trim() || 'Prácticas manuales, demoras o falta de especialización técnica.',
+      propuesta: newComparisonForm.propuesta.trim() || `Atención profesional, supervisión directa y plataforma 24/7 con ${empresaForm.brandName || 'nuestra gestión'}.`,
+      active: true
+    };
+    setComparisonRows(prev => [...prev, newRow]);
+    setNewComparisonForm({ title: '', trad: '', propuesta: '' });
+    setShowAddComparisonForm(false);
+  };
+
+  // Eliminar pilar comparativo
+  const handleDeleteComparisonRow = (id) => {
+    setComparisonRows(prev => prev.filter(r => r.id !== id));
+  };
+
+  // Restablecer al preset actual o técnico por defecto
+  const handleResetComparisonRows = () => {
+    const preset = COMPARISON_PRESETS[activeComparisonPreset] || COMPARISON_PRESETS.tecnico;
+    setComparisonRows(preset.rows);
+  };
+
+  // Cargar una plantilla de especialidad
+  const handleLoadComparisonPreset = (presetKey) => {
+    if (COMPARISON_PRESETS[presetKey]) {
+      setActiveComparisonPreset(presetKey);
+      setComparisonRows(COMPARISON_PRESETS[presetKey].rows);
+    }
+  };
+
   // Estados de Asistentes & Auditoría Supabase (Ley 21.442)
   const [assistantsList, setAssistantsList] = useState([]);
   const [auditLogsList, setAuditLogsList] = useState([]);
@@ -4819,20 +5083,29 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               )}
 
-              {/* SECCIÓN 3: CUADRO COMPARATIVO (TRADICIONAL VS ARANPRO) */}
+              {/* SECCIÓN 3: CUADRO COMPARATIVO DINÁMICO (TRADICIONAL VS PROPUESTA DE VALOR) */}
               {postulacionSection === 'comparativa' && (
                 <div className="space-y-4 animate-in fade-in">
                   {renderToolboxNavbar()}
                   <div className="p-5 rounded-3xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F3D2E] block">
-                        Diferenciador Visual de Alto Impacto
-                      </span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F3D2E] bg-emerald-100/70 px-2 py-0.5 rounded-md">
+                          Diferenciador Visual & Propuesta de Valor
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                          activeComparisonRows.length <= 5
+                            ? 'bg-emerald-50 text-[#0F3D2E] border-emerald-300'
+                            : 'bg-amber-50 text-amber-800 border-amber-300'
+                        }`}>
+                          {activeComparisonRows.length} de {comparisonRows.length} activos ({activeComparisonRows.length <= 5 ? 'Óptimo para Pág. 3' : 'Sugerido: máx. 5'})
+                        </span>
+                      </div>
                       <h4 className="text-base font-black text-slate-900">
-                        Cuadro Comparativo: Administración Tradicional vs. ARANPRO
+                        Matriz Comparativa: Administración Tradicional vs. {empresaForm.brandName || 'ARANPRO'}
                       </h4>
-                      <p className="text-xs text-slate-600">
-                        Tabla comparativa ideal para proyectar en asambleas o adjuntar al dossier de licitación.
+                      <p className="text-xs text-slate-600 max-w-2xl">
+                        Personaliza los argumentos frente a otras administraciones. Puedes activar o <strong>desistir</strong> de pilares, editar las fortalezas o agregar nuevos puntos a la medida de cada licitación.
                       </p>
                     </div>
 
@@ -4840,7 +5113,7 @@ export const CompanySettingsAndBackupModule = ({
                       <button
                         type="button"
                         onClick={() => setPreviewComparisonModal(true)}
-                        className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+                        className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         <Eye className="w-4 h-4 text-[#D4B895]" />
                         Ver Cuadro Completo
@@ -4848,7 +5121,7 @@ export const CompanySettingsAndBackupModule = ({
                       <button
                         type="button"
                         onClick={handlePrintComparisonMatrix}
-                        className="px-3.5 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
+                        className="px-3.5 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         <Printer className="w-4 h-4 text-[#0F3D2E]" />
                         Imprimir Ficha
@@ -4856,59 +5129,236 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* MATRIZ DE COMPARACIÓN */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[
-                      {
-                        title: '1. Criterio Constructivo & Obras',
-                        trad: 'No distinguen una falla de bombas de una fuga eléctrica. Aceptan presupuestos de contratistas externos a ciegas con sobrecostos.',
-                        aran: 'Administrador con formación de Constructor Civil. Audita salas de bombas, cubiertas y techumbres con criterio experto en terreno.'
-                      },
-                      {
-                        title: '2. Transparencia en Gastos Comunes',
-                        trad: 'Planillas Excel confusas enviadas a fin de mes. Comprobantes bancarios y facturas ocultos en carpetas inaccesibles para el vecino.',
-                        aran: 'Portal web y App móvil 24/7 donde cada copropietario audita en vivo las facturas reales y cartolas bancarias con 1 clic.'
-                      },
-                      {
-                        title: '3. Asambleas y Votaciones (Ley 21.442)',
-                        trad: 'Falta crónica de quórum presencial. Actas físicas que se pierden o tardan semanas en protocolizarse.',
-                        aran: 'Asambleas telemáticas híbridas con voto digital seguro desde el celular y actas foliadas conforme al Art. 15° de la ley.'
-                      },
-                      {
-                        title: '4. Libro Oficial de Reclamos',
-                        trad: 'Mensajes de WhatsApp y correos que quedan en el olvido sin respuesta formal.',
-                        aran: 'Libro digital oficial con folios correlativos y plazo estricto de respuesta legal garantizada (Art. 20°).'
-                      },
-                      {
-                        title: '5. Cobranzas & Fe Notarial',
-                        trad: 'Cobranzas desordenadas o agresivas sin protocolo notarial.',
-                        aran: 'Certificados oficiales foliados de no deuda, convenios de pago y certificados morosos para compraventas (Art. 36°).'
-                      },
-                      {
-                        title: '6. Traspaso & Auditoría Inicial',
-                        trad: 'Asumen la administración sin auditar deudas anteriores, trasladando problemas históricos.',
-                        aran: 'Auditoría de traspaso formal y diagnóstico preventivo gratuito para blindar la responsabilidad del nuevo comité.'
-                      }
-                    ].map((row, idx) => (
-                      <div key={idx} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
-                        <h6 className="font-black text-xs text-slate-900 border-b border-slate-100 pb-1.5 flex items-center justify-between">
-                          <span>{row.title}</span>
-                          <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 px-2 py-0.5 rounded">
-                            Ventaja ARANPRO
-                          </span>
-                        </h6>
-                        <div className="space-y-2 text-xs">
-                          <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/60 text-slate-700">
-                            <span className="font-bold text-rose-800 block text-[10px] uppercase">✕ Administración Tradicional:</span>
-                            <p className="text-[11px] mt-0.5 leading-relaxed">{row.trad}</p>
-                          </div>
-                          <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-slate-800">
-                            <span className="font-bold text-[#0F3D2E] block text-[10px] uppercase">✓ Con ARANPRO:</span>
-                            <p className="text-[11px] mt-0.5 leading-relaxed font-medium">{row.aran}</p>
-                          </div>
+                  {/* BARRA DE PLANTILLAS Y ACCIONES DE EDICIÓN */}
+                  <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                      {/* Selector de Plantillas Rápidas según perfil */}
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                          Cargar Plantilla de Especialidad:
+                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {Object.entries(COMPARISON_PRESETS).map(([key, preset]) => (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => handleLoadComparisonPreset(key)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                                activeComparisonPreset === key
+                                  ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E] shadow-2xs'
+                                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                              }`}
+                            >
+                              <Sparkles className="w-3 h-3 text-[#D4B895]" />
+                              <span>{preset.name}</span>
+                            </button>
+                          ))}
                         </div>
                       </div>
-                    ))}
+
+                      {/* Botón de Agregar Nuevo Pilar y Restablecer */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddComparisonForm(!showAddComparisonForm)}
+                          className="px-3 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-[#D4B895]" />
+                          <span>{showAddComparisonForm ? 'Cerrar Formulario' : 'Agregar Nuevo Pilar'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleResetComparisonRows}
+                          className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                          title="Restablecer a la plantilla seleccionada"
+                        >
+                          <RefreshCw className="w-3 h-3 text-slate-400" />
+                          <span>Restablecer</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Formulario desplegable para agregar nuevo pilar personalizado */}
+                    {showAddComparisonForm && (
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border-2 border-emerald-300 space-y-3 animate-in fade-in">
+                        <div className="flex items-center justify-between">
+                          <strong className="text-xs text-slate-900 flex items-center gap-1.5">
+                            <Plus className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                            Crear Nueva Comparación de Valor
+                          </strong>
+                          <span className="text-[10px] text-slate-500 font-mono">Personalizado</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-slate-600 uppercase block">
+                              Título del Pilar / Diferenciador:
+                            </label>
+                            <input
+                              type="text"
+                              value={newComparisonForm.title}
+                              onChange={(e) => setNewComparisonForm({ ...newComparisonForm, title: e.target.value })}
+                              placeholder="Ej: Cuadrilla Técnica Propia 24/7"
+                              className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-rose-700 uppercase block">
+                              ✕ Deficiencia en Administración Tradicional:
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={newComparisonForm.trad}
+                              onChange={(e) => setNewComparisonForm({ ...newComparisonForm, trad: e.target.value })}
+                              placeholder="Ej: Dependencia de contratistas sin fiscalización..."
+                              className="w-full px-3 py-1 bg-white border border-rose-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-rose-400"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-emerald-800 uppercase block">
+                              ✓ Propuesta de Valor con {empresaForm.brandName || 'ARANPRO'}:
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={newComparisonForm.propuesta}
+                              onChange={(e) => setNewComparisonForm({ ...newComparisonForm, propuesta: e.target.value })}
+                              placeholder="Ej: Cuadrilla técnica propia con tiempo de respuesta bajo 60 min..."
+                              className="w-full px-3 py-1 bg-white border border-emerald-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setShowAddComparisonForm(false)}
+                            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 font-bold text-xs cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleAddComparisonRow}
+                            className="px-4 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-2xs"
+                          >
+                            Guardar Pilar e Incorporar a la Matriz
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Matriz interactiva de tarjetas editables */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                      {comparisonRows.map((row, idx) => {
+                        const isEditing = editingComparisonId === row.id;
+                        const isActive = row.active !== false;
+
+                        return (
+                          <div
+                            key={row.id || idx}
+                            className={`p-4 rounded-2xl border transition-all space-y-3 ${
+                              isActive
+                                ? 'bg-white border-slate-200 shadow-xs'
+                                : 'bg-slate-50/70 border-slate-200/60 opacity-60'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                              <div className="flex items-center gap-2 flex-1 mr-2">
+                                <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-black text-[11px] flex items-center justify-center shrink-0">
+                                  {idx + 1}
+                                </span>
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    value={row.title}
+                                    onChange={(e) => handleUpdateComparisonRow(row.id, 'title', e.target.value)}
+                                    className="px-2 py-0.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 w-full focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+                                  />
+                                ) : (
+                                  <h6 className={`font-black text-xs ${isActive ? 'text-slate-900' : 'text-slate-500 line-through'}`}>
+                                    {row.title}
+                                  </h6>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {/* Botón de Estado / Desistir */}
+                                <button
+                                  type="button"
+                                  onClick={() => toggleComparisonRow(row.id)}
+                                  className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                                    isActive
+                                      ? 'bg-emerald-50 text-[#0F3D2E] border-emerald-300 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300'
+                                      : 'bg-slate-100 text-slate-400 border-slate-200 hover:bg-emerald-50 hover:text-[#0F3D2E] hover:border-emerald-300'
+                                  }`}
+                                  title={isActive ? 'Clic para desistir/ocultar este pilar' : 'Clic para activar este pilar en la propuesta'}
+                                >
+                                  {isActive ? '✓ Activo' : '✕ Desistido'}
+                                </button>
+
+                                {/* Botón Editar */}
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingComparisonId(isEditing ? null : row.id)}
+                                  className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                    isEditing
+                                      ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
+                                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                                  }`}
+                                  title={isEditing ? 'Listo' : 'Editar textos'}
+                                >
+                                  {isEditing ? <Check className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
+                                </button>
+
+                                {/* Botón Eliminar */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteComparisonRow(row.id)}
+                                  className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-all cursor-pointer"
+                                  title="Eliminar este pilar"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 text-xs">
+                              {/* Tarjeta Tradicional (Rojo) */}
+                              <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/60 text-slate-700 space-y-1">
+                                <span className="font-bold text-rose-800 block text-[10px] uppercase">
+                                  ✕ Administración Tradicional:
+                                </span>
+                                {isEditing ? (
+                                  <textarea
+                                    rows={2}
+                                    value={row.trad}
+                                    onChange={(e) => handleUpdateComparisonRow(row.id, 'trad', e.target.value)}
+                                    className="w-full p-1.5 bg-white border border-rose-300 rounded-lg text-xs text-slate-800 focus:outline-none"
+                                  />
+                                ) : (
+                                  <p className="text-[11px] leading-relaxed">{row.trad}</p>
+                                )}
+                              </div>
+
+                              {/* Tarjeta Propuesta de Valor (Verde) */}
+                              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-slate-800 space-y-1">
+                                <span className="font-bold text-[#0F3D2E] block text-[10px] uppercase">
+                                  ✓ Con {empresaForm.brandName || 'ARANPRO'}:
+                                </span>
+                                {isEditing ? (
+                                  <textarea
+                                    rows={2}
+                                    value={row.propuesta || row.aran}
+                                    onChange={(e) => handleUpdateComparisonRow(row.id, 'propuesta', e.target.value)}
+                                    className="w-full p-1.5 bg-white border border-emerald-300 rounded-lg text-xs text-slate-800 focus:outline-none"
+                                  />
+                                ) : (
+                                  <p className="text-[11px] leading-relaxed font-medium">{row.propuesta || row.aran}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -6007,6 +6457,20 @@ export const CompanySettingsAndBackupModule = ({
                   <span>Instalaciones Nota Pág. 2 ({(inspectionForm.uninspectedSystems || DEFAULT_UNINSPECTED_SYSTEMS).length})</span>
                   <ChevronDown className={`w-3 h-3 transition-transform ${showScopeEditorInModal ? 'rotate-180' : ''}`} />
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setShowComparisonEditorInModal(!showComparisonEditorInModal)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                    showComparisonEditorInModal
+                      ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
+                      : 'bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E] border-emerald-300'
+                  }`}
+                  title="Ajustar y activar o desistir pilares de la Matriz Comparativa (Página 3)"
+                >
+                  <Scale className="w-3.5 h-3.5" />
+                  <span>Matriz Pág. 3 ({activeComparisonRows.length})</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showComparisonEditorInModal ? 'rotate-180' : ''}`} />
+                </button>
                 <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
               </div>
             </div>
@@ -6113,6 +6577,72 @@ export const CompanySettingsAndBackupModule = ({
                     />
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* PANEL DESPLEGABLE RÁPIDO DE MATRIZ COMPARATIVA DENTRO DE LA VISTA PREVIA */}
+            {showComparisonEditorInModal && (
+              <div className="bg-white p-3.5 rounded-2xl border-2 border-emerald-300 shadow-sm mb-4 space-y-2.5 animate-in fade-in text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 rounded-lg bg-emerald-100 text-[#0F3D2E]">
+                      <Scale className="w-3.5 h-3.5" />
+                    </span>
+                    <div>
+                      <strong className="text-slate-900 text-xs">
+                        Pilares de la Matriz Comparativa (Página 3 del Documento):
+                      </strong>
+                      <span className="block text-[10px] text-slate-500">
+                        Haz clic en cada pilar para activar o desistir. Recomendado: 4 a 5 activos ({activeComparisonRows.length} activos).
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-bold text-slate-400">Plantillas:</span>
+                    {Object.entries(COMPARISON_PRESETS).map(([key, p]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => handleLoadComparisonPreset(key)}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border cursor-pointer transition-all ${
+                          activeComparisonPreset === key
+                            ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                        title={p.description}
+                      >
+                        {p.name.split(' ')[0]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Chips con toggle rápido */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {comparisonRows.map((row, idx) => {
+                    const isActive = row.active !== false;
+                    return (
+                      <button
+                        key={row.id || idx}
+                        type="button"
+                        onClick={() => toggleComparisonRow(row.id)}
+                        className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isActive
+                            ? 'bg-emerald-50 text-[#0F3D2E] border-emerald-300 shadow-2xs'
+                            : 'bg-slate-100 text-slate-400 border-slate-200 line-through opacity-70 hover:opacity-100'
+                        }`}
+                        title={isActive ? 'Activo en la propuesta (clic para desistir)' : 'Desistido / Oculto (clic para activar)'}
+                      >
+                        <span>{idx + 1}. {row.title}</span>
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] ${
+                          isActive ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-200 text-slate-500'
+                        }`}>
+                          {isActive ? '✓' : '✕'}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
             </>
@@ -6549,37 +7079,13 @@ export const CompanySettingsAndBackupModule = ({
                     </p>
                   </div>
 
-                  {/* FILAS DE LA MATRIZ COMPARATIVA */}
+                  {/* FILAS DE LA MATRIZ COMPARATIVA DINÁMICA */}
                   <div className="space-y-1">
-                    {[
-                      {
-                        p: '1. Supervisión Constructiva & Auditoría de Obras en Terreno',
-                        t: 'Visitas esporádicas. Desconocimiento constructivo; dependencia ciega de cotizaciones externas que inflan costos.',
-                        a: 'Liderazgo directo de Constructor Civil. Inspección técnica in situ de bombas, tableros y mantenciones para cuidar el gasto común.'
-                      },
-                      {
-                        p: '2. Transparencia Financiera, Bancaria & Rendición 24/7',
-                        t: 'Planillas Excel estáticas tardías. Cartolas bancarias y facturas ocultas o de difícil acceso para los vecinos.',
-                        a: 'Portal Web y App Móvil 24/7 sin costo: cada vecino audita facturas digitalizadas y conciliaciones bancarias con 1 clic.'
-                      },
-                      {
-                        p: '3. Cumplimiento Ley N° 21.442, Asambleas & Quórums Validados',
-                        t: 'Falta crónica de quórum presencial. Conflictos, actas demoradas y reglamentos desactualizados con riesgo de nulidad.',
-                        a: 'Asambleas telemáticas e híbridas con votación digital celular (Art. 15°), quórums automáticos y marco Ley 21.442.'
-                      },
-                      {
-                        p: '4. Trazabilidad de Reclamos & Libro Oficial Art. 20°',
-                        t: 'Mensajes dispersos de WhatsApp o llamados informales que quedan sin respuesta ni registro legal formal.',
-                        a: 'Libro Oficial de Reclamos digital y foliado conforme a Ley 21.442. Ticket de seguimiento y plazos legales de respuesta.'
-                      },
-                      {
-                        p: '5. Estrategia de Cobranza Legal, Fe Notarial & Certificaciones',
-                        t: 'Cobranza informal reactiva y demoras injustificadas en entrega de certificados de deuda para notarías.',
-                        a: 'Protocolos de corte legal automatizados, convenios de pago formales y certificados para notarías inmediatos (Art. 36°).'
-                      }
-                    ].map((row, i) => (
-                      <div key={i} className="p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs shadow-2xs">
-                        <span className="font-black text-slate-900 text-[11px] block leading-tight">{row.p}</span>
+                    {activeComparisonRows.map((row, i) => (
+                      <div key={row.id || i} className="p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs shadow-2xs">
+                        <span className="font-black text-slate-900 text-[11px] block leading-tight">
+                          {i + 1}. {row.title}
+                        </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px]">
                           <div
                             className="p-1.5 rounded-lg border text-slate-700 leading-tight"
@@ -6591,7 +7097,7 @@ export const CompanySettingsAndBackupModule = ({
                             }}
                           >
                             <strong className="text-rose-800 block text-[9px] uppercase tracking-wide">✕ Administración Tradicional:</strong>
-                            <p className="mt-0.5 leading-snug">{row.t}</p>
+                            <p className="mt-0.5 leading-snug">{row.trad}</p>
                           </div>
                           <div
                             className="p-1.5 rounded-lg border text-slate-800 leading-tight font-medium"
@@ -6602,8 +7108,10 @@ export const CompanySettingsAndBackupModule = ({
                               printColorAdjust: 'exact'
                             }}
                           >
-                            <strong className="text-[#0F3D2E] block text-[9px] uppercase tracking-wide">✓ Con ARANPRO Gestión Integral:</strong>
-                            <p className="mt-0.5 leading-snug">{row.a}</p>
+                            <strong className="text-[#0F3D2E] block text-[9px] uppercase tracking-wide">
+                              ✓ Con {empresaForm.brandName || 'ARANPRO'}:
+                            </strong>
+                            <p className="mt-0.5 leading-snug">{row.propuesta || row.aran}</p>
                           </div>
                         </div>
                       </div>
@@ -8883,23 +9391,17 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   <div className="space-y-1.5">
-                    {[
-                      { p: '1. Supervisión Constructiva', t: 'Visitas esporádicas. No saben de construcción ni bombas; dependen a ciegas de técnicos externos con sobrecostos.', a: 'Administrador Constructor Civil. Audita bombas, sellos, filtraciones y fiscaliza a contratistas en terreno con criterio técnico experto.' },
-                      { p: '2. Transparencia en Cuentas', t: 'Planillas Excel confusas enviadas a fin de mes. Comprobantes bancarios ocultos o extraviados.', a: 'Portal y App móvil 24/7 donde cada vecino audita las facturas y comprobantes bancarios reales de cada gasto con 1 solo clic.' },
-                      { p: '3. Asambleas Ley 21.442', t: 'Falta crónica de quórum presencial. Actas en papel que tardan semanas en protocolizarse.', a: 'Asambleas telemáticas e híbridas con voto digital seguro desde el teléfono celular y quórums automatizados (Art. 15°).' },
-                      { p: '4. Atención de Reclamos', t: 'Mensajes de WhatsApp o llamados informales que quedan en el olvido sin respuesta.', a: 'Libro Oficial de Reclamos y Sugerencias digital foliado con plazo legal estricto de respuesta garantizado (Art. 20°).' },
-                      { p: '5. Cobranzas & Fe Notarial', t: 'Cobranza informal sin protocolos legales ni respaldo jurídico.', a: 'Certificados oficiales foliados de no deuda, convenios de pago y certificados morosos para compraventas (Art. 36°).' }
-                    ].map((row, i) => (
-                      <div key={i} className="p-2 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs">
-                        <span className="font-black text-slate-900 text-[10.5px] block">{row.p}</span>
+                    {activeComparisonRows.map((row, i) => (
+                      <div key={row.id || i} className="p-2 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs">
+                        <span className="font-black text-slate-900 text-[10.5px] block">{i + 1}. {row.title}</span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
                           <div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-slate-700">
                             <strong className="text-rose-800 block text-[9px] uppercase">✕ Administración Tradicional:</strong>
-                            <p className="mt-0.5 leading-snug">{row.t}</p>
+                            <p className="mt-0.5 leading-snug">{row.trad}</p>
                           </div>
                           <div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-slate-800">
-                            <strong className="text-[#0F3D2E] block text-[9px] uppercase">✓ Con ARANPRO:</strong>
-                            <p className="mt-0.5 leading-snug font-medium">{row.a}</p>
+                            <strong className="text-[#0F3D2E] block text-[9px] uppercase">✓ Con {empresaForm.brandName || 'ARANPRO'}:</strong>
+                            <p className="mt-0.5 leading-snug font-medium">{row.propuesta || row.aran}</p>
                           </div>
                         </div>
                       </div>
