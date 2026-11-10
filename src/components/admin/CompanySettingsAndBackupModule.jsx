@@ -587,13 +587,15 @@ export const CompanySettingsAndBackupModule = ({
           whatsapp: `Estimado Comité de Administración de *${condo}*:\n\nAgradeciendo la provechosa visita técnica realizada a sus dependencias, hacemos entrega formal de nuestra *Propuesta de Administración y Honorarios a la medida*, junto con el *Informe de Diagnóstico Técnico Inicial* y la *Matriz Comparativa de Gestión* (Administración Tradicional vs. ARANPRO).\n\nNuestra propuesta contempla un honorario mensual de *${feeStr}* para su dotación de *${unitsStr} unidades*, incluyendo visitas técnicas semanales en terreno, plataforma digital 24/7 sin costo de licencias para residentes, auditoría contable de traspaso y atención de emergencias 24/7.\n\nAdjuntamos el documento consolidado oficial de 3 páginas (Carta Formal de Postulación + Diagnóstico Técnico de Instalaciones + Matriz Comparativa) para su revisión en sesión de comité. Quedamos a su entera disposición para resolver cualquier duda.\n\nSaludos cordiales,\n*${admin}* • ARANPRO (${phone})`,
           email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\nEn seguimiento a la provechosa visita técnica realizada a sus instalaciones, tenemos el agrado de presentar formalmente nuestra Propuesta Operativa y Económica para asumir la administración de su comunidad, junto con el Informe de Diagnóstico Técnico Inicial y la Matriz Comparativa de Gestión.\n\nResumen de Condiciones Propuestas:\n• Honorario Mensual Propuesto: ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n• Dotación Considerada: ${unitsStr} unidades (casas / departamentos)\n• Modalidad de Atención: ${proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}\n• Beneficios Incluidos: Suite Web y App Móvil 100% gratuita para residentes y comité, auditoría de traspaso y supervisión técnica directa de obras y contratos.\n\nAdjunto a este correo encontrarán el documento oficial consolidado de 3 páginas que contiene:\n1. Carta Formal de Postulación con desglose de honorarios, SLA y condiciones de servicio.\n2. Informe Oficial de Diagnóstico Técnico Inicial con el estado de sus instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos).\n3. Matriz Comparativa de Gestión (Administración Tradicional vs. ARANPRO) para facilitar la evaluación de su directiva.\n\nQuedamos a su completa disposición para coordinar los siguientes pasos.\n\nAtentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
-      case 4:
+      case 4: {
+        const demoLink = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad';
         return {
           title: 'Paso 4: Cierre Tecnológico & Demostración de App en Vivo',
           subject: `Acceso a Demo en Vivo de Plataforma & Brochure App ARANPRO • ${condo}`,
-          whatsapp: `Estimados integrantes del Comité de *${condo}*:\n\nPara que ustedes y los copropietarios puedan experimentar en primera persona la transparencia y modernidad de nuestra gestión, les compartimos el acceso a la *Demo en Vivo de la Suite Digital y App Móvil ARANPRO* (100% gratuita para su condominio).\n\nPueden probarla directamente desde su teléfono celular escaneando el código QR del brochure adjunto o ingresando a: https://aranpro.cl\n\nPodrán ver cómo se consultan los gastos comunes con un clic, la auditoría en vivo de comprobantes de pago y facturas, y el libro de reclamos digital.\n\n¡Quedamos muy atentos a sus comentarios!\n*${admin}* • ARANPRO (${phone})`,
-          email: `Estimado Comité de Administración de ${condo}:\n\nCon el objetivo de respaldar nuestra propuesta de gestión con tecnología real, ponemos a su disposición el Brochure Oficial y el acceso a la Demo Interactiva de la Suite ARANPRO.\n\nPrincipales ventajas para ${condo}:\n• 100% Gratuita para la comunidad: Cero cobros de licencias o costos de software para el condominio.\n• Transparencia total 24/7: Comprobantes bancarios y facturas visibles con 1 clic para copropietarios y directiva.\n• Gestión móvil: Votaciones, libro de reclamos foliado y comunicación oficial en la palma de la mano.\n\nPueden explorar la demo interactiva en https://aranpro.cl o mediante el código QR incluido en el archivo adjunto.\n\nSaludos cordiales,\n${admin} • ARANPRO Gestión Integral\n${phone} | https://aranpro.cl`
+          whatsapp: `Estimados integrantes del Comité de *${condo}*:\n\nPara que ustedes y los copropietarios puedan experimentar en primera persona la transparencia y modernidad de nuestra gestión, les compartimos el acceso a la *Demo en Vivo de la Suite Digital y App Móvil ARANPRO* (100% gratuita para su condominio).\n\nPueden probarla directamente desde su teléfono celular escaneando el código QR del brochure adjunto o ingresando con 1 clic al siguiente enlace oficial:\n🔗 ${demoLink}\n\nPodrán ver cómo se consultan los gastos comunes con un clic, la auditoría en vivo de comprobantes de pago y facturas, y el libro de reclamos digital.\n\n¡Quedamos muy atentos a sus comentarios!\n*${admin}* • ARANPRO (${phone})`,
+          email: `Estimado Comité de Administración de ${condo}:\n\nCon el objetivo de respaldar nuestra propuesta de gestión con tecnología real, ponemos a su disposición el Brochure Oficial y el acceso a la Demo Interactiva de la Suite ARANPRO.\n\nPrincipales ventajas para ${condo}:\n• 100% Gratuita para la comunidad: Cero cobros de licencias o costos de software para el condominio.\n• Transparencia total 24/7: Comprobantes bancarios y facturas visibles con 1 clic para copropietarios y directiva.\n• Gestión móvil: Votaciones, libro de reclamos foliado y comunicación oficial en la palma de la mano.\n\nPueden explorar la demo interactiva directamente en:\n${demoLink}\n(O mediante el código QR incluido en el archivo adjunto).\n\nSaludos cordiales,\n${admin} • ARANPRO Gestión Integral\n${phone} | https://aranpro.cl`
         };
+      }
       default:
         return { title: '', subject: '', whatsapp: '', email: '' };
     }
@@ -2168,12 +2170,16 @@ export const CompanySettingsAndBackupModule = ({
 
   // Compartir Enlace de Demo Interactiva por WhatsApp
   const handleShareDemoWhatsApp = (targetPhone = '') => {
-    const phoneClean = (targetPhone || '').replace(/[^0-9]/g, '');
-    const currentUrl = window.location.origin;
+    const rawPhone = (targetPhone || proposalConfig.targetPhone || '').replace(/[^0-9]/g, '');
+    let phoneClean = '';
+    if (rawPhone) {
+      phoneClean = rawPhone.startsWith('56') ? rawPhone : (rawPhone.length === 9 ? `56${rawPhone}` : rawPhone);
+    }
+    const demoUrl = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad';
     const msg = `*INVITACIÓN DEMO INTERACTIVA • ADMINISTRACIÓN ARANPRO*\n` +
       `Estimados miembros del Comité de Administración de *${proposalConfig.targetCondo || 'su Condominio'}*:\n\n` +
       `Junto con saludarles, los invitamos a probar en vivo y en directo la plataforma digital y aplicación móvil que implementamos para su comunidad.\n\n` +
-      `🔗 *Enlace de Demostración para Copropietarios:* ${currentUrl}\n\n` +
+      `🔗 *Enlace de Demostración para Copropietarios (1-Clic sin claves):*\n${demoUrl}\n\n` +
       `Podrán experimentar la transparencia 100% en vivo: colillas con desglose legal, auditoría de facturas y boletas con un solo clic, y el libro oficial de reclamos.\n\n` +
       `Quedamos a su disposición para coordinar una reunión presencial o telemática.\n` +
       `*${empresaForm.adminName}* • Fono: ${empresaForm.phone}`;
@@ -5529,7 +5535,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
 
                     <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">
-                      Entorno Demo: <strong className="text-[#0F3D2E]">https://aranpro.cl/?demo=comunidad</strong>
+                      Entorno Demo: <strong className="text-[#0F3D2E]">{typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad'}</strong>
                     </span>
                   </div>
 
@@ -5644,8 +5650,9 @@ export const CompanySettingsAndBackupModule = ({
                             <button
                               type="button"
                               onClick={() => {
-                                navigator.clipboard.writeText('https://aranpro.cl/?demo=comunidad');
-                                showAlert('✓ Enlace Copiado', 'Enlace de la demo copiado al portapapeles: https://aranpro.cl/?demo=comunidad', 'success');
+                                const demoUrl = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad';
+                                navigator.clipboard.writeText(demoUrl);
+                                showAlert('✓ Enlace Copiado', `Enlace de la demo copiado al portapapeles: ${demoUrl}`, 'success');
                               }}
                               className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-300 transition-all flex items-center gap-1.5 cursor-pointer"
                             >
@@ -5665,7 +5672,7 @@ export const CompanySettingsAndBackupModule = ({
 
                         <div className="shrink-0 p-3 bg-white rounded-2xl border-2 border-[#D4B895] text-center shadow-md">
                           <AranproQrCode 
-                            value="https://aranpro.cl/?demo=comunidad" 
+                            value={typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad'} 
                             size={132} 
                             alt="Código QR Demo Escaneable ARANPRO" 
                           />
@@ -5691,7 +5698,7 @@ export const CompanySettingsAndBackupModule = ({
                         {/* CÓDIGO QR REAL ESCANEABLE */}
                         <div className="p-4 bg-white rounded-2xl border-2 border-dashed border-[#0F3D2E]/30 inline-block shadow-xs">
                           <AranproQrCode 
-                            value="https://aranpro.cl/?demo=comunidad" 
+                            value={typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad'} 
                             size={176} 
                             alt="Código QR Demo Escaneable ARANPRO" 
                           />
@@ -5701,8 +5708,9 @@ export const CompanySettingsAndBackupModule = ({
                           <button
                             type="button"
                             onClick={() => {
-                              navigator.clipboard.writeText('https://aranpro.cl/?demo=comunidad');
-                              showAlert('✓ Enlace Copiado', 'El enlace de la demo se ha copiado al portapapeles.', 'success');
+                              const demoUrl = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad';
+                              navigator.clipboard.writeText(demoUrl);
+                              showAlert('✓ Enlace Copiado', `El enlace de la demo se ha copiado al portapapeles: ${demoUrl}`, 'success');
                             }}
                             className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
@@ -8612,7 +8620,7 @@ export const CompanySettingsAndBackupModule = ({
 
                     <div className="shrink-0 p-2 bg-white rounded-xl border border-slate-300 shadow-xs text-center">
                       <AranproQrCode 
-                        value="https://aranpro.cl/?demo=comunidad" 
+                        value={typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad'} 
                         size={82} 
                         alt="Código QR Demo Escaneable ARANPRO" 
                       />
@@ -9377,7 +9385,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                     <div className="shrink-0 p-1.5 bg-white rounded-xl border-2 border-[#D4B895] text-center shadow-md">
                       <AranproQrCode
-                        value="https://aranpro.cl/?demo=comunidad"
+                        value={typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad'}
                         size={64}
                         alt="Código QR Demo Escaneable ARANPRO"
                       />

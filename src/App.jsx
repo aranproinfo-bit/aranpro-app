@@ -22,6 +22,12 @@ function MainApp() {
   
   // Navigation states: 'portal-choice' | 'admin-select-community' | 'resident-login' | 'resident' | 'admin-login' | 'admin'
   const [currentView, setCurrentView] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('demo')) {
+        return currentUser?.role === 'resident' ? 'resident' : 'resident-login';
+      }
+    }
     if (currentUser?.role === 'admin') return 'admin-select-community';
     if (currentUser?.role === 'resident') return 'resident';
     return 'portal-choice';
@@ -72,15 +78,15 @@ function MainApp() {
     const roleParam = urlParams.get('role');
     const demoParam = urlParams.get('demo');
 
-    if (demoParam) {
+    if (demoParam !== null && demoParam !== undefined) {
       setShowDemoAccordion(true);
-      if (demoParam === 'comite' || demoParam === '1') {
-        setResidentRutInput('15.420.312-4');
-        setResidentPasswordInput('1');
-      } else if (demoParam === 'residente' || demoParam === '6') {
-        setResidentRutInput('18.402.193-K');
-        setResidentPasswordInput('6');
+      setSelectedCommunitySlug(commSlug || communities[0]?.slug);
+      if (currentUser?.role === 'resident') {
+        setCurrentView('resident');
+      } else {
+        setCurrentView('resident-login');
       }
+      return;
     }
 
     if (roleParam === 'admin') {
@@ -192,6 +198,31 @@ function MainApp() {
             </div>
 
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
+              {/* Banner destacado para demostración interactiva en 1 clic */}
+              <div className="p-3.5 sm:p-4 bg-gradient-to-r from-emerald-50 via-white to-amber-50 rounded-2xl border-2 border-[#D4B895] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center shrink-0 shadow-xs">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="block text-xs font-black text-[#0F3D2E] uppercase tracking-wide">
+                      ¿Deseas evaluar la Suite ARANPRO?
+                    </span>
+                    <span className="block text-[11px] text-slate-600">
+                      Prueba en vivo con 1 solo clic como Comité o Copropietario
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('resident-login')}
+                  className="w-full sm:w-auto px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] font-black text-xs rounded-xl shadow-xs transition-all shrink-0 cursor-pointer flex items-center justify-center gap-1.5 active:scale-98"
+                >
+                  <span>Probar Demo en 1 Clic</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               <div className="flex items-center space-x-3 pb-4 border-b border-slate-100">
                 <div className="w-12 h-12 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center shrink-0 shadow-xs">
                   <ShieldCheck className="w-6 h-6" />
@@ -439,8 +470,15 @@ function MainApp() {
           <div className="py-8">
             <ResidentLogin
               communitySlug={selectedCommunitySlug || communities[0]?.slug}
-              onBack={() => setCurrentView('portal-choice')}
+              onBack={() => {
+                try {
+                  const cleanUrl = window.location.pathname + (window.location.hash || '');
+                  window.history.replaceState({}, document.title, cleanUrl);
+                } catch (e) {}
+                setCurrentView('portal-choice');
+              }}
               onSuccess={handleResidentLoginSuccess}
+              isDemo={true}
             />
           </div>
         )}
