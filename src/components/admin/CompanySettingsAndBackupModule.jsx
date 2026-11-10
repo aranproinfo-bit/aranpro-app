@@ -6021,48 +6021,61 @@ export const CompanySettingsAndBackupModule = ({
                   {/* Datos del Inspector Técnico */}
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
                     <div>
-                      <span className="text-slate-500 block text-[9px] uppercase font-bold">Profesional Evaluador en Terreno:</span>
-                      <strong className="text-slate-900 text-xs">{empresaForm.adminName}</strong>
-                      <span className="text-slate-600 block text-[10px]">Constructor Civil • Administrador de Condominios (Ley N° 21.442)</span>
+                      <span className="text-slate-500 block text-[9.5px] uppercase font-bold tracking-wider">Profesional Evaluador en Terreno:</span>
+                      <strong className="text-slate-900 text-sm font-black">{empresaForm.adminName}</strong>
+                      <span className="text-slate-600 block text-[11px] font-medium">Constructor Civil • Administrador de Condominios (Ley N° 21.442)</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-slate-500 block text-[9px] uppercase font-bold">Contacto Directo:</span>
+                      <span className="text-slate-500 block text-[9.5px] uppercase font-bold tracking-wider">Contacto Directo:</span>
                       <span className="font-mono text-[#0F3D2E] font-bold text-xs">{empresaForm.phone}</span>
                     </div>
                   </div>
 
                   {/* Presentación Formal del Levantamiento Técnico */}
-                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-slate-50 border border-emerald-200/70 text-[9.5px] text-slate-700 leading-snug space-y-1">
-                    <p>
-                      <strong>Alcance del Levantamiento Visual en Terreno:</strong> El presente informe compila las observaciones preliminares levantadas in situ durante el recorrido inspectivo guiado a las instalaciones comunes del condominio. Su objetivo es identificar riesgos latentes de falla, desgastes prematuros y orientar con criterio de <strong>Constructor Civil</strong> al Comité de Administración en la priorización de partidas urgentes antes de asumir costos mayores.
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-50/80 via-teal-50/50 to-slate-50 border border-emerald-300/80 text-[11px] text-slate-800 leading-relaxed space-y-2 shadow-2xs">
+                    <div className="flex items-center gap-1.5 border-b border-emerald-200/80 pb-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-[#0F3D2E]"></span>
+                      <strong className="text-[#0F3D2E] uppercase text-[10.5px] tracking-wider">
+                        Alcance & Metodología del Levantamiento Técnico Visual:
+                      </strong>
+                    </div>
+                    <p className="text-justify">
+                      El presente informe recopila de manera fidedigna las observaciones preliminares levantadas <em>in situ</em> durante el recorrido inspectivo guiado a las áreas e instalaciones de uso común del condominio. Su objetivo primordial es constatar el estado real de conservación, identificar vulnerabilidades operativas tempranas, fatiga o desgaste prematuro de materiales, y orientar con rigor de <strong>Constructor Civil colegiado</strong> al Comité de Administración en la priorización de obras preventivas antes de que deriven en emergencias de alto impacto presupuestario.
                     </p>
-                    <p className="text-slate-500 italic">
-                      * <u>Nota de Alcance Técnico:</u> Las partidas no detalladas en esta ficha (tales como transporte vertical/ascensores, cercos perimetrales eléctricos, bombas de pozo o centrales de citofonía) no han sido desestimadas; corresponden a componentes que requieren pruebas de carga, desarme o peritaje de funcionamiento en régimen operativo, lo cual se abordará formalmente en la auditoría técnica profunda durante los primeros 30 días de administración.
-                    </p>
+                    <div className="p-2 bg-white/80 rounded-lg border border-emerald-200/60 text-[10.5px] text-slate-700 space-y-1">
+                      <div className="font-bold text-[#0F3D2E] flex items-center gap-1">
+                        <span>ℹ</span>
+                        <span>Nota de Alcance Técnico & Auditoría Especializada de 30 Días:</span>
+                      </div>
+                      <p className="leading-snug text-justify text-slate-600">
+                        Aquellas instalaciones o subsistemas no individualizados en el detalle inferior (tales como <strong>transporte vertical/ascensores certificados Minvu, cercos perimetrales eléctricos energizados, bombas de pozo profundo o sentina, calderas y centrales de citofonía</strong>) <u>no han sido desestimados ni omitidos</u> bajo ninguna circunstancia. Debido a su naturaleza crítica, su diagnóstico certero exige protocolos dinámicos de prueba de esfuerzo, apertura técnica con instrumental y fiscalización de los libros de mantención de las empresas vigentes, lo cual se abordará con exhaustividad técnica en el <strong>Plan de Auditoría e Inventario Inicial durante los primeros 30 días</strong> al asumir la gestión.
+                      </p>
+                    </div>
                   </div>
 
                   {/* Partidas Evaluadas */}
                   <div className="space-y-1.5">
-                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-0.5">
-                      Estado de Instalaciones Críticas Inspeccionadas:
+                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-0.5 flex items-center justify-between">
+                      <span>Estado de Instalaciones Críticas Inspeccionadas:</span>
+                      <span className="text-[9.5px] text-slate-500 font-mono font-normal">Muestra preliminar in situ</span>
                     </h4>
 
                     <div className="space-y-1.5">
                       {inspectionForm.items.map((item, idx) => (
-                        <div key={item.id} className="p-2 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs break-inside-avoid">
+                        <div key={item.id} className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-1 text-xs break-inside-avoid shadow-2xs">
                           <div className="flex items-center justify-between">
-                            <span className="font-black text-slate-900 text-[10.5px]">{idx + 1}. {item.name}</span>
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                            <span className="font-black text-slate-900 text-[11px]">{idx + 1}. {item.name}</span>
+                            <span className={`px-2.5 py-0.5 rounded text-[9.5px] font-bold ${
                               item.status === 'Bueno'
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                 : item.status === 'Requiere Mantención'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-rose-100 text-rose-800'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-rose-100 text-rose-800 border border-rose-300'
                             }`}>
                               {item.status}
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-600 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                          <p className="text-[10.5px] text-slate-700 leading-snug bg-slate-50/80 p-2 rounded-lg border border-slate-100">
                             {item.notes}
                           </p>
                         </div>
@@ -6074,14 +6087,14 @@ export const CompanySettingsAndBackupModule = ({
                 {/* SECCIÓN INFERIOR ANCLADA AL PIE (PÁGINA 2: CONTINÚA EN PÁGINA 3) */}
                 <div className="mt-auto pt-2 space-y-2 relative z-10">
                   <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
-                    <div className="space-y-0.5">
-                      <p className="font-bold text-slate-900 text-[10px]">Conclusión de Inspección Técnica:</p>
-                      <p className="text-[9px] text-slate-600 leading-snug">
-                        Diagnóstico visual in situ sin costo para orientar al Comité de Administración en la priorización de obras preventivas y evitar emergencias de alto costo.
+                    <div className="space-y-0.5 max-w-xl">
+                      <p className="font-bold text-slate-900 text-[10.5px]">Dictamen Técnico & Criterio Constructivo Preventivo:</p>
+                      <p className="text-[10px] text-slate-600 leading-snug">
+                        Levantamiento ocular y funcional sin costo comercial para respaldar las decisiones estratégicas del Comité de Administración, protegiendo el valor patrimonial y la plusvalía de la copropiedad.
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full shadow-2xs">
                         Continúa en Página 3 (Matriz Comparativa) →
                       </span>
                     </div>
@@ -6145,30 +6158,56 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Presentación Estratégica Comparativa */}
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[9.5px] text-slate-700 leading-snug">
-                    <p>
-                      Frente a los múltiples desafíos que enfrentan los Comités de Administración al evaluar postulaciones externas, contrastamos a continuación el modelo tradicional de corretaje versus el estándar de <strong>Gestión Integral ARANPRO</strong>, fundado en la dirección técnica de un <strong>Constructor Civil</strong> y una <strong>Suite Tecnológica 100% gratuita</strong> para la comunidad:
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-800 leading-relaxed space-y-1.5 shadow-2xs">
+                    <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-[#0F3D2E]"></span>
+                      <strong className="text-[#0F3D2E] uppercase text-[10.5px] tracking-wider">
+                        Fundamentación Comparativa para la Decisión del Comité:
+                      </strong>
+                    </div>
+                    <p className="text-justify">
+                      Al enfrentar un proceso de licitación, es habitual recibir ofertas de administraciones empíricas o corredores de propiedades que compiten con precios ilusorios, pero carecen de competencia técnica en terreno y terminan traspasando costos ocultos (licencias de software, sobrecostos por reparaciones mal diagnosticadas o multas por incumplimientos normativos). En <strong>ARANPRO</strong> presentamos un modelo superador: unimos la dirección técnica en terreno de un <strong>Constructor Civil colegiado</strong> con una <strong>Suite Tecnológica 100% Bonificada</strong> de libre acceso para toda la comunidad:
                     </p>
                   </div>
 
                   {/* FILAS DE LA MATRIZ COMPARATIVA */}
                   <div className="space-y-1.5">
                     {[
-                      { p: '1. Supervisión Constructiva & Auditoría de Obras', t: 'Visitas esporádicas. No saben de construcción ni bombas; dependen a ciegas de técnicos externos con sobrecostos y cotizaciones infladas.', a: 'Administrador Constructor Civil. Audita bombas, tableros, cubiertas y fiscaliza a contratistas en terreno con criterio técnico experto.' },
-                      { p: '2. Transparencia Contable & Rendición 24/7', t: 'Planillas Excel confusas enviadas con semanas de retraso. Comprobantes bancarios y facturas ocultos o de difícil acceso.', a: 'Portal Web y App móvil 24/7 sin costo de software: cada vecino audita facturas, cartolas bancarias y comprobantes con 1 solo clic.' },
-                      { p: '3. Asambleas y Quórums Ley N° 21.442', t: 'Falta crónica de quórum presencial. Conflictos entre vecinos y actas en papel que tardan semanas en protocolizarse.', a: 'Asambleas telemáticas e híbridas con votación digital certificada desde el celular (Art. 15°) y quórums automatizados.' },
-                      { p: '4. Canal de Reclamos & Trazabilidad Legal', t: 'Mensajes de WhatsApp perdidos o llamados informales que quedan sin respuesta ni registro vinculante.', a: 'Libro Oficial de Reclamos y Sugerencias digital foliado con plazo legal estricto de respuesta garantizado por sistema (Art. 20°).' },
-                      { p: '5. Cobranzas, Certificaciones & Fe Notarial', t: 'Cobranza informal sin protocolos de corte ni soporte jurídico. Demoras en certificados de venta.', a: 'Emisión inmediata foliada de certificados de no deuda, convenios de pago formales y certificados morosos para notarías (Art. 36°).' }
+                      {
+                        p: '1. Supervisión Constructiva & Auditoría de Obras en Terreno',
+                        t: 'Visitas superficiales y esporádicas. Desconocimiento técnico en bombas, calderas y electricidad; dependencia ciega de cotizaciones de terceros que encarecen los arreglos o no resuelven la falla de raíz.',
+                        a: 'Liderazgo directo de Constructor Civil. Inspección técnica de instalaciones críticas, fiscalización in situ del estándar real de mantenciones y auditoría de presupuestos para optimizar el gasto de la comunidad.'
+                      },
+                      {
+                        p: '2. Transparencia Financiera, Bancaria & Rendición 24/7',
+                        t: 'Planillas Excel estáticas enviadas con semanas de retraso. Cartolas bancarias y facturas ocultas o de difícil acceso, sembrando desconfianza y desgaste entre los vecinos.',
+                        a: 'Portal Web y App Móvil 24/7 sin costo de software: cada vecino audita facturas digitalizadas, comprobantes y conciliaciones bancarias al día con 1 solo clic.'
+                      },
+                      {
+                        p: '3. Cumplimiento Ley N° 21.442, Asambleas & Quórums Validados',
+                        t: 'Falta crónica de quórum presencial. Conflictos entre copropietarios, actas demoradas y reglamentos desactualizados que exponen a contingencias legales al Comité.',
+                        a: 'Asambleas telemáticas e híbridas con votación digital verificada desde el celular (Art. 15°), cálculo automático de quórums y modernización al marco legal de la Ley N° 21.442.'
+                      },
+                      {
+                        p: '4. Trazabilidad de Reclamos, Gestión de Incidentes & Libro Art. 20°',
+                        t: 'Mensajes dispersos de WhatsApp o llamados informales que quedan sin respuesta ni registro vinculante, provocando frustración vecinal.',
+                        a: 'Libro Oficial de Reclamos y Sugerencias digital y foliado conforme a la Ley N° 21.442 (Art. 20°). Registro con ticket de seguimiento y plazos legales perentorios de respuesta formal.'
+                      },
+                      {
+                        p: '5. Estrategia de Cobranza Legal, Fe Notarial & Certificaciones',
+                        t: 'Cobranza informal reactiva y demoras injustificadas en la emisión de certificados de deuda para compraventa o arriendo, bloqueando gestiones notariales.',
+                        a: 'Protocolos de corte legal automatizados, convenios de pago formales y emisión instantánea foliada de certificados de no deuda para notarías (Art. 36°), respaldados con firma legal.'
+                      }
                     ].map((row, i) => (
                       <div key={i} className="p-2 rounded-xl border border-slate-200 bg-white space-y-1 text-xs shadow-2xs">
                         <span className="font-black text-slate-900 text-[10.5px] block">{row.p}</span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
                           <div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-slate-700">
-                            <strong className="text-rose-800 block text-[9px] uppercase">✕ Administración Tradicional:</strong>
+                            <strong className="text-rose-800 block text-[9px] uppercase tracking-wide">✕ Administración Tradicional:</strong>
                             <p className="mt-0.5 leading-snug">{row.t}</p>
                           </div>
                           <div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-slate-800">
-                            <strong className="text-[#0F3D2E] block text-[9px] uppercase">✓ Con ARANPRO Gestión Integral:</strong>
+                            <strong className="text-[#0F3D2E] block text-[9px] uppercase tracking-wide">✓ Con ARANPRO Gestión Integral:</strong>
                             <p className="mt-0.5 leading-snug font-medium">{row.a}</p>
                           </div>
                         </div>
@@ -6177,12 +6216,20 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Cierre Magistral Institucional */}
-                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-[#0F3D2E] via-[#165540] to-[#0A291F] text-white text-[9.5px] leading-snug space-y-1 shadow-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#D4B895] font-black text-xs uppercase tracking-wider">★ Voto de Confianza & Compromiso Ético Profesional</span>
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-[#0F3D2E] via-[#144937] to-[#0A291F] text-white text-[10px] leading-relaxed space-y-1.5 shadow-md border border-[#D4B895]/50">
+                    <div className="flex items-center justify-between border-b border-[#D4B895]/40 pb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[#D4B895] text-xs font-black">★</span>
+                        <h4 className="text-[#D4B895] font-black text-[11px] uppercase tracking-wider">
+                          Voto de Confianza, Fe Institucional & Compromiso de Excelencia
+                        </h4>
+                      </div>
+                      <span className="text-[9px] font-mono text-emerald-200/90 bg-white/10 px-2 py-0.5 rounded border border-white/10">
+                        Liderazgo • Rigor Constructivo • Transparencia Total
+                      </span>
                     </div>
-                    <p className="text-slate-100/90 text-justify">
-                      Elegir a <strong>ARANPRO</strong> no es solo contratar una administración; es incorporar a un socio estratégico en terreno que resguarda la plusvalía del condominio, dignifica la labor del Comité y garantiza cuentas claras ante cada copropietario. Agradecemos su tiempo, confianza y quedamos a su entera disposición para iniciar juntos este camino de orden y excelencia.
+                    <p className="text-slate-100 text-justify leading-relaxed">
+                      Asumir la administración de su condominio no es para nosotros un mero encargo comercial ni una función de gabinete; representa un <strong>compromiso ético y profesional indeclinable</strong> con el resguardo del patrimonio y la calidad de vida de cada una de las familias que componen su comunidad. Ponemos a su entera disposición nuestra solvencia como <strong>Constructor Civil colegiado</strong>, el estricto apego a la <strong>Ley N° 21.442</strong> y una plataforma tecnológica transparente que devolverá al Comité de Administración la tranquilidad, el orden y la dignidad directiva que merecen. Agradecemos su confianza y quedamos a su entera disposición para iniciar juntos este camino de orden y excelencia.
                     </p>
                   </div>
                 </div>
