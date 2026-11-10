@@ -392,7 +392,7 @@ export const CompanyEnterpriseHub = ({
   ];
 
   const TOOLBOX_ITEMS = [
-    { id: 'calculadora', label: 'Calculadora AGACECH', icon: Calculator },
+    { id: 'calculadora', label: 'Calculadora de Honorarios ARANPRO', icon: Calculator },
     { id: 'inspeccion', label: 'Pauta Inspección Inicial', icon: HardHat },
     { id: 'comparativa', label: 'Cuadro Comparativo', icon: Scale },
     { id: 'demo', label: 'Demo en Vivo & QR', icon: QrCode },

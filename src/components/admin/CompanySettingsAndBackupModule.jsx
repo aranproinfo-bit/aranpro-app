@@ -2338,7 +2338,7 @@ export const CompanySettingsAndBackupModule = ({
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         {[
-          { id: 'calculadora', label: 'Calculadora AGACECH', icon: Calculator },
+          { id: 'calculadora', label: 'Calculadora de Honorarios ARANPRO', icon: Calculator },
           { id: 'inspeccion', label: 'Pauta Inspección', icon: HardHat },
           { id: 'comparativa', label: 'Cuadro Comparativo', icon: Scale },
           { id: 'demo', label: 'Demo en Vivo & QR', icon: QrCode },
@@ -3395,7 +3395,7 @@ export const CompanySettingsAndBackupModule = ({
                     { id: 'flujo', label: '1. Guía Paso a Paso (Embudo)', icon: Send, badge: '4 Pasos' },
                     { id: 'material', label: '2. Documentos & Cartas PDF', icon: FileText },
                     { id: 'pipeline', label: `3. CRM Postulaciones (${postulationPipeline.length})`, icon: Briefcase },
-                    { id: 'herramientas', label: '4. Caja de Herramientas (AGACECH & Pitch)', icon: Calculator }
+                    { id: 'herramientas', label: '4. Caja de Herramientas (Honorarios & Pitch)', icon: Calculator }
                   ].map((tab) => {
                     const IconC = tab.icon;
                     const isAct = postulacionSection === tab.id ||
@@ -4003,7 +4003,7 @@ export const CompanySettingsAndBackupModule = ({
                             className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs flex items-center gap-1 cursor-pointer"
                           >
                             <Calculator className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                            Calculadora AGACECH
+                            Calculadora de Honorarios ARANPRO
                           </button>
                         </div>
                       </div>
@@ -7028,7 +7028,7 @@ export const CompanySettingsAndBackupModule = ({
                       Como es de su conocimiento, nuestra filosofía de trabajo sitúa la transparencia y la rigurosidad constructiva en el centro de la gestión. Entendemos que para un Comité de Administración asumir la transición de una administración anterior suele generar incertidumbres financieras y operativas. Por esta razón, <strong>reiteramos nuestro compromiso formal de homologación: estamos plenamente dispuestos a iniciar nuestro mandato ajustándonos al honorario que la comunidad cancela actualmente a la administración saliente durante un período de transición de 90 días</strong>, garantizando continuidad de servicio sin alterar el presupuesto mensual de los copropietarios.
                     </p>
                     <p>
-                      No obstante, para dotar a la comunidad de un estándar técnico sostenible, evitar sorpresas en gastos comunes y asegurar la custodia periódica de sus equipos críticos (sala de bombas, tableros, techumbres y personal), <strong>hemos realizado la tasación técnica rigurosa utilizando la Matriz Oficial de Piso de Honorarios de la Asociación Gremial de Administradores de Chile (AGACECH)</strong>. Dicha evaluación matemática contempla la escala de unidades del condominio, la antigüedad de las instalaciones y el volumen de fiscalización técnica necesaria, fijando el <em>precio justo de equilibrio profesional</em> que se detalla a continuación:
+                      No obstante, para dotar a la comunidad de un estándar técnico sostenible, evitar sorpresas en gastos comunes y asegurar la custodia periódica de sus equipos críticos (sala de bombas, tableros, techumbres y personal), <strong>hemos realizado la tasación técnica rigurosa utilizando la Matriz Pericial de Honorarios por Complejidad Constructiva, Funcional & Ley N° 21.442 de ARANPRO</strong>. Dicha evaluación matemática contempla la escala de unidades del condominio, la tipología constructiva, la antigüedad de las instalaciones y el volumen de fiscalización técnica necesaria, fijando el <em>precio justo de equilibrio profesional</em> que se detalla a continuación:
                     </p>
 
                     {/* Resumen de Propuesta Económica Formal para la Licitación */}
@@ -7039,7 +7039,7 @@ export const CompanySettingsAndBackupModule = ({
                             Propuesta Económica & Honorarios de Administración (Ley N° 21.442)
                           </span>
                           <span className="text-[9.5px] text-slate-500 font-mono">
-                            Tasación referencial basada en el Modelo Oficial de Complejidad AGACECH
+                            Tasación pericial basada en la Matriz de Complejidad ARANPRO • Ley N° 21.442
                           </span>
                         </div>
                         <span className="font-mono font-bold text-[10px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2.5 py-0.5 rounded-md shadow-2xs">
@@ -7082,7 +7082,7 @@ export const CompanySettingsAndBackupModule = ({
                           <strong>✓ Servicios y Beneficios incluidos sin cobros extra:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas presenciales semanales en terreno'}, <strong>Suite Web & App Móvil ARANPRO 100% gratuita para residentes y comité</strong> (cero costos de licencias), auditoría contable de traspaso, supervisión técnica de contratos y atención de emergencias 24/7.
                         </p>
                         <p className="text-[#0F3D2E] font-medium">
-                          <strong>Garantía de Ajuste al 3er Mes:</strong> Al término de los 90 días iniciales, una vez normalizada la comunidad y resueltas las urgencias del diagnóstico adjunto, evaluaremos en conjunto mantener el valor de transición o consolidar la tarifa técnica AGACECH.
+                          <strong>Garantía de Ajuste al 3er Mes:</strong> Al término de los 90 días iniciales, una vez normalizada la comunidad y resueltas las urgencias del diagnóstico adjunto, evaluaremos en conjunto mantener el valor de transición o consolidar la tarifa técnica ARANPRO.
                         </p>
                       </div>
                     </div>
