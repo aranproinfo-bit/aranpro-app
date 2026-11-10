@@ -184,6 +184,10 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
       document.body.appendChild(iframe);
     }
 
+    const isLandscape = (options.pageSize || '').toLowerCase().includes('landscape');
+    const pageHeightMm = isLandscape ? '195mm' : '270mm';
+    const pageMaxHeightMm = isLandscape ? '198mm' : '271mm';
+
     const fitPageStyle = options.fitPage
       ? `
       .print-wrapper, .dossier-page {
@@ -191,9 +195,9 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
         page-break-inside: avoid !important;
         break-after: avoid !important;
         break-inside: avoid !important;
-        height: 270mm !important;
-        min-height: 270mm !important;
-        max-height: 271mm !important;
+        height: ${pageHeightMm} !important;
+        min-height: ${pageHeightMm} !important;
+        max-height: ${pageMaxHeightMm} !important;
         overflow: hidden !important;
       }
       @page {
@@ -322,15 +326,15 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
               background: transparent !important;
             }
 
-            /* Estructura canónica ARANPRO: exactamente 1 hoja Carta por cada .dossier-page (270mm), ocupando toda la hoja sin cortes ni blancos al final */
+            /* Estructura canónica ARANPRO: exactamente 1 hoja Carta por cada .dossier-page, ocupando toda la hoja sin cortes ni blancos al final */
             .dossier-page {
               position: relative;
               z-index: 1;
               box-sizing: border-box !important;
               width: 100% !important;
-              min-height: 270mm !important;
-              height: 270mm !important;
-              max-height: 271mm !important;
+              min-height: ${pageHeightMm} !important;
+              height: ${pageHeightMm} !important;
+              max-height: ${pageMaxHeightMm} !important;
               display: flex !important;
               flex-direction: column !important;
               justify-content: space-between !important;
@@ -338,7 +342,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
               break-after: page !important;
               page-break-inside: avoid !important;
               break-inside: avoid !important;
-              padding: 4mm 4mm 3mm 16mm !important;
+              padding: ${isLandscape ? '4mm 6mm 3mm 14mm' : '4mm 4mm 3mm 16mm'} !important;
               margin: 0 !important;
               border: none !important;
               border-radius: 0 !important;
