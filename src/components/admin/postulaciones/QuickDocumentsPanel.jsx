@@ -10,39 +10,39 @@ import { formatCLP } from '../../../utils/formatters';
 import { openDataUrlInNewTab, downloadDataUrl } from '../../../utils/fileVault';
 
 export const QuickDocumentsPanel = ({
-  proposalConfig,
-  setProposalConfig,
-  empresaForm,
+  proposalConfig = {},
+  setProposalConfig = () => {},
+  empresaForm = {},
   accreditationDocs = [],
-  setAccreditationDocs,
+  setAccreditationDocs = () => {},
   academicRecords = [],
   committeeReferences = [],
-  handleOpenAddRef,
-  handleOpenEditRef,
-  handleDeleteRef,
-  handleToggleConfirmRef,
-  handleRequestReferenceWhatsApp,
+  handleOpenAddRef = () => {},
+  handleOpenEditRef = () => {},
+  handleDeleteRef = () => {},
+  handleToggleConfirmRef = () => {},
+  handleRequestReferenceWhatsApp = () => {},
   packageFilesCount = 0,
-  handleDownloadPackage,
-  handlePrintColdLetter,
-  setPreviewColdLetterModal,
-  handlePrintDossier,
-  setPreviewDossierModal,
-  handlePrintProposal,
-  setPreviewProposalModal,
-  handlePrintInspectionReport,
-  setPreviewInspectionModal,
-  handlePrintBrochure,
-  setPreviewBrochureModal,
-  handlePrintComparisonMatrix,
-  setPreviewComparisonModal,
-  handlePrintPitchDoc,
-  setPreviewPitchModal,
-  handlePrintFeeSheet,
-  handleShareWhatsApp,
-  onNavigateToBoveda,
-  onNavigateToSection,
-  showAlert
+  handleDownloadPackage = () => {},
+  handlePrintColdLetter = () => {},
+  setPreviewColdLetterModal = () => {},
+  handlePrintDossier = () => {},
+  setPreviewDossierModal = () => {},
+  handlePrintProposal = () => {},
+  setPreviewProposalModal = () => {},
+  handlePrintInspectionReport = () => {},
+  setPreviewInspectionModal = () => {},
+  handlePrintBrochure = () => {},
+  setPreviewBrochureModal = () => {},
+  handlePrintComparisonMatrix = () => {},
+  setPreviewComparisonModal = () => {},
+  handlePrintPitchDoc = () => {},
+  setPreviewPitchModal = () => {},
+  handlePrintFeeSheet = () => {},
+  handleShareWhatsApp = () => {},
+  onNavigateToBoveda = () => {},
+  onNavigateToSection = () => {},
+  showAlert = () => {}
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('todos'); // 'todos' | 'generados' | 'boveda' | 'fichas' | 'referencias'
@@ -50,7 +50,7 @@ export const QuickDocumentsPanel = ({
 
   // Helper para verificar si un documento de la bóveda está cargado
   const findVaultDoc = (keyOrRegex) => {
-    return accreditationDocs.find(doc => {
+    return (accreditationDocs || []).find(doc => {
       if (doc.requirementKey && doc.requirementKey === keyOrRegex) return true;
       if (typeof keyOrRegex === 'string') {
         return (doc.name || '').toLowerCase().includes(keyOrRegex.toLowerCase());
@@ -91,7 +91,7 @@ export const QuickDocumentsPanel = ({
       onPrint: handlePrintColdLetter,
       onWhatsApp: () => handleShareWhatsApp?.(1),
       stepNumber: 1,
-      icon: SendIcon
+      icon: Send
     },
     {
       id: 'dossier-maestro',
@@ -305,7 +305,7 @@ export const QuickDocumentsPanel = ({
     });
 
     // Diplomas académicos de academicRecords
-    academicRecords.forEach((record, idx) => {
+    (academicRecords || []).forEach((record, idx) => {
       mapped.push({
         id: `academic-${record.id || idx}`,
         title: record.title || 'Diploma / Especialización Académica',
@@ -327,7 +327,7 @@ export const QuickDocumentsPanel = ({
     });
 
     // Documentos adicionales personalizados en bóveda
-    accreditationDocs.forEach(doc => {
+    (accreditationDocs || []).forEach(doc => {
       const alreadyIncluded = standardRequirements.some(r => r.reqKey === doc.requirementKey);
       if (!alreadyIncluded && doc.name) {
         mapped.push({
@@ -382,7 +382,7 @@ export const QuickDocumentsPanel = ({
 
   // FILTRADO EN TIEMPO REAL POR BÚSQUEDA Y CATEGORÍA
   const filteredDocuments = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
+    const q = (searchQuery || '').toLowerCase().trim();
     return allDocuments.filter(doc => {
       if (activeCategory === 'generados' && doc.category !== 'generados') return false;
       if (activeCategory === 'boveda' && doc.category !== 'boveda') return false;
@@ -458,21 +458,21 @@ export const QuickDocumentsPanel = ({
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Objetivo:</span>
               <span className="font-bold text-[#0F3D2E] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                {proposalConfig.targetCondo?.trim() || 'Comunidad Abierta / Genérica'}
+                {proposalConfig?.targetCondo?.trim() || 'Comunidad Abierta / Genérica'}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Atención:</span>
               <span className="font-semibold text-slate-700">
-                {proposalConfig.leaveRecipientBlank
+                {proposalConfig?.leaveRecipientBlank
                   ? '(En blanco para conserjería)'
-                  : (proposalConfig.targetRecipient?.trim() || 'Comité de Administración')}
+                  : (proposalConfig?.targetRecipient?.trim() || 'Comité de Administración')}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Honorario:</span>
               <span className="font-bold text-slate-800">
-                {formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000)}/mes
+                {formatCLP(Number(proposalConfig?.proposedMonthlyFee) || 850000)}/mes
               </span>
             </div>
           </div>
@@ -503,7 +503,7 @@ export const QuickDocumentsPanel = ({
                 <input
                   type="text"
                   placeholder="Ej: Condominio Mirador"
-                  value={proposalConfig.targetCondo}
+                  value={proposalConfig?.targetCondo || ''}
                   onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                 />
@@ -513,8 +513,8 @@ export const QuickDocumentsPanel = ({
                 <input
                   type="text"
                   placeholder="Ej: Señores Miembros del Comité"
-                  value={proposalConfig.leaveRecipientBlank ? '' : proposalConfig.targetRecipient}
-                  disabled={proposalConfig.leaveRecipientBlank}
+                  value={proposalConfig?.leaveRecipientBlank ? '' : (proposalConfig?.targetRecipient || '')}
+                  disabled={proposalConfig?.leaveRecipientBlank}
                   onChange={(e) => setProposalConfig({ ...proposalConfig, targetRecipient: e.target.value, leaveRecipientBlank: false })}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                 />
@@ -525,7 +525,7 @@ export const QuickDocumentsPanel = ({
                   type="number"
                   min="0"
                   step="10000"
-                  value={proposalConfig.proposedMonthlyFee}
+                  value={proposalConfig?.proposedMonthlyFee ?? 850000}
                   onChange={(e) => setProposalConfig({ ...proposalConfig, proposedMonthlyFee: e.target.value })}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-[#0F3D2E] focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                 />
@@ -535,7 +535,7 @@ export const QuickDocumentsPanel = ({
                 <input
                   type="text"
                   placeholder="Ej: 2 visitas semanales"
-                  value={proposalConfig.visitFrequency}
+                  value={proposalConfig?.visitFrequency || ''}
                   onChange={(e) => setProposalConfig({ ...proposalConfig, visitFrequency: e.target.value })}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                 />
@@ -830,19 +830,3 @@ export const QuickDocumentsPanel = ({
     </div>
   );
 };
-
-// Ícono auxiliar de envío
-const SendIcon = (props) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="m22 2-7 20-4-9-9-4Z" />
-    <path d="M22 2 11 13" />
-  </svg>
-);
