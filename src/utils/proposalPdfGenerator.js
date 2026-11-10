@@ -177,8 +177,8 @@ export const generateStepPdfAttachment = async ({
   } else if (stepNumber === 3) {
     elementId = 'printable-commercial-proposal';
     defaultFilename = targetClean
-      ? `ARANPRO_Carta_Formal_Postulacion_${targetClean}_${dateClean}.pdf`
-      : `ARANPRO_Carta_Formal_Postulacion_${dateClean}.pdf`;
+      ? `ARANPRO_Propuesta_Formal_y_Diagnostico_${targetClean}_${dateClean}.pdf`
+      : `ARANPRO_Propuesta_Formal_y_Diagnostico_${dateClean}.pdf`;
   } else if (stepNumber === 4) {
     elementId = 'printable-app-brochure';
     defaultFilename = targetClean
