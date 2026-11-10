@@ -1022,6 +1022,16 @@ export const CompanyEnterpriseHub = ({
                 setActiveSubTab={setEmpresaSubSection}
                 hideHeader={true}
                 hideNavBar={true}
+                onNavigateToModule={(hubTab, subSection, targetElementId) => {
+                  if (hubTab) setActiveHubTab(hubTab);
+                  if (subSection) setEmpresaSubSection(subSection);
+                  if (targetElementId) {
+                    setTimeout(() => {
+                      const el = document.getElementById(targetElementId);
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 200);
+                  }
+                }}
               />
             </div>
           )}
@@ -1037,6 +1047,16 @@ export const CompanyEnterpriseHub = ({
                 hideHeader={true}
                 hideNavBar={true}
                 hidePostulacionSubNav={true}
+                onNavigateToModule={(hubTab, subSection, targetElementId) => {
+                  if (hubTab) setActiveHubTab(hubTab);
+                  if (subSection) setEmpresaSubSection(subSection);
+                  if (targetElementId) {
+                    setTimeout(() => {
+                      const el = document.getElementById(targetElementId);
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 200);
+                  }
+                }}
               />
             </div>
           )}

@@ -119,7 +119,8 @@ export const CompanySettingsAndBackupModule = ({
   hideNavBar = false,
   postulacionSection: externalPostulacionSection,
   setPostulacionSection: externalSetPostulacionSection,
-  hidePostulacionSubNav = false
+  hidePostulacionSubNav = false,
+  onNavigateToModule
 }) => {
   const {
     communities = [],
@@ -2697,7 +2698,7 @@ export const CompanySettingsAndBackupModule = ({
               </div>
 
               {/* SECCIÓN B: TÍTULOS PROFESIONALES, DIPLOMAS Y FORMACIÓN CONSTRUCTIVA */}
-              <div className="pt-4 border-t border-slate-200 space-y-4">
+              <div id="seccion-titulos-diplomas" className="pt-4 border-t border-slate-200 space-y-4">
                 <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-amber-50/30 border border-emerald-200/80 flex items-start gap-3">
                   <div className="p-2 rounded-xl bg-[#0F3D2E] text-[#D4B895] shrink-0 mt-0.5">
                     <HardHat className="w-4 h-4" />
@@ -3408,7 +3409,17 @@ export const CompanySettingsAndBackupModule = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => setActiveSubTab('acreditacion')}
+                          onClick={() => {
+                            if (typeof onNavigateToModule === 'function') {
+                              onNavigateToModule('empresa', 'acreditacion', 'seccion-titulos-diplomas');
+                            } else {
+                              setActiveSubTab('acreditacion');
+                              setTimeout(() => {
+                                const el = document.getElementById('seccion-titulos-diplomas');
+                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }, 150);
+                            }
+                          }}
                           className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                           title="Gestionar mis títulos y antecedentes en Datos de Empresa"
                         >
