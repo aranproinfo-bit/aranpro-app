@@ -831,7 +831,22 @@ export const CompanySettingsAndBackupModule = ({
           signatureImage: signatureImage || companySettings?.signatureDataUrl || ''
         });
       } catch (pdfErr) {
-        console.warn('No se pudo generar el adjunto PDF automático:', pdfErr);
+        console.error('Error generando adjunto PDF automático:', pdfErr);
+        showAlert(
+          'Error al Generar Documento',
+          `No se pudo compilar el PDF oficial (${pdfErr.message || 'error de captura'}). El correo no ha sido enviado para evitar despacharlo sin el archivo adjunto.`,
+          'error'
+        );
+        return;
+      }
+
+      if (!pdfAttachment || !pdfAttachment.contentBase64) {
+        showAlert(
+          'Error de Documento',
+          'El archivo PDF generado está vacío o no es válido. No se envió el correo.',
+          'error'
+        );
+        return;
       }
 
       const html = buildProposalEmailHtml(
@@ -839,7 +854,7 @@ export const CompanySettingsAndBackupModule = ({
         msg,
         proposalConfig,
         empresaForm,
-        pdfAttachment?.filename || ''
+        pdfAttachment.filename
       );
 
       const res = await resendMailService.sendSingleEmail({
@@ -849,15 +864,24 @@ export const CompanySettingsAndBackupModule = ({
         subject: msg.subject,
         html: html,
         text: msg.email,
-        attachments: pdfAttachment
-          ? [{ filename: pdfAttachment.filename, content: pdfAttachment.contentBase64 }]
-          : undefined
+        attachments: [
+          {
+            filename: pdfAttachment.filename,
+            content: pdfAttachment.contentBase64
+          }
+        ]
       });
 
       if (res && res.success) {
         sentDirectly = true;
       } else {
-        console.warn('Resend no despachó directamente en segundo plano:', res?.error);
+        console.error('Resend no despachó directamente en segundo plano:', res?.error);
+        showAlert(
+          'Fallo de Envío',
+          `El servidor de correo no pudo completar el despacho: ${res?.error || 'error desconocido'}.`,
+          'error'
+        );
+        return;
       }
     } catch (err) {
       console.warn('Excepción en despacho directo, activando cliente oficial:', err);

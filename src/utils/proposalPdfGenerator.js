@@ -21,20 +21,24 @@ const blobToDataUrl = (blob) =>
   });
 
 /**
- * Convierte una URL de imagen a DataURL Base64 para prevenir cualquier error de CORS
- * o de canvas contaminado (SecurityError / tainted canvas) en html2canvas.
+ * Precarga y cachea la marca de agua corporativa como DataURL Base64
+ * para eliminar al 100% cualquier riesgo de tainted canvas en html2canvas.
  */
-const urlToDataUrl = async (url) => {
-  if (!url || typeof url !== 'string' || url.startsWith('data:')) return url;
+let cachedWatermarkDataUrl = null;
+const getWatermarkBase64 = async () => {
+  if (cachedWatermarkDataUrl) return cachedWatermarkDataUrl;
+  if (typeof window === 'undefined') return null;
   try {
-    const res = await fetch(url);
-    if (!res.ok) return url;
-    const blob = await res.blob();
-    const dataUrl = await blobToDataUrl(blob);
-    return dataUrl || url;
-  } catch {
-    return url;
+    const res = await fetch('/brand/ARANPRO_sello_circular_integral_transparente.png');
+    if (res.ok) {
+      const blob = await res.blob();
+      cachedWatermarkDataUrl = await blobToDataUrl(blob);
+      return cachedWatermarkDataUrl;
+    }
+  } catch (err) {
+    console.warn('[proposalPdfGenerator] No se pudo precargar la marca de agua:', err);
   }
+  return null;
 };
 
 /**
@@ -50,166 +54,82 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
     throw new Error(`Elemento #${typeof elementOrId === 'string' ? elementOrId : 'desconocido'} no encontrado en el DOM`);
   }
 
-  // 1. Obtener el HTML limpio del elemento maestro del DOM
-  let contentHtml = targetEl.innerHTML;
+  // 1. Obtener páginas hijas (.dossier-page) o el contenedor raíz
+  const rawPages = Array.from(targetEl.querySelectorAll('.dossier-page'));
+  const pages = rawPages.length > 0 ? rawPages : [targetEl];
 
-  // 2. Resolver rutas relativas a absolutas para asegurar carga
-  const origin = (typeof window !== 'undefined' && window.location?.origin) || '';
-  contentHtml = contentHtml
-    .replace(/src="\/brand\//g, `src="${origin}/brand/`)
-    .replace(/src="brand\//g, `src="${origin}/brand/`)
-    .replace(/src="\/certificaciones\//g, `src="${origin}/certificaciones/`);
+  // 2. Precargar marca de agua corporativa en Base64
+  const watermarkBase64 = await getWatermarkBase64();
 
-  // Extraer todas las hojas de estilo y estilos compilados de la aplicación
-  const existingStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
-    .map((el) => el.outerHTML)
-    .join('\n');
-
-  // 3. Crear o reutilizar un iframe invisible fuera de pantalla para aislamiento total
-  let iframe = document.getElementById('aranpro-pdf-export-iframe');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.id = 'aranpro-pdf-export-iframe';
-    iframe.style.position = 'fixed';
-    iframe.style.left = '-10000px';
-    iframe.style.top = '0';
-    iframe.style.width = '816px';
-    iframe.style.height = '4800px';
-    iframe.style.border = '0';
-    iframe.style.opacity = '1';
-    iframe.style.visibility = 'visible';
-    iframe.style.zIndex = '-99999';
-    document.body.appendChild(iframe);
-  } else {
-    iframe.style.width = '816px';
-    iframe.style.height = '4800px';
-  }
-
-  const doc = iframe.contentWindow || iframe.contentDocument;
-  const iDoc = doc.document || doc;
-  iDoc.open();
-  iDoc.write(`
-    <!DOCTYPE html>
-    <html lang="es">
-      <head>
-        <meta charset="utf-8" />
-        ${existingStyles}
-        <style>
-          * {
-            box-sizing: border-box !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            -webkit-line-clamp: unset !important;
-            -webkit-box-orient: unset !important;
-          }
-          html, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-            width: 816px !important;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: #0f172a;
-            -webkit-font-smoothing: antialiased;
-          }
-          /* Páginas maestras con proporción exacta Carta (816 x 1056 px a 96 DPI -> 612 x 792 pt) */
-          .dossier-page {
-            width: 816px !important;
-            min-height: 1056px !important;
-            height: 1056px !important;
-            max-height: 1056px !important;
-            box-sizing: border-box !important;
-            margin: 0 0 24px 0 !important;
-            background: #ffffff !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: space-between !important;
-            position: relative !important;
-            padding: 24px 28px 20px 36px !important;
-          }
-          .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-xs, .shadow-2xs, .shadow-sm {
-            box-shadow: none !important;
-          }
-          /* Colores oficiales de marca ARANPRO */
-          .bg-\[\#0F3D2E\] { background-color: #0F3D2E !important; }
-          .bg-\[\#D4B895\] { background-color: #D4B895 !important; }
-          .bg-\[\#F5F4EF\] { background-color: #F5F4EF !important; }
-          .text-\[\#0F3D2E\] { color: #0F3D2E !important; }
-          .text-\[\#D4B895\] { color: #D4B895 !important; }
-          .border-\[\#0F3D2E\] { border-color: #0F3D2E !important; }
-          .border-\[\#D4B895\] { border-color: #D4B895 !important; }
-          .opacity-\[0\.035\], [class*="opacity-[0.035]"] {
-            opacity: 0.035 !important;
-          }
-
-          /* Corrección crítica contra bisecado de texto en html2canvas */
-          .line-clamp-1, .line-clamp-2, .line-clamp-3 {
-            display: block !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            line-height: 1.35 !important;
-          }
-        </style>
-      </head>
-      <body>
-        <div id="export-root" style="width: 816px; background: #ffffff;">
-          ${contentHtml}
-        </div>
-      </body>
-    </html>
-  `);
-  iDoc.close();
-
-  // Esperar a que el iframe compile estilos
-  await new Promise((r) => setTimeout(r, 200));
-
-  // Inlinear absolutamente todas las imágenes en Base64 para erradicar cualquier riesgo de tainted canvas
-  const iframeImgs = Array.from(iDoc.querySelectorAll('img'));
-  await Promise.all(
-    iframeImgs.map(async (img) => {
-      const src = img.getAttribute('src');
-      if (src && !src.startsWith('data:')) {
-        const dataUrl = await urlToDataUrl(src);
-        if (dataUrl && dataUrl.startsWith('data:')) {
-          img.setAttribute('src', dataUrl);
-        }
-      }
-      if (img.complete && img.naturalHeight !== 0) return;
-      return new Promise((resolve) => {
-        img.onload = resolve;
-        img.onerror = resolve;
-        setTimeout(resolve, 600);
-      });
-    })
-  );
-
-  // Seleccionar todas las páginas hijas .dossier-page o el contenedor raíz
-  const rawPages = Array.from(iDoc.querySelectorAll('.dossier-page'));
-  const pages = rawPages.length > 0 ? rawPages : [iDoc.getElementById('export-root') || iDoc.body];
-
+  // 3. Crear documento PDF oficial tamaño Carta estándar (612 x 792 pt)
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'pt',
-    format: 'letter' // 612 x 792 pt (Carta oficial estándar)
+    format: 'letter'
   });
 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
 
-    // Captura limpia del elemento con escala 2.5 para nitidez tipo vector y cero pixelación
+    // Captura limpia y directa del elemento con escala 2 para nitidez tipográfica y colores puros
     const canvas = await html2canvas(page, {
-      scale: 2.5,
+      scale: 2,
       useCORS: true,
       allowTaint: false,
       backgroundColor: '#ffffff',
       logging: false,
-      scrollX: 0,
-      scrollY: 0,
+      x: 0,
+      y: 0,
+      width: 816,
+      height: 1056,
       windowWidth: 816,
-      window: iframe.contentWindow
+      windowHeight: 1056,
+      onclone: (clonedDoc, clonedEl) => {
+        // En el clon, inlinear todas las marcas de agua a Base64 para asegurar cero errores de seguridad
+        if (watermarkBase64) {
+          const imgs = clonedEl.querySelectorAll('img');
+          imgs.forEach((img) => {
+            const src = img.getAttribute('src') || '';
+            if (src.includes('ARANPRO_sello_circular') || src.includes('sello_circular')) {
+              img.setAttribute('src', watermarkBase64);
+            }
+          });
+        }
+
+        // Posicionar el clon como elemento único en la raíz del documento clonado
+        clonedDoc.body.innerHTML = '';
+        clonedDoc.body.appendChild(clonedEl);
+        clonedDoc.body.style.margin = '0';
+        clonedDoc.body.style.padding = '0';
+        clonedDoc.body.style.background = '#ffffff';
+
+        clonedEl.style.width = '816px';
+        clonedEl.style.minHeight = '1056px';
+        clonedEl.style.height = '1056px';
+        clonedEl.style.maxHeight = '1056px';
+        clonedEl.style.boxShadow = 'none';
+        clonedEl.style.margin = '0';
+        clonedEl.style.overflow = 'hidden';
+        clonedEl.style.position = 'relative';
+        clonedEl.style.top = '0';
+        clonedEl.style.left = '0';
+        clonedEl.style.display = 'flex';
+        clonedEl.style.flexDirection = 'column';
+        clonedEl.style.justifyContent = 'space-between';
+        clonedEl.style.opacity = '1';
+        clonedEl.style.visibility = 'visible';
+
+        // Desactivar line-clamp que corte texto verticalmente
+        const clamps = clonedEl.querySelectorAll('[class*="line-clamp"]');
+        clamps.forEach((c) => {
+          c.style.webkitLineClamp = 'unset';
+          c.style.webkitBoxOrient = 'unset';
+          c.style.display = 'block';
+        });
+      }
     });
 
-    // Formato PNG para preservar el 100% de la fidelidad de color (#0F3D2E, #D4B895, #F5F4EF) sin artefactos JPEG
+    // Formato PNG para preservar el 100% de fidelidad de color (#0F3D2E, #D4B895, #F5F4EF)
     const imgData = canvas.toDataURL('image/png');
 
     if (i > 0) {
@@ -273,8 +193,8 @@ export const generateStepPdfAttachment = async ({
     }
 
     if (!el) {
-      // Reintento breve de 100ms si el elemento se está montando en el DOM
-      await new Promise((r) => setTimeout(r, 100));
+      // Reintento breve de 150ms si el elemento se está montando en el DOM
+      await new Promise((r) => setTimeout(r, 150));
       el = document.getElementById(elementId) || document.querySelector(`[id="${elementId}"]`);
     }
 
