@@ -754,9 +754,9 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
           <div
             data-pdf-style="neutral"
             className="dossier-page page-1 bg-white text-black"
-            style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '12pt', lineHeight: 1.45 }}
+            style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '13.5pt', lineHeight: 1.5 }}
           >
-            <div style={{ padding: '6mm 10mm 0 10mm' }}>
+            <div style={{ padding: '6mm 8mm 0 8mm' }}>
               <p style={{ textAlign: 'right', margin: '0 0 14px 0' }}>{city}, {noticeDate}</p>
 
               <p style={{ margin: 0 }}>Señor(a)</p>
@@ -795,7 +795,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </p>
               <p style={{ margin: '0 0 34px 0' }}>Atentamente,</p>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '30px', fontSize: '11pt' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '30px', fontSize: '12.5pt' }}>
                 <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
                     <div style={{ fontWeight: 'bold' }}>{committeePresident}</div>
