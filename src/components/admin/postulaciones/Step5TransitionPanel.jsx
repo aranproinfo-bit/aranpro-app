@@ -9,7 +9,7 @@ import {
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { formatCLP } from '../../../utils/formatters';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
-import { TransitionChecklistPrint, TransitionChecklistScreen } from './TransitionChecklist';
+import { TransitionChecklistPrint, TransitionChecklistScreen, transitionChecklistPrintStyles } from './TransitionChecklist';
 
 export const Step5TransitionPanel = ({
   proposalConfig = {},
@@ -104,8 +104,9 @@ export const Step5TransitionPanel = ({
     printDocumentDirectly('printable-transition-checklist', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm',
-      pdfStyle
+      margin: '0',
+      pdfStyle,
+      extraStyles: transitionChecklistPrintStyles
     });
   };
 

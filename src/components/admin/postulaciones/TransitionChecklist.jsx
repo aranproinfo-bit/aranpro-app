@@ -1,6 +1,27 @@
 import React from 'react';
 import { AranproOfficialSeal } from '../../common/MauranLogo';
 
+// Medidas específicas de la pauta aprobada; no afectan los demás documentos.
+export const transitionChecklistPrintStyles = `
+  @page { size: letter portrait; margin: 0 !important; }
+  .dossier-page {
+    height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important;
+    padding: 8mm 16mm 8mm 17mm !important;
+    border-left: 3.3mm solid #0F3D2E !important;
+    background-image: linear-gradient(#D4B895, #D4B895) !important;
+    background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important;
+    background-repeat: no-repeat !important;
+    font-size: 10.5px !important; line-height: 1.3 !important;
+  }
+  .dossier-page img[src*="ARANPRO_logo_horizontal"] {
+    width: 37mm !important; max-width: 37mm !important;
+    height: auto !important; max-height: 11mm !important; object-fit: contain !important;
+  }
+  .dossier-page table { font-size: 10.1px !important; line-height: 1.25 !important; }
+  .dossier-page table td { padding-top: 5px !important; padding-bottom: 5px !important; }
+  .aranpro-print-watermark { display: none !important; }
+`;
+
 const sections = [
   ['A. Gobierno y archivo legal', [
     'Reglamento de copropiedad vigente, modificaciones, inscripción y antecedentes de dominio disponibles.',
@@ -65,9 +86,9 @@ export function TransitionChecklistPrint({ condo, city, adminName, adminRut, pho
   return <div id="printable-transition-checklist" data-pdf-style={pdfStyle}>
     {pages.map((indexes, pageIndex) => <div key={pageIndex} data-pdf-style={pdfStyle} className="dossier-page bg-white p-6 pl-10 flex flex-col justify-between text-slate-900 relative overflow-hidden" style={{fontFamily:'Arial, sans-serif', minHeight:'1050px', fontSize:'10px'}}>
       <div>
-        <div className="flex items-center justify-between gap-3 border-b-2 border-[#0F3D2E] pb-2">
+        <div className="transition-header flex items-center justify-between gap-3 border-b-2 border-[#0F3D2E] pb-2">
           <div className="flex items-center gap-3"><img src="/brand/ARANPRO_logo_horizontal_transparente_trimmed.png" alt="ARANPRO" style={{height:'42px', width:'auto'}} /><div className="border-l border-slate-300 pl-3"><strong className="text-[#0F3D2E] block">ARANPRO • GESTIÓN INTEGRAL</strong><span className="block text-slate-600">Ley N° 21.442 de Copropiedad Inmobiliaria</span><span className="block text-slate-500">{email} • {phone} • {city}</span></div></div>
-          <div className="text-right"><strong className="block text-[#0F3D2E]">PAUTA DE TRASPASO</strong><span className="block font-bold">Checklist de entrega de administración</span><span className="text-slate-500">{condo} • Página {pageIndex + 1}</span></div>
+          <div className="text-right"><strong className="block text-[#0F3D2E] border border-[#D4B895] bg-slate-50 rounded px-3 py-1 mb-1">PAUTA DE TRASPASO</strong><span className="block font-bold">Checklist de entrega de administración</span><span className="text-slate-500">{condo} • Página {pageIndex + 1}</span></div>
         </div>
         <div className="text-center mt-3 mb-3"><h2 className="text-sm font-black">PAUTA DE TRASPASO DE ADMINISTRACIÓN</h2><p className="text-[#0F3D2E] font-bold">{pageIndex === 0 ? 'Propuesta para solicitud, control y acta de recepción' : pageIndex === 1 ? 'Antecedentes operacionales, técnicos y de continuidad' : 'Sistemas, asuntos pendientes y cierre documentado'}</p></div>
         {pageIndex === 0 && <><div className="grid grid-cols-3 border border-slate-300 text-[9px] mb-3">{['COMUNIDAD', 'FECHA DE ENTREGA', 'MODALIDAD', 'ADMINISTRADOR(A) SALIENTE', 'REPRESENTANTE DEL COMITÉ', 'PLAZO COMPLEMENTARIO'].map((label, i) => <div key={label} className="border border-slate-200 p-1"><strong className="block">{label}</strong><span>{[condo, endDate, 'Física ☐  Digital ☐  Mixta ☐', outgoingAdmin, committeePresident, ''][i] || '________________________'}</span></div>)}</div><p className="bg-emerald-50 border border-emerald-200 p-2 mb-3"><strong>Uso del Comité.</strong> Esta pauta ordena la solicitud y recepción de antecedentes para asegurar continuidad operativa. Se apoya en la Ley 21.442 y su reglamento. La recepción material no implica aprobación, conformidad ni liberación de responsabilidades; los antecedentes deben revisarse por integridad, vigencia y consistencia.</p></>}
