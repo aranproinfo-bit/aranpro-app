@@ -79,8 +79,10 @@ export const QuickDocumentsPanel = ({
     const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
     printDocumentDirectly('printable-termination-notice', `ARANPRO_Carta_Preaviso_Termino_${targetClean}`, {
       pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm'
+      fitPage: false,
+      margin: '12mm 15mm 12mm 15mm',
+      pdfStyle: 'neutral',
+      extraStyles: '.dossier-page{height:255mm !important;min-height:255mm !important;max-height:255mm !important;overflow:hidden !important;display:flex !important;padding:0 !important;page-break-after:avoid !important;break-after:avoid !important;} .dossier-page > div{padding:0 !important;} .dossier-page li, .dossier-page p{orphans:3;widows:3;} .sig-block{page-break-inside:avoid !important;break-inside:avoid !important;}'
     });
   };
 
