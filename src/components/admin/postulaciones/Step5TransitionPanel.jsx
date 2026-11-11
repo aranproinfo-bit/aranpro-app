@@ -71,15 +71,27 @@ export const Step5TransitionPanel = ({
   const outgoingAdmin = proposalConfig.outgoingAdminName?.trim() || 'Señor(a) Administrador(a) Saliente';
   const committeePresident = proposalConfig.committeePresidentName?.trim() || 'Presidente(a) del Comité de Administración';
 
+  // La carta es un documento del Comité: sus campos no deben inventar datos cuando
+  // aún no se han completado en el formulario del Paso 5.
+  const terminationNotice = {
+    condo: proposalConfig.targetCondo?.trim() || '',
+    city: proposalConfig.targetCity?.trim() || '',
+    date: proposalConfig.transitionNoticeDate?.trim() || '',
+    endDate: proposalConfig.transitionEndDate?.trim() || '',
+    agreementReference: proposalConfig.transitionAgreementReference?.trim() || '',
+    outgoingAdmin: proposalConfig.outgoingAdminName?.trim() || '',
+    committeePresident: proposalConfig.committeePresidentName?.trim() || ''
+  };
+
   // Acciones de impresión directa
   const handlePrintTerminationNotice = () => {
     const filename = `Carta_Termino_Administracion_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
     printDocumentDirectly('printable-termination-notice', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '14mm 18mm 14mm 18mm',
+      margin: '12mm 15mm 12mm 15mm',
       pdfStyle: 'neutral',
-      extraStyles: '.dossier-page{height:auto !important;min-height:0 !important;max-height:none !important;overflow:visible !important;display:block !important;padding:0 !important;page-break-after:avoid !important;break-after:avoid !important;} .dossier-page > div{padding:0 !important;} .dossier-page li, .dossier-page p{orphans:3;widows:3;} .sig-block{page-break-inside:avoid !important;break-inside:avoid !important;}'
+      extraStyles: '.dossier-page{height:255mm !important;min-height:255mm !important;max-height:255mm !important;overflow:hidden !important;display:flex !important;padding:0 !important;page-break-after:avoid !important;break-after:avoid !important;} .dossier-page > div{padding:0 !important;} .dossier-page li, .dossier-page p{orphans:3;widows:3;} .sig-block{page-break-inside:avoid !important;break-inside:avoid !important;}'
     });
   };
 
@@ -192,7 +204,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
       </div>
 
       <p className="text-xs text-slate-600 leading-relaxed">
-        <strong>Cuándo usarlo:</strong> Una vez adjudicada la administración, entrega al Comité este kit pericial para <strong>notificar al administrador saliente con el preaviso legal de 30 días</strong>, auditar la entrega de antecedentes con la <strong>Pauta de Traspaso de 3 páginas</strong> y formalizar el <strong>Acta de Nombramiento</strong> con facultades bancarias plenas ante bancos y notarías.
+        <strong>Cuándo usarlo:</strong> Una vez acordado el término de la administración, entrega al Comité este kit para <strong>notificar al administrador saliente con el plazo de aviso pactado</strong>, auditar la entrega de antecedentes con la <strong>Pauta de Traspaso de 3 páginas</strong> y formalizar el <strong>Acta de Nombramiento</strong>.
       </p>
 
       {/* BARRA DE CONFIGURACIÓN DE NOMBRES Y PLAZOS */}
@@ -256,6 +268,19 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
             />
           </div>
+
+          <div className="sm:col-span-2 md:col-span-4">
+            <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+              Antecedente del Acuerdo de Término (Recomendado)
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: Asamblea extraordinaria de 30 de octubre de 2026, Acta N° 12"
+              value={proposalConfig.transitionAgreementReference || ''}
+              onChange={(e) => setProposalConfig({ ...proposalConfig, transitionAgreementReference: e.target.value })}
+              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+            />
+          </div>
         </div>
       </div>
 
@@ -293,7 +318,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         {activeSubTab === 'carta' && (
           <div className="space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between">
-              <div>
+              <div style={{ width: '100%' }}>
                 <span className="text-xs font-bold text-slate-900 block">
                   Carta de Término de Funciones y Preaviso de 30 Días al Administrador Saliente
                 </span>
@@ -335,10 +360,10 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
 
               <p>Estimado(a):</p>
               <p>
-                Por medio de la presente, el Comité de Administración del <strong>{condo}</strong>, en representación de la comunidad y en ejercicio de las facultades que le confiere la Ley N° 21.442 sobre Copropiedad Inmobiliaria y el Reglamento de Copropiedad, cumple con notificarle formalmente la decisión de poner término a la prestación de sus servicios como Administrador del condominio.
+                Por medio de la presente, y conforme al acuerdo de la Comunidad{terminationNotice.agreementReference ? <> contenido en <strong>{terminationNotice.agreementReference}</strong></> : ''}, se notifica formalmente el término de la prestación de sus servicios como Administrador(a) del condominio.
               </p>
               <p>
-                Con el propósito de asegurar una transición ordenada y dar cumplimiento al plazo de preaviso correspondiente, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{endDate}</strong>.
+                Con el propósito de asegurar una transición ordenada y de acuerdo con el plazo de aviso aplicable, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{endDate}</strong>.
               </p>
               <p>
                 Durante este período, y en estricto apego a lo establecido en el Artículo 20 (y concordantes) de la nueva Ley de Copropiedad Inmobiliaria (Ley 21.442), solicitamos a usted preparar y tener a disposición para la fecha de término la siguiente documentación y procesos de cierre:
@@ -348,12 +373,15 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 <p>• <strong>Rendición de Cuentas Documentada:</strong> Balance final de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {endDate}.</p>
                 <p>• <strong>Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo de gastos comunes, planos, pólizas de seguro, certificados de instalaciones (ascensores, gas) y bitácoras de mantención.</p>
                 <p>• <strong>Gestión Laboral y Previsional:</strong> Contratos de trabajo del personal del condominio, comprobantes de pago de cotizaciones (Previred), liquidaciones de sueldo al día y finiquitos en caso de corresponder.</p>
-                <p>• <strong>Accesos, Cuentas y Claves:</strong> Traspaso formal de las credenciales de cuentas bancarias (Fondo de Reserva y cuenta ordinaria), portal del SII, Dirección del Trabajo, correos electrónicos y cualquier software de administración utilizado.</p>
+                <p>• <strong>Accesos y Autorizaciones:</strong> Entrega o regularización de usuarios administradores, mecanismos de recuperación y autorizaciones de cuentas bancarias, portal del SII, Dirección del Trabajo, correos electrónicos y software de administración utilizado.</p>
                 <p>• <strong>Caja Chica y Fondos:</strong> Entrega de los fondos en efectivo y detalle de cheques por cobrar o emitidos no cobrados.</p>
               </div>
 
               <p>
                 Por nuestra parte, como Comité de Administración, nos comprometemos a facilitar este proceso de transición, a revisar la rendición de cuentas en los plazos legales y a formalizar la recepción mediante un Acta de Traspaso el último día de sus funciones.
+              </p>
+              <p>
+                La entrega material de antecedentes, fondos y accesos no constituye aprobación ni liberación de responsabilidad respecto de la gestión anterior; estos serán revisados conforme a la ley, al reglamento de copropiedad y al contrato aplicable.
               </p>
               <p>
                 Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
@@ -381,7 +409,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         {activeSubTab === 'checklist' && (
           <div className="space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between">
-              <div>
+              <div style={{ width: '100%' }}>
                 <span className="text-xs font-bold text-slate-900 block">
                   Solicitud Simple de Antecedentes • Checklist para solicitar hoy a la administración vigente
                 </span>
@@ -556,7 +584,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         {activeSubTab === 'acta' && (
           <div className="space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between">
-              <div>
+              <div style={{ width: '100%' }}>
                 <span className="text-xs font-bold text-slate-900 block">
                   Formalización Legal: Cláusulas para el Libro de Actas & Contrato Marco
                 </span>
@@ -755,53 +783,61 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
           <div
             data-pdf-style="neutral"
             className="dossier-page page-1 bg-white text-black"
-            style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '11.5pt', lineHeight: 1.4 }}
+            style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '10.75pt', lineHeight: 1.26 }}
           >
-            <div style={{ padding: '6mm 8mm 0 8mm' }}>
-              <p style={{ textAlign: 'right', margin: '0 0 14px 0' }}>{city}, {noticeDate}</p>
+            <div style={{ padding: '1mm 2mm 0 2mm', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ width: '100%' }}>
+              <p style={{ textAlign: 'right', margin: '0 0 11px 0' }}>
+                {terminationNotice.city}{terminationNotice.city && terminationNotice.date ? ', ' : ''}{terminationNotice.date}
+              </p>
 
               <p style={{ margin: 0 }}>Señor(a)</p>
-              <p style={{ margin: 0, fontWeight: 'bold' }}>{outgoingAdmin}</p>
-              <p style={{ margin: 0 }}>Administrador(a) del {condo}</p>
-              <p style={{ margin: '0 0 12px 0' }}>Presente</p>
+              <p style={{ margin: 0, fontWeight: 'bold', minHeight: '1em' }}>{terminationNotice.outgoingAdmin}</p>
+              <p style={{ margin: 0 }}>Administrador(a) del {terminationNotice.condo}</p>
+              <p style={{ margin: '0 0 10px 0' }}>Presente</p>
 
               <p style={{ margin: '0 0 12px 0' }}>
                 <strong>Ref.:</strong> Notificación de término de funciones y aviso de 30 días.
               </p>
 
-              <p style={{ margin: '0 0 8px 0' }}>Estimado(a):</p>
-              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
-                Por medio de la presente, el Comité de Administración del <strong>{condo}</strong>, en representación de la comunidad y en ejercicio de las facultades que le confiere la Ley N° 21.442 sobre Copropiedad Inmobiliaria y el Reglamento de Copropiedad, cumple con notificarle formalmente la decisión de poner término a la prestación de sus servicios como Administrador del condominio.
-              </p>
-              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
-                Con el propósito de asegurar una transición ordenada y dar cumplimiento al plazo de preaviso correspondiente, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{endDate}</strong>.
+              <p style={{ margin: '0 0 6px 0' }}>Estimado(a):</p>
+              <p style={{ margin: '0 0 6px 0', textAlign: 'justify' }}>
+                Por medio de la presente, y conforme al acuerdo de la Comunidad{terminationNotice.agreementReference ? <> contenido en <strong>{terminationNotice.agreementReference}</strong></> : ''}, se notifica formalmente el término de la prestación de sus servicios como Administrador(a) del condominio.
               </p>
               <p style={{ margin: '0 0 6px 0', textAlign: 'justify' }}>
+                Con el propósito de asegurar una transición ordenada y de acuerdo con el plazo de aviso aplicable, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{terminationNotice.endDate}</strong>.
+              </p>
+              <p style={{ margin: '0 0 5px 0', textAlign: 'justify' }}>
                 Durante este período, y en estricto apego a lo establecido en el Artículo 20 (y concordantes) de la Ley N° 21.442 sobre Copropiedad Inmobiliaria, solicitamos a usted preparar y tener a disposición, para la fecha de término, la siguiente documentación y procesos de cierre:
               </p>
 
-              <ol style={{ margin: '0 0 8px 0', paddingLeft: '22px', textAlign: 'justify', listStyleType: 'decimal' }}>
-                <li style={{ marginBottom: '4px' }}><strong>Rendición de Cuentas Documentada:</strong> Balance final de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {endDate}.</li>
-                <li style={{ marginBottom: '4px' }}><strong>Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo de gastos comunes, planos, pólizas de seguro, certificados de instalaciones (ascensores, gas) y bitácoras de mantención.</li>
-                <li style={{ marginBottom: '4px' }}><strong>Gestión Laboral y Previsional:</strong> Contratos de trabajo del personal del condominio, comprobantes de pago de cotizaciones (Previred), liquidaciones de sueldo al día y finiquitos en caso de corresponder.</li>
-                <li style={{ marginBottom: '4px' }}><strong>Accesos, Cuentas y Claves:</strong> Traspaso formal de las credenciales de cuentas bancarias (Fondo de Reserva y cuenta ordinaria), portal del SII, Dirección del Trabajo, correos electrónicos y cualquier software de administración utilizado.</li>
+              <ol style={{ margin: '0 0 6px 0', paddingLeft: '20px', textAlign: 'justify', listStyleType: 'decimal' }}>
+                <li style={{ marginBottom: '2px' }}><strong>Rendición de Cuentas Documentada:</strong> Balance final de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {terminationNotice.endDate}.</li>
+                <li style={{ marginBottom: '2px' }}><strong>Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo de gastos comunes, planos, pólizas de seguro, certificados de instalaciones (ascensores, gas) y bitácoras de mantención.</li>
+                <li style={{ marginBottom: '2px' }}><strong>Gestión Laboral y Previsional:</strong> Contratos de trabajo del personal del condominio, comprobantes de pago de cotizaciones (Previred), liquidaciones de sueldo al día y finiquitos en caso de corresponder.</li>
+                <li style={{ marginBottom: '2px' }}><strong>Accesos y Autorizaciones:</strong> Entrega o regularización de usuarios administradores, mecanismos de recuperación y autorizaciones de cuentas bancarias, portal del SII, Dirección del Trabajo, correos electrónicos y software de administración utilizado.</li>
                 <li><strong>Caja Chica y Fondos:</strong> Entrega de los fondos en efectivo y detalle de cheques por cobrar o emitidos no cobrados.</li>
               </ol>
 
-              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+              <p style={{ margin: '0 0 6px 0', textAlign: 'justify' }}>
                 Por nuestra parte, como Comité de Administración, nos comprometemos a facilitar este proceso de transición, a revisar la rendición de cuentas en los plazos legales y a formalizar la recepción mediante un Acta de Traspaso el último día de sus funciones.
               </p>
-              <p style={{ margin: '0 0 10px 0', textAlign: 'justify' }}>
+              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                La entrega material de antecedentes, fondos y accesos no constituye aprobación ni liberación de responsabilidad respecto de la gestión anterior; estos serán revisados conforme a la ley, al reglamento de copropiedad y al contrato aplicable.
+              </p>
+              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
                 Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
               </p>
-              <p style={{ margin: '0 0 40px 0' }}>Atentamente,</p>
+              </div>
 
-              <div className="sig-block" style={{ display: 'flex', justifyContent: 'space-between', gap: '30px', fontSize: '11pt', marginTop: '10px' }}>
+              <div style={{ width: '100%' }}>
+                <p style={{ margin: '0 0 31px 0' }}>Atentamente,</p>
+                <div className="sig-block" style={{ display: 'flex', justifyContent: 'space-between', gap: '26px', fontSize: '10.75pt', marginTop: '8px' }}>
                 <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
-                    <div style={{ fontWeight: 'bold' }}>{committeePresident}</div>
+                    <div style={{ fontWeight: 'bold', minHeight: '1em' }}>{terminationNotice.committeePresident}</div>
                     <div>Presidente del Comité de Administración</div>
-                    <div>{condo}</div>
+                    <div>{terminationNotice.condo}</div>
                   </div>
                 </div>
                 <div style={{ flex: 1, textAlign: 'center' }}>
@@ -810,6 +846,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                     <div>Nombre y RUT: ______________________</div>
                     <div>Fecha de recepción: ____ / ____ / 2026</div>
                   </div>
+                </div>
                 </div>
               </div>
             </div>
