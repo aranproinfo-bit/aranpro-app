@@ -9,6 +9,7 @@ import {
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { formatCLP } from '../../../utils/formatters';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
+import { TransitionChecklistPrint, TransitionChecklistScreen } from './TransitionChecklist';
 
 export const Step5TransitionPanel = ({
   proposalConfig = {},
@@ -29,6 +30,8 @@ export const Step5TransitionPanel = ({
   const [expandedMsg, setExpandedMsg] = useState(false);
   const [copiedClause, setCopiedClause] = useState(false);
   const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
+  const [transitionStatus, setTransitionStatus] = useState({});
+  const [transitionNotes, setTransitionNotes] = useState({});
 
   // Estados locales para la pauta interactiva de traspaso
   const [checklistValues, setChecklistValues] = useState({
@@ -59,6 +62,7 @@ export const Step5TransitionPanel = ({
   const website = empresaForm.website || 'https://aranpro.cl';
   const feeStr = formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000);
   const effectiveSignature = signatureImage || companySettings?.signatureDataUrl || '';
+  const effectiveSignatureScale = Number(companySettings?.signatureScale) || Number(signatureScale) || 1;
 
   // Fechas de transición
   const noticeDate = proposalConfig.transitionNoticeDate || new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -414,7 +418,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   Solicitud Simple de Antecedentes • Checklist para solicitar hoy a la administración vigente
                 </span>
                 <span className="text-[11px] text-slate-500">
-                  Formato de 3 páginas exactas estructurado en Bloques A, B, C, D y E con casillas de verificación.
+                  Pauta en siete bloques; las selecciones y observaciones se incluyen en el PDF.
                 </span>
               </div>
               <button
@@ -427,8 +431,9 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </button>
             </div>
 
-            {/* TABLAS INTERACTIVAS ORIGINALES */}
-            <div className="space-y-3 max-w-3xl mx-auto">
+            <TransitionChecklistScreen status={transitionStatus} setStatus={setTransitionStatus} notes={transitionNotes} setNotes={setTransitionNotes} />
+            {/* TABLAS ANTERIORES */}
+            {false && <div className="space-y-3 max-w-3xl mx-auto">
               {/* BLOQUE A */}
               <div className="border border-slate-200 rounded-2xl overflow-hidden">
                 <div className="bg-[#0F3D2E] text-white px-3 py-2 font-bold text-xs flex justify-between">
@@ -576,7 +581,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   ))}
                 </div>
               </div>
-            </div>
+            </div>}
           </div>
         )}
 
@@ -854,7 +859,8 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         </div>
 
         {/* 2. PRINTABLE CHECKLIST DE ANTECEDENTES (EXACTAMENTE 3 PÁGINAS FOLIADAS) */}
-        <div id="printable-transition-checklist" data-pdf-style={pdfStyle}>
+        <TransitionChecklistPrint condo={proposalConfig.targetCondo?.trim() || ''} outgoingAdmin={proposalConfig.outgoingAdminName?.trim() || ''} committeePresident={proposalConfig.committeePresidentName?.trim() || ''} city={city} adminName={adminName} adminRut={adminRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={effectiveSignatureScale} companyRut={empresaForm.companyRut} pdfStyle={pdfStyle} status={transitionStatus} notes={transitionNotes} />
+        <div id="legacy-transition-checklist" data-pdf-style={pdfStyle}>
           {/* PÁGINA 1 DE 3 */}
           <div
             data-pdf-style={pdfStyle}
@@ -944,8 +950,10 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </div>
             </div>
 
-            <div className="text-right text-[9px] text-slate-400 font-mono pt-2 border-t border-slate-200 relative z-10">
-              {adminName} | {email} | Fono: {phone}
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
+              <div>ARANPRO Gestión Integral • {website}</div>
+              <div className="font-bold text-[#0F3D2E]">Pauta de Traspaso • Ley N° 21.442 (Pág. 1 de 3)</div>
+              <div>{city}</div>
             </div>
           </div>
 
@@ -1017,8 +1025,10 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </div>
             </div>
 
-            <div className="text-right text-[9px] text-slate-400 font-mono pt-2 border-t border-slate-200 relative z-10">
-              {adminName} | {email} | Fono: {phone}
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
+              <div>ARANPRO Gestión Integral • {website}</div>
+              <div className="font-bold text-[#0F3D2E]">Pauta de Traspaso • Ley N° 21.442 (Pág. 2 de 3)</div>
+              <div>{city}</div>
             </div>
           </div>
 
@@ -1084,8 +1094,44 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 </div>
               </div>
 
-              <div className="text-right text-[9px] text-slate-400 font-mono pt-2 border-t border-slate-200 mt-2">
-                {adminName} | {email} | Fono: {phone}
+              <div className="pt-2 mt-3 border-t border-slate-200 flex items-end justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <AranproOfficialSeal
+                    size="sm"
+                    companyRut={companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? companySettings.companyRut : ''}
+                    rnacNumber=""
+                    showCaption={true}
+                  />
+                  <div className="text-[9px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
+                    <p><strong>Contacto Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{phone}</span></p>
+                    <p><strong>Correo:</strong> <span className="font-mono">{email}</span></p>
+                    <p><strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{website}</span></p>
+                  </div>
+                </div>
+
+                <div className="text-center min-w-[220px]">
+                  <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
+                    {effectiveSignature && (
+                      <img
+                        src={effectiveSignature}
+                        alt="Firma del administrador"
+                        className="h-11 max-h-12 w-auto max-w-[220px] object-contain mx-auto"
+                        style={{ transform: `scale(${effectiveSignatureScale})`, transformOrigin: 'bottom center' }}
+                      />
+                    )}
+                  </div>
+                  <div className="border-t-[1.5px] border-slate-800 pt-0.5">
+                    <span className="text-[10.5px] font-black text-slate-900 block leading-tight">{adminName}</span>
+                    <span className="text-[8.5px] text-[#0F3D2E] font-bold block leading-tight">Constructor Civil • Administrador de Condominios</span>
+                    <span className="text-[8.5px] text-slate-600 font-mono block">RUT: {adminRut} • Ley N° 21.442</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 mt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
+                <div>ARANPRO Gestión Integral • {website}</div>
+                <div className="font-bold text-[#0F3D2E]">Pauta de Traspaso • Ley N° 21.442 (Pág. 3 de 3)</div>
+                <div>{city}</div>
               </div>
             </div>
           </div>
