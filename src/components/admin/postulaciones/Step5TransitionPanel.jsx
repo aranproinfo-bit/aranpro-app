@@ -828,10 +828,10 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
                 Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
               </p>
+              <p style={{ margin: 0 }}>Atentamente,</p>
               </div>
 
               <div style={{ width: '100%' }}>
-                <p style={{ margin: '0 0 31px 0' }}>Atentamente,</p>
                 <div className="sig-block" style={{ display: 'flex', justifyContent: 'space-between', gap: '26px', fontSize: '10.75pt', marginTop: '8px' }}>
                 <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
