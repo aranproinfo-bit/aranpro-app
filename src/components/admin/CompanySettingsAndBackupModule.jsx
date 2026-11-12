@@ -34,6 +34,11 @@ const localToday = () => {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
+const localDayAfter = (days) => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
 const formatLocalDay = (day) => new Date(`${day}T12:00:00`).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
 const refreshPrintDates = (id) => {
   document.getElementById(id)?.querySelectorAll('[data-current-print-date]').forEach(el => { el.textContent = formatLocalDay(localToday()); });
@@ -3711,24 +3716,30 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                     <details className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-3">
                       <summary className="cursor-pointer font-bold text-sm text-white">Condiciones y servicios propuestos</summary>
-                      <p className="mt-2 text-[11px] text-emerald-100">Configura solo lo acordado para esta oportunidad. Vacío significa “por definir”. Guarda en CRM antes de cambiar de comunidad; editar el nombre inicia una propuesta nueva.</p>
+                      <p className="mt-2 text-[11px] text-emerald-100">Elige una sugerencia o escribe tu propia condición; puedes editar la sugerencia después. Vacío significa “por definir”. Guarda en CRM antes de cambiar de comunidad; editar el nombre inicia una propuesta nueva.</p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                         {[
-                          ['visitFrequency', 'Visitas presenciales', 'Ej.: 1 visita semanal o 1 cada 15 días'],
-                          ['emergencyResponse', 'Atención de emergencias', 'Ej.: horario y canal acordados'],
-                          ['includedServices', 'Servicios incluidos', 'Ej.: plataforma, rendiciones y mantenciones'],
-                          ['additionalServices', 'Servicios adicionales', 'Ej.: servicios con costo adicional'],
-                          ['meetingFrequency', 'Asambleas y reuniones', 'Ej.: cantidad incluida y condiciones'],
-                          ['transitionConditions', 'Condiciones de inicio o transición', 'Ej.: duración y honorario de transición'],
-                          ['contractDuration', 'Duración y renovación del contrato', 'Ej.: 12 meses, renovación por acuerdo'],
-                          ['noticePeriod', 'Aviso de término propuesto', 'Ej.: plazo y forma de aviso'],
-                          ['otherConditions', 'Otras condiciones', 'Condiciones particulares de la comunidad']
-                        ].map(([key, label, placeholder]) => <label key={key} className="text-[10.5px] font-bold text-emerald-100">{label}
-                          <input type="text" maxLength={120} value={activeProposalConditions(proposalConfig)[key]} placeholder={placeholder} onChange={e => setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), [key]: e.target.value } }))} className="mt-1 w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-normal placeholder-emerald-400/50" />
-                        </label>)}
-                        <label className="text-[10.5px] font-bold text-emerald-100">Fecha estimada de inicio
-                          <input type="date" value={activeProposalConditions(proposalConfig).startDate} onChange={e => setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), startDate: e.target.value } }))} className="mt-1 w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-normal" />
-                        </label>
+                          ['visitFrequency', 'Visitas presenciales', 'Ej.: 1 visita semanal o 1 cada 15 días', ['1 visita semanal', '2 visitas semanales', '3 visitas semanales', '1 visita cada 15 días', '1 visita mensual']],
+                          ['emergencyResponse', 'Atención de emergencias', 'Ej.: horario y canal acordados', ['Atención 24/7 por teléfono', 'Atención telefónica en horario hábil', 'Atención de emergencias según protocolo acordado']],
+                          ['includedServices', 'Servicios incluidos', 'Ej.: plataforma, rendiciones y mantenciones', ['Administración y rendición mensual', 'Administración, rendición y coordinación de mantenciones', 'Administración, rendición y plataforma digital']],
+                          ['additionalServices', 'Servicios adicionales', 'Ej.: servicios con costo adicional', ['Servicios adicionales según presupuesto aprobado', 'Asambleas extraordinarias con costo adicional', 'Sin servicios adicionales definidos']],
+                          ['meetingFrequency', 'Asambleas y reuniones', 'Ej.: cantidad incluida y condiciones', ['1 reunión mensual con el comité', '1 reunión trimestral con el comité', 'Reuniones y asambleas según acuerdo']],
+                          ['transitionConditions', 'Condiciones de inicio o transición', 'Ej.: duración y honorario de transición', ['Transición según acuerdo con el comité', 'Sin período de transición especial', 'Condiciones de transición sujetas a revisión']],
+                          ['contractDuration', 'Duración y renovación del contrato', 'Ej.: 12 meses, renovación por acuerdo', ['12 meses, renovación por acuerdo', '6 meses, renovación por acuerdo', 'Duración y renovación según contrato']],
+                          ['noticePeriod', 'Aviso de término propuesto', 'Ej.: plazo y forma de aviso', ['Aviso por escrito con 30 días de anticipación', 'Aviso por escrito con 60 días de anticipación', 'Plazo de aviso según contrato']],
+                          ['otherConditions', 'Otras condiciones', 'Condiciones particulares de la comunidad', ['Sin condiciones particulares adicionales', 'Condiciones adicionales sujetas a acuerdo', 'Según reglamento y contrato aplicable']]
+                        ].map(([key, label, placeholder, suggestions]) => <div key={key} className="text-[10.5px] font-bold text-emerald-100">
+                          <label htmlFor={`proposal-condition-${key}`}>{label}</label>
+                          <select aria-label={`Sugerencias de ${label}`} value="" onChange={e => { const value = e.target.value; if (value) setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), [key]: value } })); }} className="mt-1 w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-emerald-100 font-normal">
+                            <option value="">Elegir una propuesta rápida…</option>
+                            {suggestions.map(suggestion => <option key={suggestion} value={suggestion}>{suggestion}</option>)}
+                          </select>
+                          <input id={`proposal-condition-${key}`} type="text" maxLength={120} value={activeProposalConditions(proposalConfig)[key]} placeholder={placeholder} onChange={e => { const value = e.target.value; setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), [key]: value } })); }} className="mt-1 w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-normal placeholder-emerald-400/50" />
+                        </div>)}
+                        <div className="text-[10.5px] font-bold text-emerald-100"><label htmlFor="proposal-condition-startDate">Fecha estimada de inicio</label>
+                          <select aria-label="Sugerencias de fecha estimada de inicio" value="" onChange={e => { const days = e.target.value; if (days !== '') setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), startDate: localDayAfter(Number(days)) } })); }} className="mt-1 w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-emerald-100 font-normal"><option value="">Elegir una propuesta rápida…</option><option value="0">Hoy</option><option value="15">En 15 días</option><option value="30">En 30 días</option></select>
+                          <input id="proposal-condition-startDate" type="date" value={activeProposalConditions(proposalConfig).startDate} onChange={e => { const value = e.target.value; setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), startDate: value } })); }} className="mt-1 w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-normal" />
+                        </div>
                       </div>
                     </details>
                   </div>
