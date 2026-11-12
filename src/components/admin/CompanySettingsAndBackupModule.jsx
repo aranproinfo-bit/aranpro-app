@@ -17,6 +17,7 @@ import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
 import { generateStepPdfAttachment } from '../../utils/proposalPdfGenerator';
+import { paginateComparison } from '../../utils/comparisonPagination';
 import { paginateInspection } from '../../utils/inspectionPagination';
 import { activeProposalConditions, changeProposalCommunity, emptyProposalConditions, loadProposalOpportunity, saveProposalOpportunity } from '../../utils/proposalConditions';
 import {
@@ -2428,8 +2429,22 @@ export const CompanySettingsAndBackupModule = ({
     const filename = `ARANPRO_Matriz_Comparativa_Gestion_${targetClean}_${dateClean}`;
     printDocumentDirectly('printable-comparison-matrix', filename, {
       pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm'
+      fitPage: false,
+      margin: '0',
+      extraStyles: `${canonicalPdfHeaderStyles}
+        @page { size: letter portrait; margin: 0 !important; }
+        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
+        .transition-final-footer { gap: 8px !important; }
+        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
+        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
+        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
+        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
+        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
+        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
+        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
     });
   };
 
@@ -8986,100 +9001,15 @@ export const CompanySettingsAndBackupModule = ({
 
             {/* CONTENEDOR DE LA MATRIZ IMPRIMIBLE */}
             <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl">
-              <div
-                id="printable-comparison-matrix"
-                data-pdf-style={pdfStyle}
-                className="dossier-page page-1 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                {/* SECCIÓN SUPERIOR */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                    <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-11 w-auto" />
-                      <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <span className="text-[9.5px] font-black text-[#D4B895] uppercase tracking-widest block">
-                          ANÁLISIS COMPARATIVO DE VALOR AGREGADO
-                        </span>
-                        <h2 className="text-base font-black text-[#0F3D2E] uppercase tracking-tight">
-                          ¿Por qué elegir la Gestión Integral de ARANPRO?
-                        </h2>
-                        <p className="text-[9.5px] text-slate-600 font-mono">
-                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded">
-                        ESTÁNDAR LEY 21.442
-                      </span>
-                      <p className="text-[9.5px] text-slate-500 font-semibold">
-                        {proposalConfig.targetCondo || 'Comunidad de Copropietarios'}
-                      </p>
-                    </div>
+              <div id="printable-comparison-matrix" data-pdf-style={pdfStyle}>
+                {paginateComparison(activeComparisonRows).map((cards, pageIndex, pages) => <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
+                  <div className="space-y-2.5">
+                    <CanonicalPdfHeader badge="MATRIZ COMPARATIVA" description="Comparación de gestión" page={pageIndex + 1} community={proposalConfig.targetCondo?.trim() || 'Comunidad de Copropietarios'} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
+                    <div className="text-center"><h2 className="text-sm font-black text-[#0F3D2E]">¿Por qué elegir la Gestión Integral de ARANPRO?</h2><p className="text-[9px] text-slate-500">Análisis comparativo de valor agregado</p></div>
+                    <div className="space-y-1.5">{cards.map((row, i) => <div key={row.id + '-' + i} className="p-2 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs break-inside-avoid"><span className="font-black text-slate-900 text-[10.5px] block">{row.number}. {row.title}{row.continuation ? ' (continuación)' : ''}</span><div className="grid grid-cols-2 gap-2 text-[10px]"><div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-slate-700"><strong className="text-rose-800 block text-[9px] uppercase">Administración tradicional</strong><p className="mt-0.5 leading-snug" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{row.trad}</p></div><div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-slate-800"><strong className="text-[#0F3D2E] block text-[9px] uppercase">Con {empresaForm.brandName || 'ARANPRO'}</strong><p className="mt-0.5 leading-snug font-medium" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{row.propuesta}</p></div></div></div>)}</div>
                   </div>
-
-                  <div className="space-y-1.5">
-                    {activeComparisonRows.map((row, i) => (
-                      <div key={row.id || i} className="p-2 rounded-xl border border-slate-200 bg-slate-50 space-y-1 text-xs">
-                        <span className="font-black text-slate-900 text-[10.5px] block">{i + 1}. {row.title}</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
-                          <div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-slate-700">
-                            <strong className="text-rose-800 block text-[9px] uppercase">✕ Administración Tradicional:</strong>
-                            <p className="mt-0.5 leading-snug">{row.trad}</p>
-                          </div>
-                          <div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-slate-800">
-                            <strong className="text-[#0F3D2E] block text-[9px] uppercase">✓ Con {empresaForm.brandName || 'ARANPRO'}:</strong>
-                            <p className="mt-0.5 leading-snug font-medium">{row.propuesta || row.aran}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* SECCIÓN INFERIOR ANCLADA AL PIE */}
-                <div className="mt-auto pt-2 space-y-2">
-                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between text-xs">
-                    <div className="flex items-center gap-3">
-                      <AranproOfficialSeal
-                        size="sm"
-                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                        rnacNumber=""
-                        showCaption={true}
-                      />
-                      <div className="text-[9.5px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
-                        <p><strong>Fono:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone || '+56 9 5811 8504'}</span></p>
-                        <p><strong>Correo:</strong> <span className="font-mono">{empresaForm.email || 'contacto@aranpro.cl'}</span></p>
-                      </div>
-                    </div>
-
-                    <div className="text-center min-w-[240px]">
-                      <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
-                        {(signatureImage || companySettings?.signatureDataUrl) && (
-                          <img
-                            src={signatureImage || companySettings?.signatureDataUrl}
-                            alt="Firma"
-                            className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
-                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                          />
-                        )}
-                      </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-1">
-                        <span className="text-[11px] font-black text-slate-900 block leading-tight">{empresaForm.adminName}</span>
-                        <span className="text-[9px] text-[#0F3D2E] font-bold block leading-tight">Constructor Civil • Administrador de Condominios</span>
-                        <span className="text-[9px] text-slate-600 font-mono block">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pie de Página Canónico Maestro */}
-                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                    <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Matriz Comparativa de Gestión • Estándar Ley N° 21.442 (Pág. 1 de 1)</div>
-                    <div>{empresaForm.city || 'La Serena, Chile'}</div>
-                  </div>
-                </div>
+                  <div className="mt-auto pt-1.5 space-y-1">{pageIndex < pages.length - 1 ? <div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: comparación de gestión.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página {pageIndex + 2} →</span></div> : <CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} />}<CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Matriz comparativa" page={pageIndex + 1} totalPages={pages.length} city={empresaForm.city || 'La Serena, Chile'} /></div>
+                </div>)}
               </div>
             </div>
           </div>
