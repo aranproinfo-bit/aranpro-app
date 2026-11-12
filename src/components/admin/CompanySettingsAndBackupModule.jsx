@@ -2287,7 +2287,8 @@ export const CompanySettingsAndBackupModule = ({
     printDocumentDirectly('printable-commercial-proposal', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm'
+      margin: '4mm 6mm 4mm 6mm',
+      extraStyles: `${canonicalPdfHeaderStyles} .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }`
     });
   };
 
@@ -6498,34 +6499,14 @@ export const CompanySettingsAndBackupModule = ({
                 {/* SECCIÓN SUPERIOR: MEMBRETE, PROTOCOLO, TÍTULO, CUERPO, FORTALEZAS Y PROPUESTA ECONÓMICA */}
                 <div className="space-y-2.5">
                   {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
-                    <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-12 w-auto" />
-                      <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <div className="text-[13px] font-black tracking-tight text-[#0F3D2E] uppercase">
-                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
-                        </div>
-                        <p className="text-[10.5px] text-slate-600 font-mono font-semibold">
-                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
-                        </p>
-                        <p className="text-[10px] text-slate-500">
-                          {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'La Serena, Chile'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] text-[10px] font-mono font-bold rounded-md border border-[#D4B895]">
-                        PROPUESTA LICITACIÓN {new Date().getFullYear()}
-                      </span>
-                      <p className="text-[11.5px] font-bold text-slate-800">
-                        Carta Formal de Postulación
-                      </p>
-                      <p className="text-[10.5px] text-slate-500 font-semibold">
-                        {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
-                      </p>
-                    </div>
-                  </div>
+                  <CanonicalPdfHeader
+                    badge={`PROPUESTA LICITACIÓN ${new Date().getFullYear()}`}
+                    description="Carta Formal de Postulación"
+                    community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
+                    brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
+                    legalText={`${empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}${empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}`}
+                    email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'}
+                  />
 
                   {/* Encabezado Formal Protocolar */}
                   <div className="text-[11.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">

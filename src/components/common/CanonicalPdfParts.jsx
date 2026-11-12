@@ -8,7 +8,7 @@ export const canonicalPdfHeaderStyles = `
   .transition-header .transition-header-brand { flex: 1 1 auto; min-width: 0; }
   .transition-header .transition-header-contact { font-size: 6pt !important; }
   .transition-header .transition-header-right { width: 44mm; flex: 0 0 44mm; font-size: 6.2pt !important; }
-  .transition-header .transition-header-right strong { display: table !important; width: auto !important; margin-left: auto !important; text-align: center !important; font-size: 6.3pt !important; padding: 1mm 3mm !important; }
+  .transition-header .transition-header-right strong { display: table !important; width: auto !important; margin-left: auto !important; text-align: center !important; font-size: 6.3pt !important; padding: 1mm 3mm !important; white-space: nowrap !important; }
 `;
 
 /** Cabecera institucional común; cada documento aporta su título y datos reales. */
