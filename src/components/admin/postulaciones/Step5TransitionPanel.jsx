@@ -27,6 +27,7 @@ export const Step5TransitionPanel = ({
   getStepMessages = () => ({}),
   handleCopyStepMessage = () => {}
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState('carta'); // 'carta' | 'checklist' | 'acta' | 'guias'
   const [actaOrContract, setActaOrContract] = useState('acta'); // 'acta' | 'contrato'
   const [expandedMsg, setExpandedMsg] = useState(false);
@@ -185,11 +186,11 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
   };
 
   return (
-    <div className="bg-white p-5 md:p-6 rounded-3xl border-2 border-emerald-700/30 shadow-xs hover:border-emerald-700/60 transition-all space-y-4">
+    <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-teal-50/70 border border-teal-200 hover:border-teal-300 transition-all space-y-4">
       {/* 1. ENCABEZADO UNIFICADO CON LOS PASOS 1, 2, 3 Y 4 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+        <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => setIsOpen(!isOpen)}>
+          <div className="w-10 h-10 rounded-2xl bg-teal-200 text-teal-900 flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
             5
           </div>
           <div>
@@ -215,7 +216,9 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         </div>
       </div>
 
-      <p className="text-xs text-slate-600 leading-relaxed">
+      {isOpen && (
+        <>
+        <p className="text-xs text-slate-600 leading-relaxed">
         <strong>Cuándo usarlo:</strong> Una vez acordado el término de la administración, entrega al Comité este kit para <strong>notificar al administrador saliente con el plazo de aviso pactado</strong>, auditar la entrega de antecedentes con la <strong>Pauta de Traspaso de 3 páginas</strong> y formalizar el <strong>Acta de Nombramiento</strong>.
       </p>
 
@@ -338,14 +341,24 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   Redactada conforme a la Ley N° 21.442 (Art. 20) para firma del Comité de Administración.
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={handlePrintTerminationNotice}
-                className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-              >
-                <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
-                <span>Imprimir / Descargar PDF (1 Pág)</span>
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setPreviewStep5Modal('carta')}
+                  className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                  <span>Ver / Descargar PDF</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrintTerminationNotice}
+                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                  <span>Imprimir Carta</span>
+                </button>
+              </div>
             </div>
 
             {/* VISTA PREVIA ORIGINAL DE LA CARTA */}
@@ -429,14 +442,24 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   Pauta en siete bloques; las selecciones y observaciones se incluyen en el PDF.
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={handlePrintTransitionChecklist}
-                className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-              >
-                <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
-                <span>Imprimir Checklist (3 Págs)</span>
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setPreviewStep5Modal('checklist')}
+                  className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                  <span>Ver Checklist (3 Págs)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrintTransitionChecklist}
+                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                  <span>Imprimir Checklist</span>
+                </button>
+              </div>
             </div>
 
             <TransitionChecklistScreen status={transitionStatus} setStatus={setTransitionStatus} notes={transitionNotes} setNotes={setTransitionNotes} />
@@ -646,14 +669,22 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="flex justify-end">
+                <div className="flex justify-end items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewStep5Modal('contrato')}
+                    className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                    <span>Ver Contrato (2 Págs)</span>
+                  </button>
                   <button
                     type="button"
                     onClick={handlePrintContract}
-                    className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                   >
-                    <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
-                    <span>Imprimir Contrato (2 Págs)</span>
+                    <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                    <span>Imprimir Contrato</span>
                   </button>
                 </div>
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 space-y-2 leading-relaxed">
@@ -676,14 +707,24 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   Cuadros comparativos oficiales listos para consulta o impresión horizontal en 1 sola página.
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={handlePrintLegalGuides}
-                className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-              >
-                <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
-                <span>Imprimir Ficha Quórums (Horizontal)</span>
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setPreviewStep5Modal('guias')}
+                  className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
+                  <span>Ver Ficha Quórums</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrintLegalGuides}
+                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                  <span>Imprimir Ficha (Horizontal)</span>
+                </button>
+              </div>
             </div>
 
             {/* TABLA ORIGINAL DE QUÓRUMS */}
@@ -1064,6 +1105,8 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         </div>
       )}
 
+      </>
+      )}
       {/* ========================================================================= */}
       {/* SECCIÓN OCULTA: ELEMENTOS CANÓNICOS IMPRIMIBLES CON CONTENIDO ORIGINAL REPARADO */}
       {/* ========================================================================= */}

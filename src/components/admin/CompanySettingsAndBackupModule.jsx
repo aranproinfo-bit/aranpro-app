@@ -565,6 +565,8 @@ export const CompanySettingsAndBackupModule = ({
   const postulacionSection = externalPostulacionSection || internalPostulacionSection;
   const setPostulacionSection = externalSetPostulacionSection || setInternalPostulacionSection;
   const [expandedStepMsg, setExpandedStepMsg] = useState(null);
+  const [openSteps, setOpenSteps] = useState({ 1: true, 2: false, 3: false, 4: false });
+  const toggleStep = (n) => setOpenSteps(prev => ({ ...prev, [n]: !prev[n] }));
   const [activeHerramientaTab, setActiveHerramientaTab] = useState('calculadora');
 
   // Sistemas no inspeccionados por defecto para la Nota de Alcance de 30 Días
@@ -3828,10 +3830,10 @@ export const CompanySettingsAndBackupModule = ({
                   {/* 2. LOS 4 PASOS ESTRATÉGICOS DEL EMBUDO COMERCIAL */}
                   <div className="space-y-4">
                     {/* ========== PASO 1: PRIMER CONTACTO / CARTA DE VALOR ========== */}
-                    <div className="bg-white p-5 md:p-6 rounded-3xl border-2 border-emerald-700/30 shadow-xs hover:border-emerald-700/60 transition-all space-y-4">
+                    <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-emerald-50/70 border border-emerald-200 hover:border-emerald-300 transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+                        <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => toggleStep(1)}>
+                          <div className="w-10 h-10 rounded-2xl bg-emerald-200 text-emerald-900 flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
                             1
                           </div>
                           <div>
@@ -3847,6 +3849,7 @@ export const CompanySettingsAndBackupModule = ({
                               Paso 1: Carta de Valor al Comité & Visita Inicial
                             </h4>
                           </div>
+                          <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 mt-2 transition-transform ${openSteps[1] ? 'rotate-180' : ''}`} />
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
@@ -3855,6 +3858,8 @@ export const CompanySettingsAndBackupModule = ({
                           </span>
                         </div>
                       </div>
+                      {openSteps[1] && (
+                      <>
 
                       <p className="text-xs text-slate-600 leading-relaxed">
                         <strong>Cuándo usarlo:</strong> Para dejar en conserjería o enviar por WhatsApp/Correo al presidente o comité cuando aún no conoces la realidad del condominio. <strong>No incluye precios;</strong> presenta tu experiencia, la visita inicial y la plataforma digital para abrir la puerta a una reunión.
@@ -3936,6 +3941,8 @@ export const CompanySettingsAndBackupModule = ({
                           </pre>
                         </div>
                       )}
+                      </>
+                      )}
                     </div>
 
                     {/* BANNER INTERMEDIO DE TRANSICIÓN: TRAS LA PRIMERA REUNIÓN EN TERRENO */}
@@ -3967,10 +3974,10 @@ export const CompanySettingsAndBackupModule = ({
                     )}
 
                     {/* ========== PASO 2: CITA PRESENCIAL & VISITA TÉCNICA (DOSSIER INTEGRAL) ========== */}
-                    <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0F3D2E]/40 transition-all space-y-4">
+                    <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-amber-50/70 border border-amber-200 hover:border-amber-300 transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+                        <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => toggleStep(2)}>
+                          <div className="w-10 h-10 rounded-2xl bg-amber-200 text-amber-900 flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
                             2
                           </div>
                           <div>
@@ -3986,8 +3993,11 @@ export const CompanySettingsAndBackupModule = ({
                               Paso 2: Dossier Integral de Licitación & Visita de Diagnóstico
                             </h4>
                           </div>
+                          <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 mt-2 transition-transform ${openSteps[2] ? 'rotate-180' : ''}`} />
                         </div>
                       </div>
+                      {openSteps[2] && (
+                      <>
 
                       <p className="text-xs text-slate-600 leading-relaxed">
                         <strong>Cuándo usarlo:</strong> Lleva este Dossier en mano o carpeta corporativa a la cita con el Comité. Compila tu ficha de Constructor Civil, certificados de antecedentes, cédula de identidad, títulos y cartas de recomendación para respaldar tu postulación en terreno.
@@ -4162,13 +4172,15 @@ export const CompanySettingsAndBackupModule = ({
                           </pre>
                         </div>
                       )}
+                      </>
+                      )}
                     </div>
 
                     {/* ========== PASO 3: PROPUESTA FORMAL A MEDIDA & HONORARIOS ========== */}
-                    <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0F3D2E]/40 transition-all space-y-4">
+                    <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-sky-50/70 border border-sky-200 hover:border-sky-300 transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+                        <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => toggleStep(3)}>
+                          <div className="w-10 h-10 rounded-2xl bg-sky-200 text-sky-900 flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
                             3
                           </div>
                           <div>
@@ -4184,6 +4196,7 @@ export const CompanySettingsAndBackupModule = ({
                               Paso 3: Propuesta Formal & Diagnóstico Técnico en Terreno
                             </h4>
                           </div>
+                          <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 mt-2 transition-transform ${openSteps[3] ? 'rotate-180' : ''}`} />
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
@@ -4197,6 +4210,8 @@ export const CompanySettingsAndBackupModule = ({
                           </button>
                         </div>
                       </div>
+                      {openSteps[3] && (
+                      <>
 
                       {/* Aviso si aún no se ingresan datos */}
                       {proposalConfig.unknownDetails && (
@@ -4313,13 +4328,15 @@ export const CompanySettingsAndBackupModule = ({
                           </pre>
                         </div>
                       )}
+                      </>
+                      )}
                     </div>
 
                     {/* ========== PASO 4: CIERRE TECNOLÓGICO & DEMO EN VIVO CON QR ========== */}
-                    <div className="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-xs hover:border-[#0F3D2E]/40 transition-all space-y-4">
+                    <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-violet-50/70 border border-violet-200 hover:border-violet-300 transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-purple-700 text-white flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+                        <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => toggleStep(4)}>
+                          <div className="w-10 h-10 rounded-2xl bg-violet-200 text-violet-900 flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
                             4
                           </div>
                           <div>
@@ -4335,6 +4352,7 @@ export const CompanySettingsAndBackupModule = ({
                               Paso 4: Brochure de la Suite & Demostración de App en Vivo
                             </h4>
                           </div>
+                          <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 mt-2 transition-transform ${openSteps[4] ? 'rotate-180' : ''}`} />
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
@@ -4348,6 +4366,8 @@ export const CompanySettingsAndBackupModule = ({
                           </button>
                         </div>
                       </div>
+                      {openSteps[4] && (
+                      <>
 
                       <p className="text-xs text-slate-600 leading-relaxed">
                         <strong>Cuándo usarlo:</strong> El diferenciador decisivo frente a la competencia tradicional: entrega o proyecta el Brochure con código QR interactivo para que los integrantes del comité y copropietarios prueben la demo en vivo desde sus propios teléfonos móviles.
@@ -4441,6 +4461,8 @@ export const CompanySettingsAndBackupModule = ({
                             {getStepMessages(4).whatsapp}
                           </pre>
                         </div>
+                      )}
+                      </>
                       )}
                     </div>
 
