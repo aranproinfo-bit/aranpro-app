@@ -29,7 +29,7 @@ export const transitionChecklistPrintStyles = `
   .transition-header .transition-header-brand { flex: 1 1 auto; min-width: 0; }
   .transition-header .transition-header-contact { font-size: 6pt !important; }
   .transition-header .transition-header-right { width: 44mm; flex: 0 0 44mm; font-size: 6.2pt !important; }
-  .transition-header .transition-header-right strong { font-size: 6.3pt !important; padding: 1mm 2mm !important; }
+  .transition-header .transition-header-right strong { display: table !important; width: auto !important; margin-left: auto !important; text-align: center !important; font-size: 6.3pt !important; padding: 1mm 3mm !important; }
   .transition-title { margin-top: 4mm !important; margin-bottom: 4mm !important; }
   .transition-title h2 { font-family: Arial, sans-serif !important; font-size: 14pt !important; line-height: 16pt !important; font-weight: 700 !important; }
   .transition-title p { font-size: 8.5pt !important; line-height: 10pt !important; margin-top: 1mm !important; }
