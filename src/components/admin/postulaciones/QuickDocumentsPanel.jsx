@@ -11,6 +11,7 @@ import { openDataUrlInNewTab, downloadDataUrl } from '../../../utils/fileVault';
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { transitionChecklistPrintStyles } from './TransitionChecklist';
 import { activeProposalConditions, changeProposalCommunity } from '../../../utils/proposalConditions';
+import { canonicalPortraitPrintStyles, canonicalLandscapePrintStyles } from '../../common/CanonicalPdfParts';
 
 export const QuickDocumentsPanel = ({
   proposalConfig = {},
@@ -103,16 +104,18 @@ export const QuickDocumentsPanel = ({
     printDocumentDirectly('printable-management-contract', `ARANPRO_Contrato_Servicios_Administracion_${targetClean}`, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm'
+      margin: '0',
+      extraStyles: canonicalPortraitPrintStyles
     });
   };
 
   const handlePrintLegalGuides = () => {
     const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
     printDocumentDirectly('printable-legal-advisory-sheet', `ARANPRO_Guias_Legales_Asambleas_y_Quorums_${targetClean}`, {
-      pageSize: 'letter portrait',
+      pageSize: 'letter landscape',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm'
+      margin: '0',
+      extraStyles: canonicalLandscapePrintStyles
     });
   };
 

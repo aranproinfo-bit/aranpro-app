@@ -11,7 +11,8 @@ Alcance actual: solo los documentos del panel **Mi Empresa**. La pauta de traspa
 - Estudio de honorarios: cabecera y pie canónicos; comprobado con configuraciones habituales y equipamiento adicional.
 - Guía de presentación: cabecera y pies canónicos, guion y respuestas distribuidos en cinco páginas; comprobada con dos perfiles.
 - Ficha de acreditación sin archivo de respaldo: formato canónico, indicación explícita de que no hay respaldo adjunto y descarga desde el visor o desde la lista. Los archivos de respaldo originales se descargan sin modificar.
-- Pendiente: documentos restantes del Paso 5. Comprobar que los listados variables no se recorten al imprimir.
+- Contrato y ficha de asambleas del Paso 5: formato canónico aplicado y probado desde el panel y la bandeja; la revisión de contenido, referencias legales y configuración completa sigue pendiente. La notificación al saliente conserva su diseño sin logo.
+- Portada del kit del Paso 5: formato canónico aplicado. El generador existente emite únicamente la portada; completar y revisar el contenido del kit sigue pendiente para la revisión integral del Paso 5.
 - Nómina de imposiciones de oficina: formato canónico horizontal y paginación; verificados trabajadores y montos contra pantalla con datos ficticios. Revisar cualquier otra salida generada desde Mi Empresa.
 
 ## Fuera del alcance actual: documentos de comunidades

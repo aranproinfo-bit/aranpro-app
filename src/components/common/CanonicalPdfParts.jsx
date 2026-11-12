@@ -11,6 +11,18 @@ export const canonicalPdfHeaderStyles = `
   .transition-header .transition-header-right strong { display: table !important; width: auto !important; margin-left: auto !important; text-align: center !important; font-size: 6.3pt !important; padding: 1mm 3mm !important; white-space: nowrap !important; }
 `;
 
+export const canonicalPortraitPrintStyles = `${canonicalPdfHeaderStyles}
+  @page { size: letter portrait; margin: 0 !important; }
+  .dossier-page { height:279.4mm!important; min-height:279.4mm!important; max-height:279.4mm!important; padding:8mm 16mm 8mm 17mm!important; border-left:3.3mm solid #0F3D2E!important; background-image:linear-gradient(#D4B895,#D4B895)!important; background-size:1.2mm 100%!important; background-position:.5mm 0!important; background-repeat:no-repeat!important; }
+  .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display:none!important; }
+  .transition-header img[src*="ARANPRO_logo_horizontal"] { width:37mm!important; max-width:37mm!important; height:auto!important; max-height:11mm!important; object-fit:contain!important; }
+  .transition-final-footer { gap:8px!important; } .transition-footer-details { gap:8px!important; flex:1 1 auto; min-width:0; } .transition-footer-seal { flex:0 0 auto; gap:6px!important; } .transition-footer-seal > div { white-space:nowrap; } .transition-footer-seal > div > div:first-child { font-size:8px!important; letter-spacing:0!important; } .transition-footer-seal > div > div:last-child { font-size:7.5px!important; } .transition-footer-contact { flex:0 0 auto; white-space:nowrap; font-size:8px!important; padding-left:8px!important; } .transition-footer-signature { flex:0 0 210px; min-width:0!important; }
+`;
+
+export const canonicalLandscapePrintStyles = canonicalPortraitPrintStyles
+  .replace('letter portrait', 'letter landscape')
+  .replaceAll('279.4mm', '215.9mm');
+
 /** Cabecera institucional común; cada documento aporta su título y datos reales. */
 export function CanonicalPdfHeader({ badge, description, community, page, email, phone, city, legalText = 'Ley N° 21.442 de Copropiedad Inmobiliaria', brandName = 'ARANPRO • GESTIÓN INTEGRAL' }) {
   return <div className="transition-header flex items-center justify-between gap-3 border-b-2 border-[#0F3D2E] pb-2">

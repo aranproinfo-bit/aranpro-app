@@ -11,6 +11,7 @@ import { formatCLP } from '../../../utils/formatters';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
 import { TransitionChecklistPrint, TransitionChecklistScreen, transitionChecklistPrintStyles } from './TransitionChecklist';
 import { activeProposalConditions } from '../../../utils/proposalConditions';
+import { CanonicalPdfHeader, CanonicalPdfPageFooter, CanonicalPdfFinalSignature, canonicalPortraitPrintStyles, canonicalLandscapePrintStyles } from '../../common/CanonicalPdfParts';
 
 export const Step5TransitionPanel = ({
   proposalConfig = {},
@@ -117,7 +118,8 @@ export const Step5TransitionPanel = ({
     printDocumentDirectly('printable-management-contract', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm',
+      margin: '0',
+      extraStyles: canonicalPortraitPrintStyles,
       pdfStyle
     });
   };
@@ -126,8 +128,9 @@ export const Step5TransitionPanel = ({
     const filename = `ARANPRO_Guias_Legales_Asambleas_y_Quorums_Ley21442_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
     printDocumentDirectly('printable-legal-advisory-sheet', filename, {
       pageSize: 'letter landscape',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm',
+      fitPage: false,
+      margin: '0',
+      extraStyles: canonicalLandscapePrintStyles,
       pdfStyle
     });
   };
@@ -137,7 +140,8 @@ export const Step5TransitionPanel = ({
     printDocumentDirectly('printable-transition-package', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm',
+      margin: '0',
+      extraStyles: canonicalPortraitPrintStyles,
       pdfStyle
     });
   };
@@ -1154,20 +1158,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
             </div>
 
             <div className="space-y-2 relative z-10">
-              <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-1.5">
-                <div>
-                  <span className="font-black text-[#0F3D2E] text-xs uppercase tracking-tight block">
-                    ARANPRO GESTIÓN INTEGRAL • ASESORÍA LEGAL PARA COMITÉS
-                  </span>
-                  <span className="text-[9.5px] text-slate-600 block">
-                    Diferencias Prácticas y Quórums según Ley N° 21.442 y DS N° 7 MINVU (09.01.2025)
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="font-black text-slate-900 text-xs block">{condo.toUpperCase()}</span>
-                  <span className="text-[9px] text-slate-500 font-mono block">{city}, Región de Coquimbo</span>
-                </div>
-              </div>
+              <CanonicalPdfHeader badge="GUÍA PARA COMITÉS" description="Asambleas y quórums" page={1} community={condo} email={email} phone={phone} city={city} />
 
               {/* TABLA EXACTA DEL PDF ORIGINAL */}
               <div className="border border-slate-300 rounded-xl overflow-hidden">
@@ -1223,11 +1214,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </div>
             </div>
 
-            <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
-              <div>{adminName} • Constructor Civil • Administrador RNAC MINVU</div>
-              <div className="font-bold text-[#0F3D2E]">Cuadro Oficial de Quórums y Asambleas • Ley N° 21.442</div>
-              <div>{email}</div>
-            </div>
+            <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} /><CanonicalPdfPageFooter website={website} label="Asambleas y quórums" page={1} totalPages={1} city={city} /></div>
           </div>
         </div>
 
@@ -1246,6 +1233,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
             </div>
 
             <div className="space-y-3 relative z-10">
+              <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={1} community={condo} email={email} phone={phone} city={city} />
               <div className="text-center space-y-0.5 border-b-2 border-[#0F3D2E] pb-2">
                 <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block">REPÚBLICA DE CHILE • LEY N° 21.442</span>
                 <h4 className="text-sm font-black text-slate-900 uppercase">
@@ -1267,11 +1255,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
-              <div>ARANPRO Gestión Integral • {website}</div>
-              <div className="font-bold text-[#0F3D2E]">Contrato de Servicios de Administración • {condo} (Pág. 1 de 2)</div>
-              <div>{city}, Chile</div>
-            </div>
+            <div className="mt-auto space-y-1 relative z-10"><div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: vigencia y firma del contrato.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página 2 →</span></div><CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={1} totalPages={2} city={city} /></div>
           </div>
 
           {/* PÁGINA 2 */}
@@ -1287,6 +1271,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
             </div>
 
             <div className="space-y-3 relative z-10">
+              <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={2} community={condo} email={email} phone={phone} city={city} />
               <div className="space-y-2 text-[10px] leading-relaxed text-slate-800 text-justify">
                 <p><strong>SEXTO (VIGENCIA):</strong> Duración y renovación: {terms.contractDuration || 'por definir'}.</p>
                 <p><strong>SÉPTIMO (TÉRMINO ANTICIPADO):</strong> Aviso y condiciones de término: {terms.noticePeriod || 'por definir'}.</p>
@@ -1326,23 +1311,18 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 </div>
               </div>
 
-              <div className="pt-2 mt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
-                <div>ARANPRO Gestión Integral • {website}</div>
-                <div className="font-bold text-[#0F3D2E]">Contrato de Servicios de Administración • {condo} (Pág. 2 de 2)</div>
-                <div>{city}, Chile</div>
-              </div>
+              <div className="pt-2 mt-3 border-t border-slate-200 flex items-center gap-3"><AranproOfficialSeal size="sm" companyRut={empresaForm.companyRut || ''} rnacNumber="" showCaption={true} /><div className="border-l border-slate-200 pl-3 text-[9px] text-slate-600"><p><strong>Contacto Directo:</strong> {phone}</p><p><strong>Correo:</strong> {email}</p><p><strong>Sitio Web:</strong> {website}</p></div></div><CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={2} totalPages={2} city={city} />
             </div>
           </div>
         </div>
 
         {/* 5. PRINTABLE FULL PACKAGE */}
-        <div id="printable-transition-package" data-pdf-style={pdfStyle} className="space-y-4">
-          <div className="p-8 bg-white text-slate-900 text-xs space-y-4 max-w-[800px]">
-            <div className="p-6 bg-[#0F3D2E] text-white rounded-2xl text-center space-y-2">
-              <span className="text-[10px] font-mono text-[#D4B895] uppercase tracking-widest block">ARANPRO GESTIÓN INTEGRAL</span>
-              <h3 className="text-lg font-black text-white">Kit Oficial de Transición y Traspaso de Administración</h3>
-              <p className="text-xs text-emerald-100">{condo} • {city}, {noticeDate}</p>
+        <div id="printable-transition-package" data-pdf-style={pdfStyle}>
+          <div className="dossier-page bg-white text-slate-900 text-xs flex flex-col justify-between max-w-[850px] mx-auto">
+            <div className="space-y-4"><CanonicalPdfHeader badge="KIT DE TRANSICIÓN" description="Traspaso de administración" page={1} community={condo} email={email} phone={phone} city={city} />
+              <div className="p-6 bg-[#0F3D2E] text-white rounded-2xl text-center space-y-2"><h3 className="text-lg font-black text-white">Kit Oficial de Transición y Traspaso de Administración</h3><p className="text-xs text-emerald-100">{condo} • {city}, {noticeDate}</p></div>
             </div>
+            <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} /><CanonicalPdfPageFooter website={website} label="Kit de transición" page={1} totalPages={1} city={city} /></div>
           </div>
         </div>
 
