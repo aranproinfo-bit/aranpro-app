@@ -1,14 +1,17 @@
 # Seguimiento de actualización del formato PDF
 
-La pauta de traspaso es la referencia visual. La carta de notificación al administrador saliente debe permanecer sin logo. La revisión completa de contenido y configuración del Paso 5 se retoma después de actualizar los PDF.
+Alcance actual: solo los documentos del panel **Mi Empresa**. La pauta de traspaso es la referencia visual. La carta de notificación al administrador saliente debe permanecer sin logo. La revisión completa de contenido y configuración del Paso 5 se retoma después de actualizar estos PDF.
 
 ## Postulaciones
 
 - Carta de valor, propuesta y diagnóstico de tres páginas, brochure, pauta de traspaso y dossier integral: incorporan el diseño canónico; continuar verificando casos con datos largos y entradas opcionales.
 - Adjuntos por correo de los pasos 1 a 4: se adaptaron las medidas de impresión y se generaron muestras de las cuatro salidas. Verificar también con una firma cargada por el administrador.
 - Pendiente: informe de diagnóstico independiente, matriz comparativa independiente, estudio de honorarios, guía de pitch, certificado de diploma y documentos restantes del Paso 5. Comprobar que los listados variables no se recorten al imprimir.
+- Revisar la nómina de imposiciones de oficina y cualquier otra salida generada desde Mi Empresa, identificando cuándo corresponda un formato distinto por su propósito.
 
-## Otros módulos pendientes de adaptar y verificar
+## Fuera del alcance actual: documentos de comunidades
+
+Se definirá posteriormente una línea visual relacionada, pero diferenciada de la de postulación. No aplicarles automáticamente la plantilla de Mi Empresa.
 
 - Asambleas: citaciones, actas, borradores, folleto de votación y poder simple.
 - Gastos y cobranzas: comprobantes, rendiciones, cartas, bitácoras, presupuesto, informe al comité, estado de cuenta y registro oficial.
