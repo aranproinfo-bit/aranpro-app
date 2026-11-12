@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector } from '../../common/MauranLogo';
 import { printDocumentDirectly } from '../../../utils/printDocument';
+import { CanonicalPdfHeader, CanonicalPdfPageFooter, CanonicalPdfFinalSignature, canonicalPdfHeaderStyles } from '../../common/CanonicalPdfParts';
 import { activeProposalConditions } from '../../../utils/proposalConditions';
 
 /**
@@ -317,8 +318,22 @@ export const PitchMasterPanel = ({
 
     printDocumentDirectly('printable-pitch-guide', filename, {
       pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm'
+      fitPage: false,
+      margin: '0',
+      extraStyles: `${canonicalPdfHeaderStyles}
+        @page { size: letter portrait; margin: 0 !important; }
+        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
+        .transition-final-footer { gap: 8px !important; }
+        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
+        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
+        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
+        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
+        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
+        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
+        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
     });
   };
 
@@ -806,209 +821,12 @@ export const PitchMasterPanel = ({
 
           {/* CONTENEDOR DEL DOCUMENTO IMPRIMIBLE (2 PÁGINAS) */}
           <div className={previewPitchPdfModal ? "overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl" : "w-[850px]"}>
-            <div
-              id="printable-pitch-guide"
-              data-pdf-style={pdfStyle}
-              className="space-y-6"
-            >
-              {/* ==================== PÁGINA 1: HOJA DE RUTA DEL PITCH ==================== */}
-              <div
-                className="dossier-page page-1 bg-white p-7 md:p-9 pl-10 md:pl-12 min-h-[1050px] flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                <div className="space-y-3.5">
-                  {/* Membrete Maestro */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3">
-                    <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-11 w-auto" />
-                      <div>
-                        <span className="text-[14px] font-black tracking-wider text-[#0F3D2E] block uppercase">
-                          ARANPRO GESTIÓN INMOBILIARIA
-                        </span>
-                        <span className="text-[9px] font-mono text-slate-500 block">
-                          Ingeniería, Construcción & Administración Profesional • Ley N° 21.442
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right font-mono text-[9px] text-slate-500">
-                      <span className="font-bold text-[#0F3D2E] block text-[10.5px]">GUÍA MAESTRA DEL EXPOSITOR</span>
-                      <span>Pitch Ejecutivo (10 Minutos)</span>
-                    </div>
-                  </div>
-
-                  {/* Ficha Técnica de la Presentación */}
-                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-[10px]">
-                    <div>
-                      <span className="text-slate-400 block font-mono">COMUNIDAD DESTINATARIA:</span>
-                      <strong className="text-xs text-slate-900">{targetCondo || 'Comunidad Los Laureles'}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block font-mono">TIPOLOGÍA ARQUITECTÓNICA:</span>
-                      <strong className="text-slate-800 uppercase">
-                        {condoType === 'vertical' ? 'Torre / Edificio en Altura' : condoType === 'horizontal' ? 'Condominio Horizontal / Casas' : 'Condominio Mixto / Comercial'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block font-mono">PERFIL ESTRATÉGICO:</span>
-                      <strong className="text-[#0F3D2E] uppercase">
-                        {strategyProfile === 'tecnico' ? 'Constructor Civil • Auditoría In Situ' : strategyProfile === 'financiero' ? 'Transparencia Bancaria 24/7' : 'Regularización Ley 21.442'}
-                      </strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block font-mono">EXPOSITOR TITULAR:</span>
-                      <strong className="text-slate-900">{adminName}</strong>
-                    </div>
-                  </div>
-
-                  {/* Titular */}
-                  <div className="space-y-1">
-                    <h3 className="text-base font-black text-[#0F3D2E] uppercase tracking-tight">
-                      Hoja de Ruta del Pitch de 10 Minutos (Estructura de Cierre)
-                    </h3>
-                    <p className="text-[10px] text-slate-600 leading-snug">
-                      Guion cronometrado para reuniones de licitación ante Comités de Administración o Asambleas. Diseñado para conectar con el dolor del cliente, demostrar solvencia técnica y cerrar el traspaso seguro.
-                    </p>
-                  </div>
-
-                  {/* Tabla de los 4 Bloques */}
-                  <div className="space-y-2.5">
-                    {pitchSteps.map((s) => (
-                      <div key={s.num} className="p-3 rounded-xl border border-slate-200 bg-white space-y-1.5 shadow-2xs">
-                        <div className="flex items-center justify-between text-[10px]">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded-md bg-[#0F3D2E] text-[#D4B895] font-black font-mono">
-                              {s.time}
-                            </span>
-                            <span className="font-black text-slate-900 text-[11px]">
-                              {s.title}
-                            </span>
-                          </div>
-                          <span className="text-slate-400 font-mono text-[9px]">{s.docRef}</span>
-                        </div>
-                        <p className="text-[10px] text-slate-600 leading-relaxed">
-                          <strong className="text-slate-800">Objetivo:</strong> {s.what}
-                        </p>
-                        <blockquote className="text-[10.5px] italic text-slate-800 bg-slate-50 p-2 rounded-lg border-l-2 border-[#0F3D2E] leading-relaxed">
-                          {s.phrase}
-                        </blockquote>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Regla de Oro */}
-                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-[9.5px] leading-snug">
-                    <strong className="text-amber-900 block font-black mb-0.5">
-                      ★ REGLA DE ORO DE LA PRESENTACIÓN:
-                    </strong>
-                    Escuchar el 60% del tiempo y hablar el 40%. Jamás atacar personalmente al administrador saliente: atacar los métodos obsoletos (planillas manuales, falta de visitas técnicas) y ofrecer la solución técnica definitiva de Constructor Civil.
-                  </div>
-                </div>
-
-                {/* Pie de Página Página 1 */}
-                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
-                  <div>ARANPRO Gestión Inmobiliaria • {website}</div>
-                  <div className="font-bold text-[#0F3D2E]">Libreto de Pitch Ejecutivo • Ley N° 21.442 (Pág. 1 de 2)</div>
-                  <div>{empresaForm.city || 'La Serena, Chile'}</div>
-                </div>
-              </div>
-
-              {/* ==================== PÁGINA 2: MATRIZ TÁCTICA DE OBJECIONES ==================== */}
-              <div
-                className="dossier-page page-2 bg-white p-7 md:p-9 pl-10 md:pl-12 min-h-[1050px] flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                <div className="space-y-3.5">
-                  {/* Membrete Página 2 */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3">
-                    <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-11 w-auto" />
-                      <div>
-                        <span className="text-[14px] font-black tracking-wider text-[#0F3D2E] block uppercase">
-                          ARANPRO GESTIÓN INMOBILIARIA
-                        </span>
-                        <span className="text-[9px] font-mono text-slate-500 block">
-                          Ingeniería, Construcción & Administración Profesional • Ley N° 21.442
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right font-mono text-[9px] text-slate-500">
-                      <span className="font-bold text-[#0F3D2E] block text-[10.5px]">MANUAL TÁCTICO DE CHOQUE</span>
-                      <span>Respuestas a Objeciones Críticas</span>
-                    </div>
-                  </div>
-
-                  {/* Titular */}
-                  <div className="space-y-0.5">
-                    <h3 className="text-base font-black text-[#0F3D2E] uppercase tracking-tight">
-                      Matriz Táctica: Respuestas a Preguntas Ácidas del Comité
-                    </h3>
-                    <p className="text-[10px] text-slate-600 leading-snug">
-                      Respuestas condensadas de alto impacto legal y técnico para consultar rápidamente durante la reunión.
-                    </p>
-                  </div>
-
-                  {/* 6 Casos Críticos en la Hoja Resumen */}
-                  <div className="space-y-2">
-                    {OBJECTIONS_ARSENAL.slice(0, 6).map((item, idx) => (
-                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] space-y-1">
-                        <div className="flex items-center justify-between">
-                          <strong className="text-slate-900 font-bold block text-[10.5px]">
-                            {item.question}
-                          </strong>
-                          <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 font-mono text-[8.5px]">
-                            {item.categoryLabel}
-                          </span>
-                        </div>
-                        <p className="text-slate-700 leading-relaxed bg-white p-2 rounded-lg border border-slate-200 text-[9.5px]">
-                          <strong className="text-[#0F3D2E]">Respuesta Táctica:</strong> "{item.response}"
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Sello y Firma del Administrador */}
-                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <AranproOfficialSeal
-                        size="sm"
-                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                        rnacNumber=""
-                        showCaption={true}
-                      />
-                      <div className="text-[9px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
-                        <p><strong>Contacto Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{phone}</span></p>
-                        <p><strong>Correo:</strong> <span className="font-mono">{email}</span></p>
-                        <p><strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{website}</span></p>
-                      </div>
-                    </div>
-
-                    <div className="text-center min-w-[220px]">
-                      <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
-                        {(signatureImage || companySettings?.signatureDataUrl) && (
-                          <img
-                            src={signatureImage || companySettings?.signatureDataUrl}
-                            alt="Firma"
-                            className="h-11 max-h-12 w-auto max-w-[220px] object-contain mx-auto"
-                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                          />
-                        )}
-                      </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-0.5">
-                        <span className="text-[10.5px] font-black text-slate-900 block leading-tight">{adminName}</span>
-                        <span className="text-[8.5px] text-[#0F3D2E] font-bold block leading-tight">Constructor Civil • Administrador de Condominios</span>
-                        <span className="text-[8.5px] text-slate-600 font-mono block">RUT: {adminRut} • Ley N° 21.442</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pie de Página Página 2 */}
-                <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
-                  <div>ARANPRO Gestión Inmobiliaria • {website}</div>
-                  <div className="font-bold text-[#0F3D2E]">Libreto de Pitch Ejecutivo • Ley N° 21.442 (Pág. 2 de 2)</div>
-                  <div>{empresaForm.city || 'La Serena, Chile'}</div>
-                </div>
-              </div>
+            <div id="printable-pitch-guide" data-pdf-style={pdfStyle}>
+              {[...Array(5)].map((_, pageIndex, pages) => <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
+                <div className="space-y-3"><CanonicalPdfHeader badge="GUÍA DE PRESENTACIÓN" description={pageIndex < 2 ? 'Hoja de ruta del pitch' : 'Respuestas a objeciones'} page={pageIndex + 1} community={targetCondo || 'Comunidad'} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={email} phone={phone} city={empresaForm.city || 'La Serena, Chile'} />
+                  {pageIndex < 2 ? <><div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-[10px]"><strong>Comunidad:</strong> {targetCondo || 'Comunidad'} • <strong>Tipología:</strong> {condoType === 'vertical' ? 'Torre / edificio' : condoType === 'horizontal' ? 'Casas' : 'Mixto'} • <strong>Perfil:</strong> {strategyProfile} • <strong>Expositor:</strong> {adminName}</div><h3 className="text-sm font-black text-[#0F3D2E]">Hoja de ruta del pitch de 10 minutos</h3><div className="space-y-2">{pitchSteps.slice(pageIndex * 2, pageIndex * 2 + 2).map(step => <div key={step.num} className="p-3 rounded-xl border border-slate-200 space-y-1.5"><div className="flex justify-between gap-2"><strong className="text-[#0F3D2E]">{step.time} • {step.title}</strong><span className="text-[9px] text-slate-500">{step.docRef}</span></div><p><strong>Objetivo:</strong> {step.what}</p><blockquote className="italic bg-slate-50 p-2 border-l-2 border-[#0F3D2E]">{step.phrase}</blockquote><p><strong>Consejo:</strong> {step.protip}</p></div>)}</div>{pageIndex === 1 && <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[10px]"><strong>Regla de oro de la presentación:</strong> Escuchar el 60% del tiempo y hablar el 40%. No atacar personalmente al administrador saliente; centrarse en los métodos y ofrecer soluciones.</div>}</> : <><h3 className="text-sm font-black text-[#0F3D2E]">Respuestas a preguntas del Comité</h3><div className="space-y-2">{OBJECTIONS_ARSENAL.slice((pageIndex - 2) * 2, (pageIndex - 2) * 2 + 2).map(item => <div key={item.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2"><strong>{item.question}</strong><p className="bg-white p-2 rounded-lg border border-slate-200"><strong className="text-[#0F3D2E]">Respuesta:</strong> {item.response}</p></div>)}</div></>}
+                </div><div className="mt-auto pt-1.5 space-y-1">{pageIndex < pages.length - 1 ? <div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: guía de presentación.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página {pageIndex + 2} →</span></div> : <CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} />}<CanonicalPdfPageFooter website={website} label="Guía de presentación" page={pageIndex + 1} totalPages={pages.length} city={empresaForm.city || 'La Serena, Chile'} /></div>
+              </div>)}
             </div>
           </div>
         </div>

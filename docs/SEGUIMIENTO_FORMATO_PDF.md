@@ -8,7 +8,10 @@ Alcance actual: solo los documentos del panel **Mi Empresa**. La pauta de traspa
 - Adjuntos por correo de los pasos 1 a 4: se adaptaron las medidas de impresión y se generaron muestras de las cuatro salidas. Verificar también con una firma cargada por el administrador.
 - Informe de diagnóstico independiente: cabecera y pies canónicos, paginación de observaciones y firma final; comprobado con datos normales y extensos.
 - Matriz comparativa independiente: formato canónico y paginación de pilares y textos variables; comprobada con una matriz normal y con contenido extenso.
-- Pendiente: estudio de honorarios, guía de pitch, certificado de diploma y documentos restantes del Paso 5. Comprobar que los listados variables no se recorten al imprimir.
+- Estudio de honorarios: cabecera y pie canónicos; comprobado con configuraciones habituales y equipamiento adicional.
+- Guía de presentación: cabecera y pies canónicos, guion y respuestas distribuidos en cinco páginas; comprobada con dos perfiles.
+- Ficha de acreditación sin archivo de respaldo: formato canónico, indicación explícita de que no hay respaldo adjunto y descarga desde el visor o desde la lista. Los archivos de respaldo originales se descargan sin modificar.
+- Pendiente: documentos restantes del Paso 5. Comprobar que los listados variables no se recorten al imprimir.
 - Revisar la nómina de imposiciones de oficina y cualquier otra salida generada desde Mi Empresa, identificando cuándo corresponda un formato distinto por su propósito.
 
 ## Fuera del alcance actual: documentos de comunidades

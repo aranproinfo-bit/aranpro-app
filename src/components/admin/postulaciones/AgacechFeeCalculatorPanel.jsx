@@ -7,6 +7,7 @@ import {
 import { formatCLP } from '../../../utils/formatters';
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
+import { CanonicalPdfHeader, CanonicalPdfPageFooter, CanonicalPdfFinalSignature, canonicalPdfHeaderStyles } from '../../common/CanonicalPdfParts';
 import { useCommunity } from '../../../context/CommunityContext';
 
 /**
@@ -385,8 +386,22 @@ export const AgacechFeeCalculatorPanel = ({
     const cleanName = (calc.condoName || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
     printDocumentDirectly('printable-aranpro-fee-sheet', `ARANPRO_Estudio_Honorarios_Pericial_${cleanName}`, {
       pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm'
+      fitPage: false,
+      margin: '0',
+      extraStyles: `${canonicalPdfHeaderStyles}
+        @page { size: letter portrait; margin: 0 !important; }
+        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
+        .transition-final-footer { gap: 8px !important; }
+        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
+        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
+        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
+        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
+        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
+        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
+        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
     });
   };
 
@@ -1175,32 +1190,8 @@ export const AgacechFeeCalculatorPanel = ({
         >
           {/* SECCIÓN SUPERIOR */}
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
-              <div className="flex items-center space-x-3.5">
-                <AranproLogo variant="principal" className="h-11 w-auto" />
-                <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
-                  <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
-                    MEMORIA TÉCNICA PERICIAL DE HONORARIOS • LEY N° 21.442
-                  </span>
-                  <h2 className="text-base font-black text-[#0F3D2E] uppercase">
-                    {empresaForm?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
-                  </h2>
-                  <p className="text-[10px] text-slate-600 font-mono font-semibold">
-                    {empresaForm?.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm?.rnacNumber && empresaForm?.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Registro Nacional de Administradores Minvu'}
-                  </p>
-                  <p className="text-[9.5px] text-slate-500 font-mono">
-                    {empresaForm?.email || 'contacto@aranpro.cl'} • {empresaForm?.phone || '+56 9 5811 8504'}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right text-xs">
-                <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[10px] font-mono font-bold">
-                  ESTUDIO ARANPRO
-                </span>
-                <p className="font-bold text-slate-800 mt-1">{calc.condoName || 'Comunidad en Evaluación'}</p>
-                <p className="text-[10px] text-slate-500">{result.units} Unidades Totales • UF Ref: {formatCLP(result.ufCLP)}</p>
-              </div>
-            </div>
+            <CanonicalPdfHeader badge="ESTUDIO DE HONORARIOS" description="Memoria técnica pericial" page={1} community={calc.condoName || 'Comunidad en evaluación'} brandName={empresaForm?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm?.email || 'contacto@aranpro.cl'} phone={empresaForm?.phone || '+56 9 5811 8504'} city={empresaForm?.city || 'La Serena, Chile'} />
+            <p className="text-[9px] text-slate-500 text-right">{result.units} unidades totales • UF de referencia: {formatCLP(result.ufCLP)}</p>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
               <div className="font-black text-[#0F3D2E] uppercase text-[10.5px]">
@@ -1285,43 +1276,7 @@ export const AgacechFeeCalculatorPanel = ({
             </table>
           </div>
 
-          {/* SECCIÓN INFERIOR ANCLADA AL PIE */}
-          <div className="mt-auto pt-2 space-y-2">
-            <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
-              <AranproOfficialSeal
-                size="sm"
-                companyRut={empresaForm?.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                rnacNumber=""
-              />
-              <div className="text-center min-w-[240px]">
-                <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
-                  {signatureImage ? (
-                    <img
-                      src={signatureImage}
-                      alt="Firma Administrador"
-                      className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
-                      style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                    />
-                  ) : (
-                    <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
-                  )}
-                </div>
-                <div className="border-t-[1.5px] border-slate-800 pt-1">
-                  <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm?.adminName || 'John Andrés Arancibia Maureira'}</p>
-                  <p className="text-[9px] text-slate-600 font-mono">RUT: {(empresaForm?.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
-                  <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                    Constructor Civil • Administrador de Condominios
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-              <div>ARANPRO Gestión Integral • {empresaForm?.website || 'https://aranpro.cl'}</div>
-              <div className="font-bold text-[#0F3D2E]">Estudio Técnico Pericial de Honorarios • Modelo ARANPRO Ley N° 21.442 (Pág. 1 de 1)</div>
-              <div>Chile</div>
-            </div>
-          </div>
+          <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm?.companyRut} phone={empresaForm?.phone || '+56 9 5811 8504'} email={empresaForm?.email || 'contacto@aranpro.cl'} website={empresaForm?.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm?.adminName || 'John Andrés Arancibia Maureira'} adminRut={(empresaForm?.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} /><CanonicalPdfPageFooter website={empresaForm?.website || 'https://aranpro.cl'} label="Estudio de honorarios" page={1} totalPages={1} city={empresaForm?.city || 'La Serena, Chile'} /></div>
         </div>
       </div>
     </div>

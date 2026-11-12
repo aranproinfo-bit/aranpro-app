@@ -2662,11 +2662,27 @@ export const CompanySettingsAndBackupModule = ({
       link.click();
       link.remove();
     } else {
-      printDocumentDirectly('diploma-certificate-preview-card', filename, {
+      // La ficha se monta en el visor; el impresor espera a que React la renderice.
+      setActiveDiplomaPreview(item);
+      setTimeout(() => printDocumentDirectly('diploma-certificate-preview-card', filename, {
         pageSize: 'letter portrait',
         fitPage: false,
-        margin: '10mm'
-      });
+        margin: '0',
+        extraStyles: `${canonicalPdfHeaderStyles}
+        @page { size: letter portrait; margin: 0 !important; }
+        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
+        .transition-final-footer { gap: 8px !important; }
+        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
+        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
+        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
+        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
+        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
+        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
+        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
+      }), 60);
     }
   };
 
@@ -8461,7 +8477,7 @@ export const CompanySettingsAndBackupModule = ({
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all active:scale-95"
                 >
                   <Download className="w-4 h-4 text-[#D4B895]" />
-                  Descargar Archivo de Respaldo
+                  {activeDiplomaPreview.fileData ? 'Descargar Archivo de Respaldo' : 'Descargar ficha informativa'}
                 </button>
                 <button
                   type="button"
@@ -8490,83 +8506,21 @@ export const CompanySettingsAndBackupModule = ({
                   />
                 )
               ) : (
-                /* CREDENCIAL OFICIAL DE ACREDITACIÓN DIGITAL SI NO HAY ARCHIVO BINARIO AÚN */
-                <div
-                  id="diploma-certificate-preview-card"
-                  className="w-full max-w-2xl bg-gradient-to-b from-white via-slate-50 to-white p-8 md:p-10 rounded-3xl border-4 border-[#0F3D2E] shadow-lg text-center space-y-5 relative"
-                >
-                  <div className="absolute top-4 right-4 text-[10px] font-mono text-emerald-800 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                    Acreditación Verificada
-                  </div>
-
-                  <div className="space-y-1">
-                    <AranproLogo className="h-10 w-auto mx-auto mb-2" />
-                    <span className="text-[10px] font-black text-[#D4B895] uppercase tracking-widest block">
-                      ARANPRO • GESTIÓN & MANTENCIÓN INTEGRAL DE CONDOMINIOS
-                    </span>
-                    <h2 className="text-xl font-black text-[#0F3D2E] tracking-tight uppercase">
-                      Certificado de Respaldo Profesional & Competencia Técnica
-                    </h2>
-                    <p className="text-[11px] text-slate-500 font-medium">
-                      Conforme al marco legal de la Ley N° 21.442 sobre Copropiedad Inmobiliaria
-                    </p>
-                  </div>
-
-                  <div className="py-4 border-y-2 border-[#D4B895]/40 space-y-2">
-                    <p className="text-xs text-slate-600">
-                      Se certifica que el Administrador Titular y Representante Legal:
-                    </p>
-                    <h3 className="text-base font-black text-slate-900">
-                      {empresaForm.adminName}
-                    </h3>
-                    <p className="text-xs text-slate-500 font-mono">
-                      RUT: {empresaForm.adminRut} • RNAC Minvu N° {empresaForm.rnacNumber}
-                    </p>
-                    <div className="pt-2">
-                      <span className="text-xs text-slate-600">
-                        Cuenta con formación y acreditación en:
-                      </span>
-                      <p className="text-base font-black text-[#0F3D2E] mt-0.5">
-                        {activeDiplomaPreview.title}
-                      </p>
-                      <p className="text-xs text-slate-500 font-medium">
-                        {activeDiplomaPreview.institution} • Año {activeDiplomaPreview.year} • Estado: {activeDiplomaPreview.status}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-left bg-white p-3.5 rounded-xl border border-slate-200 space-y-1 text-xs">
-                    <strong className="text-[#0F3D2E] block">Aporte a la Administración Comunitaria:</strong>
-                    <p className="text-slate-600 leading-relaxed text-[11px]">
-                      {activeDiplomaPreview.relevance}
-                    </p>
-                  </div>
-
-                  <div className="pt-4 flex items-center justify-between text-left border-t border-slate-200 text-[10px] text-slate-400 font-mono">
-                    <div>
-                      {(signatureImage || companySettings?.signatureDataUrl) && (
-                        <img 
-                          src={signatureImage || companySettings?.signatureDataUrl} 
-                          alt="Firma" 
-                          className="h-16 max-h-20 w-auto max-w-[240px] object-contain mb-1"
-                          style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom left' }}
-                        />
-                      )}
-                      <p className="font-bold text-slate-700">Firma Autorizada ARANPRO</p>
-                      <p>Registro Central de Custodia Digital</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-[#0F3D2E]">Fono Directo: {empresaForm.phone}</p>
-                      <p>{empresaForm.city}</p>
-                    </div>
-                  </div>
+                <div id="diploma-certificate-preview-card" data-pdf-style={pdfStyle}>
+                  {paginateInspection([{id:'relevance',notes:activeDiplomaPreview.relevance}]).map((cards,pageIndex,pages) => <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
+                    <div className="space-y-4"><CanonicalPdfHeader badge="ACREDITACIÓN" description="Ficha de antecedente profesional" page={pageIndex + 1} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
+                      <div className="text-center space-y-2"><h2 className="text-base font-black text-[#0F3D2E]">Ficha de antecedente profesional y competencia técnica</h2><p className="text-slate-600">Antecedente declarado por la administración. No se ha adjuntado un archivo de respaldo.</p></div>
+                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2"><p><strong>Administrador:</strong> {empresaForm.adminName}</p><p><strong>RUT:</strong> {empresaForm.adminRut} • <strong>RNAC:</strong> {empresaForm.rnacNumber}</p><p><strong>Formación o acreditación:</strong> {activeDiplomaPreview.title}</p><p><strong>Institución:</strong> {activeDiplomaPreview.institution} • <strong>Año:</strong> {activeDiplomaPreview.year} • <strong>Estado informado:</strong> {activeDiplomaPreview.status}</p></div>
+                      <div className="p-3 rounded-xl border border-slate-200"><strong className="text-[#0F3D2E]">Aporte a la Administración Comunitaria{pageIndex ? ' (continuación)' : ''}:</strong>{cards.map((card,i) => <p key={i} className="text-slate-600 leading-relaxed" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{card.notes}</p>)}</div>
+                    </div><div className="mt-auto pt-1.5 space-y-1">{pageIndex < pages.length - 1 ? <div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: antecedente profesional.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página {pageIndex + 2} →</span></div> : <CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={empresaForm.adminRut} />}<CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Ficha de acreditación" page={pageIndex + 1} totalPages={pages.length} city={empresaForm.city || 'La Serena, Chile'} /></div>
+                  </div>)}
                 </div>
               )}
             </div>
 
             <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
               <span className="text-xs text-slate-500">
-                Archivo: <strong className="text-slate-700">{activeDiplomaPreview.fileName || 'Diploma_Acreditado.pdf'}</strong>
+                Archivo: <strong className="text-slate-700">{activeDiplomaPreview.fileData ? (activeDiplomaPreview.fileName || 'Archivo adjunto') : 'Sin archivo de respaldo adjunto'}</strong>
               </span>
               <button
                 type="button"
