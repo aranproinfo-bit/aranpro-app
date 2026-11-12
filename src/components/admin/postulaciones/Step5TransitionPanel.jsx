@@ -4,7 +4,7 @@ import {
   Eye, Download, RefreshCw, Send, ChevronDown, ChevronUp, AlertCircle,
   Clock, CheckCircle2, UserCheck, Building2, Key, Scale, Award,
   HelpCircle, ArrowRight, BookOpen, PenTool, ExternalLink, Calendar,
-  DollarSign, Sparkles, Check
+  DollarSign, Sparkles, Check, X
 } from 'lucide-react';
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { formatCLP } from '../../../utils/formatters';
@@ -28,6 +28,7 @@ export const Step5TransitionPanel = ({
   const [activeSubTab, setActiveSubTab] = useState('carta'); // 'carta' | 'checklist' | 'acta' | 'guias'
   const [actaOrContract, setActaOrContract] = useState('acta'); // 'acta' | 'contrato'
   const [expandedMsg, setExpandedMsg] = useState(false);
+  const [previewStep5Modal, setPreviewStep5Modal] = useState(null);
   const [copiedClause, setCopiedClause] = useState(false);
   const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
 
@@ -748,6 +749,299 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         </div>
       )}
       </>
+      )}
+
+      
+      {/* ==================== MODAL DE VISTA PREVIA DEL PASO 5 ==================== */}
+      {previewStep5Modal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-5xl w-full p-4 md:p-6 shadow-2xl border border-slate-200 max-h-[94vh] flex flex-col relative">
+            {/* Header del Modal */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 mb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-bold text-sm shadow-xs">
+                  ★5
+                </span>
+                <div>
+                  <h4 className="text-sm md:text-base font-black text-slate-900">
+                    {previewStep5Modal === 'carta' && 'Vista Previa: Carta de Notificación de Término (1 Pág)'}
+                    {previewStep5Modal === 'checklist' && 'Vista Previa: Checklist & Pauta de Traspaso (3 Págs)'}
+                    {previewStep5Modal === 'contrato' && 'Vista Previa: Contrato Marco de Administración (2 Págs)'}
+                    {previewStep5Modal === 'guias' && 'Vista Previa: Ficha Legal de Asambleas & Quórums (Horizontal)'}
+                  </h4>
+                  <p className="text-[10.5px] text-slate-500 font-mono">
+                    {condo} • Ley N° 21.442 sobre Copropiedad Inmobiliaria
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (previewStep5Modal === 'carta') handlePrintTerminationNotice();
+                    if (previewStep5Modal === 'checklist') handlePrintTransitionChecklist();
+                    if (previewStep5Modal === 'contrato') handlePrintContract();
+                    if (previewStep5Modal === 'guias') handlePrintLegalGuides();
+                  }}
+                  className="px-3.5 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
+                  <span>Imprimir / Descargar PDF</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewStep5Modal(null)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Contenedor con Scroll de la Hoja Completa */}
+            <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl flex flex-col items-center gap-4">
+              {/* VISTA PREVIA 1: CARTA */}
+              {previewStep5Modal === 'carta' && (
+                <div className="bg-white p-8 md:p-12 shadow-lg border border-slate-200 w-full max-w-[850px] text-black" style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '11.5pt', lineHeight: 1.4 }}>
+                  <p style={{ textAlign: 'right', margin: '0 0 14px 0' }}>{city}, {noticeDate}</p>
+                  <p style={{ margin: 0 }}>Señor(a)</p>
+                  <p style={{ margin: 0, fontWeight: 'bold' }}>{outgoingAdmin}</p>
+                  <p style={{ margin: 0 }}>Administrador(a) del {condo}</p>
+                  <p style={{ margin: '0 0 12px 0' }}>Presente</p>
+
+                  <p style={{ margin: '0 0 12px 0' }}>
+                    <strong>Ref.:</strong> Notificación de término de funciones y aviso de 30 días.
+                  </p>
+
+                  <p style={{ margin: '0 0 8px 0' }}>Estimado(a):</p>
+                  <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                    Por medio de la presente, el Comité de Administración del <strong>{condo}</strong>, en representación de la comunidad y en ejercicio de las facultades que le confiere la Ley N° 21.442 sobre Copropiedad Inmobiliaria y el Reglamento de Copropiedad, cumple con notificarle formalmente la decisión de poner término a la prestación de sus servicios como Administrador del condominio.
+                  </p>
+                  <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                    Con el propósito de asegurar una transición ordenada y dar cumplimiento al plazo de preaviso correspondiente, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{endDate}</strong>.
+                  </p>
+                  <p style={{ margin: '0 0 6px 0', textAlign: 'justify' }}>
+                    Durante este período, y en estricto apego a lo establecido en el Artículo 20 (y concordantes) de la Ley N° 21.442 sobre Copropiedad Inmobiliaria, solicitamos a usted preparar y tener a disposición, para la fecha de término, la siguiente documentación y procesos de cierre:
+                  </p>
+
+                  <ol style={{ margin: '0 0 8px 0', paddingLeft: '22px', textAlign: 'justify', listStyleType: 'decimal' }}>
+                    <li style={{ marginBottom: '4px' }}><strong>Rendición de Cuentas Documentada:</strong> Balance final de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {endDate}.</li>
+                    <li style={{ marginBottom: '4px' }}><strong>Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo de gastos comunes, planos, pólizas de seguro, certificados de instalaciones (ascensores, gas) y bitácoras de mantención.</li>
+                    <li style={{ marginBottom: '4px' }}><strong>Gestión Laboral y Previsional:</strong> Contratos de trabajo del personal del condominio, comprobantes de pago de cotizaciones (Previred), liquidaciones de sueldo al día y finiquitos en caso de corresponder.</li>
+                    <li style={{ marginBottom: '4px' }}><strong>Accesos, Cuentas y Claves:</strong> Traspaso formal de las credenciales de cuentas bancarias (Fondo de Reserva y cuenta ordinaria), portal del SII, Dirección del Trabajo, correos electrónicos y cualquier software de administración utilizado.</li>
+                    <li><strong>Caja Chica y Fondos:</strong> Entrega de los fondos en efectivo y detalle de cheques por cobrar o emitidos no cobrados.</li>
+                  </ol>
+
+                  <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                    Por nuestra parte, como Comité de Administración, nos comprometemos a facilitar este proceso de transición, a revisar la rendición de cuentas en los plazos legales y a formalizar la recepción mediante un Acta de Traspaso el último día de sus funciones.
+                  </p>
+                  <p style={{ margin: '0 0 10px 0', textAlign: 'justify' }}>
+                    Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
+                  </p>
+                  <p style={{ margin: '0 0 40px 0' }}>Atentamente,</p>
+
+                  <div className="sig-block" style={{ display: 'flex', justifyContent: 'space-between', gap: '30px', fontSize: '11pt', marginTop: '10px' }}>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
+                        <div style={{ fontWeight: 'bold' }}>{committeePresident}</div>
+                        <div>Presidente del Comité de Administración</div>
+                        <div>{condo}</div>
+                      </div>
+                    </div>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
+                        <div style={{ fontWeight: 'bold' }}>Recibí Conforme</div>
+                        <div>Nombre y RUT: ______________________</div>
+                        <div>Fecha de recepción: ____ / ____ / 2026</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* VISTA PREVIA 2: CHECKLIST (3 PÁGINAS) */}
+              {previewStep5Modal === 'checklist' && (
+                <div className="space-y-6 w-full max-w-[850px]">
+                  {/* Pág 1 */}
+                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                      <span className="font-black text-[#0F3D2E] text-sm">PAUTA DE TRASPASO • ANTECEDENTES</span>
+                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 1 de 3</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">A. GOBIERNO Y DOCUMENTACIÓN LEGAL</span>
+                        <ul className="text-xs space-y-1 text-slate-700">
+                          <li>• Reglamento de copropiedad vigente y sus modificaciones</li>
+                          <li>• Libro de Actas foliado y actas de asambleas y Comité</li>
+                          <li>• Registro actualizado de copropietarios, arrendatarios y ocupantes</li>
+                          <li>• Plan de Emergencia y demás documentos de seguridad disponibles</li>
+                          <li>• Planos, manuales, garantías y antecedentes técnicos bajo custodia</li>
+                        </ul>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">B. FINANZAS, BANCO Y CONTABILIDAD</span>
+                        <ul className="text-xs space-y-1 text-slate-700">
+                          <li>• Cartolas bancarias de todas las cuentas y conciliaciones al día</li>
+                          <li>• Balance general o informe de ingresos y egresos documentado</li>
+                          <li>• Detalle de gastos comunes: emitidos, recaudados y morosos</li>
+                          <li>• Documentación de respaldo de egresos (facturas, boletas, comprobantes)</li>
+                          <li>• Fondo de Reserva: monto acumulado y acreditación bancaria</li>
+                          <li>• Fondo de Operación y Caja Chica: arqueo y efectivo entregado</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pág 2 */}
+                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                      <span className="font-black text-[#0F3D2E] text-sm">PAUTA DE TRASPASO • ANTECEDENTES</span>
+                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 2 de 3</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">C. PERSONAL, SEGURIDAD SOCIAL Y PREVISIÓN</span>
+                        <ul className="text-xs space-y-1 text-slate-700">
+                          <li>• Nómina completa de trabajadores vigentes y turnos</li>
+                          <li>• Contratos de trabajo, anexos y registros de asistencia</li>
+                          <li>• Liquidaciones de sueldo de los últimos 12 meses firmadas</li>
+                          <li>• Planillas de cotizaciones previsionales (Previred) al día</li>
+                          <li>• Finiquitos de trabajadores desvinculados en los últimos 2 años</li>
+                        </ul>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">D. OPERACIÓN, MANTENCIONES Y CONTRATOS</span>
+                        <ul className="text-xs space-y-1 text-slate-700">
+                          <li>• Contratos vigentes con proveedores de servicios y mantenedores</li>
+                          <li>• Certificaciones obligatorias (ascensores, red de gas SEC, extintores)</li>
+                          <li>• Pólizas de seguro contratadas (espacios comunes, incendio, sismo)</li>
+                          <li>• Bitácora o informes técnicos de bombas, calderas, portones, piscina</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pág 3 */}
+                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                      <span className="font-black text-[#0F3D2E] text-sm">PAUTA DE TRASPASO • ANTECEDENTES</span>
+                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 3 de 3</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">E. ACTIVOS, ACCESOS Y ENTREGAS MATERIALES</span>
+                        <ul className="text-xs space-y-1 text-slate-700">
+                          <li>• Llaves maestras, tarjetas, tags y controles remotos de acceso</li>
+                          <li>• Credenciales de acceso a software, correos, portales SII y bancarios</li>
+                          <li>• Inventario físico de equipamiento, herramientas y bienes muebles</li>
+                        </ul>
+                      </div>
+                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
+                        <strong>Recomendación Legal:</strong> Se sugiere que el Comité celebre una Asamblea Extraordinaria para informar a la comunidad el estado de recepción y ratificar formalmente el traspaso conforme al Art. 20 de la Ley N° 21.442.
+                      </div>
+                      <div className="pt-4 grid grid-cols-2 gap-8 text-center text-xs text-slate-700">
+                        <div className="border-t border-slate-400 pt-2">
+                          <p className="font-bold">{outgoingAdmin}</p>
+                          <p className="text-[11px] text-slate-500">Administrador(a) Saliente (Entrega)</p>
+                        </div>
+                        <div className="border-t border-slate-400 pt-2">
+                          <p className="font-bold">{committeePresident}</p>
+                          <p className="text-[11px] text-slate-500">Presidente del Comité (Recepción)</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* VISTA PREVIA 3: CONTRATO (2 PÁGINAS) */}
+              {previewStep5Modal === 'contrato' && (
+                <div className="space-y-6 w-full max-w-[850px]">
+                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-3 text-xs leading-relaxed">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                      <span className="font-black text-[#0F3D2E] text-sm">CONTRATO DE PRESTACIÓN DE SERVICIOS DE ADMINISTRACIÓN</span>
+                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 1 de 2</span>
+                    </div>
+                    <p className="italic text-slate-600 text-[11px]">En {city}, República de Chile, entre el Comité de Administración del {condo} y la Administración Entrante.</p>
+                    <p><strong>PRIMERO (Comparecencia):</strong> El Comité de Administración, representado por don(ña) {committeePresident}, y la entidad administradora convienen el presente contrato.</p>
+                    <p><strong>SEGUNDO (Objeto):</strong> La administración integral, técnica, contable y operativa del condominio conforme a la Ley N° 21.442.</p>
+                    <p><strong>TERCERO (Honorarios):</strong> Los honorarios mensuales pactados ascienden a la suma de {feeStr} líquidos o exentos según corresponda.</p>
+                    <p><strong>CUARTO (Visitas en Terreno):</strong> Se contemplan inspecciones periódicas presenciales y atención prioritaria de emergencias 24/7.</p>
+                    <p><strong>QUINTO (Plataforma Digital):</strong> Acceso sin costo de licencias adicionales a la suite de gestión y transparencia vecinal.</p>
+                  </div>
+                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-3 text-xs leading-relaxed">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                      <span className="font-black text-[#0F3D2E] text-sm">CONTRATO DE PRESTACIÓN DE SERVICIOS DE ADMINISTRACIÓN</span>
+                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 2 de 2</span>
+                    </div>
+                    <p><strong>SEXTO (Cuentas Corrientes):</strong> Cuentas bancarias a nombre exclusivo del condominio, con firma mancomunada según Reglamento.</p>
+                    <p><strong>SÉPTIMO (Rendición Mensual):</strong> Emisión documentada de gastos comunes y conciliaciones bancarias dentro de los primeros 10 días de cada mes.</p>
+                    <p><strong>OCTAVO (Vigencia y Término):</strong> Plazo de 1 año renovable, con facultad de desahucio recíproco mediante preaviso escrito de 30 días.</p>
+                    <p><strong>NOVENO (Domicilio y Jurisdicción):</strong> Las partes fijan su domicilio en la comuna de {city}.</p>
+                    <p><strong>DÉCIMO (Ejemplares):</strong> Se firma en dos ejemplares del mismo tenor y fecha.</p>
+                    <div className="pt-8 grid grid-cols-2 gap-8 text-center text-xs text-slate-700">
+                      <div className="border-t border-slate-400 pt-2">
+                        <p className="font-bold">{committeePresident}</p>
+                        <p className="text-[11px] text-slate-500">Por el Comité de Administración</p>
+                      </div>
+                      <div className="border-t border-slate-400 pt-2">
+                        <p className="font-bold">Administrador Entrante</p>
+                        <p className="text-[11px] text-slate-500">ARANPRO Gestión Integral</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* VISTA PREVIA 4: GUÍAS LEGALES (HORIZONTAL) */}
+              {previewStep5Modal === 'guias' && (
+                <div className="bg-white p-6 md:p-8 shadow-lg border-t-4 border-t-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4 w-full max-w-[950px]">
+                  <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <div>
+                      <span className="font-black text-[#0F3D2E] text-base block">FICHA GUÍA: ASAMBLEAS & QUÓRUMS • LEY N° 21.442</span>
+                      <span className="text-xs text-slate-500">Resumen ejecutivo oficial para toma de acuerdos por el Comité y la Comunidad</span>
+                    </div>
+                    <span className="text-xs font-mono bg-slate-100 px-2.5 py-1 rounded-lg">Formato Horizontal</span>
+                  </div>
+                  <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#0F3D2E] text-white">
+                        <tr>
+                          <th className="p-2.5 font-bold">Tipo de Sesión</th>
+                          <th className="p-2.5 font-bold">Materias Principales</th>
+                          <th className="p-2.5 font-bold text-center">Quórum Constitución</th>
+                          <th className="p-2.5 font-bold text-center">Quórum Adopción</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr className="hover:bg-slate-50">
+                          <td className="p-2.5 font-bold text-slate-900">Ordinaria (Anual)</td>
+                          <td className="p-2.5 text-slate-600">Cuenta de administración, balance de gastos comunes, presupuesto estimado, designación de Comité.</td>
+                          <td className="p-2.5 text-center font-mono">33% alícuotas (1ra cit.)<br/>Los que asistan (2da cit.)</td>
+                          <td className="p-2.5 text-center font-bold text-[#0F3D2E]">Mayoría absoluta de asistentes</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50">
+                          <td className="p-2.5 font-bold text-slate-900">Extraordinaria Mayoría Absoluta</td>
+                          <td className="p-2.5 text-slate-600">Modificación de gastos comunes, reglamentos internos, contrataciones relevantes.</td>
+                          <td className="p-2.5 text-center font-mono">Mayoría absoluta derechos (1ra)<br/>Los que asistan (2da)</td>
+                          <td className="p-2.5 text-center font-bold text-[#0F3D2E]">Mayoría absoluta derechos asistentes</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50">
+                          <td className="p-2.5 font-bold text-slate-900">Extraordinaria Mayoría Reforzada</td>
+                          <td className="p-2.5 text-slate-600">Modificación reglamento copropiedad, enajenación de bienes comunes, reconstrucción o demolición.</td>
+                          <td className="p-2.5 text-center font-mono">66% derechos (1ra y 2da citación)</td>
+                          <td className="p-2.5 text-center font-bold text-amber-700">66% de los derechos totales</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ========================================================================= */}
