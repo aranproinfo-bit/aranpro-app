@@ -1,0 +1,64 @@
+import React from 'react';
+import { AranproOfficialSeal } from './MauranLogo';
+
+// Estilos de la cabecera aprobada. Se aplican únicamente a documentos que los incorporen.
+export const canonicalPdfHeaderStyles = `
+  .transition-header { position: relative !important; min-height: 14mm !important; padding-bottom: 2mm !important; border-bottom: 0.55pt solid #0F3D2E !important; font-size: 6.5pt !important; line-height: 1.2 !important; }
+  .transition-header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; border-bottom: 1pt solid #D4B895; }
+  .transition-header .transition-header-brand { flex: 1 1 auto; min-width: 0; }
+  .transition-header .transition-header-contact { font-size: 6pt !important; }
+  .transition-header .transition-header-right { width: 44mm; flex: 0 0 44mm; font-size: 6.2pt !important; }
+  .transition-header .transition-header-right strong { display: table !important; width: auto !important; margin-left: auto !important; text-align: center !important; font-size: 6.3pt !important; padding: 1mm 3mm !important; }
+`;
+
+/** Cabecera institucional común; cada documento aporta su título y datos reales. */
+export function CanonicalPdfHeader({ badge, description, community, page, email, phone, city }) {
+  return <div className="transition-header flex items-center justify-between gap-3 border-b-2 border-[#0F3D2E] pb-2">
+    <div className="transition-header-brand flex items-center gap-3">
+      <img src="/brand/ARANPRO_logo_horizontal_transparente_trimmed.png" alt="ARANPRO" style={{height:'42px', width:'auto'}} />
+      <div className="border-l border-slate-300 pl-3">
+        <strong className="text-[#0F3D2E] block">ARANPRO • GESTIÓN INTEGRAL</strong>
+        <span className="block text-slate-600">Ley N° 21.442 de Copropiedad Inmobiliaria</span>
+        <span className="transition-header-contact block text-slate-500">{email} • {phone} • {city}</span>
+      </div>
+    </div>
+    <div className="transition-header-right text-right">
+      <strong className="block text-[#0F3D2E] border border-[#D4B895] bg-slate-50 rounded px-3 py-1 mb-1">{badge}</strong>
+      <span className="block font-bold">{description}</span>
+      <span className="text-slate-500">{community}{community ? ' • ' : ''}Página {page}</span>
+    </div>
+  </div>;
+}
+
+/** Pie de identificación, adaptable a la cantidad de páginas y tipo de documento. */
+export function CanonicalPdfPageFooter({ website, label, page, totalPages, city }) {
+  return <div className="pt-1 border-t border-slate-200 flex justify-between text-[8.5px] text-slate-400 font-mono">
+    <span>ARANPRO Gestión Integral • {website}</span>
+    <strong className="text-[#0F3D2E]">{label} • Ley N° 21.442 (Pág. {page} de {totalPages})</strong>
+    <span>{city}</span>
+  </div>;
+}
+
+/** Pie institucional final; la firma siempre procede de la configuración de la empresa. */
+export function CanonicalPdfFinalSignature({ companyRut, phone, email, website, signature, signatureScale = 1, adminName, adminRut }) {
+  return <div className="transition-final-footer pt-1.5 border-t border-slate-200 flex items-end justify-between gap-4">
+    <div className="transition-footer-details flex items-center gap-3">
+      <AranproOfficialSeal className="transition-footer-seal" size="sm" companyRut={companyRut || ''} rnacNumber="" showCaption={true} />
+      <div className="transition-footer-contact text-[9px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
+        <p><strong>Contacto Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{phone}</span></p>
+        <p><strong>Correo:</strong> <span className="font-mono">{email}</span></p>
+        <p><strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{website}</span></p>
+      </div>
+    </div>
+    <div className="transition-footer-signature text-center min-w-[220px]">
+      <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
+        {signature && <img src={signature} alt="Firma" className="h-11 max-h-12 w-auto max-w-[220px] object-contain mx-auto" style={{transform:`scale(${signatureScale})`,transformOrigin:'bottom center'}} />}
+      </div>
+      <div className="border-t-[1.5px] border-slate-800 pt-0.5">
+        <span className="text-[10.5px] font-black block leading-tight">{adminName}</span>
+        <span className="text-[8.5px] text-[#0F3D2E] font-bold block leading-tight">Constructor Civil • Administrador de Condominios</span>
+        <span className="text-[8.5px] text-slate-600 font-mono block">RUT: {adminRut} • Ley N° 21.442</span>
+      </div>
+    </div>
+  </div>;
+}
