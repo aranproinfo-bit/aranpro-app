@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector } from '../../common/MauranLogo';
 import { printDocumentDirectly } from '../../../utils/printDocument';
+import { activeProposalConditions } from '../../../utils/proposalConditions';
 
 /**
  * PITCH MASTER PANEL
@@ -54,6 +55,8 @@ export const PitchMasterPanel = ({
   const phone = empresaForm.phone || '+56 9 5811 8504';
   const email = empresaForm.email || 'contacto@aranpro.cl';
   const website = empresaForm.website || 'https://aranpro.cl';
+  // El nombre editable del pitch también debe coincidir con la comunidad de la propuesta.
+  const terms = activeProposalConditions({ ...proposalConfig, targetCondo });
 
   // ==========================================
   // 1. GENERADOR DINÁMICO DE LOS 4 PASOS (10 MIN)
@@ -90,7 +93,7 @@ export const PitchMasterPanel = ({
       step2Title = 'El Diferenciador de Constructor Civil en Terreno';
       step2What = `Demostrar que el 60% del gasto común se destina a mantenciones de infraestructura. La mayoría de los administradores son comerciales o contadores que nunca pisan la sala técnica y validan cotizaciones infladas. Tu formación de Constructor Civil ahorra millones en peritajes y fiscalización directa.`;
       step2Phrase = `"Cuando en ${condo} falla una bomba de impulsión, un tablero eléctrico o hay filtraciones en cubiertas, mi primer paso no es llamar a ciegas a un contratista externo para que les pase una factura inflada. Mi primer paso es ponerme el casco, ingresar a la sala de máquinas, medir el amperaje o revisar la pendiente técnica, y cotizar con criterio constructivo real. Ese criterio técnico le ahorra a la comunidad entre 2 a 5 millones de pesos al año."`;
-      step2ProTip = 'Muestre físicamente o en pantalla el Informe de Diagnóstico Técnico Inicial Gratuito que acompaña su propuesta.';
+      step2ProTip = 'Muestre físicamente o en pantalla el Informe de Diagnóstico Técnico Inicial que acompaña su propuesta.';
     } else if (strategyProfile === 'financiero') {
       step2Title = 'Transparencia Radical & Auditoría Bancaria 24/7';
       step2What = `Enfocarse en la erradicación absoluta de las "cajas negras". Conciliación bancaria peso a peso en tiempo real, cartolas disponibles para el Comité y finiquitos previsionados en el fondo de reserva.`;
@@ -109,8 +112,8 @@ export const PitchMasterPanel = ({
     const step3ProTip = 'Invite a un miembro del comité a escanear con su propia cámara el código QR del brochure para que interactúe.';
 
     // Minutos 9-10: Cierre y Propuesta de Traspaso Seguro
-    const step4What = `Ofrecer la Auditoría Inicial de Traspaso de 30 Días e Inventario Técnico sin costo. ARANPRO asume la gestión directa del traspaso con el administrador saliente, liberando al Comité de fricciones.`;
-    const step4Phrase = `"Ustedes no tendrán que desgastarse enfrentando al administrador saliente. ARANPRO se encarga de la auditoría de traspaso formal según el Art. 20° de la Ley N° 21.442, cotejando las cartolas bancarias peso a peso y levantando el Inventario Técnico Inicial sin costo. Si están de acuerdo en dar este salto hacia la tranquilidad de ${condo}, redactamos hoy mismo la carta de designación para iniciar la transición."`;
+    const step4What = `Presentar las condiciones de transición para ${condo}: ${terms.transitionConditions || 'por definir con el Comité'}. Servicios incluidos: ${terms.includedServices || 'por definir'}.`;
+    const step4Phrase = `"Proponemos coordinar una transición ordenada para ${condo}. Condiciones de transición: ${terms.transitionConditions || 'por definir con el Comité'}."`;
     const step4ProTip = 'Haga un silencio seguro tras la frase de cierre y deje que ellos respondan primero.';
 
     return [
@@ -155,7 +158,7 @@ export const PitchMasterPanel = ({
         docRef: 'Paso 3 • Propuesta Comercial'
       }
     ];
-  }, [targetCondo, condoType, strategyProfile]);
+  }, [targetCondo, condoType, strategyProfile, terms.transitionConditions, terms.includedServices]);
 
   // ==========================================
   // 2. ARSENAL DE PREGUNTAS DIFÍCILES Y OBJECIONES (10 CASOS)
@@ -214,12 +217,12 @@ export const PitchMasterPanel = ({
     {
       id: 'obj_emergencias_247',
       category: 'tecnico',
-      categoryLabel: 'Emergencias 24/7 & Obras',
+      categoryLabel: 'Emergencias & Obras',
       question: '6. "¿Qué pasa si un sábado a las 2:00 AM colapsa la sala de bombas, se inunda el subterráneo o queda una familia atrapada en el ascensor? ¿Contestan ustedes o nos dejan a la deriva con una grabadora hasta el lunes?"',
       subtext: 'Pánico a enfrentar una catástrofe nocturna solos, con vecinos gritando y teniendo que resolver sin apoyo profesional.',
       fatalError: 'Decir "Para eso está el conserje, él tiene que llamar a los bomberos".',
-      basis: 'Protocolo de contingencia operativa con red de contratistas de guardia 24/7 pre-homologados (empresas de ascensores Minvu con tiempo contractualmente exigido <45 min; gasfitería pesada y tableros). Presencia in situ del Constructor Civil ante emergencias críticas.',
-      response: `Una comunidad no descansa los fines de semana y las emergencias graves no avisan de lunes a viernes. Contamos con un protocolo de contingencia 24/7 activo: ante rescates de ascensor, exigimos contractualmente a la empresa mantenedora certificada Minvu un tiempo de respuesta inferior a 45 minutos. Si hay colapso de bombas o rotura de matriz en subterráneo, activamos inmediatamente nuestra cuadrilla técnica de emergencia pre-homologada y yo personalmente como Constructor Civil me constituyo en terreno para evaluar el riesgo estructural e hidráulico. El conserje y el Comité cuentan con línea directa prioritaria para emergencias reales.`
+      basis: 'La atención debe ajustarse al protocolo y las condiciones acordadas con la comunidad y sus proveedores.',
+      response: `La atención de emergencias propuesta para ${targetCondo.trim() || 'su comunidad'} es: ${terms.emergencyResponse || 'por definir con el Comité'}. La frecuencia de visitas es: ${terms.visitFrequency || 'por definir'}.`
     },
     {
       id: 'obj_asambleas_caos',
@@ -258,10 +261,10 @@ export const PitchMasterPanel = ({
       question: '10. "Todos los administradores prometen el cielo al postular y a los 3 meses desaparecen. Si los contratamos y vemos que no cumplen, ¿quedamos amarrados por un año o cómo podemos terminar la relación sin juicios?"',
       subtext: 'Miedo a quedar atrapados en un contrato forzoso leonino con un mal servicio.',
       fatalError: 'Exigir contratos cerrados de 1 o 2 años sin cláusulas de salida anticipada.',
-      basis: 'Art. 20° Ley N° 21.442: el Administrador ejerce su cargo por delegación de confianza. Cláusula de término anticipado con aviso previo de 30 días sin multas ni indemnizaciones.',
-      response: `Nosotros creemos en relaciones basadas en la confianza y en los resultados, no en amarres contractuales forzosos. En nuestro contrato de prestación de servicios incluimos una cláusula de evaluación a los 90 días y una cláusula de salida expedita: si en cualquier momento el Comité o la Asamblea consideran que no estamos cumpliendo el estándar pactado, pueden poner término a la administración con un simple aviso previo de 30 días, sin multas, sin indemnizaciones y con la entrega de toda la documentación en regla según el Art. 20° de la ley. Nuestra permanencia en ${targetCondo.trim() || 'su Comunidad'} se gana mes a mes trabajando con excelencia en terreno.`
+      basis: 'La duración, renovación y forma de término deben precisarse en la propuesta y el contrato aplicable.',
+      response: `Para ${targetCondo.trim() || 'su comunidad'}, la duración propuesta es: ${terms.contractDuration || 'por definir'}. El aviso de término propuesto es: ${terms.noticePeriod || 'por definir'}. Otras condiciones: ${terms.otherConditions || 'por definir'}.`
     }
-  ], [targetCondo]);
+  ], [targetCondo, terms.emergencyResponse, terms.visitFrequency, terms.contractDuration, terms.noticePeriod, terms.otherConditions]);
 
   // Filtrado de objeciones según término de búsqueda y categoría
   const filteredObjections = useMemo(() => {

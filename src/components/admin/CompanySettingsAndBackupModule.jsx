@@ -633,8 +633,8 @@ export const CompanySettingsAndBackupModule = ({
             `Nos dirigimos a su directiva para hacerles entrega formal de nuestra *Carta Oficial de Presentación y Valor al Comité*, diseñada para apoyar su labor con tres compromisos concretos:\n\n` +
             `1️⃣ *Supervisión Técnica con Criterio de Constructor Civil:* Cuidado preventivo de sus bienes comunes (sala de bombas, tableros eléctricos, techumbres) y fiscalización rigurosa de cotizaciones de contratistas para frenar sobrecostos.\n` +
             `2️⃣ *Transparencia Radical 24/7:* Cada gasto, factura electrónica y cartola bancaria con respaldo digital auditable para directiva y copropietarios.\n` +
-            `3️⃣ *Suite Digital & App Móvil 100% Gratuita para ${condo}:* Cero cobros de licencias o costos de software para la comunidad.\n\n` +
-            `🎁 *Diagnóstico Técnico Inicial Gratuito:* Ponemos a su disposición una *visita técnica inicial de diagnóstico en terreno (100% sin costo ni compromiso)*, para evaluar sus instalaciones críticas y conocer las prioridades de su directiva.\n\n` +
+            `3️⃣ *Suite Digital & App Móvil:* Servicios incluidos: ${conditions.includedServices || "Por definir"}.\n\n` +
+            `🎁 *Diagnóstico Técnico Inicial:* Proponemos coordinar una *visita técnica inicial de diagnóstico en terreno*, para evaluar sus instalaciones críticas y conocer las prioridades de su directiva.\n\n` +
             `📱 *Prueben la plataforma vecinal en vivo desde su celular aquí:* \n` +
             `🔗 ${demoLink}\n\n` +
             `Adjuntamos a este mensaje nuestra Carta Oficial de Presentación en PDF. ¿Les acomodaría coordinar una breve reunión presencial o telemática esta semana?\n\n` +
@@ -642,11 +642,11 @@ export const CompanySettingsAndBackupModule = ({
           email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\n` +
             `Junto con saludarles cordialmente y reconociendo el importante compromiso y tiempo que dedican a su comunidad, me dirijo a ustedes para presentar los servicios de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\n` +
             `Nuestra propuesta se fundamenta en tres pilares operativos:\n` +
-            `1. Gestión Financiera & Plataforma Digital 100% Gratuita para el Comité y residentes (sin costos de licencias ni cobros de software para el condominio).\n` +
+            `1. Gestión financiera y plataforma digital. Servicios incluidos: ${conditions.includedServices || "Por definir"}.\n` +
             `2. Mantención Técnica en Terreno con Criterio de Constructor Civil (supervisión directa de salas de bombas, tableros y contratos de contratistas para frenar sobrecostos).\n` +
             `3. Gestión Documental de Personal bajo Ley Karin, RIOHS y normativa de la Dirección del Trabajo.\n\n` +
             `Pueden explorar la plataforma digital en vivo en: ${demoLink}\n\n` +
-            `Les propongo coordinar una visita inicial en terreno y reunión de presentación sin costo ni compromiso para conocer sus prioridades.\n\n` +
+            `Les propongo coordinar una visita inicial en terreno y reunión de presentación para conocer sus prioridades.\n\n` +
             `Adjunto nuestra Carta Oficial de Presentación.\n\n` +
             `Saludos cordiales,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
         };
@@ -662,24 +662,24 @@ export const CompanySettingsAndBackupModule = ({
               `Junto con saludarles cordialmente, les escribe *${admin}*, Constructor Civil y Administrador de Condominios acreditado bajo la Ley N° 21.442.\n\n` +
               `Hacemos entrega formal de nuestro *Dossier Integral de Gestión y Acreditación Institucional (4 Páginas)* para poner a su consideración nuestra administración profesional en ${condo}.\n\n` +
               `El documento adjunto respalda con hechos concretos nuestro estándar de trabajo:\n` +
-              `📄 *Pág. 1 • Metodología de Gestión:* Presencia técnica en terreno, SLA de respuesta en menos de 2 horas y emergencias 24/7.\n` +
+              `📄 *Pág. 1 • Metodología de Gestión:* Visitas: ${conditions.visitFrequency || "Por definir"}. Emergencias: ${conditions.emergencyResponse || "Por definir"}.\n` +
               `📄 *Pág. 2 • Ficha Técnica de Especialista:* Constructor Civil colegiado, control directo de contratistas y fiscalización de mantenciones preventivas.\n` +
               `📄 *Pág. 3 • Respaldo Legal y Profesional:* Registro Nacional Minvu de Administradores, certificaciones SEC, RIOHS laboral y póliza de seguro.\n` +
-              `📄 *Pág. 4 • Recomendaciones Comprobables & Suite Digital:* Cartas de respaldo de presidentes de comités vigentes y plataforma 100% gratuita para residentes.\n\n` +
-              `🛡️ *Garantía de Transición:* Para facilitar el traspaso, durante los primeros 3 meses homologamos el honorario que su comunidad paga actualmente mientras ejecutamos la auditoría de entrada sin costo.\n\n` +
+              `📄 *Pág. 4 • Recomendaciones Comprobables & Suite Digital:* Cartas de respaldo y presentación de la plataforma digital.\n\n` +
+              `🛡️ *Condiciones de transición:* ${conditions.transitionConditions || "Por definir con el Comité"}.\n\n` +
               `📱 *Demostración en Vivo de la Suite (1-Clic):* \n` +
               `🔗 ${demoLink}\n\n` +
-              `Nos encantaría coordinar una visita técnica en terreno sin costo para levantar su diagnóstico inicial. Quedamos a su entera disposición.\n\n` +
+              `Nos encantaría coordinar una visita técnica en terreno para levantar su diagnóstico inicial. Quedamos a su entera disposición.\n\n` +
               `Atentamente,\n*${admin}*\nConstructor Civil • ARANPRO (${phone})\nSitio Web: https://aranpro.cl`,
             email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\n` +
               `Junto con saludarles cordialmente, me dirijo a ustedes para presentarles formalmente el Dossier Institucional de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\n` +
-              `Como Especialista Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442, nuestro enfoque combina orden financiero, presencia en terreno y herramientas digitales gratuitas para que el Comité pueda decidir con antecedentes claros y sin sobrecostos.\n\n` +
+              `Como Especialista Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442, nuestro enfoque combina orden financiero, presencia en terreno y herramientas digitales para que el Comité pueda decidir con antecedentes claros.\n\n` +
               `Puntos centrales de nuestra gestión respaldados en el Dossier (4 Páginas):\n` +
               `1. Supervisión Técnica de Especialista: Fiscalización directa de salas de bombas, grupos electrógenos, tableros eléctricos y techumbres, con revisión rigurosa de cotizaciones y contratos.\n` +
               `2. Rendición de Cuentas en Línea: Conciliaciones bancarias al día, libros abiertos y acceso permanente a facturas y comprobantes respaldados.\n` +
-              `3. Suite Digital ARANPRO sin costo: Plataforma web y app móvil para residentes y comité 100% gratuita (sin licencias de software para la comunidad). Demo en: ${demoLink}\n` +
-              `4. Transición de 3 meses: Nos ajustamos al valor actual de honorarios de la comunidad mientras realizamos el diagnóstico real y estructuramos la propuesta definitiva con el Comité.\n\n` +
-              `Con el fin de evaluar sus instalaciones y conocer sus principales inquietudes, les propongo coordinar una visita técnica de diagnóstico en terreno sin costo ni compromiso alguno.\n\n` +
+              `3. Suite Digital ARANPRO: Plataforma web y app móvil. Servicios incluidos: ${conditions.includedServices || "Por definir"}. Demo en: ${demoLink}\n` +
+              `4. Condiciones de transición: ${conditions.transitionConditions || "Por definir con el Comité"}.\n\n` +
+              `Con el fin de evaluar sus instalaciones y conocer sus principales inquietudes, les propongo coordinar una visita técnica de diagnóstico en terreno.\n\n` +
               `Adjunto a este correo encontrarán nuestro Dossier Integral oficial (Ficha Técnica Constructiva, Títulos, Acreditaciones y referencias).\n\n` +
               `Quedo a su disposición para coordinar nuestra reunión.\n\n` +
               `Atentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
@@ -727,7 +727,13 @@ export const CompanySettingsAndBackupModule = ({
             `🏢 *Dotación Considerada:* ${unitsStr} unidades habitacionales\n` +
             `👷 *Visitas:* ${conditions.visitFrequency || 'Por definir'}\n` +
             `🚨 *Emergencias:* ${conditions.emergencyResponse || 'Por definir'}\n` +
-            `📋 *Servicios incluidos:* ${conditions.includedServices || 'Por definir'}\n\n` +
+            `📋 *Servicios incluidos:* ${conditions.includedServices || 'Por definir'}\n` +
+            `➕ *Servicios adicionales:* ${conditions.additionalServices || 'Por definir'}\n` +
+            `🤝 *Reuniones:* ${conditions.meetingFrequency || 'Por definir'}\n` +
+            `📅 *Inicio:* ${conditions.startDate || 'Por definir'}\n` +
+            `🔄 *Transición:* ${conditions.transitionConditions || 'Por definir'}\n` +
+            `📄 *Duración:* ${conditions.contractDuration || 'Por definir'}; aviso: ${conditions.noticePeriod || 'Por definir'}\n` +
+            `📝 *Otras condiciones:* ${conditions.otherConditions || 'Por definir'}\n\n` +
             `🔍 *Resumen del Diagnóstico Técnico de sus Instalaciones (Pág. 2 del informe):*\n` +
             `${diagnosticList || '• Inspección visual completa realizada a bombas, tableros eléctricos, techumbres y accesos.'}\n\n` +
             `⚖️ *Matriz Comparativa de Gestión (Pág. 3 del informe):*\n` +
@@ -743,7 +749,14 @@ export const CompanySettingsAndBackupModule = ({
             `• Dotación Considerada: ${unitsStr} unidades (casas / departamentos)\n` +
             `• Visitas: ${conditions.visitFrequency || 'Por definir'}\n` +
             `• Emergencias: ${conditions.emergencyResponse || 'Por definir'}\n` +
-            `• Servicios incluidos: ${conditions.includedServices || 'Por definir'}\n\n` +
+            `• Servicios incluidos: ${conditions.includedServices || 'Por definir'}\n` +
+            `• Servicios adicionales: ${conditions.additionalServices || 'Por definir'}\n` +
+            `• Reuniones: ${conditions.meetingFrequency || 'Por definir'}\n` +
+            `• Inicio: ${conditions.startDate || 'Por definir'}\n` +
+            `• Transición: ${conditions.transitionConditions || 'Por definir'}\n` +
+            `• Duración: ${conditions.contractDuration || 'Por definir'}\n` +
+            `• Aviso de término: ${conditions.noticePeriod || 'Por definir'}\n` +
+            `• Otras condiciones: ${conditions.otherConditions || 'Por definir'}\n\n` +
             `Adjunto a este correo encontrarán el documento oficial consolidado de 3 páginas que contiene:\n` +
             `1. Carta Formal de Postulación con desglose de honorarios, SLA y condiciones de servicio.\n` +
             `2. Informe Oficial de Diagnóstico Técnico Inicial con el estado de sus instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos).\n` +
@@ -758,7 +771,7 @@ export const CompanySettingsAndBackupModule = ({
           title: 'Paso 4: Cierre Tecnológico & Demostración de App en Vivo',
           subject: `Acceso a Demo en Vivo de Plataforma & Brochure App ARANPRO • ${condo}`,
           whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
-            `Para que su directiva y los copropietarios puedan experimentar en primera persona la transparencia y modernidad de nuestra gestión, les compartimos el acceso directo a la *Demo en Vivo de la Suite Digital y App Móvil ARANPRO* (100% gratuita para su condominio).\n\n` +
+            `Para que su directiva y los copropietarios puedan experimentar en primera persona la transparencia y modernidad de nuestra gestión, les compartimos el acceso directo a la *Demo en Vivo de la Suite Digital y App Móvil ARANPRO*.\n\n` +
             `🔗 *Enlace de Acceso Inmediato en 1 Clic (Sin claves ni registros):*\n` +
             `👉 ${demoLink}\n\n` +
             `Al ingresar desde su teléfono celular o computador, podrán evaluar los 3 perfiles reales:\n\n` +
@@ -773,14 +786,14 @@ export const CompanySettingsAndBackupModule = ({
             `⚠️ *3. Vista Copropietario con Saldo Pendiente (Casa 3):*\n` +
             `• Visualicen el cálculo transparente de intereses y detalle de cuotas.\n\n` +
             `✨ *Condiciones Clave para ${condo}:*\n` +
-            `• *100% Gratuito:* Cero costos de licencias ni cobros mensuales de software para la comunidad.\n` +
+            `• *Servicios incluidos:* ${conditions.includedServices || "Por definir"}.\n` +
             `• *Acceso Instantáneo:* No requiere descargar aplicaciones pesadas ni crear cuentas previas.\n\n` +
             `Adjuntamos el Brochure Oficial con capturas de pantalla para su revisión en sesión de comité. ¡Quedamos muy atentos a sus impresiones!\n\n` +
             `Atentamente,\n*${admin}* • ARANPRO Gestión Integral\nFono / WhatsApp: ${phone}\nSitio Web: https://aranpro.cl`,
           email: `Estimado Comité de Administración de ${condo}:\n\n` +
             `Con el objetivo de respaldar nuestra propuesta de gestión con tecnología real, ponemos a su disposición el Brochure Oficial y el acceso a la Demo Interactiva de la Suite ARANPRO.\n\n` +
             `Principales ventajas para ${condo}:\n` +
-            `• 100% Gratuita para la comunidad: Cero cobros de licencias o costos de software para el condominio.\n` +
+            `• Servicios incluidos: ${conditions.includedServices || "Por definir"}.\n` +
             `• Transparencia total 24/7: Comprobantes bancarios y facturas visibles con 1 clic para copropietarios y directiva.\n` +
             `• Gestión móvil: Votaciones, libro de reclamos foliado y comunicación oficial en la palma de la mano.\n\n` +
             `Acceso directo a la Demo en Vivo (1-clic):\n${demoLink}\n\n` +
@@ -946,7 +959,7 @@ export const CompanySettingsAndBackupModule = ({
                 Pilares Operativos ARANPRO para ${condo}:
               </strong>
               <span style="color: #166534; font-size: 12px; line-height: 1.6; display: block;">
-                ✓ <strong>Suite Web &amp; App Móvil 100% Gratuita</strong> para copropietarios y comité (cero cobro de licencias).<br/>
+                ✓ <strong>Suite Web &amp; App Móvil</strong> para copropietarios y comité, según las condiciones de la propuesta.<br/>
                 ✓ <strong>Supervisión Técnica en Terreno</strong> con criterio de Constructor Civil (bombas, tableros, techumbres).<br/>
                 ✓ <strong>Transparencia Financiera Total</strong> y gestión de personal bajo Ley N° 21.442 y Ley Karin.
               </span>
@@ -961,7 +974,7 @@ export const CompanySettingsAndBackupModule = ({
             <td align="center">
               <a href="https://wa.me/56958118504?text=${encodeURIComponent('Hola John, recibimos su presentación para ' + condo)}"
                  style="display: inline-block; background-color: #0F3D2E; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: bold; padding: 13px 26px; border-radius: 12px; border: 1px solid #D4B895; box-shadow: 0 2px 6px rgba(15,61,46,0.2);">
-                Coordinar Visita Técnica Gratuita por WhatsApp
+                Coordinar Visita Técnica por WhatsApp
               </a>
             </td>
           </tr>
@@ -1204,7 +1217,7 @@ export const CompanySettingsAndBackupModule = ({
           id: 'pilar_transp_247',
           title: 'Transparencia Financiera, Bancaria & Rendición 24/7',
           trad: 'Planillas Excel estáticas tardías. Cartolas bancarias y facturas ocultas o de difícil acceso para los vecinos.',
-          propuesta: 'Portal Web y App Móvil 24/7 sin costo: cada vecino audita facturas digitalizadas y conciliaciones bancarias con 1 clic.',
+          propuesta: 'Portal Web y App Móvil 24/7: cada vecino consulta facturas digitalizadas y conciliaciones bancarias con 1 clic, según los accesos y condiciones acordados.',
           active: true
         },
         {
@@ -1232,7 +1245,7 @@ export const CompanySettingsAndBackupModule = ({
           id: 'pilar_traspaso_auditoria',
           title: 'Traspaso & Auditoría Inicial de Entrada',
           trad: 'Asumen la administración sin auditar deudas anteriores, trasladando problemas históricos al nuevo comité.',
-          propuesta: 'Auditoría de traspaso formal y diagnóstico preventivo gratuito para blindar la responsabilidad del nuevo comité.',
+          propuesta: 'Auditoría de traspaso formal y diagnóstico preventivo, según las condiciones acordadas con el comité.',
           active: false
         }
       ]
@@ -1328,7 +1341,7 @@ export const CompanySettingsAndBackupModule = ({
       rows: [
         {
           id: 'pilar_app_residentes',
-          title: 'App Móvil & Portal Web 24/7 Bonificado para Residentes',
+          title: 'App Móvil & Portal Web 24/7 para Residentes',
           trad: 'Comunicación por carteleras de papel desactualizadas y filas en conserjería para pagar.',
           propuesta: 'Aplicación para celular donde los copropietarios pagan en línea, reservan quinchos y ven sus colillas al instante.',
           active: true
@@ -1371,7 +1384,13 @@ export const CompanySettingsAndBackupModule = ({
       const saved = localStorage.getItem('aranpro_custom_comparison_matrix');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed.map(row => {
+          // Actualizar solo los textos originales conocidos; conservar las ediciones del usuario.
+          if (row.id === 'pilar_transp_247' && row.propuesta === 'Portal Web y App Móvil 24/7 sin costo: cada vecino audita facturas digitalizadas y conciliaciones bancarias con 1 clic.') return { ...row, propuesta: COMPARISON_PRESETS.tecnico.rows.find(item => item.id === row.id).propuesta };
+          if (row.id === 'pilar_traspaso_auditoria' && row.propuesta === 'Auditoría de traspaso formal y diagnóstico preventivo gratuito para blindar la responsabilidad del nuevo comité.') return { ...row, propuesta: COMPARISON_PRESETS.tecnico.rows.find(item => item.id === row.id).propuesta };
+          if (row.id === 'pilar_app_residentes' && row.title === 'App Móvil & Portal Web 24/7 Bonificado para Residentes') return { ...row, title: COMPARISON_PRESETS.tecnologico.rows.find(item => item.id === row.id).title };
+          return row;
+        });
       }
     } catch (e) {
       console.warn('Error reading comparison matrix from storage', e);
@@ -2394,7 +2413,7 @@ export const CompanySettingsAndBackupModule = ({
       `1. MINUTO 1-2 (El Dolor Común): La mayoría de las comunidades cambian de administración por desconfianza en los gastos y demora en resolver problemas. En ARANPRO eliminamos ambos con tecnología y presencia técnica.\n` +
       `2. MINUTO 3-5 (Ventaja Técnica Constructiva): Administrador con formación de Constructor Civil. Auditamos en terreno bombas, techumbres, filtraciones y tableros eléctricos, frenando sobreprecios de contratistas.\n` +
       `3. MINUTO 6-8 (Demostración de la App): Cada vecino tiene en su celular los gastos comunes y puede auditar con un clic las facturas reales y cartolas bancarias.\n` +
-      `4. MINUTO 9-10 (Cierre y Traspaso): Auditoría inicial de traspaso sin costo y diagnóstico constructivo preventivo.\n` +
+      `4. MINUTO 9-10 (Cierre y Traspaso): ${activeProposalConditions(proposalConfig).transitionConditions || 'Condiciones de transición por definir'}.\n` +
       `Contacto: ${empresaForm.adminName} • ${empresaForm.phone}`;
 
     navigator.clipboard.writeText(pitchText);
@@ -3763,7 +3782,7 @@ export const CompanySettingsAndBackupModule = ({
                               </span>
                             </div>
                             <h4 className="text-base font-black text-slate-900 mt-0.5">
-                              Paso 1: Carta de Valor al Comité & Visita Inicial Gratuita
+                              Paso 1: Carta de Valor al Comité & Visita Inicial
                             </h4>
                           </div>
                         </div>
@@ -3776,7 +3795,7 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
 
                       <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong>Cuándo usarlo:</strong> Para dejar en conserjería o enviar por WhatsApp/Correo al presidente o comité cuando aún no conoces la realidad del condominio. <strong>No incluye precios;</strong> presenta tu respaldo como Constructor Civil, ofrece una Visita Técnica Inicial Gratuita en terreno y la Suite Digital sin costo para abrir la puerta a una reunión.
+                        <strong>Cuándo usarlo:</strong> Para dejar en conserjería o enviar por WhatsApp/Correo al presidente o comité cuando aún no conoces la realidad del condominio. <strong>No incluye precios;</strong> presenta tu experiencia, la visita inicial y la plataforma digital para abrir la puerta a una reunión.
                       </p>
 
                       {/* Botones de Acción Inmediata Paso 1 */}
@@ -3976,7 +3995,7 @@ export const CompanySettingsAndBackupModule = ({
                                 Modalidad Prospección Consultiva (Entrega de Dossier sin Visita Previa)
                               </strong>
                               <p className="text-[11px] text-emerald-800 leading-snug mt-0.5">
-                                El correo y WhatsApp se enviarán presentando formalmente el Dossier Integral de 4 Páginas, destacando el perfil de Constructor Civil, la Suite Digital 100% gratuita y motivando al Comité a coordinar una visita técnica de diagnóstico en terreno sin costo.
+                                El correo y WhatsApp presentarán el Dossier Integral de 4 Páginas, las condiciones configuradas y la posibilidad de coordinar una visita técnica de diagnóstico en terreno.
                               </p>
                             </div>
                           </div>
@@ -4558,10 +4577,10 @@ export const CompanySettingsAndBackupModule = ({
                         Gancho Comercial de Entrada • Autoridad Constructiva
                       </span>
                       <h4 className="text-base font-black text-slate-900">
-                        Informe de Diagnóstico Técnico Inicial Gratuito
+                        Informe de Diagnóstico Técnico Inicial
                       </h4>
                       <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
-                        Ofrece al comité una auditoría visual in situ sin costo de sus instalaciones críticas. Demuestra tu experiencia como
+                        Presenta al comité una auditoría visual in situ de sus instalaciones críticas. Demuestra tu experiencia como
                         <strong> Constructor Civil</strong> detectando fallas que otros administradores ignoran.
                       </p>
                     </div>
@@ -5128,7 +5147,7 @@ export const CompanySettingsAndBackupModule = ({
                           Paso 4 • Interacción en Tiempo Real
                         </span>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 font-mono">
-                          100% Bonificada • Cero Licencias
+                          Condiciones según propuesta
                         </span>
                       </div>
                       <h4 className="text-base font-black text-white">
@@ -6819,7 +6838,7 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="space-y-0.5 max-w-xl">
                       <p className="font-bold text-slate-900 text-[10.5px]">Dictamen Técnico & Criterio Constructivo Preventivo:</p>
                       <p className="text-[10px] text-slate-600 leading-tight">
-                        Levantamiento ocular y funcional sin costo comercial para respaldar las decisiones estratégicas del Comité de Administración, protegiendo el valor patrimonial y la plusvalía de la copropiedad.
+                        Levantamiento ocular y funcional para respaldar las decisiones del Comité de Administración, según las condiciones acordadas para la comunidad.
                       </p>
                     </div>
                     <div className="text-right shrink-0">
@@ -6886,7 +6905,7 @@ export const CompanySettingsAndBackupModule = ({
                       </strong>
                     </div>
                     <p className="text-justify text-[10.5px]">
-                      Frente al proceso de licitación, contrastamos el modelo tradicional de administraciones empíricas (que compiten con honorarios ilusorios pero trasladan costos ocultos y carecen de supervisión constructiva) versus el estándar de <strong>Gestión Integral ARANPRO</strong>, fundado en la dirección de un <strong>Constructor Civil</strong> y una <strong>Suite Tecnológica 100% Bonificada</strong> para la comunidad:
+                      Frente al proceso de licitación, contrastamos el modelo tradicional de administraciones empíricas (que compiten con honorarios ilusorios pero trasladan costos ocultos y carecen de supervisión constructiva) versus el estándar de <strong>Gestión Integral ARANPRO</strong>, fundado en la dirección de un <strong>Constructor Civil</strong> y una <strong>Suite Tecnológica</strong> para la comunidad:
                     </p>
                   </div>
 
@@ -7141,7 +7160,7 @@ export const CompanySettingsAndBackupModule = ({
                     {/* Título de Alto Impacto */}
                     <div className="text-center py-0.5">
                       <h1 className="text-xs md:text-sm font-black text-[#0F3D2E] uppercase tracking-tight">
-                        Administración Profesional, Criterio Constructor Civil & Plataforma Digital 100% Gratuita
+                        Administración Profesional, Criterio Constructor Civil & Plataforma Digital
                       </h1>
                       <div className="w-16 h-0.5 bg-[#D4B895] mx-auto mt-0.5 rounded-full"></div>
                     </div>
@@ -7167,10 +7186,10 @@ export const CompanySettingsAndBackupModule = ({
                           </span>
                           <div>
                             <strong className="text-[#0F3D2E] block text-[11px]">
-                              Gestión financiera, rendición de cuentas & Plataforma digital 100% gratuita
+                              Gestión financiera, rendición de cuentas & Plataforma digital
                             </strong>
                             <p className="text-[10px] text-slate-600 leading-snug mt-0.5">
-                              Preparación y seguimiento del presupuesto, gestión de gastos comunes y morosidad, revisión de pagos y organización de respaldos. <strong>La plataforma digital y app móvil de ARANPRO se entrega 100% gratuita para toda la comunidad</strong>, facilitando la consulta de la información de gestión las 24 horas, con accesos definidos según las funciones del comité y de los residentes.
+                              Preparación y seguimiento del presupuesto, gestión de gastos comunes y morosidad, revisión de pagos y organización de respaldos. La plataforma digital y app móvil de ARANPRO facilita la consulta de la información de gestión las 24 horas, con accesos definidos según las funciones del comité y de los residentes.
                             </p>
                           </div>
                         </div>
@@ -7213,21 +7232,21 @@ export const CompanySettingsAndBackupModule = ({
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-[9.5px] font-mono font-black uppercase tracking-wider text-[#0F3D2E]">
-                            ★ VALOR Y BENEFICIOS 100% GRATUITOS PARA {proposalConfig.targetCondo?.trim() ? proposalConfig.targetCondo.toUpperCase() : 'SU COMUNIDAD'}
+                            ★ VALOR Y BENEFICIOS PARA {proposalConfig.targetCondo?.trim() ? proposalConfig.targetCondo.toUpperCase() : 'SU COMUNIDAD'}
                           </span>
                           <span
                             className="text-[8.5px] font-bold px-2 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] shrink-0"
                             style={{ backgroundColor: '#0F3D2E', color: '#D4B895' }}
                           >
-                            100% Gratuito e Incluido
+                            Condiciones de la propuesta
                           </span>
                         </div>
                         <div className="space-y-1 text-[10px] text-slate-800 leading-snug">
                           <p>
-                            <strong>• Plataforma Digital & App Móvil 100% Gratuita para la Comunidad:</strong> Toda la comunidad (copropietarios y residentes) y el Comité cuentan con acceso ilimitado a nuestra suite digital 24/7 para consultar gastos comunes, cartolas bancarias, respaldos de facturas, libro de reclamos y votaciones, <strong>sin costos de licencias ni cobros de software para el condominio</strong>.
+                            <strong>• Plataforma Digital & App Móvil para la Comunidad:</strong> Toda la comunidad (copropietarios y residentes) y el Comité cuentan con acceso ilimitado a nuestra suite digital 24/7 para consultar gastos comunes, cartolas bancarias, respaldos de facturas, libro de reclamos y votaciones.
                           </p>
                           <p>
-                            <strong>• Reunión de Presentación y Visita Inicial Sin Costo ni Compromiso:</strong> Les propongo coordinar una visita inicial en terreno para conocer las instalaciones críticas (sala de bombas, tableros, cubiertas), dotación y prioridades del comité, y preparar una propuesta formal que precise las funciones asumidas, la modalidad de atención, los reportes, las prioridades de inicio y los honorarios.
+                            <strong>• Reunión de Presentación y Visita Inicial:</strong> Les propongo coordinar una visita inicial en terreno para conocer las instalaciones críticas (sala de bombas, tableros, cubiertas), dotación y prioridades del comité, y preparar una propuesta formal que precise las funciones asumidas, la modalidad de atención, los reportes, las prioridades de inicio y los honorarios.
                           </p>
                         </div>
                       </div>
@@ -7511,7 +7530,7 @@ export const CompanySettingsAndBackupModule = ({
                         <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong>
                       ) : (
                         <strong>su comunidad</strong>
-                      )}. Nuestra propuesta integra seguimiento financiero riguroso, coordinación disciplinada del personal y proveedores, presencia periódica en terreno y herramientas digitales gratuitas para que el Comité conozca en todo momento el estado de la gestión y pueda <strong>decidir con antecedentes claros, oportunos y verificables</strong>.
+                      )}. Nuestra propuesta integra seguimiento financiero riguroso, coordinación disciplinada del personal y proveedores, presencia periódica en terreno y herramientas digitales para que el Comité conozca en todo momento el estado de la gestión y pueda <strong>decidir con antecedentes claros, oportunos y verificables</strong>.
                     </p>
                     <p>
                       Como <strong>Especialista Constructor Civil</strong> y Administrador de Condominios bajo la <strong>Ley N° 21.442</strong>, cuento con formación complementaria certificada en <strong>Inspección Técnica de Obras (ITO), Aseguramiento de Calidad (PAC), Control de Presupuestos, Gestión de Proyectos (Project Management), Contabilidad General (PUC) y Normativa SEC</strong>. Aplico directamente estas competencias a la revisión técnica de alcances y cantidades (cubicaciones), al seguimiento programado de mantenciones preventivas y a la documentación rigurosa de observaciones en terreno, coordinando especialistas habilitados cada vez que la intervención lo requiere.
@@ -7538,7 +7557,7 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                       <div className="p-2 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60 shadow-2xs">
                         <span className="text-[8px] font-bold text-slate-500 uppercase block">Plataforma Comunidad</span>
-                        <strong className="text-[10px] font-black text-[#0F3D2E]">Web & App 100% Gratuita</strong>
+                        <strong className="text-[10px] font-black text-[#0F3D2E]">Web & App para la comunidad</strong>
                       </div>
                     </div>
                   </div>
@@ -7551,11 +7570,11 @@ export const CompanySettingsAndBackupModule = ({
                           Transición Ordenada
                         </span>
                         <span className="font-black text-[#0F3D2E] text-[10.5px] uppercase tracking-tight">
-                          Política de Honorarios & Período de Diagnóstico (Primeros 3 Meses)
+                          Condiciones de inicio y prestación del servicio
                         </span>
                       </div>
                       <span className="font-mono font-bold text-[8.5px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2 py-0.5 rounded-md shadow-2xs">
-                        Sin Incremento Inicial en Gasto Común
+                        Según propuesta
                       </span>
                     </div>
 
@@ -7565,14 +7584,14 @@ export const CompanySettingsAndBackupModule = ({
                         <div>
                           <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[9.5px]">
                             <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[8.5px] font-black">1</span>
-                            Ajuste al Valor Actual
+                            Transición propuesta
                           </div>
                           <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
-                            Durante los <strong>primeros 3 meses</strong>, ARANPRO se <strong>ajusta al mismo valor de honorarios</strong> que la comunidad mantiene vigente, asegurando continuidad operativa sin alterar el presupuesto vecinal.
+                            {activeProposalConditions(proposalConfig).transitionConditions || "Condiciones de inicio y transición por definir con el Comité."}
                           </p>
                         </div>
                         <span className="mt-2 text-[7.5px] font-mono font-bold text-emerald-800 bg-emerald-50 px-1 py-0.5 rounded text-center block">
-                          Meses 1 al 3: Valor Actual Vigente
+                          Condiciones por comunidad
                         </span>
                       </div>
 
@@ -7583,7 +7602,7 @@ export const CompanySettingsAndBackupModule = ({
                             Diagnóstico & Ordenamiento
                           </div>
                           <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
-                            En este trimestre realizamos el levantamiento técnico en terreno, revisión de alcances con proveedores, conciliación financiera y puesta en marcha de los controles de mantenimiento.
+                            Visitas: {activeProposalConditions(proposalConfig).visitFrequency || "Por definir"}. Emergencias: {activeProposalConditions(proposalConfig).emergencyResponse || "Por definir"}.
                           </p>
                         </div>
                         <span className="mt-2 text-[7.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] px-1 py-0.5 rounded text-center block">
@@ -7595,10 +7614,10 @@ export const CompanySettingsAndBackupModule = ({
                         <div>
                           <div className="flex items-center gap-1.5 text-[#0F3D2E] font-bold text-[9.5px]">
                             <span className="w-4 h-4 rounded-full bg-[#0F3D2E] text-[#D4B895] inline-flex items-center justify-center text-[8.5px] font-black">3</span>
-                            Acuerdo Definitivo al 3er Mes
+                            Alcance de los servicios
                           </div>
                           <p className="text-[8.5px] text-slate-600 leading-snug mt-1">
-                            Con el diagnóstico real de la comunidad y las mejoras ya encaminadas, revisamos en conjunto con el Comité la <strong>propuesta definitiva de servicios, frecuencias y honorarios</strong>.
+                            Servicios incluidos: {activeProposalConditions(proposalConfig).includedServices || "Por definir"}. Servicios adicionales: {activeProposalConditions(proposalConfig).additionalServices || "Por definir"}.
                           </p>
                         </div>
                         <span className="mt-2 text-[7.5px] font-mono font-bold text-slate-700 bg-slate-100 px-1 py-0.5 rounded text-center block">
@@ -7609,10 +7628,10 @@ export const CompanySettingsAndBackupModule = ({
 
                     <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[8.5px] text-emerald-950 gap-2">
                       <span className="leading-snug">
-                        <strong>Entregables incluidos desde el primer día:</strong> Acceso gratuito a la plataforma Web & App Móvil para residentes y Comité, presencia programada en terreno, seguimiento documentado de mantenciones y atención de contingencias.
+                        <strong>Reuniones:</strong> {activeProposalConditions(proposalConfig).meetingFrequency || "Por definir"} • <strong>Inicio:</strong> {activeProposalConditions(proposalConfig).startDate || "Por definir"} • <strong>Vigencia:</strong> {activeProposalConditions(proposalConfig).contractDuration || "Por definir"} • <strong>Aviso:</strong> {activeProposalConditions(proposalConfig).noticePeriod || "Por definir"}.
                       </span>
                       <span className="font-mono font-bold text-[8px] text-[#0F3D2E] bg-white px-1.5 py-0.5 rounded border border-[#D4B895] shrink-0">
-                        {proposalConfig.taxModality || 'Factura Exenta / Boleta'}
+                        {activeProposalConditions(proposalConfig).otherConditions || 'Otras condiciones por definir'}
                       </span>
                     </div>
                   </div>
@@ -8001,7 +8020,7 @@ export const CompanySettingsAndBackupModule = ({
                           {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
                         </span>
                         <span className="text-[9px] text-slate-500 font-mono">
-                          Plataforma Digital Gratuita, Transparencia Contable 24/7 y Demo Interactiva • Ley N° 21.442
+                          Plataforma Digital, Transparencia Contable 24/7 y Demo Interactiva • Ley N° 21.442
                         </span>
                       </div>
                     </div>
@@ -8030,7 +8049,7 @@ export const CompanySettingsAndBackupModule = ({
                           </div>
                         </div>
                         <span className="text-[8px] font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
-                          ✓ 100% Incluida Sin Costo
+                          Condiciones según propuesta
                         </span>
                       </div>
 
@@ -8039,7 +8058,7 @@ export const CompanySettingsAndBackupModule = ({
                       </p>
 
                       <p className="text-[8.2px] text-slate-700 leading-relaxed text-justify">
-                        A diferencia del modelo tradicional del mercado —donde las administraciones contratan plataformas externas (como ComunidadFeliz, Kastor o Edipro) y traspasan mensualmente ese sobrecosto al gasto común de los vecinos—, <strong>ARANPRO entrega su suite digital 100% incluida, sin costo de licencias ni cobros por vivienda</strong>. Esto se traduce en un <strong>ahorro financiero directo y comprobado de $600.000 a $1.500.000 anuales</strong> para la comunidad, garantizando a la vez soporte técnico personalizado del Administrador, soberanía sobre los datos y custodia permanente del Libro de Copropietarios (Art. 17°).
+                        La plataforma apoya la gestión documental y la comunicación con la comunidad. <strong>Servicios incluidos:</strong> {activeProposalConditions(proposalConfig).includedServices || "Por definir"}. <strong>Servicios adicionales:</strong> {activeProposalConditions(proposalConfig).additionalServices || "Por definir"}.
                       </p>
 
                       <div className="grid grid-cols-3 gap-1.5 pt-0.5">
@@ -8745,7 +8764,7 @@ export const CompanySettingsAndBackupModule = ({
                 <div className="space-y-2">
                   {/* Membrete Maestro del Brochure ARANPRO */}
                   <CanonicalPdfHeader
-                    badge="SUITE 100% BONIFICADA" description="Portal Web & App Móvil ARANPRO"
+                    badge="SUITE DIGITAL" description="Portal Web & App Móvil ARANPRO"
                     community={proposalConfig.targetCondo || 'Comunidad de Copropietarios'} page={1}
                     email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'}
                     legalText={`${empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria`}
@@ -8894,10 +8913,10 @@ export const CompanySettingsAndBackupModule = ({
                     <div className="p-2 rounded-xl bg-white border border-slate-200 space-y-0.5">
                       <div className="flex items-center gap-1.5 text-[#0F3D2E]">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <strong className="text-[10px] text-slate-900">Suite 100% Bonificada (Cero Costo Software)</strong>
+                        <strong className="text-[10px] text-slate-900">Condiciones de la plataforma</strong>
                       </div>
                       <p className="text-[8.5px] text-slate-600 leading-snug">
-                        Incluida en el servicio de administración ARANPRO. La comunidad no asume ningún costo de licencias ni cargos extra por residente.
+                        Servicios incluidos: {activeProposalConditions(proposalConfig).includedServices || "Por definir"}. Servicios adicionales: {activeProposalConditions(proposalConfig).additionalServices || "Por definir"}.
                       </p>
                     </div>
                   </div>
@@ -8999,7 +9018,7 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
                 <div>
                   <h4 className="text-sm font-black text-slate-900">
-                    Informe de Diagnóstico Técnico Inicial Gratuito
+                    Informe de Diagnóstico Técnico Inicial
                   </h4>
                   <p className="text-[11px] text-slate-500 font-mono">
                     Levantamiento Preventivo de Instalaciones Críticas • Criterio Constructivo
@@ -9123,7 +9142,7 @@ export const CompanySettingsAndBackupModule = ({
                       <div className="space-y-0.5 border-l border-slate-200 pl-3">
                         <p className="font-bold text-slate-900 text-[10px]">Conclusión de Inspección Técnica:</p>
                         <p className="text-[9.5px] text-slate-600 leading-snug">
-                          Diagnóstico realizado sin costo para orientar al Comité de Administración en la priorización de obras preventivas y evitar emergencias de alto costo.
+                          Diagnóstico destinado a orientar al Comité de Administración en la priorización de obras preventivas.
                         </p>
                       </div>
                     </div>
@@ -9326,7 +9345,7 @@ export const CompanySettingsAndBackupModule = ({
 
             <div className="overflow-y-auto flex-1 pr-1 space-y-3 text-xs">
               {[
-                { q: '1. "¿Cuánto cobran de honorarios y qué incluye?"', r: 'Nuestros honorarios son transparentes y acordes a la escala de la comunidad. Incluyen visitas semanales en terreno, la plataforma web y app móvil para todos los copropietarios, y la emisión de colillas y certificados sin cobros ocultos.' },
+                { q: '1. "¿Cuánto cobran de honorarios y qué incluye?"', r: `Honorario propuesto: ${!proposalConfig.unknownDetails && Number(proposalConfig.proposedMonthlyFee) > 0 ? formatCLP(Number(proposalConfig.proposedMonthlyFee)) : 'Por definir'}. Visitas: ${activeProposalConditions(proposalConfig).visitFrequency || 'Por definir'}. Servicios incluidos: ${activeProposalConditions(proposalConfig).includedServices || 'Por definir'}. Servicios adicionales: ${activeProposalConditions(proposalConfig).additionalServices || 'Por definir'}.` },
                 { q: '2. "¿Cómo se realiza el cambio con la administración actual?"', r: 'ARANPRO se encarga de la auditoría de traspaso formal según el Art. 20° de la Ley N° 21.442, levantando un acta formal de conciliación bancaria y revisión de deudas para blindar la responsabilidad del nuevo comité.' },
                 { q: '3. "¿Cómo manejan la morosidad histórica?"', r: 'Aplicamos el Art. 36° de la ley: emisión de convenios de pago formalizados, certificados morosos para notarías y cortes de suministro coordinados conforme al reglamento interno.' },
                 { q: '4. "¿Por qué un administrador con formación en construcción es mejor?"', r: 'Porque las mantenciones representan el 60% del gasto común. Con criterio técnico de Constructor Civil evitamos que contratistas inflen presupuestos de impermeabilización, bombas o pintura.' }

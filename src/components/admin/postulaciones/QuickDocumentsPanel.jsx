@@ -121,7 +121,7 @@ export const QuickDocumentsPanel = ({
     {
       id: 'carta-valor',
       title: 'Carta de Valor al Comité • Puerta en Frío',
-      subtitle: 'Presentación formal sin precios. Destaca experiencia pericial, App 24/7 y ofrece diagnóstico inicial gratuito.',
+      subtitle: 'Presentación formal sin precios. Destaca experiencia pericial, App 24/7 y ofrece diagnóstico inicial.',
       badge: 'Paso 1 • Embudo',
       badgeColor: 'emerald',
       format: 'PDF Oficial A4 (1 Pág)',
@@ -169,7 +169,7 @@ export const QuickDocumentsPanel = ({
     },
     {
       id: 'informe-diagnostico',
-      title: 'Informe de Diagnóstico Técnico Inicial Gratuito',
+      title: 'Informe de Diagnóstico Técnico Inicial',
       subtitle: 'Pauta de inspección pericial de salas de bombas, tableros eléctricos, cubiertas y sellos de gas para la primera visita.',
       badge: 'Paso 3 • Anexo Técnico',
       badgeColor: 'slate',
