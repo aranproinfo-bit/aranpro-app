@@ -5,6 +5,7 @@ import { PwaInstallButton } from '../layout/PwaPrompt';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import { formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
+import { OfficePayrollPrint, officePayrollPrintStyles } from './OfficePayrollPrint';
 import {
   Building2, Briefcase, Users, Award, ShieldCheck, ArrowRight, Plus,
   TrendingUp, Target, GraduationCap, Handshake, Wrench, FileText,
@@ -1083,7 +1084,10 @@ export const CompanyEnterpriseHub = ({
                       type="button"
                       onClick={() =>
                         printDocumentDirectly('printable-office-payroll-sheet', 'ARANPRO_Nomina_Imposiciones_Oficina', {
-                          fitPage: true
+                          fitPage: false,
+                          pageSize: 'letter landscape',
+                          margin: '0',
+                          extraStyles: officePayrollPrintStyles
                         })
                       }
                       className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 cursor-pointer"
@@ -1128,7 +1132,7 @@ export const CompanyEnterpriseHub = ({
 
                 {/* Tabla de Nómina e Imposiciones de la Empresa Administradora */}
                 <div
-                  id="printable-office-payroll-sheet"
+                  id="office-payroll-screen"
                   data-pdf-style={pdfStyle}
                   className="p-6 bg-white rounded-2xl border border-slate-200 space-y-5"
                 >
@@ -1235,6 +1239,7 @@ export const CompanyEnterpriseHub = ({
                     </div>
                   </div>
                 </div>
+                <div className="hidden"><OfficePayrollPrint workers={officeWorkers} settings={companySettings || {}} pdfStyle={pdfStyle} /></div>
               </div>
 
               {/* Modal para agregar colaborador */}

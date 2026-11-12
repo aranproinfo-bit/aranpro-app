@@ -12,7 +12,7 @@ Alcance actual: solo los documentos del panel **Mi Empresa**. La pauta de traspa
 - Guía de presentación: cabecera y pies canónicos, guion y respuestas distribuidos en cinco páginas; comprobada con dos perfiles.
 - Ficha de acreditación sin archivo de respaldo: formato canónico, indicación explícita de que no hay respaldo adjunto y descarga desde el visor o desde la lista. Los archivos de respaldo originales se descargan sin modificar.
 - Pendiente: documentos restantes del Paso 5. Comprobar que los listados variables no se recorten al imprimir.
-- Revisar la nómina de imposiciones de oficina y cualquier otra salida generada desde Mi Empresa, identificando cuándo corresponda un formato distinto por su propósito.
+- Nómina de imposiciones de oficina: formato canónico horizontal y paginación; verificados trabajadores y montos contra pantalla con datos ficticios. Revisar cualquier otra salida generada desde Mi Empresa.
 
 ## Fuera del alcance actual: documentos de comunidades
 
