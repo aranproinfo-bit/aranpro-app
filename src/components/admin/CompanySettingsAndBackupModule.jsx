@@ -2344,8 +2344,13 @@ export const CompanySettingsAndBackupModule = ({
     const filename = `ARANPRO_Brochure_App_Copropietarios_${targetClean}_${dateClean}`;
     printDocumentDirectly('printable-app-brochure', filename, {
       pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm'
+      fitPage: false,
+      margin: '0',
+      extraStyles: `${canonicalPdfHeaderStyles}
+        @page { size: letter portrait; margin: 0 !important; }
+        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
+        .brochure-footer { gap: 8px !important; font-size: 7px !important; white-space: nowrap !important; }`
     });
   };
 
@@ -8716,31 +8721,13 @@ export const CompanySettingsAndBackupModule = ({
                 {/* SECCIÓN SUPERIOR */}
                 <div className="space-y-2">
                   {/* Membrete Maestro del Brochure ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                    <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-10 w-auto" />
-                      <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <span className="text-[9px] font-black text-[#D4B895] uppercase tracking-widest block">
-                          TECNOLOGÍA & TRANSFORMACIÓN DIGITAL • LEY N° 21.442
-                        </span>
-                        <h2 className="text-base font-black text-[#0F3D2E] tracking-tight uppercase leading-none">
-                          Portal Web & App Móvil ARANPRO
-                        </h2>
-                        <p className="text-[9px] text-slate-600 font-mono font-semibold">
-                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Fono: {empresaForm.phone || '+56 9 5811 8504'} • Web: {empresaForm.website || 'https://aranpro.cl'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9px] font-bold font-mono">
-                        SUITE 100% BONIFICADA
-                      </span>
-                      <p className="text-[9.5px] text-slate-600 font-semibold">
-                        {proposalConfig.targetCondo || 'Comunidad de Copropietarios'}
-                      </p>
-                      <span className="text-[8px] text-emerald-700 block font-bold">Cero costo de licencias</span>
-                    </div>
-                  </div>
+                  <CanonicalPdfHeader
+                    badge="SUITE 100% BONIFICADA" description="Portal Web & App Móvil ARANPRO"
+                    community={proposalConfig.targetCondo || 'Comunidad de Copropietarios'} page={1}
+                    email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'}
+                    legalText={`${empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria`}
+                  />
+                  <div className="flex justify-between text-[9px] font-semibold text-[#0F3D2E]"><span>TECNOLOGÍA & TRANSFORMACIÓN DIGITAL • LEY N° 21.442</span><span>Cero costo de licencias</span></div>
 
                   {/* Franja de Campaña / Titular Rector */}
                   <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-50 via-[#F5F4EF] to-amber-50/50 border border-emerald-200/80 flex items-center justify-between gap-3">
@@ -8967,7 +8954,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
 
                   {/* Pie de Página Canónico Maestro */}
-                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
+                  <div className="brochure-footer pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
                     <div className="font-bold text-[#0F3D2E]">Brochure Tecnológico • Suite Web & App Móvil • Ley N° 21.442 (Pág. 1 de 1)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
