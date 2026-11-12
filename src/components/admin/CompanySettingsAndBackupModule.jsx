@@ -2322,31 +2322,15 @@ export const CompanySettingsAndBackupModule = ({
     });
   };
 
-  // Imprimir Carta de Valor & Prospección Rápida (Puerta en Frío / Conserjería)
-  const handlePrintColdLetter = () => {
-    if (!previewColdLetterModal) setPreviewColdLetterModal(true);
-    const targetClean = (proposalConfig.targetCondo || 'Comite_Administracion').replace(/[^a-zA-Z0-9]/g, '_');
-    const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
-    const filename = `ARANPRO_Carta_Valor_Comite_${targetClean}_${dateClean}`;
-    printDocumentDirectly('printable-cold-value-letter', filename, {
-      pageSize: 'letter portrait',
-      fitPage: false,
-      margin: '0',
-      extraStyles: `${canonicalPdfHeaderStyles}
-        @page { size: letter portrait; margin: 0 !important; }
-        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
-        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
-        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
-        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
-        .transition-final-footer { gap: 8px !important; }
-        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
-        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
-        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
-        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
-        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
-        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
-        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
-    });
+  // La descarga usa exactamente el mismo generador que el adjunto del correo.
+  const handlePrintColdLetter = async () => {
+    try {
+      const pdf = await generateStepPdfAttachment({ stepNumber: 1, proposalConfig, empresaForm, signatureImage: signatureImage || companySettings?.signatureDataUrl || '' });
+      downloadDataUrl(`data:application/pdf;base64,${pdf.contentBase64}`, pdf.filename);
+    } catch (error) {
+      console.error('Error generando carta de valor:', error);
+      showAlert('No se pudo generar la carta', 'Vuelve a intentarlo. No se descargó ningún documento.', 'error');
+    }
   };
 
   // Imprimir Dossier Integral de Licitación (Carta + Ficha Técnica Constructiva + Diplomas + Cartas Recomendación)
@@ -3892,7 +3876,7 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          Imprimir Carta
+                          Descargar Carta PDF
                         </button>
                         <button
                           type="button"
@@ -7113,7 +7097,7 @@ export const CompanySettingsAndBackupModule = ({
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-md transition-all active:scale-95"
                 >
                   <Printer className="w-4 h-4 text-[#D4B895]" />
-                  Imprimir / Descargar PDF (Carta)
+                  Descargar PDF (Carta)
                 </button>
                 <button
                   onClick={() => setPreviewColdLetterModal(false)}

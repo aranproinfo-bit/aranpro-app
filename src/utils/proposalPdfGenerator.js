@@ -113,6 +113,7 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
             background-color:#fff!important; background-image:linear-gradient(#D4B895,#D4B895)!important;
             background-size:4.5px 100%!important; background-position:1.9px 0!important; background-repeat:no-repeat!important; }
           .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display:none!important; }
+          ${options.hideDecorativeWatermark ? '.dossier-page > img[aria-hidden="true"] { display:none!important; } .dossier-page h1 { font-size:12px!important; }' : ''}
           .transition-header img[src*="ARANPRO_logo_horizontal"] { width:140px!important; max-width:140px!important; height:auto!important; max-height:42px!important; object-fit:contain!important; }
           .proposal-page-footer,.brochure-footer { gap:8px!important; font-size:8px!important; white-space:nowrap!important; }
           .transition-final-footer { gap:8px!important; }
@@ -181,7 +182,7 @@ export const generateStepPdfAttachment = async ({
   const targetClean = targetRaw.replace(/[^a-zA-Z0-9]/g, '_');
   const currentLocalDate = new Date();
   const currentDateClean = `${currentLocalDate.getFullYear()}${String(currentLocalDate.getMonth() + 1).padStart(2, '0')}${String(currentLocalDate.getDate()).padStart(2, '0')}`;
-  const dateClean = stepNumber === 3 ? currentDateClean : (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
+  const dateClean = stepNumber === 1 || stepNumber === 3 ? currentDateClean : (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
 
   let elementId = 'printable-cold-value-letter';
   let defaultFilename = targetClean
@@ -232,7 +233,7 @@ export const generateStepPdfAttachment = async ({
         const today = currentLocalDate.toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
         el.querySelectorAll('[data-current-print-date]').forEach(node => { node.textContent = today; });
       }
-      const contentBase64 = await exportDomElementToPdfBase64(el, { filename: defaultFilename });
+      const contentBase64 = await exportDomElementToPdfBase64(el, { filename: defaultFilename, hideDecorativeWatermark: stepNumber === 1 });
       if (contentBase64 && contentBase64.length > 500) {
         return {
           filename: defaultFilename,
