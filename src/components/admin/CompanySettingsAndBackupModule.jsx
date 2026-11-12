@@ -29,6 +29,15 @@ import {
   Mail, GraduationCap, Info, Edit3
 } from 'lucide-react';
 
+const localToday = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+const formatLocalDay = (day) => new Date(`${day}T12:00:00`).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
+const refreshPrintDates = (id) => {
+  document.getElementById(id)?.querySelectorAll('[data-current-print-date]').forEach(el => { el.textContent = formatLocalDay(localToday()); });
+};
+
 // Recorta automáticamente márgenes blancos/transparentes alrededor de la firma manuscrita
 // y convierte el fondo blanco en transparente para que la firma abarque óptimamente su espacio en los PDFs.
 const autoTrimSignatureDataUrl = (dataUrl) => {
@@ -573,7 +582,7 @@ export const CompanySettingsAndBackupModule = ({
   const [inspectionForm, setInspectionForm] = useState({
     targetCondo: proposalConfig.targetCondo || 'Condominio en Evaluación',
     inspector: empresaForm.adminName,
-    date: new Date().toISOString().split('T')[0],
+    date: '', // vacío = fecha actual al generar; permite registrar una visita anterior
     items: [
       { id: 'bombas', name: 'Sala de Bombas & Sistema Hidroneumático', status: 'Requiere Mantención', notes: 'Bombas operativas con fuga leve en sello mecánico de Bomba 2. Manómetro principal descalibrado; requiere regulación de presostato.' },
       { id: 'cubiertas', name: 'Cubiertas, Techumbres & Bajadas de Agua', status: 'Crítico', notes: 'Membrana asfáltica con fisuras en sector poniente; canaletas con acumulación de sedimentos. Riesgo de filtración en temporada de lluvias.' },
@@ -2281,8 +2290,9 @@ export const CompanySettingsAndBackupModule = ({
   // Imprimir Propuesta Formal & Diagnóstico Técnico en PDF Carta (2 Páginas)
   const handlePrintProposal = () => {
     if (!previewProposalModal) setPreviewProposalModal(true);
+    refreshPrintDates('printable-commercial-proposal');
     const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
-    const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
+    const dateClean = localToday().replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Propuesta_Formal_y_Diagnostico_${targetClean}_${dateClean}`;
     printDocumentDirectly('printable-commercial-proposal', filename, {
       pageSize: 'letter portrait',
@@ -2293,7 +2303,7 @@ export const CompanySettingsAndBackupModule = ({
         .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
         .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
         .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
-        .proposal-page-footer { gap: 8px !important; font-size: 7px !important; white-space: nowrap !important; }
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
         .transition-final-footer { gap: 8px !important; }
         .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
         .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
@@ -2358,7 +2368,7 @@ export const CompanySettingsAndBackupModule = ({
   const handlePrintInspectionReport = () => {
     if (!previewInspectionModal) setPreviewInspectionModal(true);
     const targetClean = (inspectionForm.targetCondo || proposalConfig.targetCondo || 'Condominio').replace(/[^a-zA-Z0-9]/g, '_');
-    const dateClean = (inspectionForm.date || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
+    const dateClean = (inspectionForm.date || localToday()).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Informe_Diagnostico_Tecnico_${targetClean}_${dateClean}`;
     printDocumentDirectly('printable-technical-inspection', filename, {
       pageSize: 'letter portrait',
@@ -4714,6 +4724,11 @@ export const CompanySettingsAndBackupModule = ({
                     </button>
                   </div>
 
+                  <label className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
+                    Fecha de la visita de inspección
+                    <input type="date" value={inspectionForm.date} onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs" />
+                    <span className="font-normal text-slate-500">Sin fecha indicada se usa el día de generación.</span>
+                  </label>
                   {/* LISTADO DE PARTIDAS DE INSPECCIÓN TÉCNICA */}
                   <div className="space-y-3">
                     <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -6560,10 +6575,8 @@ export const CompanySettingsAndBackupModule = ({
                     )}
                     <p><strong>Presentado por:</strong> <strong className="text-slate-900">{empresaForm.adminName}</strong> — Constructor Civil • Administrador de Condominios (Ley N° 21.442)</p>
                     <p>
-                      <strong>Fecha:</strong>{' '}
-                      {proposalConfig.proposalDate
-                        ? new Date(proposalConfig.proposalDate + 'T12:00:00').toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })
-                        : new Date().toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      <strong>Fecha de propuesta:</strong>{' '}
+                      <span data-current-print-date>{formatLocalDay(localToday())}</span>
                       {proposalConfig.targetCity?.trim() ? ` • ${proposalConfig.targetCity}` : ` • ${empresaForm.city}`}
                     </p>
                     <p><strong>Materia:</strong> Postulación Formal a la Administración y Custodia Patrimonial del Condominio</p>
@@ -6605,9 +6618,6 @@ export const CompanySettingsAndBackupModule = ({
                             Tasación pericial basada en la Matriz de Complejidad ARANPRO • Ley N° 21.442
                           </span>
                         </div>
-                        <span className="font-mono font-bold text-[10px] text-[#0F3D2E] bg-white border border-[#D4B895] px-2.5 py-0.5 rounded-md shadow-2xs">
-                          {proposalConfig.taxModality || 'Factura Exenta / Boleta'}
-                        </span>
                       </div>
                       <div className="grid grid-cols-3 gap-2.5 text-center py-1">
                         <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
@@ -6668,7 +6678,7 @@ export const CompanySettingsAndBackupModule = ({
                   {/* Pie de Página Canónico Maestro */}
                   <div className="proposal-page-footer pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Carta Formal de Postulación a Licitación • Ley N° 21.442 (Pág. 1 de 3)</div>
+                    <div className="font-bold text-[#0F3D2E]">Propuesta Formal • Ley N° 21.442 (Pág. 1 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
                   </div>
                 </div>
@@ -6703,7 +6713,7 @@ export const CompanySettingsAndBackupModule = ({
                     page={2} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'}
                     legalText={`${empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria`}
                   />
-                  <div className="flex justify-between text-[9px] font-semibold text-slate-600"><span>DEPARTAMENTO TÉCNICO & AUDITORÍA CONSTRUCTIVA</span><span>Fecha: {inspectionForm.date || new Date().toISOString().slice(0, 10)}</span></div>
+                  <div className="flex justify-between text-[9px] font-semibold text-slate-600"><span>DEPARTAMENTO TÉCNICO & AUDITORÍA CONSTRUCTIVA</span><span>Fecha de inspección: {inspectionForm.date ? formatLocalDay(inspectionForm.date) : <span data-current-print-date>{formatLocalDay(localToday())}</span>}</span></div>
 
                   {/* Datos del Inspector Técnico */}
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
@@ -6809,7 +6819,7 @@ export const CompanySettingsAndBackupModule = ({
                   {/* Pie de Página Canónico Maestro */}
                   <div className="proposal-page-footer pt-1 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Informe de Diagnóstico Técnico Inicial • Ley N° 21.442 (Pág. 2 de 3)</div>
+                    <div className="font-bold text-[#0F3D2E]">Diagnóstico Técnico • Ley N° 21.442 (Pág. 2 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
                   </div>
                 </div>
@@ -6839,12 +6849,12 @@ export const CompanySettingsAndBackupModule = ({
                 <div className="space-y-1.5 relative z-10">
                   {/* Membrete Maestro Técnico ARANPRO */}
                   <CanonicalPdfHeader
-                    badge="ESTÁNDAR LEY 21.442" description="¿Por qué elegir la Gestión Integral de ARANPRO?"
+                    badge="ESTÁNDAR LEY 21.442" description="Matriz comparativa de gestión"
                     community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
                     page={3} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'}
                     legalText={`${empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria`}
                   />
-                  <div className="text-[9px] font-semibold text-slate-600">ANÁLISIS COMPARATIVO DE VALOR AGREGADO & PROPUESTA DIFERENCIADORA</div>
+                  <div className="text-center"><h2 className="text-[14px] font-bold text-[#0F3D2E]">¿Por qué elegir la Gestión Integral de ARANPRO?</h2><p className="text-[9px] font-semibold text-slate-600">ANÁLISIS COMPARATIVO DE VALOR AGREGADO & PROPUESTA DIFERENCIADORA</p></div>
 
                   {/* Presentación Estratégica Comparativa */}
                   <div
@@ -6946,7 +6956,7 @@ export const CompanySettingsAndBackupModule = ({
                   {/* Pie de Página Canónico Maestro Página 3 */}
                   <div className="proposal-page-footer pt-1 border-t border-slate-200 flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
                     <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Matriz Comparativa de Gestión • Estándar Ley N° 21.442 (Pág. 3 de 3)</div>
+                    <div className="font-bold text-[#0F3D2E]">Matriz Comparativa • Ley N° 21.442 (Pág. 3 de 3)</div>
                     <div>{empresaForm.city || 'La Serena, Chile'}</div>
                   </div>
                 </div>
@@ -9040,7 +9050,7 @@ export const CompanySettingsAndBackupModule = ({
                       <p className="font-bold text-slate-800 text-[10.5px]">
                         {proposalConfig.targetCondo || inspectionForm.targetCondo || 'Condominio en Evaluación'}
                       </p>
-                      <span className="text-[9px] text-slate-500 block font-mono">Fecha: {inspectionForm.date}</span>
+                      <span className="text-[9px] text-slate-500 block font-mono">Fecha de inspección: {formatLocalDay(inspectionForm.date || localToday())}</span>
                     </div>
                   </div>
 

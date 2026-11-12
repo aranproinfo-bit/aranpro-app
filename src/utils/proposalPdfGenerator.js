@@ -157,7 +157,9 @@ export const generateStepPdfAttachment = async ({
 }) => {
   const targetRaw = (proposalConfig.targetCondo || '').trim();
   const targetClean = targetRaw.replace(/[^a-zA-Z0-9]/g, '_');
-  const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
+  const currentLocalDate = new Date();
+  const currentDateClean = `${currentLocalDate.getFullYear()}${String(currentLocalDate.getMonth() + 1).padStart(2, '0')}${String(currentLocalDate.getDate()).padStart(2, '0')}`;
+  const dateClean = stepNumber === 3 ? currentDateClean : (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
 
   let elementId = 'printable-cold-value-letter';
   let defaultFilename = targetClean
@@ -204,6 +206,10 @@ export const generateStepPdfAttachment = async ({
     }
 
     if (el) {
+      if (stepNumber === 3) {
+        const today = currentLocalDate.toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
+        el.querySelectorAll('[data-current-print-date]').forEach(node => { node.textContent = today; });
+      }
       const contentBase64 = await exportDomElementToPdfBase64(el, { filename: defaultFilename });
       if (contentBase64 && contentBase64.length > 500) {
         return {
