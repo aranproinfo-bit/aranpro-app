@@ -2333,8 +2333,17 @@ export const CompanySettingsAndBackupModule = ({
       extraStyles: `${canonicalPdfHeaderStyles}
         @page { size: letter portrait; margin: 0 !important; }
         .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
-        .dossier-page > div[aria-hidden="true"] { display: none !important; }
-        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }`
+        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
+        .transition-final-footer { gap: 8px !important; }
+        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
+        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
+        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
+        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
+        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
+        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
+        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
     });
   };
 
@@ -7267,64 +7276,9 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
-                  {/* SECCIÓN INFERIOR ANCLADA AL FONDO (CANON ARANPRO): FIRMAS, SELLO Y FOOTER */}
-                  <div className="mt-auto pt-3.5 space-y-2.5">
-                    {/* Sello Oficial y Firma del Administrador (Estándar Oficial ARANPRO • Sello al lado de la firma) */}
-                    <div className="pt-2 flex items-end justify-between gap-4 border-t border-slate-200">
-                      {/* Lado Izquierdo: Sello Oficial con RUT Empresa y Canales Directos */}
-                      <div className="flex items-center gap-3">
-                        <AranproOfficialSeal
-                          variant="integral"
-                          size="sm"
-                          companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                          rnacNumber=""
-                          showCaption={true}
-                        />
-                        <div className="text-[9.5px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
-                          <p>
-                            <strong>Fono / WhatsApp:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone || '+56 9 5811 8504'}</span>
-                          </p>
-                          <p>
-                            <strong>Correo:</strong> <span className="font-mono">{empresaForm.email || 'contacto@aranpro.cl'}</span>
-                          </p>
-                          <p>
-                            <strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website || 'https://aranpro.cl'}</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Lado Derecho: Firma Manuscrita sobre Línea + Datos Profesionales */}
-                      <div className="text-center min-w-[240px]">
-                        <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
-                          {signatureImage ? (
-                            <img
-                              src={signatureImage}
-                              alt="Firma Administrador"
-                              className="h-12 max-h-14 w-auto max-w-[230px] object-contain mx-auto"
-                              style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                            />
-                          ) : (
-                            <span className="text-xs text-slate-400 italic">Firma del Representante Legal</span>
-                          )}
-                        </div>
-                        <div className="border-t-[1.5px] border-[#0F3D2E] pt-1">
-                          <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                          <p className="text-[9.5px] text-[#0F3D2E] font-bold leading-tight">
-                            Constructor Civil • Administrador de Condominios
-                          </p>
-                          <p className="text-[9px] text-slate-600 font-mono">
-                            RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Representante Legal ARANPRO
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Pie de Página Canónico Maestro */}
-                    <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                      <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                      <div className="font-bold text-[#0F3D2E]">Presentación Oficial para Comités de Administración • Ley N° 21.442 (Pág. 1 de 1)</div>
-                      <div>La Serena, Chile</div>
-                    </div>
+                  <div className="mt-auto pt-1.5 space-y-1">
+                    <CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} />
+                    <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Carta de Valor" page={1} totalPages={1} city={empresaForm.city || 'La Serena, Chile'} />
                   </div>
                 </div>
               </div>
@@ -8670,7 +8624,7 @@ export const CompanySettingsAndBackupModule = ({
                     email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'}
                     legalText={`${empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria`}
                   />
-                  <div className="flex justify-between text-[9px] font-semibold text-[#0F3D2E]"><span>TECNOLOGÍA & TRANSFORMACIÓN DIGITAL • LEY N° 21.442</span><span>Cero costo de licencias</span></div>
+                  <div className="flex justify-between text-[9px] font-semibold text-[#0F3D2E]"><span>TECNOLOGÍA & TRANSFORMACIÓN DIGITAL • LEY N° 21.442</span><span>Condiciones según propuesta</span></div>
 
                   {/* Franja de Campaña / Titular Rector */}
                   <div className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-50 via-[#F5F4EF] to-amber-50/50 border border-emerald-200/80 flex items-center justify-between gap-3">
