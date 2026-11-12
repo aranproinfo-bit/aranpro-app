@@ -2300,9 +2300,13 @@ export const CompanySettingsAndBackupModule = ({
     const filename = `ARANPRO_Carta_Valor_Comite_${targetClean}_${dateClean}`;
     printDocumentDirectly('printable-cold-value-letter', filename, {
       pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm',
-      extraStyles: `${canonicalPdfHeaderStyles} .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }`
+      fitPage: false,
+      margin: '0',
+      extraStyles: `${canonicalPdfHeaderStyles}
+        @page { size: letter portrait; margin: 0 !important; }
+        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .dossier-page > div[aria-hidden="true"] { display: none !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }`
     });
   };
 
