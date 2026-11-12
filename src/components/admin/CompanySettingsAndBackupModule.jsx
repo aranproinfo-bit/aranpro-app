@@ -17,6 +17,7 @@ import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
 import { generateStepPdfAttachment } from '../../utils/proposalPdfGenerator';
+import { paginateInspection } from '../../utils/inspectionPagination';
 import { activeProposalConditions, changeProposalCommunity, emptyProposalConditions, loadProposalOpportunity, saveProposalOpportunity } from '../../utils/proposalConditions';
 import {
   Building2, UserCheck, ShieldCheck, Award, FileText, CheckCircle2,
@@ -2400,8 +2401,22 @@ export const CompanySettingsAndBackupModule = ({
     const filename = `ARANPRO_Informe_Diagnostico_Tecnico_${targetClean}_${dateClean}`;
     printDocumentDirectly('printable-technical-inspection', filename, {
       pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm'
+      fitPage: false,
+      margin: '0',
+      extraStyles: `${canonicalPdfHeaderStyles}
+        @page { size: letter portrait; margin: 0 !important; }
+        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
+        .transition-final-footer { gap: 8px !important; }
+        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
+        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
+        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
+        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
+        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
+        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
+        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
     });
   };
 
@@ -8906,130 +8921,21 @@ export const CompanySettingsAndBackupModule = ({
 
             {/* CONTENEDOR DEL INFORME IMPRIMIBLE */}
             <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl">
-              <div
-                id="printable-technical-inspection"
-                data-pdf-style={pdfStyle}
-                className="dossier-page page-1 bg-white p-6 md:p-7 pl-9 md:pl-11 min-h-[850px] flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                {/* SECCIÓN SUPERIOR */}
-                <div className="space-y-2.5">
-                  {/* Membrete Maestro Técnico ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
-                    <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-11 w-auto" />
-                      <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <span className="text-[9.5px] font-black text-[#D4B895] uppercase tracking-widest block">
-                          DEPARTAMENTO TÉCNICO & AUDITORÍA CONSTRUCTIVA
-                        </span>
-                        <h2 className="text-base font-black text-[#0F3D2E] tracking-tight uppercase">
-                          Informe de Diagnóstico Técnico Inicial
-                        </h2>
-                        <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad • Fono: {empresaForm.phone || '+56 9 5811 8504'}
-                        </p>
-                      </div>
+              <div id="printable-technical-inspection" data-pdf-style={pdfStyle}>
+                {paginateInspection(inspectionForm.items).map((cards, pageIndex, pages) => (
+                  <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
+                    <div className="space-y-2.5">
+                      <CanonicalPdfHeader badge="DIAGNÓSTICO TÉCNICO" description="Informe de inspección inicial" page={pageIndex + 1} community={proposalConfig.targetCondo?.trim() || inspectionForm.targetCondo || 'Condominio en evaluación'} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
+                      <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-[10px]"><div><strong className="block">Profesional evaluador: {empresaForm.adminName}</strong><span>Constructor Civil • Administrador de Condominios</span></div><span>Fecha de inspección: {formatLocalDay(inspectionForm.date || localToday())}</span></div>
+                      <h4 className="text-[10.5px] font-black uppercase border-b border-slate-200 pb-1">Evaluación de estado de instalaciones críticas</h4>
+                      <div className="space-y-1.5">{cards.map((item, idx) => <div key={item.id + '-' + idx} className="p-2 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs break-inside-avoid"><div className="flex items-center justify-between gap-2"><span className="font-black text-slate-900 text-[10.5px]">{item.name}{item.continuation ? ' (continuación)' : ''}</span><span className={`px-2 py-0.5 rounded text-[9px] font-bold ${item.status === 'Bueno' ? 'bg-emerald-100 text-emerald-800' : item.status === 'Requiere Mantención' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>{item.status}</span></div><p className="text-[10px] text-slate-600 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100" style={{whiteSpace:'pre-wrap', overflowWrap:'anywhere'}}>{item.notes}</p></div>)}</div>
                     </div>
-                    <div className="text-right text-xs space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] text-[#0F3D2E] text-[9.5px] font-mono font-bold border border-[#D4B895]">
-                        DIAGNÓSTICO TÉCNICO
-                      </span>
-                      <p className="font-bold text-slate-800 text-[10.5px]">
-                        {proposalConfig.targetCondo || inspectionForm.targetCondo || 'Condominio en Evaluación'}
-                      </p>
-                      <span className="text-[9px] text-slate-500 block font-mono">Fecha de inspección: {formatLocalDay(inspectionForm.date || localToday())}</span>
+                    <div className="mt-auto pt-1.5 space-y-1">
+                      {pageIndex < pages.length - 1 ? <div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: antecedentes de la inspección.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página {pageIndex + 2} →</span></div> : <><p className="text-[9px] text-slate-600"><strong>Conclusión:</strong> Diagnóstico destinado a orientar al Comité de Administración en la priorización de obras preventivas.</p><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} /></>}
+                      <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Diagnóstico técnico" page={pageIndex + 1} totalPages={pages.length} city={empresaForm.city || 'La Serena, Chile'} />
                     </div>
                   </div>
-
-                  {/* Datos del Inspector Técnico */}
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
-                    <div>
-                      <span className="text-slate-500 block text-[9px] uppercase font-bold">Profesional Evaluador a Cargo:</span>
-                      <strong className="text-slate-900 text-xs">{empresaForm.adminName}</strong>
-                      <span className="text-slate-600 block text-[10px]">Constructor Civil • Administrador de Condominios (Ley N° 21.442)</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-slate-500 block text-[9px] uppercase font-bold">Contacto Directo:</span>
-                      <span className="font-mono text-[#0F3D2E] font-bold text-xs">{empresaForm.phone}</span>
-                    </div>
-                  </div>
-
-                  {/* Partidas Evaluadas */}
-                  <div className="space-y-2">
-                    <h4 className="text-[10.5px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1">
-                      Evaluación de Estado de Instalaciones Críticas:
-                    </h4>
-
-                    <div className="space-y-1.5">
-                      {inspectionForm.items.map((item, idx) => (
-                        <div key={item.id} className="p-2 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs break-inside-avoid">
-                          <div className="flex items-center justify-between">
-                            <span className="font-black text-slate-900 text-[10.5px]">{idx + 1}. {item.name}</span>
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                              item.status === 'Bueno'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : item.status === 'Requiere Mantención'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-rose-100 text-rose-800'
-                            }`}>
-                              {item.status}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-slate-600 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                            {item.notes}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECCIÓN INFERIOR ANCLADA AL PIE */}
-                <div className="mt-auto pt-2 space-y-2">
-                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4 text-xs">
-                    <div className="flex items-center gap-3 max-w-md">
-                      <AranproOfficialSeal
-                        size="sm"
-                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                        rnacNumber=""
-                        showCaption={true}
-                      />
-                      <div className="space-y-0.5 border-l border-slate-200 pl-3">
-                        <p className="font-bold text-slate-900 text-[10px]">Conclusión de Inspección Técnica:</p>
-                        <p className="text-[9.5px] text-slate-600 leading-snug">
-                          Diagnóstico destinado a orientar al Comité de Administración en la priorización de obras preventivas.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-center space-y-0.5 min-w-[240px]">
-                      <div className="h-14 flex items-end justify-center pb-0.5 overflow-visible">
-                        {signatureImage ? (
-                          <img
-                            src={signatureImage}
-                            alt="Firma"
-                            className="h-12 max-h-14 w-auto max-w-[240px] object-contain mx-auto"
-                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                          />
-                        ) : (
-                          <div className="h-12"></div>
-                        )}
-                      </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-1 text-[10px]">
-                        <p className="font-black text-slate-900 text-[11px] leading-tight">{empresaForm.adminName}</p>
-                        <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">Constructor Civil • Administrador de Condominios</p>
-                        <p className="text-[9px] text-slate-600 font-mono">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pie de Página Canónico Maestro */}
-                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                    <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Informe de Diagnóstico Técnico Inicial • Ley N° 21.442 (Pág. 1 de 1)</div>
-                    <div>{empresaForm.city || 'La Serena, Chile'}</div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
