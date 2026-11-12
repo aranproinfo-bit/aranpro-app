@@ -9,7 +9,7 @@ Alcance actual: solo los documentos del panel **Mi Empresa**. La pauta de traspa
 - Informe de diagnóstico independiente: cabecera y pies canónicos, paginación de observaciones y firma final; comprobado con datos normales y extensos.
 - Matriz comparativa independiente: formato canónico y paginación de pilares y textos variables; comprobada con una matriz normal y con contenido extenso.
 - Estudio de honorarios: cabecera y pie canónicos; comprobado con configuraciones habituales y equipamiento adicional.
-- Guía de presentación: cabecera y pies canónicos, guion y respuestas distribuidos en cinco páginas; comprobada con dos perfiles.
+- Guía de presentación: cabecera y pies canónicos, guion y respuestas distribuidos en cuatro páginas; comprobada con dos perfiles.
 - Ficha de acreditación sin archivo de respaldo: formato canónico, indicación explícita de que no hay respaldo adjunto y descarga desde el visor o desde la lista. Los archivos de respaldo originales se descargan sin modificar.
 - Contrato y ficha de asambleas del Paso 5: formato canónico aplicado y probado desde el panel y la bandeja; la revisión de contenido, referencias legales y configuración completa sigue pendiente. La notificación al saliente conserva su diseño sin logo.
 - Portada del kit del Paso 5: formato canónico aplicado. El generador existente emite únicamente la portada; completar y revisar el contenido del kit sigue pendiente para la revisión integral del Paso 5.

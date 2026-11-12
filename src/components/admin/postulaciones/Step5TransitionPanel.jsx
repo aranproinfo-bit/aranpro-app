@@ -1321,6 +1321,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
           <div className="dossier-page bg-white text-slate-900 text-xs flex flex-col justify-between max-w-[850px] mx-auto">
             <div className="space-y-4"><CanonicalPdfHeader badge="KIT DE TRANSICIÓN" description="Traspaso de administración" page={1} community={condo} email={email} phone={phone} city={city} />
               <div className="p-6 bg-[#0F3D2E] text-white rounded-2xl text-center space-y-2"><h3 className="text-lg font-black text-white">Kit Oficial de Transición y Traspaso de Administración</h3><p className="text-xs text-emerald-100">{condo} • {city}, {noticeDate}</p></div>
+              <p className="text-sm text-slate-700 text-center">Esta es la portada de presentación. Los documentos de traspaso se generan por separado.</p>
             </div>
             <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} /><CanonicalPdfPageFooter website={website} label="Kit de transición" page={1} totalPages={1} city={city} /></div>
           </div>
