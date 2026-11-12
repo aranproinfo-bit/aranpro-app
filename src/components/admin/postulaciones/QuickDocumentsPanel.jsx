@@ -10,6 +10,7 @@ import { formatCLP } from '../../../utils/formatters';
 import { openDataUrlInNewTab, downloadDataUrl } from '../../../utils/fileVault';
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { transitionChecklistPrintStyles } from './TransitionChecklist';
+import { activeProposalConditions, changeProposalCommunity } from '../../../utils/proposalConditions';
 
 export const QuickDocumentsPanel = ({
   proposalConfig = {},
@@ -634,7 +635,7 @@ export const QuickDocumentsPanel = ({
                   type="text"
                   placeholder="Ej: Condominio Mirador"
                   value={proposalConfig?.targetCondo || ''}
-                  onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
+                  onChange={(e) => { const name = e.target.value; setProposalConfig(prev => changeProposalCommunity(prev, name)); }}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                 />
               </div>
@@ -655,7 +656,7 @@ export const QuickDocumentsPanel = ({
                   type="number"
                   min="0"
                   step="10000"
-                  value={proposalConfig?.proposedMonthlyFee ?? 850000}
+                  value={proposalConfig?.proposedMonthlyFee ?? ''}
                   onChange={(e) => setProposalConfig({ ...proposalConfig, proposedMonthlyFee: e.target.value })}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-[#0F3D2E] focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                 />
@@ -664,9 +665,10 @@ export const QuickDocumentsPanel = ({
                 <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Frecuencia Visitas</label>
                 <input
                   type="text"
+                  maxLength={120}
                   placeholder="Ej: 2 visitas semanales"
-                  value={proposalConfig?.visitFrequency || ''}
-                  onChange={(e) => setProposalConfig({ ...proposalConfig, visitFrequency: e.target.value })}
+                  value={activeProposalConditions(proposalConfig).visitFrequency}
+                  onChange={(e) => setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), visitFrequency: e.target.value } }))}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                 />
               </div>

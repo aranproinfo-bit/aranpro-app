@@ -17,6 +17,7 @@ import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
 import { generateStepPdfAttachment } from '../../utils/proposalPdfGenerator';
+import { activeProposalConditions, changeProposalCommunity, emptyProposalConditions, loadProposalOpportunity, saveProposalOpportunity } from '../../utils/proposalConditions';
 import {
   Building2, UserCheck, ShieldCheck, Award, FileText, CheckCircle2,
   AlertTriangle, Printer, Download, Share2, Search, Filter, Plus,
@@ -530,6 +531,9 @@ export const CompanySettingsAndBackupModule = ({
 
   // Configuración de Destinatario, Condominio y Propuesta Económica (Carta de Presentación & Dossier)
   const [proposalConfig, setProposalConfig] = useState({
+    opportunityId: companySettings?.lastProposalConfig?.opportunityId || '',
+    proposalConditions: { ...emptyProposalConditions(), ...(companySettings?.lastProposalConfig?.proposalConditions || {}) },
+    proposalConditionsFor: companySettings?.lastProposalConfig?.proposalConditionsFor || '',
     targetCondo: companySettings?.lastProposalConfig?.targetCondo || 'Valle de la Florida IV',
     targetRecipient: companySettings?.lastProposalConfig?.targetRecipient || 'Señores Miembros del Comité de Administración',
     targetCity: companySettings?.lastProposalConfig?.targetCity || 'La Serena, Región de Coquimbo',
@@ -539,12 +543,12 @@ export const CompanySettingsAndBackupModule = ({
     proposalDate: companySettings?.lastProposalConfig?.proposalDate || new Date().toISOString().split('T')[0],
     leaveRecipientBlank: companySettings?.lastProposalConfig?.leaveRecipientBlank || false,
     // Propuesta Económica y Alcance del Servicio
-    targetUnits: companySettings?.lastProposalConfig?.targetUnits || '60',
-    proposedMonthlyFee: companySettings?.lastProposalConfig?.proposedMonthlyFee || '850000',
+    targetUnits: companySettings?.lastProposalConfig?.targetUnits ?? '',
+    proposedMonthlyFee: companySettings?.lastProposalConfig?.proposedMonthlyFee ?? '',
     taxModality: companySettings?.lastProposalConfig?.taxModality || 'Factura Exenta / Boleta de Honorarios Profesional',
     contractDuration: companySettings?.lastProposalConfig?.contractDuration || '12 meses renovables (con evaluación de conformidad a los 90 días)',
     includeEconomicInDossier: companySettings?.lastProposalConfig?.includeEconomicInDossier !== false,
-    visitFrequency: companySettings?.lastProposalConfig?.visitFrequency || '2 visitas técnicas presenciales por semana + atención de emergencias 24/7',
+    visitFrequency: companySettings?.lastProposalConfig?.visitFrequency || '',
     step2Mode: companySettings?.lastProposalConfig?.step2Mode || 'con_visita',
     visitDateTime: companySettings?.lastProposalConfig?.visitDateTime || 'Jueves 12 de Noviembre a las 18:30 hrs'
   });
@@ -607,8 +611,9 @@ export const CompanySettingsAndBackupModule = ({
     const recipient = proposalConfig.targetRecipient?.trim() || 'Señores Miembros del Comité de Administración';
     const admin = empresaForm.adminName || 'John Andrés Arancibia Maureira';
     const phone = empresaForm.phone || '+56 9 5811 8504';
-    const feeStr = formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000);
-    const unitsStr = proposalConfig.targetUnits || '60';
+    const feeStr = !proposalConfig.unknownDetails && Number(proposalConfig.proposedMonthlyFee) > 0 ? formatCLP(Number(proposalConfig.proposedMonthlyFee)) : 'Por definir';
+    const unitsStr = !proposalConfig.unknownDetails && proposalConfig.targetUnits ? proposalConfig.targetUnits : 'Por definir';
+    const conditions = activeProposalConditions(proposalConfig);
     const demoLink = typeof window !== 'undefined'
       ? `${window.location.origin}/?demo=comunidad`
       : 'https://administracion.aranpro.cl/?demo=comunidad';
@@ -713,11 +718,11 @@ export const CompanySettingsAndBackupModule = ({
           whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
             `Agradeciendo la provechosa visita técnica realizada a sus dependencias, hacemos entrega formal de nuestra *Propuesta de Administración a la Medida, Diagnóstico Técnico de Instalaciones y Matriz Comparativa* (Documento Oficial Consolidado de 3 Páginas).\n\n` +
             `Resumen Ejecutivo de las Condiciones Propuestas:\n` +
-            `💰 *Honorario Mensual Propuesto:* ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n` +
+            `💰 *Honorario Mensual Propuesto:* ${feeStr}\n` +
             `🏢 *Dotación Considerada:* ${unitsStr} unidades habitacionales\n` +
-            `👷 *Modalidad Operativa:* ${proposalConfig.visitFrequency || '2 visitas técnicas presenciales semanales'} + Atención de emergencias 24/7\n` +
-            `💻 *Suite Digital & App Móvil:* 100% Gratuita para el Comité y copropietarios (cero costo de licencias de software)\n` +
-            `📋 *Auditoría Inicial de Traspaso:* Auditoría contable y técnica de los primeros 30 días incluida sin cobro extra.\n\n` +
+            `👷 *Visitas:* ${conditions.visitFrequency || 'Por definir'}\n` +
+            `🚨 *Emergencias:* ${conditions.emergencyResponse || 'Por definir'}\n` +
+            `📋 *Servicios incluidos:* ${conditions.includedServices || 'Por definir'}\n\n` +
             `🔍 *Resumen del Diagnóstico Técnico de sus Instalaciones (Pág. 2 del informe):*\n` +
             `${diagnosticList || '• Inspección visual completa realizada a bombas, tableros eléctricos, techumbres y accesos.'}\n\n` +
             `⚖️ *Matriz Comparativa de Gestión (Pág. 3 del informe):*\n` +
@@ -729,10 +734,11 @@ export const CompanySettingsAndBackupModule = ({
           email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\n` +
             `En seguimiento a la provechosa visita técnica realizada a sus instalaciones, tenemos el agrado de presentar formalmente nuestra Propuesta Operativa y Económica para asumir la administración de su comunidad, junto con el Informe de Diagnóstico Técnico Inicial y la Matriz Comparativa de Gestión.\n\n` +
             `Resumen de Condiciones Propuestas:\n` +
-            `• Honorario Mensual Propuesto: ${feeStr} (${proposalConfig.taxModality || 'Factura Exenta / Boleta Honorarios'})\n` +
+            `• Honorario Mensual Propuesto: ${feeStr}\n` +
             `• Dotación Considerada: ${unitsStr} unidades (casas / departamentos)\n` +
-            `• Modalidad de Atención: ${proposalConfig.visitFrequency || 'Visitas técnicas semanales en terreno'}\n` +
-            `• Beneficios Incluidos: Suite Web y App Móvil 100% gratuita para residentes y comité, auditoría de traspaso y supervisión técnica directa de obras y contratos.\n\n` +
+            `• Visitas: ${conditions.visitFrequency || 'Por definir'}\n` +
+            `• Emergencias: ${conditions.emergencyResponse || 'Por definir'}\n` +
+            `• Servicios incluidos: ${conditions.includedServices || 'Por definir'}\n\n` +
             `Adjunto a este correo encontrarán el documento oficial consolidado de 3 páginas que contiene:\n` +
             `1. Carta Formal de Postulación con desglose de honorarios, SLA y condiciones de servicio.\n` +
             `2. Informe Oficial de Diagnóstico Técnico Inicial con el estado de sus instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos).\n` +
@@ -1144,36 +1150,21 @@ export const CompanySettingsAndBackupModule = ({
   };
 
   const handleSaveTargetCondoToCrm = () => {
-    const condoName = proposalConfig.targetCondo?.trim() || 'Nuevo Condominio';
-    const existingIdx = postulationPipeline.findIndex(p => p.condoName?.toLowerCase() === condoName.toLowerCase());
-    const newEntry = {
-      id: existingIdx >= 0 ? postulationPipeline[existingIdx].id : `post-${Date.now()}`,
-      condoName: condoName,
-      city: proposalConfig.targetCity || 'La Serena',
-      unitsCount: Number(proposalConfig.targetUnits) || 60,
-      contactName: proposalConfig.targetRecipient || 'Comité de Administración',
-      contactPhone: proposalConfig.targetPhone || '',
-      contactEmail: proposalConfig.targetEmail || '',
-      stage: proposalConfig.currentStage || 'contacto',
-      monthlyFeeCLP: Number(proposalConfig.proposedMonthlyFee) || 850000,
-      nextAction: proposalConfig.nextAction || 'Enviar Carta de Valor (Paso 1)',
-      nextActionDate: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10),
-      competitionNotes: `Postulación iniciada con embudo de 4 pasos.`,
-      createdAt: existingIdx >= 0 ? postulationPipeline[existingIdx].createdAt : new Date().toISOString().slice(0, 10),
-      updatedAt: new Date().toISOString().slice(0, 10)
-    };
-
-    let updatedPipeline;
-    if (existingIdx >= 0) {
-      updatedPipeline = postulationPipeline.map((p, idx) => idx === existingIdx ? newEntry : p);
-    } else {
-      updatedPipeline = [newEntry, ...postulationPipeline];
-    }
+    const condoName = proposalConfig.targetCondo?.trim();
+    if (!condoName) { showAlert('Falta comunidad', 'Ingresa el nombre de la comunidad para guardar la postulación.', 'warning'); return; }
+    const matches = postulationPipeline.filter(p => (p.condoName || p.condo || '').trim().toLowerCase() === condoName.toLowerCase());
+    const selected = proposalConfig.opportunityId && postulationPipeline.find(p => p.id === proposalConfig.opportunityId && (p.condoName || p.condo || '').trim().toLowerCase() === condoName.toLowerCase());
+    const existing = selected || null;
+    if (!existing && matches.length > 0) { showAlert('La comunidad ya está en el CRM', 'Abre la ficha correspondiente desde el CRM antes de actualizar sus condiciones.', 'warning'); return; }
+    const newEntry = saveProposalOpportunity(existing, proposalConfig, `post-${Date.now()}`, new Date().toISOString());
+    const updatedPipeline = existing ? postulationPipeline.map(p => p.id === existing.id ? newEntry : p) : [newEntry, ...postulationPipeline];
+    const savedProposal = { ...proposalConfig, opportunityId: newEntry.id };
     setPostulationPipeline(updatedPipeline);
+    setProposalConfig(savedProposal);
     setCompanySettings(prev => ({
       ...prev,
       postulationPipeline: updatedPipeline,
-      lastProposalConfig: proposalConfig
+      lastProposalConfig: savedProposal
     }));
     showAlert('✓ Condominio Registrado', `"${condoName}" fue guardado exitosamente en tu CRM de Postulaciones.`, 'success');
   };
@@ -1914,27 +1905,17 @@ export const CompanySettingsAndBackupModule = ({
   // Cargar datos desde una tarjeta del CRM Pipeline hacia el generador de Dossier y Carta
   const handlePrepareDossierFromPipeline = (item) => {
     const targetName = item.condo || item.condoName || '';
-    const targetUnitsVal = item.units || item.unitsCount || '60';
-    const rawFee = String(item.monthlyFeeCLP || item.feeOffered || '480000').replace(/[^0-9]/g, '') || '480000';
-    setProposalConfig(prev => ({
-      ...prev,
-      targetCondo: targetName || prev.targetCondo,
-      targetCity: item.city || prev.targetCity,
-      targetRecipient: item.contactName
-        ? `${item.contactName}${item.contactRole ? ` — ${item.contactRole}` : ''}`
-        : 'Señores Miembros del Comité de Administración',
-      leaveRecipientBlank: false,
-      targetUnits: String(targetUnitsVal),
-      proposedMonthlyFee: rawFee
-    }));
+    const loadedProposal = loadProposalOpportunity(proposalConfig, item);
+    setProposalConfig(loadedProposal);
+    setCompanySettings(prev => ({ ...prev, lastProposalConfig: loadedProposal }));
     setInspectionForm(prev => ({
       ...prev,
       targetCondo: targetName || prev.targetCondo
     }));
-    setPostulacionSection('material');
+    setPostulacionSection('flujo');
     showAlert(
       '✓ Dossier Configurado para Comunidad',
-      `Se cargaron los datos de "${targetName}" en la Carta de Presentación, Propuesta Económica y Dossier Integral.`,
+      `Se cargaron los datos y condiciones guardadas de "${targetName}". Revisa las condiciones en la configuración de la comunidad.`,
       'success'
     );
   };
@@ -3638,7 +3619,7 @@ export const CompanySettingsAndBackupModule = ({
                         <input
                           type="text"
                           value={proposalConfig.targetCondo}
-                          onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
+                          onChange={(e) => { const name = e.target.value; setProposalConfig(prev => changeProposalCommunity(prev, name)); }}
                           placeholder="Ej: Valle de la Florida IV"
                           className="w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-bold placeholder-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-[#D4B895]"
                         />
@@ -3728,6 +3709,28 @@ export const CompanySettingsAndBackupModule = ({
                         )}
                       </div>
                     </div>
+                    <details className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-3">
+                      <summary className="cursor-pointer font-bold text-sm text-white">Condiciones y servicios propuestos</summary>
+                      <p className="mt-2 text-[11px] text-emerald-100">Configura solo lo acordado para esta oportunidad. Vacío significa “por definir”. Guarda en CRM antes de cambiar de comunidad; editar el nombre inicia una propuesta nueva.</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                        {[
+                          ['visitFrequency', 'Visitas presenciales', 'Ej.: 1 visita semanal o 1 cada 15 días'],
+                          ['emergencyResponse', 'Atención de emergencias', 'Ej.: horario y canal acordados'],
+                          ['includedServices', 'Servicios incluidos', 'Ej.: plataforma, rendiciones y mantenciones'],
+                          ['additionalServices', 'Servicios adicionales', 'Ej.: servicios con costo adicional'],
+                          ['meetingFrequency', 'Asambleas y reuniones', 'Ej.: cantidad incluida y condiciones'],
+                          ['transitionConditions', 'Condiciones de inicio o transición', 'Ej.: duración y honorario de transición'],
+                          ['contractDuration', 'Duración y renovación del contrato', 'Ej.: 12 meses, renovación por acuerdo'],
+                          ['noticePeriod', 'Aviso de término propuesto', 'Ej.: plazo y forma de aviso'],
+                          ['otherConditions', 'Otras condiciones', 'Condiciones particulares de la comunidad']
+                        ].map(([key, label, placeholder]) => <label key={key} className="text-[10.5px] font-bold text-emerald-100">{label}
+                          <input type="text" maxLength={120} value={activeProposalConditions(proposalConfig)[key]} placeholder={placeholder} onChange={e => setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), [key]: e.target.value } }))} className="mt-1 w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-normal placeholder-emerald-400/50" />
+                        </label>)}
+                        <label className="text-[10.5px] font-bold text-emerald-100">Fecha estimada de inicio
+                          <input type="date" value={activeProposalConditions(proposalConfig).startDate} onChange={e => setProposalConfig(prev => ({ ...prev, proposalConditionsFor: prev.targetCondo, proposalConditions: { ...activeProposalConditions(prev), startDate: e.target.value } }))} className="mt-1 w-full px-3 py-2 bg-emerald-950/60 border border-emerald-700/60 rounded-xl text-white font-normal" />
+                        </label>
+                      </div>
+                    </details>
                   </div>
 
                   {/* 2. LOS 4 PASOS ESTRATÉGICOS DEL EMBUDO COMERCIAL */}
@@ -4082,7 +4085,7 @@ export const CompanySettingsAndBackupModule = ({
                                 Propuesta Económica • Carta + Diagnóstico + Cuadro Comparativo (3 Pág)
                               </span>
                               <span className="text-[10px] font-bold text-slate-500">
-                                {proposalConfig.unknownDetails ? 'Por definir tras visita' : `${formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000)} / mes • ${proposalConfig.targetUnits || '60'} Unidades`}
+                                {proposalConfig.unknownDetails ? 'Por definir tras visita' : `${Number(proposalConfig.proposedMonthlyFee) > 0 ? `${formatCLP(Number(proposalConfig.proposedMonthlyFee))} / mes` : 'Honorario por definir'} • ${proposalConfig.targetUnits ? `${proposalConfig.targetUnits} unidades` : 'Unidades por definir'}`}
                               </span>
                             </div>
                             <h4 className="text-base font-black text-slate-900 mt-0.5">
@@ -4471,7 +4474,7 @@ export const CompanySettingsAndBackupModule = ({
 
                   <PipelinePanel
                     items={postulationPipeline}
-                    onChange={setPostulationPipeline}
+                    onChange={(items) => { setPostulationPipeline(items); setCompanySettings(prev => ({ ...prev, postulationPipeline: items })); }}
                     onPrepareDossier={handlePrepareDossierFromPipeline}
                     showConfirm={showConfirm}
                   />
@@ -6275,7 +6278,7 @@ export const CompanySettingsAndBackupModule = ({
                   type="text"
                   placeholder="Ej: Condominio Los Cerezos (o vacío)"
                   value={proposalConfig.targetCondo}
-                  onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
+                  onChange={(e) => { const name = e.target.value; setProposalConfig(prev => changeProposalCommunity(prev, name)); }}
                   className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs w-48 sm:w-56 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
                 />
               </div>
@@ -6601,7 +6604,7 @@ export const CompanySettingsAndBackupModule = ({
                       Junto con saludarles cordialmente y agradecer la provechosa visita técnica realizada en terreno a sus dependencias, tengo el agrado de presentar a ustedes la <strong>Propuesta Operativa y Económica Definitiva</strong> de <strong>{empresaForm.provisionalName}</strong> para asumir formalmente la administración, fiscalización técnica y custodia patrimonial de {proposalConfig.targetCondo?.trim() ? <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong> : <strong>su distinguida comunidad</strong>}, en estricto cumplimiento de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
                     </p>
                     <p>
-                      Como es de su conocimiento, nuestra filosofía de trabajo sitúa la transparencia y la rigurosidad constructiva en el centro de la gestión. Entendemos que para un Comité de Administración asumir la transición de una administración anterior suele generar incertidumbres financieras y operativas. Por esta razón, <strong>reiteramos nuestro compromiso formal de homologación: estamos plenamente dispuestos a iniciar nuestro mandato ajustándonos al honorario que la comunidad cancela actualmente a la administración saliente durante un período de transición de 90 días</strong>, garantizando continuidad de servicio sin alterar el presupuesto mensual de los copropietarios.
+                      Nuestra filosofía de trabajo sitúa la transparencia y la rigurosidad constructiva en el centro de la gestión. Entendemos que la transición puede generar incertidumbres financieras y operativas. <strong>Condiciones de inicio o transición:</strong> {activeProposalConditions(proposalConfig).transitionConditions || 'Por definir con el Comité'}.
                     </p>
                     <p>
                       No obstante, para dotar a la comunidad de un estándar técnico sostenible, evitar sorpresas en gastos comunes y asegurar la custodia periódica de sus equipos críticos (sala de bombas, tableros, techumbres y personal), <strong>hemos realizado la tasación técnica rigurosa utilizando la Matriz Pericial de Honorarios por Complejidad Constructiva, Funcional & Ley N° 21.442 de ARANPRO</strong>. Dicha evaluación matemática contempla la escala de unidades del condominio, la tipología constructiva, la antigüedad de las instalaciones y el volumen de fiscalización técnica necesaria, fijando el <em>precio justo de equilibrio profesional</em> que se detalla a continuación:
@@ -6623,16 +6626,14 @@ export const CompanySettingsAndBackupModule = ({
                         <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
                           <span className="text-[9px] text-slate-500 uppercase block font-bold">Honorario Mensual Propuesto</span>
                           <strong className="text-sm md:text-[15px] font-black text-[#0F3D2E] block mt-0.5">
-                            {Number(proposalConfig.proposedMonthlyFee) > 0 ? `${formatCLP(Number(proposalConfig.proposedMonthlyFee))} / mes` : 'A convenir en reunión'}
+                            {!proposalConfig.unknownDetails && Number(proposalConfig.proposedMonthlyFee) > 0 ? `${formatCLP(Number(proposalConfig.proposedMonthlyFee))} / mes` : 'A convenir en reunión'}
                           </strong>
-                          <span className="text-[8.5px] text-emerald-800 font-semibold block mt-0.5">
-                            (Flexible a transición saliente)
-                          </span>
+                          {activeProposalConditions(proposalConfig).transitionConditions && <span className="text-[8.5px] text-emerald-800 font-semibold block mt-0.5">Condiciones de transición informadas</span>}
                         </div>
                         <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
                           <span className="text-[9px] text-slate-500 uppercase block font-bold">Costo Estimado / Unidad</span>
                           <strong className="text-sm md:text-[15px] font-black text-slate-800 block mt-0.5">
-                            {Number(proposalConfig.proposedMonthlyFee) > 0
+                            {!proposalConfig.unknownDetails && Number(proposalConfig.proposedMonthlyFee) > 0 && Number(proposalConfig.targetUnits) > 0
                               ? `${formatCLP(Math.round(Number(proposalConfig.proposedMonthlyFee) / Math.max(1, Number(proposalConfig.targetUnits) || 1)))} / unidad`
                               : 'Según dotación'}
                           </strong>
@@ -6643,7 +6644,7 @@ export const CompanySettingsAndBackupModule = ({
                         <div className="bg-white p-2 rounded-xl border border-slate-200/90 shadow-2xs">
                           <span className="text-[9px] text-slate-500 uppercase block font-bold">Comunidad Evaluada</span>
                           <strong className="text-sm md:text-[15px] font-black text-slate-800 block mt-0.5">
-                            {proposalConfig.targetUnits ? `${proposalConfig.targetUnits} Unidades` : 'Por definir en visita'}
+                            {!proposalConfig.unknownDetails && proposalConfig.targetUnits ? `${proposalConfig.targetUnits} Unidades` : 'Por definir en visita'}
                           </strong>
                           <span className="text-[8.5px] text-slate-500 font-mono block mt-0.5">
                             Dotación habitacional
@@ -6652,11 +6653,12 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                       <div className="p-2 bg-emerald-50/80 rounded-xl border border-emerald-200/80 text-[10px] text-slate-700 leading-snug space-y-0.5">
                         <p>
-                          <strong>✓ Servicios y Beneficios incluidos sin cobros extra:</strong> {proposalConfig.visitFrequency || 'Visitas técnicas presenciales semanales en terreno'}, <strong>Suite Web & App Móvil ARANPRO 100% gratuita para residentes y comité</strong> (cero costos de licencias), auditoría contable de traspaso, supervisión técnica de contratos y atención de emergencias 24/7.
+                          <strong>✓ Visitas:</strong> {activeProposalConditions(proposalConfig).visitFrequency || 'Por definir'} • <strong>Emergencias:</strong> {activeProposalConditions(proposalConfig).emergencyResponse || 'Por definir'} • <strong>Servicios incluidos:</strong> {activeProposalConditions(proposalConfig).includedServices || 'Por definir'}.
                         </p>
                         <p className="text-[#0F3D2E] font-medium">
-                          <strong>Garantía de Ajuste al 3er Mes:</strong> Al término de los 90 días iniciales, una vez normalizada la comunidad y resueltas las urgencias del diagnóstico adjunto, evaluaremos en conjunto mantener el valor de transición o consolidar la tarifa técnica ARANPRO.
+                          <strong>Reuniones:</strong> {activeProposalConditions(proposalConfig).meetingFrequency || 'Por definir'} • <strong>Servicios adicionales:</strong> {activeProposalConditions(proposalConfig).additionalServices || 'Por definir'}.
                         </p>
+                        <p><strong>Inicio estimado:</strong> {activeProposalConditions(proposalConfig).startDate || 'Por definir'} • <strong>Vigencia:</strong> {activeProposalConditions(proposalConfig).contractDuration || 'Por definir'} • <strong>Aviso de término:</strong> {activeProposalConditions(proposalConfig).noticePeriod || 'Por definir'} • <strong>Otras condiciones:</strong> {activeProposalConditions(proposalConfig).otherConditions || 'Por definir'}.</p>
                       </div>
                     </div>
                   </div>
@@ -7022,7 +7024,7 @@ export const CompanySettingsAndBackupModule = ({
                 <span className="font-bold text-[#0F3D2E]">Modalidad de Entrega:</span>
                 <button
                   type="button"
-                  onClick={() => setProposalConfig({ ...proposalConfig, targetCondo: '', leaveRecipientBlank: false, targetRecipient: 'Señores Miembros del Comité de Administración' })}
+                  onClick={() => setProposalConfig(prev => ({ ...changeProposalCommunity(prev, ''), leaveRecipientBlank: false, targetRecipient: 'Señores Miembros del Comité de Administración' }))}
                   className={`px-2.5 py-1 rounded-lg font-bold text-xs border transition-all ${
                     !proposalConfig.targetCondo?.trim() && !proposalConfig.leaveRecipientBlank
                       ? 'bg-[#0F3D2E] text-[#D4B895] border-[#0F3D2E]'
@@ -7049,7 +7051,7 @@ export const CompanySettingsAndBackupModule = ({
                   type="text"
                   placeholder="Ej: Valle de la Florida IV"
                   value={proposalConfig.targetCondo}
-                  onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value, leaveRecipientBlank: false })}
+                  onChange={(e) => { const name = e.target.value; setProposalConfig(prev => ({ ...changeProposalCommunity(prev, name), leaveRecipientBlank: false })); }}
                   className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs w-48 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
                 />
               </div>
@@ -7344,7 +7346,7 @@ export const CompanySettingsAndBackupModule = ({
                   type="text"
                   placeholder="Ej: Condominio Los Cerezos (o vacío)"
                   value={proposalConfig.targetCondo}
-                  onChange={(e) => setProposalConfig({ ...proposalConfig, targetCondo: e.target.value })}
+                  onChange={(e) => { const name = e.target.value; setProposalConfig(prev => changeProposalCommunity(prev, name)); }}
                   className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs w-48 sm:w-56 focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
                 />
               </div>

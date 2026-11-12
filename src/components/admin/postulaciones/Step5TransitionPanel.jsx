@@ -10,6 +10,7 @@ import { printDocumentDirectly } from '../../../utils/printDocument';
 import { formatCLP } from '../../../utils/formatters';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
 import { TransitionChecklistPrint, TransitionChecklistScreen, transitionChecklistPrintStyles } from './TransitionChecklist';
+import { activeProposalConditions } from '../../../utils/proposalConditions';
 
 export const Step5TransitionPanel = ({
   proposalConfig = {},
@@ -60,7 +61,8 @@ export const Step5TransitionPanel = ({
   const phone = empresaForm.phone || '+56 9 5811 8504';
   const email = empresaForm.email || 'contacto@aranpro.cl';
   const website = empresaForm.website || 'https://aranpro.cl';
-  const feeStr = formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000);
+  const feeStr = !proposalConfig.unknownDetails && Number(proposalConfig.proposedMonthlyFee) > 0 ? formatCLP(Number(proposalConfig.proposedMonthlyFee)) : 'por definir';
+  const terms = activeProposalConditions(proposalConfig);
   const effectiveSignature = signatureImage || companySettings?.signatureDataUrl || '';
   const effectiveSignatureScale = Number(companySettings?.signatureScale) || Number(signatureScale) || 1;
 
@@ -650,7 +652,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   </button>
                 </div>
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 space-y-2 leading-relaxed">
-                  <p><strong>Contrato Marco Bilateral (10 Cláusulas):</strong> Regula detalladamente la relación entre el Comité y ARANPRO Gestión Integral, estableciendo 2 visitas técnicas presenciales semanales, emergencias 24/7, suite digital sin cobro de licencias, honorario mensual de {feeStr}, cuentas corrientes exclusivas de la comunidad y preaviso formal de 30 días.</p>
+                  <p><strong>Contrato Marco Bilateral (10 Cláusulas):</strong> La frecuencia de visitas, atención de emergencias y condiciones se toman de la propuesta para esta comunidad. Honorario mensual: {feeStr}. Los datos que falten se indicarán como por definir.</p>
                 </div>
               </div>
             )}
@@ -1258,9 +1260,9 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 </p>
 
                 <p><strong>PRIMERO (OBJETO):</strong> La Comunidad encomienda a El Administrador la gestión integral, financiera, técnica, legal y comunitaria del condominio {condo}, en estricta sujeción a las disposiciones de la Ley N° 21.442, su Reglamento y el Reglamento de Copropiedad del condominio.</p>
-                <p><strong>SEGUNDO (ALCANCE OPERATIVO):</strong> El Administrador mantendrá presencia técnica en terreno con periodicidad de 2 visitas técnicas presenciales por semana + atención de emergencias 24/7, realizando inspecciones periciales periódicas a las salas de bombas, tableros eléctricos, ascensores, calderas y cubiertas.</p>
-                <p><strong>TERCERO (SUITE DIGITAL Y TRANSPARENCIA):</strong> El Administrador habilitará sin costo de licencias para la comunidad la plataforma Web y App Móvil ARANPRO, garantizando acceso en tiempo real a cartolas bancarias, facturas electrónicas auditadas y libro de reclamos foliado.</p>
-                <p><strong>CUARTO (HONORARIOS):</strong> La Comunidad pagará a El Administrador por sus servicios profesionales un honorario mensual de {feeStr} (Factura Exenta / Boleta de Honorarios Profesional), pagadero dentro de los primeros 5 días hábiles del mes calendario siguiente.</p>
+                <p><strong>SEGUNDO (ALCANCE OPERATIVO):</strong> Visitas presenciales: {terms.visitFrequency || 'por definir'}. Atención de emergencias: {terms.emergencyResponse || 'por definir'}. Asambleas y reuniones: {terms.meetingFrequency || 'por definir'}.</p>
+                <p><strong>TERCERO (SERVICIOS):</strong> Servicios incluidos: {terms.includedServices || 'por definir'}. Servicios adicionales: {terms.additionalServices || 'por definir'}. Otras condiciones: {terms.otherConditions || 'por definir'}.</p>
+                <p><strong>CUARTO (HONORARIOS):</strong> Honorario mensual: {feeStr}. Condiciones de inicio o transición: {terms.transitionConditions || 'por definir'}. Fecha estimada de inicio: {terms.startDate || 'por definir'}.</p>
                 <p><strong>QUINTO (CUENTAS BANCARIAS EXCLUSIVAS):</strong> Todos los recursos del condominio se manejarán exclusivamente en cuentas corrientes bancarias y de ahorro abiertas a nombre exclusivo de la Comunidad, prohibiéndose taxativamente el uso de cuentas personales.</p>
               </div>
             </div>
@@ -1286,8 +1288,8 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
 
             <div className="space-y-3 relative z-10">
               <div className="space-y-2 text-[10px] leading-relaxed text-slate-800 text-justify">
-                <p><strong>SEXTO (VIGENCIA):</strong> El presente contrato tendrá una vigencia de un año a contar de la asunción formal de funciones, renovable tácita y sucesivamente según el Artículo 17 de la Ley N° 21.442.</p>
-                <p><strong>SÉPTIMO (TÉRMINO ANTICIPADO):</strong> Cualquiera de las partes podrá poner término anticipado al presente contrato dando aviso formal por escrito a la otra con a lo menos 30 días de anticipación.</p>
+                <p><strong>SEXTO (VIGENCIA):</strong> Duración y renovación: {terms.contractDuration || 'por definir'}.</p>
+                <p><strong>SÉPTIMO (TÉRMINO ANTICIPADO):</strong> Aviso y condiciones de término: {terms.noticePeriod || 'por definir'}.</p>
                 <p><strong>OCTAVO (COBRANZA Y APREMIOS):</strong> Se faculta expresamente al Administrador para cobrar gastos comunes ordinarios y extraordinarios y solicitar el corte de suministro eléctrico a deudores de 3 cuotas impagas conforme al Art. 20 N° 9 Ley 21.442.</p>
                 <p><strong>NOVENO (GESTIÓN LABORAL):</strong> Supervisión directa del personal de conserjería y verificación mensual del pago previsional en Previred (Ley Bustos).</p>
                 <p><strong>DÉCIMO (PERSONERÍA Y EJEMPLARES):</strong> El presente contrato se firma en 2 ejemplares de idéntico tenor, quedando uno en poder de cada parte.</p>
