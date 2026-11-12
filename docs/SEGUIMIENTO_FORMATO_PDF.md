@@ -5,7 +5,7 @@ Alcance actual: solo los documentos del panel **Mi Empresa**. La pauta de traspa
 ## Postulaciones
 
 - Carta de valor, propuesta y diagnóstico de tres páginas, brochure, pauta de traspaso y dossier integral: incorporan el diseño canónico; continuar verificando casos con datos largos y entradas opcionales.
-- Adjuntos por correo de los pasos 1 a 4: se adaptaron las medidas de impresión y se generaron muestras de las cuatro salidas. Verificar también con una firma cargada por el administrador.
+- Adjuntos por correo de los pasos 1 a 4: se adaptaron las medidas de impresión y se generaron muestras de las cuatro salidas, también con una firma de prueba configurada.
 - Informe de diagnóstico independiente: cabecera y pies canónicos, paginación de observaciones y firma final; comprobado con datos normales y extensos.
 - Matriz comparativa independiente: formato canónico y paginación de pilares y textos variables; comprobada con una matriz normal y con contenido extenso.
 - Estudio de honorarios: cabecera y pie canónicos; comprobado con configuraciones habituales y equipamiento adicional.

@@ -2389,8 +2389,17 @@ export const CompanySettingsAndBackupModule = ({
       extraStyles: `${canonicalPdfHeaderStyles}
         @page { size: letter portrait; margin: 0 !important; }
         .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
         .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
-        .brochure-footer { gap: 8px !important; font-size: 7px !important; white-space: nowrap !important; }`
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
+        .transition-final-footer { gap: 8px !important; }
+        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
+        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
+        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
+        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
+        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
+        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
+        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
     });
   };
 
@@ -8798,49 +8807,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
-                {/* SECCIÓN INFERIOR ANCLADA AL PIE */}
-                <div className="mt-auto pt-2 space-y-1.5">
-                  <div className="pt-1.5 border-t border-slate-200 flex items-end justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <AranproOfficialSeal
-                        size="sm"
-                        companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                        rnacNumber=""
-                        showCaption={true}
-                      />
-                      <div className="text-[9px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
-                        <p><strong>Contacto Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{empresaForm.phone || '+56 9 5811 8504'}</span></p>
-                        <p><strong>Correo:</strong> <span className="font-mono">{empresaForm.email || 'contacto@aranpro.cl'}</span></p>
-                        <p><strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{empresaForm.website || 'https://aranpro.cl'}</span></p>
-                      </div>
-                    </div>
-
-                    <div className="text-center min-w-[220px]">
-                      <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
-                        {(signatureImage || companySettings?.signatureDataUrl) && (
-                          <img
-                            src={signatureImage || companySettings?.signatureDataUrl}
-                            alt="Firma"
-                            className="h-11 max-h-12 w-auto max-w-[220px] object-contain mx-auto"
-                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                          />
-                        )}
-                      </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-0.5">
-                        <span className="text-[10.5px] font-black text-slate-900 block leading-tight">{empresaForm.adminName}</span>
-                        <span className="text-[8.5px] text-[#0F3D2E] font-bold block leading-tight">Constructor Civil • Administrador de Condominios</span>
-                        <span className="text-[8.5px] text-slate-600 font-mono block">RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pie de Página Canónico Maestro */}
-                  <div className="brochure-footer pt-1 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
-                    <div>ARANPRO Gestión Integral • {empresaForm.website}</div>
-                    <div className="font-bold text-[#0F3D2E]">Brochure Tecnológico • Suite Web & App Móvil • Ley N° 21.442 (Pág. 1 de 1)</div>
-                    <div>{empresaForm.city || 'La Serena, Chile'}</div>
-                  </div>
-                </div>
+                <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} /><CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Brochure tecnológico" page={1} totalPages={1} city={empresaForm.city || 'La Serena, Chile'} /></div>
               </div>
             </div>
           </div>
