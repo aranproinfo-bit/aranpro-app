@@ -4,7 +4,7 @@ import { formatDate, formatRut, formatCLP, validateRut } from '../../utils/forma
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { AranproLogo, AranproPdfStyleSelector, AranproOfficialSeal, useAranproPdfStyle } from '../common/MauranLogo';
-import { CanonicalPdfHeader, CanonicalPdfFinalSignature, canonicalPdfHeaderStyles } from '../common/CanonicalPdfParts';
+import { CanonicalPdfHeader, CanonicalPdfFinalSignature, CanonicalPdfPageFooter, canonicalPdfHeaderStyles } from '../common/CanonicalPdfParts';
 import { AranproQrCode } from '../common/AranproQrCode';
 import { DocumentLibraryPanel } from './postulaciones/DocumentLibraryPanel';
 import { ReadinessPanel } from './postulaciones/ReadinessPanel';
@@ -2347,7 +2347,21 @@ export const CompanySettingsAndBackupModule = ({
     printDocumentDirectly('printable-full-dossier', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm'
+      margin: '0',
+      extraStyles: `${canonicalPdfHeaderStyles}
+        @page { size: letter portrait; margin: 0 !important; }
+        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
+        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
+        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
+        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
+        .transition-final-footer { gap: 8px !important; }
+        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
+        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
+        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
+        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
+        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
+        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
+        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
     });
   };
 
@@ -7441,35 +7455,9 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 <div className="space-y-3 relative z-10">
-                  {/* Membrete Corporativo Maestro ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
-                    <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-11 w-auto" />
-                      <div className="space-y-0.5 border-l border-slate-300 pl-3.5">
-                        <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
-                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
-                        </div>
-                        <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                          {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}{empresaForm.rnacNumber && empresaForm.rnacNumber !== '48.912' ? `RNAC MINVU N° ${empresaForm.rnacNumber}` : 'Ley N° 21.442 de Copropiedad Inmobiliaria'}
-                        </p>
-                        <p className="text-[9px] text-slate-500">
-                          {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56 9 5811 8504'} • {empresaForm.city || 'La Serena / Coquimbo, Chile'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right space-y-0.5 shrink-0">
-                      <span className="inline-block px-2.5 py-0.5 bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[9.5px] font-mono font-bold rounded-md">
-                        DOSSIER INSTITUCIONAL DE GESTIÓN
-                      </span>
-                      <p className="text-[10.5px] font-bold text-slate-800">
-                        Administración Cercana, Orden Financiero & Especialidad Constructiva
-                      </p>
-                      <p className="text-[9.5px] text-slate-500 font-semibold">
-                        {proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : `Comunidad de Copropietarios • ${empresaForm.city || 'La Serena, Coquimbo'}`)}
-                      </p>
-                    </div>
-                  </div>
+                  <CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Gestión y cercanía operativa" page={1} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')}
+                    brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
+                    email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
 
                   {/* Encabezado Formal Protocolar */}
                   <div className="text-[10px] text-slate-700 space-y-0.5 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
@@ -7626,22 +7614,20 @@ export const CompanySettingsAndBackupModule = ({
                       </div>
                     </div>
 
-                    <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[8.5px] text-emerald-950 gap-2">
+                    <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-2.5 py-1.5 text-[8.5px] text-emerald-950">
                       <span className="leading-snug">
                         <strong>Reuniones:</strong> {activeProposalConditions(proposalConfig).meetingFrequency || "Por definir"} • <strong>Inicio:</strong> {activeProposalConditions(proposalConfig).startDate || "Por definir"} • <strong>Vigencia:</strong> {activeProposalConditions(proposalConfig).contractDuration || "Por definir"} • <strong>Aviso:</strong> {activeProposalConditions(proposalConfig).noticePeriod || "Por definir"}.
-                      </span>
-                      <span className="font-mono font-bold text-[8px] text-[#0F3D2E] bg-white px-1.5 py-0.5 rounded border border-[#D4B895] shrink-0">
-                        {activeProposalConditions(proposalConfig).otherConditions || 'Otras condiciones por definir'}
+                        {' '}<strong>Otras condiciones:</strong> {activeProposalConditions(proposalConfig).otherConditions || 'Por definir'}.
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Pie de Página Institucional Página 1 */}
-                <div className="mt-auto pt-2.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
-                  <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                  <div className="font-bold text-[#0F3D2E]">Página 1 de 4 • Propuesta de Gestión & Cercanía Operativa • Ley N° 21.442</div>
-                  <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
+                <div className="mt-auto pt-2 space-y-1 relative z-10">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600">
+                    <span>• Metodología de gestión</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página 2 →</span>
+                  </div>
+                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Presentación institucional" page={1} totalPages={4} city={empresaForm.city || 'La Serena, Chile'} />
                 </div>
               </div>
 
@@ -7671,25 +7657,9 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 <div className="space-y-3 relative z-10">
-                  {/* Membrete de Continuidad ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2.5">
-                    <div className="flex items-center space-x-3">
-                      <AranproLogo variant="principal" className="h-10 w-auto" />
-                      <div className="border-l border-slate-300 pl-3">
-                        <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">
-                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
-                        </span>
-                        <span className="text-[9px] text-slate-500 font-mono">
-                          Especialista Constructor Civil • Seguimiento Financiero, Operativo y de Mantenciones • Ley N° 21.442
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                        METODOLOGÍA & TERRENO • PÁG. 2 DE 4
-                      </span>
-                    </div>
-                  </div>
+                  <CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Metodología y terreno" page={2} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')}
+                    brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
+                    email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
 
                   {/* Título Sección 1 */}
                   <div className="flex items-center gap-2">
@@ -7813,11 +7783,11 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
-                {/* Pie de Página Institucional Página 2 */}
-                <div className="mt-auto pt-3 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-400 font-mono relative z-10">
-                  <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                  <div className="font-bold text-[#0F3D2E]">Página 2 de 4 • Metodología Técnica, Financiera y Plan de 30 Días</div>
-                  <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
+                <div className="mt-auto pt-2 space-y-1 relative z-10">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600">
+                    <span>• Acreditación y referencias</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página 3 →</span>
+                  </div>
+                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Metodología y terreno" page={2} totalPages={4} city={empresaForm.city || 'La Serena, Chile'} />
                 </div>
               </div>
 
@@ -7847,25 +7817,9 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 <div className="space-y-3 relative z-10">
-                  {/* Membrete de Continuidad ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                    <div className="flex items-center space-x-3">
-                      <AranproLogo variant="principal" className="h-9 w-auto" />
-                      <div className="border-l border-slate-300 pl-3">
-                        <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">
-                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
-                        </span>
-                        <span className="text-[9px] text-slate-500 font-mono">
-                          Especialidad Constructiva, Acreditaciones Profesionales y Referencias de Comités • Ley N° 21.442
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                        ACREDITACIÓN & REFERENCIAS • PÁG. 3 DE 4
-                      </span>
-                    </div>
-                  </div>
+                  <CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Acreditación y referencias" page={3} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')}
+                    brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
+                    email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
 
                   {/* SECCIÓN 2: FORMACIÓN PROFESIONAL, ESPECIALIDAD CONSTRUCTIVA Y CAPACITACIONES CERTIFICADAS */}
                   <div className="space-y-1.5">
@@ -7977,11 +7931,11 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
-                {/* Pie de Página Institucional Página 3 */}
-                <div className="mt-auto pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
-                  <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                  <div className="font-bold text-[#0F3D2E]">Página 3 de 4 • Certificaciones Acreditadas, Carpeta de Anexos y Referencias</div>
-                  <div>Fono Directo: {empresaForm.phone || '+56 9 5811 8504'}</div>
+                <div className="mt-auto pt-2 space-y-1 relative z-10">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600">
+                    <span>• Suite digital</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página 4 →</span>
+                  </div>
+                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Acreditación y referencias" page={3} totalPages={4} city={empresaForm.city || 'La Serena, Chile'} />
                 </div>
               </div>
 
@@ -8011,25 +7965,9 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 <div className="space-y-3 relative z-10">
-                  {/* Membrete de Continuidad ARANPRO */}
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                    <div className="flex items-center space-x-3">
-                      <AranproLogo variant="principal" className="h-9 w-auto" />
-                      <div className="border-l border-slate-300 pl-3">
-                        <span className="text-xs font-black text-[#0F3D2E] tracking-tight uppercase block leading-none">
-                          {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
-                        </span>
-                        <span className="text-[9px] text-slate-500 font-mono">
-                          Plataforma Digital, Transparencia Contable 24/7 y Demo Interactiva • Ley N° 21.442
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-[9.5px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
-                        SUITE DIGITAL & DEMO EN VIVO • PÁG. 4 DE 4
-                      </span>
-                    </div>
-                  </div>
+                  <CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Suite digital y demostración" page={4} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')}
+                    brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
+                    email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
 
                   {/* PRESENTACIÓN OFICIAL INSTITUCIONAL DE LA SUITE DIGITAL ARANPRO */}
                   <div className="space-y-2">
@@ -8082,10 +8020,10 @@ export const CompanySettingsAndBackupModule = ({
 
                         <div className="bg-white p-1.5 rounded-lg border border-slate-200">
                           <div className="text-[#0F3D2E] font-black text-[8.5px] flex items-center gap-1">
-                            <span>💰</span> Cero Costo de Licencias
+                            <span>💰</span> Condiciones comerciales
                           </div>
                           <p className="text-[7.5px] text-slate-600 leading-tight mt-0.5">
-                            Ahorro comprobado de $50.000 a $120.000 mensuales en software que no se le cobran a la comunidad ni a los copropietarios.
+                            Servicios y eventuales cargos según la propuesta acordada con la comunidad.
                           </p>
                         </div>
                       </div>
@@ -8197,46 +8135,9 @@ export const CompanySettingsAndBackupModule = ({
                   </div>
                 </div>
 
-                {/* SECCIÓN DE SELLO CIRCULAR DORADO + FIRMA Y FOOTER ANCLADOS AL PIE */}
-                <div className="mt-auto pt-2 space-y-2 relative z-10">
-                  <div className="pt-2 border-t border-slate-200 flex items-end justify-between gap-4">
-                    <AranproOfficialSeal
-                      size="sm"
-                      companyRut={empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? empresaForm.companyRut : ''}
-                      rnacNumber=""
-                      showCaption={true}
-                    />
-                    <div className="text-center space-y-0.5 min-w-[240px]">
-                      <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
-                        {signatureImage ? (
-                          <img
-                            src={signatureImage}
-                            alt="Firma Administrador"
-                            className="h-11 max-h-12 w-auto max-w-[230px] object-contain mx-auto"
-                            style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                          />
-                        ) : (
-                          <span className="text-[11px] text-slate-400 italic">Firma del Representante Legal</span>
-                        )}
-                      </div>
-                      <div className="border-t-[1.5px] border-slate-800 pt-1">
-                        <p className="font-black text-[11px] text-slate-900 leading-tight">{empresaForm.adminName}</p>
-                        <p className="text-[9px] text-[#0F3D2E] font-bold leading-tight">
-                          Especialista Constructor Civil • Administrador de Condominios
-                        </p>
-                        <p className="text-[8.5px] text-slate-600 font-mono">
-                          RUT: {(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} • Ley N° 21.442
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pie de Página Institucional Página 4 */}
-                  <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
-                    <div>ARANPRO Gestión Integral • {empresaForm.website || 'https://aranpro.cl'}</div>
-                    <div className="font-bold text-[#0F3D2E]">Página 4 de 4 • Ecosistema Tecnológico, Demo Interactiva y Firma Oficial</div>
-                    <div>{empresaForm.city || 'La Serena / Coquimbo, Chile'}</div>
-                  </div>
+                <div className="mt-auto pt-1.5 space-y-1 relative z-10">
+                  <CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} />
+                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Suite digital y demostración" page={4} totalPages={4} city={empresaForm.city || 'La Serena, Chile'} />
                 </div>
               </div>
             </div>
