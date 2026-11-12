@@ -35,7 +35,7 @@ export const transitionChecklistPrintStyles = `
   .transition-title p { font-size: 8.5pt !important; line-height: 10pt !important; margin-top: 1mm !important; }
   .transition-metadata { font-size: 7.4pt !important; }
   .transition-metadata strong { background: #f8fafc !important; margin: -4px -4px 3px; padding: 3px 4px; }
-  .dossier-page table { font-size: 10.1px !important; line-height: 1.25 !important; }
+  .dossier-page table { font-size: 8.075pt !important; line-height: 1.25 !important; }
   .dossier-page table td { padding-top: 5px !important; padding-bottom: 5px !important; }
   .transition-page-with-notes table td { padding-top: 8px !important; padding-bottom: 8px !important; }
   .transition-final-footer { gap: 8px !important; }
