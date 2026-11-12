@@ -4,11 +4,12 @@ import {
   ShieldCheck, Award, CheckCircle2, AlertTriangle, Clock, HardHat, Scale,
   QrCode, Presentation, Calculator, Building2, Sparkles, Filter, Check,
   Settings, ChevronDown, ChevronUp, FolderArchive, X, ArrowUpRight,
-  FileCheck, DollarSign, Plus, PenTool, Trash2, Send
+  FileCheck, DollarSign, Plus, PenTool, Trash2, Send, CheckSquare, BookOpen
 } from 'lucide-react';
 import { formatCLP } from '../../../utils/formatters';
 import { openDataUrlInNewTab, downloadDataUrl } from '../../../utils/fileVault';
 import { printDocumentDirectly } from '../../../utils/printDocument';
+import { transitionChecklistPrintStyles } from './TransitionChecklist';
 
 export const QuickDocumentsPanel = ({
   proposalConfig = {},
@@ -91,7 +92,8 @@ export const QuickDocumentsPanel = ({
     printDocumentDirectly('printable-transition-checklist', `ARANPRO_Pauta_Checklist_Traspaso_3Pags_${targetClean}`, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm'
+      margin: '0',
+      extraStyles: transitionChecklistPrintStyles
     });
   };
 
@@ -338,7 +340,7 @@ export const QuickDocumentsPanel = ({
     setPreviewInspectionModal, handlePrintInspectionReport,
     setPreviewBrochureModal, handlePrintBrochure,
     setPreviewComparisonModal, handlePrintComparisonMatrix,
-    onNavigateToSection
+    onNavigateToSection, proposalConfig.targetCondo
   ]);
 
   // 2. DOCUMENTOS Y ACREDITACIONES DE LA BÓVEDA DIGITAL
