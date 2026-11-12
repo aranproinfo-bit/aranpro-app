@@ -193,8 +193,14 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
           <div className="w-10 h-10 rounded-2xl bg-teal-200 text-teal-900 flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
             5
           </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="text-base font-black text-slate-900">
+                Paso 5: Notificación al Saliente, Pauta de Traspaso & Cláusulas del Acta
+              </h4>
+              <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
                 ★ PASO 5 • ADJUDICACIÓN & RECEPCIÓN FORMAL
               </span>
@@ -202,9 +208,6 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 Ley N° 21.442 & DS N° 7 MINVU
               </span>
             </div>
-            <h4 className="text-base font-black text-slate-900 mt-0.5">
-              Paso 5: Notificación al Saliente, Pauta de Traspaso & Cláusulas del Acta
-            </h4>
           </div>
         </div>
 
