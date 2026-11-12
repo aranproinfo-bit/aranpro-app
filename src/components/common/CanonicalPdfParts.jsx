@@ -12,20 +12,20 @@ export const canonicalPdfHeaderStyles = `
 `;
 
 /** Cabecera institucional común; cada documento aporta su título y datos reales. */
-export function CanonicalPdfHeader({ badge, description, community, page, email, phone, city }) {
+export function CanonicalPdfHeader({ badge, description, community, page, email, phone, city, legalText = 'Ley N° 21.442 de Copropiedad Inmobiliaria', brandName = 'ARANPRO • GESTIÓN INTEGRAL' }) {
   return <div className="transition-header flex items-center justify-between gap-3 border-b-2 border-[#0F3D2E] pb-2">
     <div className="transition-header-brand flex items-center gap-3">
       <img src="/brand/ARANPRO_logo_horizontal_transparente_trimmed.png" alt="ARANPRO" style={{height:'42px', width:'auto'}} />
       <div className="border-l border-slate-300 pl-3">
-        <strong className="text-[#0F3D2E] block">ARANPRO • GESTIÓN INTEGRAL</strong>
-        <span className="block text-slate-600">Ley N° 21.442 de Copropiedad Inmobiliaria</span>
+        <strong className="text-[#0F3D2E] block">{brandName}</strong>
+        <span className="block text-slate-600">{legalText}</span>
         <span className="transition-header-contact block text-slate-500">{email} • {phone} • {city}</span>
       </div>
     </div>
     <div className="transition-header-right text-right">
       <strong className="block text-[#0F3D2E] border border-[#D4B895] bg-slate-50 rounded px-3 py-1 mb-1">{badge}</strong>
       <span className="block font-bold">{description}</span>
-      <span className="text-slate-500">{community}{community ? ' • ' : ''}Página {page}</span>
+      {(community || page) && <span className="text-slate-500">{community}{community && page ? ' • ' : ''}{page ? `Página ${page}` : ''}</span>}
     </div>
   </div>;
 }

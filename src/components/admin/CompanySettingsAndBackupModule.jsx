@@ -4,6 +4,7 @@ import { formatDate, formatRut, formatCLP, validateRut } from '../../utils/forma
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { AranproLogo, AranproPdfStyleSelector, AranproOfficialSeal, useAranproPdfStyle } from '../common/MauranLogo';
+import { CanonicalPdfHeader, canonicalPdfHeaderStyles } from '../common/CanonicalPdfParts';
 import { AranproQrCode } from '../common/AranproQrCode';
 import { DocumentLibraryPanel } from './postulaciones/DocumentLibraryPanel';
 import { ReadinessPanel } from './postulaciones/ReadinessPanel';
@@ -2299,7 +2300,8 @@ export const CompanySettingsAndBackupModule = ({
     printDocumentDirectly('printable-cold-value-letter', filename, {
       pageSize: 'letter portrait',
       fitPage: true,
-      margin: '4mm 6mm 4mm 6mm'
+      margin: '4mm 6mm 4mm 6mm',
+      extraStyles: `${canonicalPdfHeaderStyles} .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }`
     });
   };
 
@@ -7136,34 +7138,14 @@ export const CompanySettingsAndBackupModule = ({
                   {/* SECCIÓN SUPERIOR: MEMBRETE, PROTOCOLO, TÍTULO, INTRO PROFUNDA, 3 PILARES, BENEFICIOS */}
                   <div className="space-y-3">
                     {/* Membrete Corporativo Maestro ARANPRO (Alternativa 4 • Logo Vertical Principal) */}
-                    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-                      <div className="flex items-center space-x-3">
-                        <AranproLogo variant="principal" className="h-11 w-auto" />
-                        <div className="space-y-0.5 border-l border-slate-300 pl-3">
-                          <div className="text-xs font-black tracking-tight text-[#0F3D2E] uppercase">
-                            {empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
-                          </div>
-                          <p className="text-[9.5px] text-slate-600 font-mono font-semibold">
-                            {empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
-                          </p>
-                          <p className="text-[9px] text-slate-500">
-                            {empresaForm.email || 'contacto@aranpro.cl'} • {empresaForm.phone || '+56958118504'} • {empresaForm.city || 'La Serena, Chile'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right space-y-0.5 shrink-0">
-                        <span className="inline-block px-2 py-0.5 bg-[#F5F4EF] text-[#0F3D2E] border border-[#D4B895] text-[9px] font-mono font-bold rounded whitespace-nowrap">
-                          PRESENTACIÓN INSTITUCIONAL {new Date().getFullYear()}
-                        </span>
-                        <p className="text-[10px] font-bold text-slate-800">
-                          Carta de Presentación & Propuesta de Servicios
-                        </p>
-                        <p className="text-[9px] text-slate-500 font-semibold">
-                          Para el Comité de Administración
-                        </p>
-                      </div>
-                    </div>
+                    <CanonicalPdfHeader
+                      badge={`PRESENTACIÓN INSTITUCIONAL ${new Date().getFullYear()}`}
+                      description="Carta de Presentación & Propuesta de Servicios"
+                      community="Para el Comité de Administración"
+                      brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL DE CONDOMINIOS'}
+                      legalText={`${empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria`}
+                      email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56958118504'} city={empresaForm.city || 'La Serena, Chile'}
+                    />
 
                     {/* Encabezado Protocolar */}
                     <div className="text-[10.5px] text-slate-700 space-y-0.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
