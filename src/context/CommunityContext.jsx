@@ -156,18 +156,8 @@ export const CommunityProvider = ({ children }) => {
           signature: parsed.signatureDataUrl || parsed.signature || parsed.digitalSignature || '',
           digitalSignature: parsed.signatureDataUrl || parsed.signature || parsed.digitalSignature || '',
           title: (parsed.title && !/técnico/i.test(parsed.title)) ? parsed.title : initialCompanySettings.title,
-          academicBackground: Array.isArray(parsed.academicBackground) && parsed.academicBackground.length >= 6
-            ? parsed.academicBackground.filter(rec => {
-                const txt = `${rec.title || ''} ${rec.institution || ''} ${rec.status || ''} ${rec.fileName || ''}`.toLowerCase();
-                return !txt.includes('alumno regular') && !txt.includes('en curso') && !txt.includes('aiep') && !txt.includes('técnico') && !txt.includes('tecnico');
-              })
-            : undefined,
-          accreditationFiles: Array.isArray(parsed.accreditationFiles) && parsed.accreditationFiles.length >= 6
-            ? parsed.accreditationFiles.filter(doc => {
-                const txt = `${doc.name || ''} ${doc.folio || ''} ${doc.notes || ''}`.toLowerCase();
-                return !txt.includes('48.912') && !txt.includes('alumno regular') && !txt.includes('en curso') && !txt.includes('técnico') && !txt.includes('tecnico');
-              })
-            : undefined,
+          academicBackground: Array.isArray(parsed.academicBackground) ? parsed.academicBackground : undefined,
+          accreditationFiles: Array.isArray(parsed.accreditationFiles) ? parsed.accreditationFiles : undefined,
           experienceSince: parsed.experienceSince || initialCompanySettings.experienceSince,
           accreditations: parsed.accreditations || initialCompanySettings.accreditations
         };

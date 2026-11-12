@@ -9,6 +9,9 @@ import {
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { formatCLP } from '../../../utils/formatters';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
+import { TransitionChecklistPrint, TransitionChecklistScreen, transitionChecklistPrintStyles } from './TransitionChecklist';
+import { activeProposalConditions } from '../../../utils/proposalConditions';
+import { CanonicalPdfHeader, CanonicalPdfPageFooter, CanonicalPdfFinalSignature, canonicalPortraitPrintStyles, canonicalLandscapePrintStyles } from '../../common/CanonicalPdfParts';
 
 export const Step5TransitionPanel = ({
   proposalConfig = {},
@@ -24,13 +27,14 @@ export const Step5TransitionPanel = ({
   getStepMessages = () => ({}),
   handleCopyStepMessage = () => {}
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState('carta'); // 'carta' | 'checklist' | 'acta' | 'guias'
   const [actaOrContract, setActaOrContract] = useState('acta'); // 'acta' | 'contrato'
   const [expandedMsg, setExpandedMsg] = useState(false);
   const [previewStep5Modal, setPreviewStep5Modal] = useState(null);
   const [copiedClause, setCopiedClause] = useState(false);
   const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
+  const [transitionStatus, setTransitionStatus] = useState({});
+  const [transitionNotes, setTransitionNotes] = useState({});
 
   // Estados locales para la pauta interactiva de traspaso
   const [checklistValues, setChecklistValues] = useState({
@@ -59,8 +63,10 @@ export const Step5TransitionPanel = ({
   const phone = empresaForm.phone || '+56 9 5811 8504';
   const email = empresaForm.email || 'contacto@aranpro.cl';
   const website = empresaForm.website || 'https://aranpro.cl';
-  const feeStr = formatCLP(Number(proposalConfig.proposedMonthlyFee) || 850000);
+  const feeStr = !proposalConfig.unknownDetails && Number(proposalConfig.proposedMonthlyFee) > 0 ? formatCLP(Number(proposalConfig.proposedMonthlyFee)) : 'por definir';
+  const terms = activeProposalConditions(proposalConfig);
   const effectiveSignature = signatureImage || companySettings?.signatureDataUrl || '';
+  const effectiveSignatureScale = Number(companySettings?.signatureScale) || Number(signatureScale) || 1;
 
   // Fechas de transición
   const noticeDate = proposalConfig.transitionNoticeDate || new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -73,15 +79,27 @@ export const Step5TransitionPanel = ({
   const outgoingAdmin = proposalConfig.outgoingAdminName?.trim() || 'Señor(a) Administrador(a) Saliente';
   const committeePresident = proposalConfig.committeePresidentName?.trim() || 'Presidente(a) del Comité de Administración';
 
+  // La carta es un documento del Comité: sus campos no deben inventar datos cuando
+  // aún no se han completado en el formulario del Paso 5.
+  const terminationNotice = {
+    condo: proposalConfig.targetCondo?.trim() || '',
+    city: proposalConfig.targetCity?.trim() || '',
+    date: proposalConfig.transitionNoticeDate?.trim() || '',
+    endDate: proposalConfig.transitionEndDate?.trim() || '',
+    agreementReference: proposalConfig.transitionAgreementReference?.trim() || '',
+    outgoingAdmin: proposalConfig.outgoingAdminName?.trim() || '',
+    committeePresident: proposalConfig.committeePresidentName?.trim() || ''
+  };
+
   // Acciones de impresión directa
   const handlePrintTerminationNotice = () => {
     const filename = `Carta_Termino_Administracion_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
     printDocumentDirectly('printable-termination-notice', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '14mm 18mm 14mm 18mm',
+      margin: '12mm 15mm 12mm 15mm',
       pdfStyle: 'neutral',
-      extraStyles: '.dossier-page{height:auto !important;min-height:0 !important;max-height:none !important;overflow:visible !important;display:block !important;padding:0 !important;page-break-after:avoid !important;break-after:avoid !important;} .dossier-page > div{padding:0 !important;} .dossier-page li, .dossier-page p{orphans:3;widows:3;} .sig-block{page-break-inside:avoid !important;break-inside:avoid !important;}'
+      extraStyles: '.dossier-page{height:255mm !important;min-height:255mm !important;max-height:255mm !important;overflow:hidden !important;display:flex !important;padding:0 !important;page-break-after:avoid !important;break-after:avoid !important;} .dossier-page > div{padding:0 !important;} .dossier-page li, .dossier-page p{orphans:3;widows:3;} .sig-block{page-break-inside:avoid !important;break-inside:avoid !important;}'
     });
   };
 
@@ -90,8 +108,9 @@ export const Step5TransitionPanel = ({
     printDocumentDirectly('printable-transition-checklist', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm',
-      pdfStyle
+      margin: '0',
+      pdfStyle,
+      extraStyles: transitionChecklistPrintStyles
     });
   };
 
@@ -100,7 +119,8 @@ export const Step5TransitionPanel = ({
     printDocumentDirectly('printable-management-contract', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm',
+      margin: '0',
+      extraStyles: canonicalPortraitPrintStyles,
       pdfStyle
     });
   };
@@ -109,8 +129,9 @@ export const Step5TransitionPanel = ({
     const filename = `ARANPRO_Guias_Legales_Asambleas_y_Quorums_Ley21442_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
     printDocumentDirectly('printable-legal-advisory-sheet', filename, {
       pageSize: 'letter landscape',
-      fitPage: true,
-      margin: '4mm 6mm 4mm 6mm',
+      fitPage: false,
+      margin: '0',
+      extraStyles: canonicalLandscapePrintStyles,
       pdfStyle
     });
   };
@@ -120,7 +141,8 @@ export const Step5TransitionPanel = ({
     printDocumentDirectly('printable-transition-package', filename, {
       pageSize: 'letter portrait',
       fitPage: false,
-      margin: '4mm 6mm 4mm 6mm',
+      margin: '0',
+      extraStyles: canonicalPortraitPrintStyles,
       pdfStyle
     });
   };
@@ -163,11 +185,11 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
   };
 
   return (
-    <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-teal-50/70 border border-teal-200 hover:border-teal-300 transition-all space-y-4">
+    <div className="bg-white p-5 md:p-6 rounded-3xl border-2 border-emerald-700/30 shadow-xs hover:border-emerald-700/60 transition-all space-y-4">
       {/* 1. ENCABEZADO UNIFICADO CON LOS PASOS 1, 2, 3 Y 4 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => setIsOpen(!isOpen)}>
-          <div className="w-10 h-10 rounded-2xl bg-teal-200 text-teal-900 flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#0F3D2E] text-[#D4B895] flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
             5
           </div>
           <div>
@@ -193,10 +215,8 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         </div>
       </div>
 
-      {isOpen && (
-        <>
-        <p className="text-xs text-slate-600 leading-relaxed">
-        <strong>Cuándo usarlo:</strong> Una vez adjudicada la administración, entrega al Comité este kit pericial para <strong>notificar al administrador saliente con el preaviso legal de 30 días</strong>, auditar la entrega de antecedentes con la <strong>Pauta de Traspaso de 3 páginas</strong> y formalizar el <strong>Acta de Nombramiento</strong> con facultades bancarias plenas ante bancos y notarías.
+      <p className="text-xs text-slate-600 leading-relaxed">
+        <strong>Cuándo usarlo:</strong> Una vez acordado el término de la administración, entrega al Comité este kit para <strong>notificar al administrador saliente con el plazo de aviso pactado</strong>, auditar la entrega de antecedentes con la <strong>Pauta de Traspaso de 3 páginas</strong> y formalizar el <strong>Acta de Nombramiento</strong>.
       </p>
 
       {/* BARRA DE CONFIGURACIÓN DE NOMBRES Y PLAZOS */}
@@ -260,6 +280,19 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
             />
           </div>
+
+          <div className="sm:col-span-2 md:col-span-4">
+            <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+              Antecedente del Acuerdo de Término (Recomendado)
+            </label>
+            <input
+              type="text"
+              placeholder="Ej: Asamblea extraordinaria de 30 de octubre de 2026, Acta N° 12"
+              value={proposalConfig.transitionAgreementReference || ''}
+              onChange={(e) => setProposalConfig({ ...proposalConfig, transitionAgreementReference: e.target.value })}
+              className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-[#0F3D2E]"
+            />
+          </div>
         </div>
       </div>
 
@@ -297,7 +330,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         {activeSubTab === 'carta' && (
           <div className="space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between">
-              <div>
+              <div style={{ width: '100%' }}>
                 <span className="text-xs font-bold text-slate-900 block">
                   Carta de Término de Funciones y Preaviso de 30 Días al Administrador Saliente
                 </span>
@@ -339,10 +372,10 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
 
               <p>Estimado(a):</p>
               <p>
-                Por medio de la presente, el Comité de Administración del <strong>{condo}</strong>, en representación de la comunidad y en ejercicio de las facultades que le confiere la Ley N° 21.442 sobre Copropiedad Inmobiliaria y el Reglamento de Copropiedad, cumple con notificarle formalmente la decisión de poner término a la prestación de sus servicios como Administrador del condominio.
+                Por medio de la presente, y conforme al acuerdo de la Comunidad{terminationNotice.agreementReference ? <> contenido en <strong>{terminationNotice.agreementReference}</strong></> : ''}, se notifica formalmente el término de la prestación de sus servicios como Administrador(a) del condominio.
               </p>
               <p>
-                Con el propósito de asegurar una transición ordenada y dar cumplimiento al plazo de preaviso correspondiente, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{endDate}</strong>.
+                Con el propósito de asegurar una transición ordenada y de acuerdo con el plazo de aviso aplicable, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{endDate}</strong>.
               </p>
               <p>
                 Durante este período, y en estricto apego a lo establecido en el Artículo 20 (y concordantes) de la nueva Ley de Copropiedad Inmobiliaria (Ley 21.442), solicitamos a usted preparar y tener a disposición para la fecha de término la siguiente documentación y procesos de cierre:
@@ -352,12 +385,15 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 <p>• <strong>Rendición de Cuentas Documentada:</strong> Balance final de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {endDate}.</p>
                 <p>• <strong>Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo de gastos comunes, planos, pólizas de seguro, certificados de instalaciones (ascensores, gas) y bitácoras de mantención.</p>
                 <p>• <strong>Gestión Laboral y Previsional:</strong> Contratos de trabajo del personal del condominio, comprobantes de pago de cotizaciones (Previred), liquidaciones de sueldo al día y finiquitos en caso de corresponder.</p>
-                <p>• <strong>Accesos, Cuentas y Claves:</strong> Traspaso formal de las credenciales de cuentas bancarias (Fondo de Reserva y cuenta ordinaria), portal del SII, Dirección del Trabajo, correos electrónicos y cualquier software de administración utilizado.</p>
+                <p>• <strong>Accesos y Autorizaciones:</strong> Entrega o regularización de usuarios administradores, mecanismos de recuperación y autorizaciones de cuentas bancarias, portal del SII, Dirección del Trabajo, correos electrónicos y software de administración utilizado.</p>
                 <p>• <strong>Caja Chica y Fondos:</strong> Entrega de los fondos en efectivo y detalle de cheques por cobrar o emitidos no cobrados.</p>
               </div>
 
               <p>
                 Por nuestra parte, como Comité de Administración, nos comprometemos a facilitar este proceso de transición, a revisar la rendición de cuentas en los plazos legales y a formalizar la recepción mediante un Acta de Traspaso el último día de sus funciones.
+              </p>
+              <p>
+                La entrega material de antecedentes, fondos y accesos no constituye aprobación ni liberación de responsabilidad respecto de la gestión anterior; estos serán revisados conforme a la ley, al reglamento de copropiedad y al contrato aplicable.
               </p>
               <p>
                 Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
@@ -385,12 +421,12 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         {activeSubTab === 'checklist' && (
           <div className="space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between">
-              <div>
+              <div style={{ width: '100%' }}>
                 <span className="text-xs font-bold text-slate-900 block">
                   Solicitud Simple de Antecedentes • Checklist para solicitar hoy a la administración vigente
                 </span>
                 <span className="text-[11px] text-slate-500">
-                  Formato de 3 páginas exactas estructurado en Bloques A, B, C, D y E con casillas de verificación.
+                  Pauta en siete bloques; las selecciones y observaciones se incluyen en el PDF.
                 </span>
               </div>
               <button
@@ -403,8 +439,9 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </button>
             </div>
 
-            {/* TABLAS INTERACTIVAS ORIGINALES */}
-            <div className="space-y-3 max-w-3xl mx-auto">
+            <TransitionChecklistScreen status={transitionStatus} setStatus={setTransitionStatus} notes={transitionNotes} setNotes={setTransitionNotes} />
+            {/* TABLAS ANTERIORES */}
+            {false && <div className="space-y-3 max-w-3xl mx-auto">
               {/* BLOQUE A */}
               <div className="border border-slate-200 rounded-2xl overflow-hidden">
                 <div className="bg-[#0F3D2E] text-white px-3 py-2 font-bold text-xs flex justify-between">
@@ -552,7 +589,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   ))}
                 </div>
               </div>
-            </div>
+            </div>}
           </div>
         )}
 
@@ -560,7 +597,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
         {activeSubTab === 'acta' && (
           <div className="space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between">
-              <div>
+              <div style={{ width: '100%' }}>
                 <span className="text-xs font-bold text-slate-900 block">
                   Formalización Legal: Cláusulas para el Libro de Actas & Contrato Marco
                 </span>
@@ -620,7 +657,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   </button>
                 </div>
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 space-y-2 leading-relaxed">
-                  <p><strong>Contrato Marco Bilateral (10 Cláusulas):</strong> Regula detalladamente la relación entre el Comité y ARANPRO Gestión Integral, estableciendo 2 visitas técnicas presenciales semanales, emergencias 24/7, suite digital sin cobro de licencias, honorario mensual de {feeStr}, cuentas corrientes exclusivas de la comunidad y preaviso formal de 30 días.</p>
+                  <p><strong>Contrato Marco Bilateral (10 Cláusulas):</strong> La frecuencia de visitas, atención de emergencias y condiciones se toman de la propuesta para esta comunidad. Honorario mensual: {feeStr}. Los datos que falten se indicarán como por definir.</p>
                 </div>
               </div>
             )}
@@ -748,8 +785,6 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
           </pre>
         </div>
       )}
-      </>
-      )}
 
       
       {/* ==================== MODAL DE VISTA PREVIA DEL PASO 5 ==================== */}
@@ -803,7 +838,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
             <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl flex flex-col items-center gap-4">
               {/* VISTA PREVIA 1: CARTA */}
               {previewStep5Modal === 'carta' && (
-                <div className="bg-white p-8 md:p-12 shadow-lg border border-slate-200 w-full max-w-[850px] text-black" style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '11.5pt', lineHeight: 1.4 }}>
+                <div className="bg-white p-8 md:p-12 shadow-lg border border-slate-200 w-full max-w-[850px] text-black" style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '11pt', lineHeight: 1.35 }}>
                   <p style={{ textAlign: 'right', margin: '0 0 14px 0' }}>{city}, {noticeDate}</p>
                   <p style={{ margin: 0 }}>Señor(a)</p>
                   <p style={{ margin: 0, fontWeight: 'bold' }}>{outgoingAdmin}</p>
@@ -839,9 +874,9 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                   <p style={{ margin: '0 0 10px 0', textAlign: 'justify' }}>
                     Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
                   </p>
-                  <p style={{ margin: '0 0 40px 0' }}>Atentamente,</p>
+                  <p style={{ margin: '0 0 35px 0' }}>Atentamente,</p>
 
-                  <div className="sig-block" style={{ display: 'flex', justifyContent: 'space-between', gap: '30px', fontSize: '11pt', marginTop: '10px' }}>
+                  <div className="sig-block" style={{ display: 'flex', justifyContent: 'space-between', gap: '30px', fontSize: '10.5pt', marginTop: '10px' }}>
                     <div style={{ flex: 1, textAlign: 'center' }}>
                       <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
                         <div style={{ fontWeight: 'bold' }}>{committeePresident}</div>
@@ -865,10 +900,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 <div className="space-y-6 w-full max-w-[850px]">
                   {/* Pág 1 */}
                   <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
-                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                      <span className="font-black text-[#0F3D2E] text-sm">PAUTA DE TRASPASO • ANTECEDENTES</span>
-                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 1 de 3</span>
-                    </div>
+                    <CanonicalPdfHeader badge="PAUTA DE TRASPASO" description="Solicitud simple de antecedentes" page={1} community={condo} email={email} phone={phone} city={city} />
                     <div className="space-y-3">
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">A. GOBIERNO Y DOCUMENTACIÓN LEGAL</span>
@@ -892,14 +924,12 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                         </ul>
                       </div>
                     </div>
+                    <CanonicalPdfPageFooter website={website} label="Pauta de traspaso" page={1} totalPages={3} city={city} />
                   </div>
 
                   {/* Pág 2 */}
                   <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
-                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                      <span className="font-black text-[#0F3D2E] text-sm">PAUTA DE TRASPASO • ANTECEDENTES</span>
-                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 2 de 3</span>
-                    </div>
+                    <CanonicalPdfHeader badge="PAUTA DE TRASPASO" description="Solicitud simple de antecedentes" page={2} community={condo} email={email} phone={phone} city={city} />
                     <div className="space-y-3">
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">C. PERSONAL, SEGURIDAD SOCIAL Y PREVISIÓN</span>
@@ -921,14 +951,12 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                         </ul>
                       </div>
                     </div>
+                    <CanonicalPdfPageFooter website={website} label="Pauta de traspaso" page={2} totalPages={3} city={city} />
                   </div>
 
                   {/* Pág 3 */}
                   <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
-                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                      <span className="font-black text-[#0F3D2E] text-sm">PAUTA DE TRASPASO • ANTECEDENTES</span>
-                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 3 de 3</span>
-                    </div>
+                    <CanonicalPdfHeader badge="PAUTA DE TRASPASO" description="Solicitud simple de antecedentes" page={3} community={condo} email={email} phone={phone} city={city} />
                     <div className="space-y-3">
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">E. ACTIVOS, ACCESOS Y ENTREGAS MATERIALES</span>
@@ -952,6 +980,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                         </div>
                       </div>
                     </div>
+                    <CanonicalPdfPageFooter website={website} label="Pauta de traspaso" page={3} totalPages={3} city={city} />
                   </div>
                 </div>
               )}
@@ -960,28 +989,23 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               {previewStep5Modal === 'contrato' && (
                 <div className="space-y-6 w-full max-w-[850px]">
                   <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-3 text-xs leading-relaxed">
-                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                      <span className="font-black text-[#0F3D2E] text-sm">CONTRATO DE PRESTACIÓN DE SERVICIOS DE ADMINISTRACIÓN</span>
-                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 1 de 2</span>
-                    </div>
+                    <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={1} community={condo} email={email} phone={phone} city={city} />
                     <p className="italic text-slate-600 text-[11px]">En {city}, República de Chile, entre el Comité de Administración del {condo} y la Administración Entrante.</p>
                     <p><strong>PRIMERO (Comparecencia):</strong> El Comité de Administración, representado por don(ña) {committeePresident}, y la entidad administradora convienen el presente contrato.</p>
                     <p><strong>SEGUNDO (Objeto):</strong> La administración integral, técnica, contable y operativa del condominio conforme a la Ley N° 21.442.</p>
                     <p><strong>TERCERO (Honorarios):</strong> Los honorarios mensuales pactados ascienden a la suma de {feeStr} líquidos o exentos según corresponda.</p>
                     <p><strong>CUARTO (Visitas en Terreno):</strong> Se contemplan inspecciones periódicas presenciales y atención prioritaria de emergencias 24/7.</p>
                     <p><strong>QUINTO (Plataforma Digital):</strong> Acceso sin costo de licencias adicionales a la suite de gestión y transparencia vecinal.</p>
+                    <CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={1} totalPages={2} city={city} />
                   </div>
                   <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-3 text-xs leading-relaxed">
-                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                      <span className="font-black text-[#0F3D2E] text-sm">CONTRATO DE PRESTACIÓN DE SERVICIOS DE ADMINISTRACIÓN</span>
-                      <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded">Página 2 de 2</span>
-                    </div>
-                    <p><strong>SEXTO (Cuentas Corrientes):</strong> Cuentas bancarias a nombre exclusivo del condominio, con firma mancomunada según Reglamento.</p>
-                    <p><strong>SÉPTIMO (Rendición Mensual):</strong> Emisión documentada de gastos comunes y conciliaciones bancarias dentro de los primeros 10 días de cada mes.</p>
-                    <p><strong>OCTAVO (Vigencia y Término):</strong> Plazo de 1 año renovable, con facultad de desahucio recíproco mediante preaviso escrito de 30 días.</p>
-                    <p><strong>NOVENO (Domicilio y Jurisdicción):</strong> Las partes fijan su domicilio en la comuna de {city}.</p>
-                    <p><strong>DÉCIMO (Ejemplares):</strong> Se firma en dos ejemplares del mismo tenor y fecha.</p>
-                    <div className="pt-8 grid grid-cols-2 gap-8 text-center text-xs text-slate-700">
+                    <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={2} community={condo} email={email} phone={phone} city={city} />
+                    <p><strong>SEXTO (Vigencia):</strong> Plazo de un año renovable conforme a la Ley N° 21.442.</p>
+                    <p><strong>SÉPTIMO (Término Anticipado):</strong> Aviso formal por escrito con a lo menos 30 días de anticipación.</p>
+                    <p><strong>OCTAVO (Cuentas Corrientes):</strong> Cuentas bancarias a nombre exclusivo del condominio con firma mancomunada.</p>
+                    <p><strong>NOVENO (Rendición Mensual):</strong> Emisión documentada de gastos comunes y conciliaciones bancarias.</p>
+                    <p><strong>DÉCIMO (Ejemplares):</strong> Se firma en dos ejemplares de idéntico tenor.</p>
+                    <div className="pt-6 grid grid-cols-2 gap-8 text-center text-xs text-slate-700">
                       <div className="border-t border-slate-400 pt-2">
                         <p className="font-bold">{committeePresident}</p>
                         <p className="text-[11px] text-slate-500">Por el Comité de Administración</p>
@@ -991,6 +1015,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                         <p className="text-[11px] text-slate-500">ARANPRO Gestión Integral</p>
                       </div>
                     </div>
+                    <CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={2} totalPages={2} city={city} />
                   </div>
                 </div>
               )}
@@ -998,13 +1023,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               {/* VISTA PREVIA 4: GUÍAS LEGALES (HORIZONTAL) */}
               {previewStep5Modal === 'guias' && (
                 <div className="bg-white p-6 md:p-8 shadow-lg border-t-4 border-t-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4 w-full max-w-[950px]">
-                  <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                    <div>
-                      <span className="font-black text-[#0F3D2E] text-base block">FICHA GUÍA: ASAMBLEAS & QUÓRUMS • LEY N° 21.442</span>
-                      <span className="text-xs text-slate-500">Resumen ejecutivo oficial para toma de acuerdos por el Comité y la Comunidad</span>
-                    </div>
-                    <span className="text-xs font-mono bg-slate-100 px-2.5 py-1 rounded-lg">Formato Horizontal</span>
-                  </div>
+                  <CanonicalPdfHeader badge="GUÍA PARA COMITÉS" description="Asambleas y quórums" page={1} community={condo} email={email} phone={phone} city={city} />
                   <div className="overflow-x-auto border border-slate-200 rounded-xl">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-[#0F3D2E] text-white">
@@ -1018,7 +1037,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                       <tbody className="divide-y divide-slate-100">
                         <tr className="hover:bg-slate-50">
                           <td className="p-2.5 font-bold text-slate-900">Ordinaria (Anual)</td>
-                          <td className="p-2.5 text-slate-600">Cuenta de administración, balance de gastos comunes, presupuesto estimado, designación de Comité.</td>
+                          <td className="p-2.5 text-slate-600">Cuenta de administración, balance de gastos comunes, designación o remoción del administrador.</td>
                           <td className="p-2.5 text-center font-mono">33% alícuotas (1ra cit.)<br/>Los que asistan (2da cit.)</td>
                           <td className="p-2.5 text-center font-bold text-[#0F3D2E]">Mayoría absoluta de asistentes</td>
                         </tr>
@@ -1026,17 +1045,18 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                           <td className="p-2.5 font-bold text-slate-900">Extraordinaria Mayoría Absoluta</td>
                           <td className="p-2.5 text-slate-600">Modificación de gastos comunes, reglamentos internos, contrataciones relevantes.</td>
                           <td className="p-2.5 text-center font-mono">Mayoría absoluta derechos (1ra)<br/>Los que asistan (2da)</td>
-                          <td className="p-2.5 text-center font-bold text-[#0F3D2E]">Mayoría absoluta derechos asistentes</td>
+                          <td className="p-2.5 text-center font-bold text-[#0F3D2E]">Mayoría absoluta derechos totales</td>
                         </tr>
                         <tr className="hover:bg-slate-50">
                           <td className="p-2.5 font-bold text-slate-900">Extraordinaria Mayoría Reforzada</td>
-                          <td className="p-2.5 text-slate-600">Modificación reglamento copropiedad, enajenación de bienes comunes, reconstrucción o demolición.</td>
+                          <td className="p-2.5 text-slate-600">Modificación reglamento copropiedad, enajenación de bienes comunes, reconstrucción.</td>
                           <td className="p-2.5 text-center font-mono">66% derechos (1ra y 2da citación)</td>
                           <td className="p-2.5 text-center font-bold text-amber-700">66% de los derechos totales</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
+                  <CanonicalPdfPageFooter website={website} label="Asambleas y quórums" page={1} totalPages={1} city={city} />
                 </div>
               )}
             </div>
@@ -1054,53 +1074,61 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
           <div
             data-pdf-style="neutral"
             className="dossier-page page-1 bg-white text-black"
-            style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '11.5pt', lineHeight: 1.4 }}
+            style={{ fontFamily: "'Times New Roman', Times, Georgia, serif", fontSize: '10.75pt', lineHeight: 1.26 }}
           >
-            <div style={{ padding: '6mm 8mm 0 8mm' }}>
-              <p style={{ textAlign: 'right', margin: '0 0 14px 0' }}>{city}, {noticeDate}</p>
+            <div style={{ padding: '1mm 2mm 0 2mm', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ width: '100%' }}>
+              <p style={{ textAlign: 'right', margin: '0 0 11px 0' }}>
+                {terminationNotice.city}{terminationNotice.city && terminationNotice.date ? ', ' : ''}{terminationNotice.date}
+              </p>
 
               <p style={{ margin: 0 }}>Señor(a)</p>
-              <p style={{ margin: 0, fontWeight: 'bold' }}>{outgoingAdmin}</p>
-              <p style={{ margin: 0 }}>Administrador(a) del {condo}</p>
-              <p style={{ margin: '0 0 12px 0' }}>Presente</p>
+              <p style={{ margin: 0, fontWeight: 'bold', minHeight: '1em' }}>{terminationNotice.outgoingAdmin}</p>
+              <p style={{ margin: 0 }}>Administrador(a) del {terminationNotice.condo}</p>
+              <p style={{ margin: '0 0 10px 0' }}>Presente</p>
 
               <p style={{ margin: '0 0 12px 0' }}>
                 <strong>Ref.:</strong> Notificación de término de funciones y aviso de 30 días.
               </p>
 
-              <p style={{ margin: '0 0 8px 0' }}>Estimado(a):</p>
-              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
-                Por medio de la presente, el Comité de Administración del <strong>{condo}</strong>, en representación de la comunidad y en ejercicio de las facultades que le confiere la Ley N° 21.442 sobre Copropiedad Inmobiliaria y el Reglamento de Copropiedad, cumple con notificarle formalmente la decisión de poner término a la prestación de sus servicios como Administrador del condominio.
-              </p>
-              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
-                Con el propósito de asegurar una transición ordenada y dar cumplimiento al plazo de preaviso correspondiente, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{endDate}</strong>.
+              <p style={{ margin: '0 0 6px 0' }}>Estimado(a):</p>
+              <p style={{ margin: '0 0 6px 0', textAlign: 'justify' }}>
+                Por medio de la presente, y conforme al acuerdo de la Comunidad{terminationNotice.agreementReference ? <> contenido en <strong>{terminationNotice.agreementReference}</strong></> : ''}, se notifica formalmente el término de la prestación de sus servicios como Administrador(a) del condominio.
               </p>
               <p style={{ margin: '0 0 6px 0', textAlign: 'justify' }}>
+                Con el propósito de asegurar una transición ordenada y de acuerdo con el plazo de aviso aplicable, sus funciones se extenderán por <strong>30 días a contar de la entrega de este documento</strong>, siendo su último día de gestión el <strong>{terminationNotice.endDate}</strong>.
+              </p>
+              <p style={{ margin: '0 0 5px 0', textAlign: 'justify' }}>
                 Durante este período, y en estricto apego a lo establecido en el Artículo 20 (y concordantes) de la Ley N° 21.442 sobre Copropiedad Inmobiliaria, solicitamos a usted preparar y tener a disposición, para la fecha de término, la siguiente documentación y procesos de cierre:
               </p>
 
-              <ol style={{ margin: '0 0 8px 0', paddingLeft: '22px', textAlign: 'justify', listStyleType: 'decimal' }}>
-                <li style={{ marginBottom: '4px' }}><strong>Rendición de Cuentas Documentada:</strong> Balance final de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {endDate}.</li>
-                <li style={{ marginBottom: '4px' }}><strong>Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo de gastos comunes, planos, pólizas de seguro, certificados de instalaciones (ascensores, gas) y bitácoras de mantención.</li>
-                <li style={{ marginBottom: '4px' }}><strong>Gestión Laboral y Previsional:</strong> Contratos de trabajo del personal del condominio, comprobantes de pago de cotizaciones (Previred), liquidaciones de sueldo al día y finiquitos en caso de corresponder.</li>
-                <li style={{ marginBottom: '4px' }}><strong>Accesos, Cuentas y Claves:</strong> Traspaso formal de las credenciales de cuentas bancarias (Fondo de Reserva y cuenta ordinaria), portal del SII, Dirección del Trabajo, correos electrónicos y cualquier software de administración utilizado.</li>
+              <ol style={{ margin: '0 0 6px 0', paddingLeft: '20px', textAlign: 'justify', listStyleType: 'decimal' }}>
+                <li style={{ marginBottom: '2px' }}><strong>Rendición de Cuentas Documentada:</strong> Balance final de ingresos y egresos, junto con las cartolas bancarias y conciliaciones hasta el {terminationNotice.endDate}.</li>
+                <li style={{ marginBottom: '2px' }}><strong>Traspaso de Documentación:</strong> Entrega del Libro de Actas, registro actualizado de copropietarios, archivo de gastos comunes, planos, pólizas de seguro, certificados de instalaciones (ascensores, gas) y bitácoras de mantención.</li>
+                <li style={{ marginBottom: '2px' }}><strong>Gestión Laboral y Previsional:</strong> Contratos de trabajo del personal del condominio, comprobantes de pago de cotizaciones (Previred), liquidaciones de sueldo al día y finiquitos en caso de corresponder.</li>
+                <li style={{ marginBottom: '2px' }}><strong>Accesos y Autorizaciones:</strong> Entrega o regularización de usuarios administradores, mecanismos de recuperación y autorizaciones de cuentas bancarias, portal del SII, Dirección del Trabajo, correos electrónicos y software de administración utilizado.</li>
                 <li><strong>Caja Chica y Fondos:</strong> Entrega de los fondos en efectivo y detalle de cheques por cobrar o emitidos no cobrados.</li>
               </ol>
 
-              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+              <p style={{ margin: '0 0 6px 0', textAlign: 'justify' }}>
                 Por nuestra parte, como Comité de Administración, nos comprometemos a facilitar este proceso de transición, a revisar la rendición de cuentas en los plazos legales y a formalizar la recepción mediante un Acta de Traspaso el último día de sus funciones.
               </p>
-              <p style={{ margin: '0 0 10px 0', textAlign: 'justify' }}>
+              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
+                La entrega material de antecedentes, fondos y accesos no constituye aprobación ni liberación de responsabilidad respecto de la gestión anterior; estos serán revisados conforme a la ley, al reglamento de copropiedad y al contrato aplicable.
+              </p>
+              <p style={{ margin: '0 0 8px 0', textAlign: 'justify' }}>
                 Agradecemos su gestión durante este tiempo y esperamos llevar a cabo este cierre de manera transparente y colaborativa.
               </p>
-              <p style={{ margin: '0 0 40px 0' }}>Atentamente,</p>
+              <p style={{ margin: 0 }}>Atentamente,</p>
+              </div>
 
-              <div className="sig-block" style={{ display: 'flex', justifyContent: 'space-between', gap: '30px', fontSize: '11pt', marginTop: '10px' }}>
+              <div style={{ width: '100%' }}>
+                <div className="sig-block" style={{ display: 'flex', justifyContent: 'space-between', gap: '26px', fontSize: '10.75pt', marginTop: '8px' }}>
                 <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ borderTop: '1px solid #000', paddingTop: '4px' }}>
-                    <div style={{ fontWeight: 'bold' }}>{committeePresident}</div>
+                    <div style={{ fontWeight: 'bold', minHeight: '1em' }}>{terminationNotice.committeePresident}</div>
                     <div>Presidente del Comité de Administración</div>
-                    <div>{condo}</div>
+                    <div>{terminationNotice.condo}</div>
                   </div>
                 </div>
                 <div style={{ flex: 1, textAlign: 'center' }}>
@@ -1110,13 +1138,15 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                     <div>Fecha de recepción: ____ / ____ / 2026</div>
                   </div>
                 </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* 2. PRINTABLE CHECKLIST DE ANTECEDENTES (EXACTAMENTE 3 PÁGINAS FOLIADAS) */}
-        <div id="printable-transition-checklist" data-pdf-style={pdfStyle}>
+        <TransitionChecklistPrint condo={proposalConfig.targetCondo?.trim() || ''} outgoingAdmin={proposalConfig.outgoingAdminName?.trim() || ''} committeePresident={proposalConfig.committeePresidentName?.trim() || ''} city={city} adminName={adminName} adminRut={adminRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={effectiveSignatureScale} companyRut={empresaForm.companyRut} pdfStyle={pdfStyle} status={transitionStatus} notes={transitionNotes} />
+        <div id="legacy-transition-checklist" data-pdf-style={pdfStyle}>
           {/* PÁGINA 1 DE 3 */}
           <div
             data-pdf-style={pdfStyle}
@@ -1206,8 +1236,10 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </div>
             </div>
 
-            <div className="text-right text-[9px] text-slate-400 font-mono pt-2 border-t border-slate-200 relative z-10">
-              {adminName} | {email} | Fono: {phone}
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
+              <div>ARANPRO Gestión Integral • {website}</div>
+              <div className="font-bold text-[#0F3D2E]">Pauta de Traspaso • Ley N° 21.442 (Pág. 1 de 3)</div>
+              <div>{city}</div>
             </div>
           </div>
 
@@ -1279,8 +1311,10 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </div>
             </div>
 
-            <div className="text-right text-[9px] text-slate-400 font-mono pt-2 border-t border-slate-200 relative z-10">
-              {adminName} | {email} | Fono: {phone}
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
+              <div>ARANPRO Gestión Integral • {website}</div>
+              <div className="font-bold text-[#0F3D2E]">Pauta de Traspaso • Ley N° 21.442 (Pág. 2 de 3)</div>
+              <div>{city}</div>
             </div>
           </div>
 
@@ -1346,8 +1380,44 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 </div>
               </div>
 
-              <div className="text-right text-[9px] text-slate-400 font-mono pt-2 border-t border-slate-200 mt-2">
-                {adminName} | {email} | Fono: {phone}
+              <div className="pt-2 mt-3 border-t border-slate-200 flex items-end justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <AranproOfficialSeal
+                    size="sm"
+                    companyRut={companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? companySettings.companyRut : ''}
+                    rnacNumber=""
+                    showCaption={true}
+                  />
+                  <div className="text-[9px] text-slate-600 border-l border-slate-200 pl-3 space-y-0.5">
+                    <p><strong>Contacto Directo:</strong> <span className="font-mono font-bold text-[#0F3D2E]">{phone}</span></p>
+                    <p><strong>Correo:</strong> <span className="font-mono">{email}</span></p>
+                    <p><strong>Sitio Web:</strong> <span className="font-mono text-[#0F3D2E] font-bold">{website}</span></p>
+                  </div>
+                </div>
+
+                <div className="text-center min-w-[220px]">
+                  <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
+                    {effectiveSignature && (
+                      <img
+                        src={effectiveSignature}
+                        alt="Firma del administrador"
+                        className="h-11 max-h-12 w-auto max-w-[220px] object-contain mx-auto"
+                        style={{ transform: `scale(${effectiveSignatureScale})`, transformOrigin: 'bottom center' }}
+                      />
+                    )}
+                  </div>
+                  <div className="border-t-[1.5px] border-slate-800 pt-0.5">
+                    <span className="text-[10.5px] font-black text-slate-900 block leading-tight">{adminName}</span>
+                    <span className="text-[8.5px] text-[#0F3D2E] font-bold block leading-tight">Constructor Civil • Administrador de Condominios</span>
+                    <span className="text-[8.5px] text-slate-600 font-mono block">RUT: {adminRut} • Ley N° 21.442</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 mt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
+                <div>ARANPRO Gestión Integral • {website}</div>
+                <div className="font-bold text-[#0F3D2E]">Pauta de Traspaso • Ley N° 21.442 (Pág. 3 de 3)</div>
+                <div>{city}</div>
               </div>
             </div>
           </div>
@@ -1367,20 +1437,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
             </div>
 
             <div className="space-y-2 relative z-10">
-              <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-1.5">
-                <div>
-                  <span className="font-black text-[#0F3D2E] text-xs uppercase tracking-tight block">
-                    ARANPRO GESTIÓN INTEGRAL • ASESORÍA LEGAL PARA COMITÉS
-                  </span>
-                  <span className="text-[9.5px] text-slate-600 block">
-                    Diferencias Prácticas y Quórums según Ley N° 21.442 y DS N° 7 MINVU (09.01.2025)
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="font-black text-slate-900 text-xs block">{condo.toUpperCase()}</span>
-                  <span className="text-[9px] text-slate-500 font-mono block">{city}, Región de Coquimbo</span>
-                </div>
-              </div>
+              <CanonicalPdfHeader badge="GUÍA PARA COMITÉS" description="Asambleas y quórums" page={1} community={condo} email={email} phone={phone} city={city} />
 
               {/* TABLA EXACTA DEL PDF ORIGINAL */}
               <div className="border border-slate-300 rounded-xl overflow-hidden">
@@ -1436,11 +1493,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
               </div>
             </div>
 
-            <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
-              <div>{adminName} • Constructor Civil • Administrador RNAC MINVU</div>
-              <div className="font-bold text-[#0F3D2E]">Cuadro Oficial de Quórums y Asambleas • Ley N° 21.442</div>
-              <div>{email}</div>
-            </div>
+            <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} /><CanonicalPdfPageFooter website={website} label="Asambleas y quórums" page={1} totalPages={1} city={city} /></div>
           </div>
         </div>
 
@@ -1459,6 +1512,7 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
             </div>
 
             <div className="space-y-3 relative z-10">
+              <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={1} community={condo} email={email} phone={phone} city={city} />
               <div className="text-center space-y-0.5 border-b-2 border-[#0F3D2E] pb-2">
                 <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block">REPÚBLICA DE CHILE • LEY N° 21.442</span>
                 <h4 className="text-sm font-black text-slate-900 uppercase">
@@ -1473,18 +1527,14 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 </p>
 
                 <p><strong>PRIMERO (OBJETO):</strong> La Comunidad encomienda a El Administrador la gestión integral, financiera, técnica, legal y comunitaria del condominio {condo}, en estricta sujeción a las disposiciones de la Ley N° 21.442, su Reglamento y el Reglamento de Copropiedad del condominio.</p>
-                <p><strong>SEGUNDO (ALCANCE OPERATIVO):</strong> El Administrador mantendrá presencia técnica en terreno con periodicidad de 2 visitas técnicas presenciales por semana + atención de emergencias 24/7, realizando inspecciones periciales periódicas a las salas de bombas, tableros eléctricos, ascensores, calderas y cubiertas.</p>
-                <p><strong>TERCERO (SUITE DIGITAL Y TRANSPARENCIA):</strong> El Administrador habilitará sin costo de licencias para la comunidad la plataforma Web y App Móvil ARANPRO, garantizando acceso en tiempo real a cartolas bancarias, facturas electrónicas auditadas y libro de reclamos foliado.</p>
-                <p><strong>CUARTO (HONORARIOS):</strong> La Comunidad pagará a El Administrador por sus servicios profesionales un honorario mensual de {feeStr} (Factura Exenta / Boleta de Honorarios Profesional), pagadero dentro de los primeros 5 días hábiles del mes calendario siguiente.</p>
+                <p><strong>SEGUNDO (ALCANCE OPERATIVO):</strong> Visitas presenciales: {terms.visitFrequency || 'por definir'}. Atención de emergencias: {terms.emergencyResponse || 'por definir'}. Asambleas y reuniones: {terms.meetingFrequency || 'por definir'}.</p>
+                <p><strong>TERCERO (SERVICIOS):</strong> Servicios incluidos: {terms.includedServices || 'por definir'}. Servicios adicionales: {terms.additionalServices || 'por definir'}. Otras condiciones: {terms.otherConditions || 'por definir'}.</p>
+                <p><strong>CUARTO (HONORARIOS):</strong> Honorario mensual: {feeStr}. Condiciones de inicio o transición: {terms.transitionConditions || 'por definir'}. Fecha estimada de inicio: {terms.startDate || 'por definir'}.</p>
                 <p><strong>QUINTO (CUENTAS BANCARIAS EXCLUSIVAS):</strong> Todos los recursos del condominio se manejarán exclusivamente en cuentas corrientes bancarias y de ahorro abiertas a nombre exclusivo de la Comunidad, prohibiéndose taxativamente el uso de cuentas personales.</p>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono relative z-10">
-              <div>ARANPRO Gestión Integral • {website}</div>
-              <div className="font-bold text-[#0F3D2E]">Contrato de Servicios de Administración • {condo} (Pág. 1 de 2)</div>
-              <div>{city}, Chile</div>
-            </div>
+            <div className="mt-auto space-y-1 relative z-10"><div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: vigencia y firma del contrato.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página 2 →</span></div><CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={1} totalPages={2} city={city} /></div>
           </div>
 
           {/* PÁGINA 2 */}
@@ -1500,9 +1550,10 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
             </div>
 
             <div className="space-y-3 relative z-10">
+              <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={2} community={condo} email={email} phone={phone} city={city} />
               <div className="space-y-2 text-[10px] leading-relaxed text-slate-800 text-justify">
-                <p><strong>SEXTO (VIGENCIA):</strong> El presente contrato tendrá una vigencia de un año a contar de la asunción formal de funciones, renovable tácita y sucesivamente según el Artículo 17 de la Ley N° 21.442.</p>
-                <p><strong>SÉPTIMO (TÉRMINO ANTICIPADO):</strong> Cualquiera de las partes podrá poner término anticipado al presente contrato dando aviso formal por escrito a la otra con a lo menos 30 días de anticipación.</p>
+                <p><strong>SEXTO (VIGENCIA):</strong> Duración y renovación: {terms.contractDuration || 'por definir'}.</p>
+                <p><strong>SÉPTIMO (TÉRMINO ANTICIPADO):</strong> Aviso y condiciones de término: {terms.noticePeriod || 'por definir'}.</p>
                 <p><strong>OCTAVO (COBRANZA Y APREMIOS):</strong> Se faculta expresamente al Administrador para cobrar gastos comunes ordinarios y extraordinarios y solicitar el corte de suministro eléctrico a deudores de 3 cuotas impagas conforme al Art. 20 N° 9 Ley 21.442.</p>
                 <p><strong>NOVENO (GESTIÓN LABORAL):</strong> Supervisión directa del personal de conserjería y verificación mensual del pago previsional en Previred (Ley Bustos).</p>
                 <p><strong>DÉCIMO (PERSONERÍA Y EJEMPLARES):</strong> El presente contrato se firma en 2 ejemplares de idéntico tenor, quedando uno en poder de cada parte.</p>
@@ -1539,23 +1590,19 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
                 </div>
               </div>
 
-              <div className="pt-2 mt-2 border-t border-slate-200 flex items-center justify-between text-[8.5px] text-slate-400 font-mono">
-                <div>ARANPRO Gestión Integral • {website}</div>
-                <div className="font-bold text-[#0F3D2E]">Contrato de Servicios de Administración • {condo} (Pág. 2 de 2)</div>
-                <div>{city}, Chile</div>
-              </div>
+              <div className="pt-2 mt-3 border-t border-slate-200 flex items-center gap-3"><AranproOfficialSeal size="sm" companyRut={empresaForm.companyRut || ''} rnacNumber="" showCaption={true} /><div className="border-l border-slate-200 pl-3 text-[9px] text-slate-600"><p><strong>Contacto Directo:</strong> {phone}</p><p><strong>Correo:</strong> {email}</p><p><strong>Sitio Web:</strong> {website}</p></div></div><CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={2} totalPages={2} city={city} />
             </div>
           </div>
         </div>
 
         {/* 5. PRINTABLE FULL PACKAGE */}
-        <div id="printable-transition-package" data-pdf-style={pdfStyle} className="space-y-4">
-          <div className="p-8 bg-white text-slate-900 text-xs space-y-4 max-w-[800px]">
-            <div className="p-6 bg-[#0F3D2E] text-white rounded-2xl text-center space-y-2">
-              <span className="text-[10px] font-mono text-[#D4B895] uppercase tracking-widest block">ARANPRO GESTIÓN INTEGRAL</span>
-              <h3 className="text-lg font-black text-white">Kit Oficial de Transición y Traspaso de Administración</h3>
-              <p className="text-xs text-emerald-100">{condo} • {city}, {noticeDate}</p>
+        <div id="printable-transition-package" data-pdf-style={pdfStyle}>
+          <div className="dossier-page bg-white text-slate-900 text-xs flex flex-col justify-between max-w-[850px] mx-auto">
+            <div className="space-y-4"><CanonicalPdfHeader badge="KIT DE TRANSICIÓN" description="Traspaso de administración" page={1} community={condo} email={email} phone={phone} city={city} />
+              <div className="p-6 bg-[#0F3D2E] text-white rounded-2xl text-center space-y-2"><h3 className="text-lg font-black text-white">Kit Oficial de Transición y Traspaso de Administración</h3><p className="text-xs text-emerald-100">{condo} • {city}, {noticeDate}</p></div>
+              <p className="text-sm text-slate-700 text-center">Esta es la portada de presentación. Los documentos de traspaso se generan por separado.</p>
             </div>
+            <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} /><CanonicalPdfPageFooter website={website} label="Kit de transición" page={1} totalPages={1} city={city} /></div>
           </div>
         </div>
 

@@ -20,6 +20,7 @@ export const AranproQrCode = ({
     }
     return '';
   });
+  const [resolvedValue, setResolvedValue] = useState(() => value === 'https://aranpro.cl/?demo=comunidad' && darkColor === '#0F3D2E' && lightColor === '#FFFFFF' ? value : '');
 
   useEffect(() => {
     let isMounted = true;
@@ -32,7 +33,7 @@ export const AranproQrCode = ({
       }
     })
       .then(url => {
-        if (isMounted) setDataUrl(url);
+        if (isMounted) { setDataUrl(url); setResolvedValue(value); }
       })
       .catch(err => {
         console.error('Error generando código QR:', err);
@@ -47,6 +48,8 @@ export const AranproQrCode = ({
     <img 
       src={displayUrl} 
       alt={alt} 
+      data-qr-value={value}
+      data-qr-ready={Boolean(dataUrl) && resolvedValue === value ? 'true' : 'false'}
       style={{ width: `${size}px`, height: `${size}px` }}
       className={`object-contain block mx-auto ${className}`}
       loading="eager"

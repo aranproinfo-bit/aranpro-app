@@ -42,7 +42,8 @@ export const getActivePdfStyle = (options = {}, el = null) => {
 const buildPdfVisualStyleCss = (pdfStyle, hasDossierPages) => {
   const targetSelector = hasDossierPages ? '.dossier-page' : '.print-wrapper';
   if (pdfStyle === 'neutral') {
-    return ` { border: none !important; background-image: none !important; padding: 0 !important; justify-content: flex-start !important; }
+    return `
+      ${targetSelector} { border: none !important; background-image: none !important; padding: 0 !important; justify-content: flex-start !important; }
       .aranpro-print-watermark { display: none !important; }`;
   }
 

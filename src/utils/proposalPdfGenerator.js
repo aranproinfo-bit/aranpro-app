@@ -182,7 +182,7 @@ export const generateStepPdfAttachment = async ({
   const targetClean = targetRaw.replace(/[^a-zA-Z0-9]/g, '_');
   const currentLocalDate = new Date();
   const currentDateClean = `${currentLocalDate.getFullYear()}${String(currentLocalDate.getMonth() + 1).padStart(2, '0')}${String(currentLocalDate.getDate()).padStart(2, '0')}`;
-  const dateClean = stepNumber === 1 || stepNumber === 3 ? currentDateClean : (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
+  const dateClean = stepNumber === 1 || stepNumber === 2 || stepNumber === 3 ? currentDateClean : (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
 
   let elementId = 'printable-cold-value-letter';
   let defaultFilename = targetClean
@@ -229,9 +229,26 @@ export const generateStepPdfAttachment = async ({
     }
 
     if (el) {
-      if (stepNumber === 3) {
+      if (stepNumber === 2 || stepNumber === 3) {
         const today = currentLocalDate.toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
         el.querySelectorAll('[data-current-print-date]').forEach(node => { node.textContent = today; });
+      }
+      if (stepNumber === 2) {
+        const evidenceDeadline = Date.now() + 8000;
+        while (el.dataset.dossierEvidenceStatus === 'pending' && Date.now() < evidenceDeadline) {
+          await new Promise(resolve => setTimeout(resolve, 80));
+        }
+        if (el.dataset.dossierEvidenceStatus !== 'ready') {
+          throw new Error('No se pudieron cargar todos los archivos seleccionados de la bóveda. Revisa sus respaldos antes de generar el dossier.');
+        }
+        // Evitar que el PDF capture el QR provisional de otro destino.
+        const deadline = Date.now() + 5000;
+        let qr = el.querySelector('img[data-qr-value]');
+        while ((!qr || qr.dataset.qrReady !== 'true') && Date.now() < deadline) {
+          await new Promise(resolve => setTimeout(resolve, 80));
+          qr = el.querySelector('img[data-qr-value]');
+        }
+        if (!qr || qr.dataset.qrReady !== 'true') throw new Error('No se pudo preparar el código QR de la demostración');
       }
       const contentBase64 = await exportDomElementToPdfBase64(el, { filename: defaultFilename, hideDecorativeWatermark: stepNumber === 1 });
       if (contentBase64 && contentBase64.length > 500) {
