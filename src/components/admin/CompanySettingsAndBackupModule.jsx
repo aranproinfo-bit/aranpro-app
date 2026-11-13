@@ -14,7 +14,7 @@ import { PitchMasterPanel } from './postulaciones/PitchMasterPanel';
 import { QuickDocumentsPanel } from './postulaciones/QuickDocumentsPanel';
 import { Step5TransitionPanel } from './postulaciones/Step5TransitionPanel';
 import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
-import { stripAndStoreFiles, hydrateFiles, downloadDataUrl } from '../../utils/fileVault';
+import { stripAndStoreFiles, hydrateFiles, downloadDataUrl, vaultGet, vaultPut } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
 import { generateStepPdfAttachment } from '../../utils/proposalPdfGenerator';
 import { paginateComparison } from '../../utils/comparisonPagination';
@@ -587,6 +587,24 @@ export const CompanySettingsAndBackupModule = ({
     uninspectedSystems: DEFAULT_UNINSPECTED_SYSTEMS,
     customScopeText: ''
   });
+
+  // Datos del informe independiente; no alteran la propuesta comercial.
+  const [technicalReport, setTechnicalReport] = useState({
+    purpose: 'Visita inicial', recipient: '', introduction: 'El presente informe reúne los antecedentes y observaciones registrados para apoyar la revisión y toma de decisiones de la comunidad.', scope: 'El alcance corresponde a las instalaciones y antecedentes expresamente individualizados en este informe. Los elementos no revisados quedan pendientes de evaluación.',
+    executiveSummary: '', actionPlan: '', conclusion: 'Se recomienda revisar los hallazgos y acordar las acciones, responsables y plazos que correspondan con la comunidad.'
+  });
+  const [technicalInspection, setTechnicalInspection] = useState(() => structuredClone(inspectionForm));
+  const [inspectionEditorMode, setInspectionEditorMode] = useState('informe');
+  const editorInspection = inspectionEditorMode === 'propuesta' ? inspectionForm : technicalInspection;
+  const setEditorInspection = inspectionEditorMode === 'propuesta' ? setInspectionForm : setTechnicalInspection;
+  const [technicalCommunityId, setTechnicalCommunityId] = useState('');
+  const [privateTechnicalReports, setPrivateTechnicalReports] = useState([]);
+  useEffect(() => {
+    let live = true;
+    setPrivateTechnicalReports([]);
+    if (technicalCommunityId) vaultGet(`technical-reports-${technicalCommunityId}`).then(reports => {if (live) setPrivateTechnicalReports(Array.isArray(reports) ? reports : []);}).catch(err => console.warn('No se pudieron cargar informes privados:', err));
+    return () => { live = false; };
+  }, [technicalCommunityId]);
 
   const [newUninspectedInput, setNewUninspectedInput] = useState('');
   const [showScopeEditorInModal, setShowScopeEditorInModal] = useState(false);
@@ -1896,10 +1914,10 @@ export const CompanySettingsAndBackupModule = ({
     const newItem = {
       id: `insp-${Date.now()}`,
       name: newInspectionItemName.trim(),
-      status: 'Requiere Mantención',
-      notes: 'Observación técnica levantada en terreno durante inspección preventiva.'
+      status: '',
+      notes: ''
     };
-    setInspectionForm(prev => ({
+    setEditorInspection(prev => ({
       ...prev,
       items: [...prev.items, newItem]
     }));
@@ -1907,7 +1925,7 @@ export const CompanySettingsAndBackupModule = ({
   };
 
   const handleRemoveInspectionItem = (id) => {
-    setInspectionForm(prev => ({
+    setEditorInspection(prev => ({
       ...prev,
       items: prev.items.filter(it => it.id !== id)
     }));
@@ -2205,10 +2223,11 @@ export const CompanySettingsAndBackupModule = ({
   };
 
   // Imprimir Informe de Diagnóstico Técnico Inicial Gratuito
-  const handlePrintInspectionReport = () => {
+  const handlePrintInspectionReport = async () => {
     if (!previewInspectionModal) setPreviewInspectionModal(true);
-    const targetClean = (inspectionForm.targetCondo || proposalConfig.targetCondo || 'Condominio').replace(/[^a-zA-Z0-9]/g, '_');
-    const dateClean = (inspectionForm.date || localToday()).replace(/[^0-9]/g, '');
+    if (!previewInspectionModal) await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const targetClean = (communities.find(c => String(c.id) === technicalCommunityId)?.name || proposalConfig.targetCondo || technicalInspection.targetCondo || 'Condominio').replace(/[^a-zA-Z0-9]/g, '_');
+    const dateClean = (technicalInspection.date || localToday()).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_Informe_Diagnostico_Tecnico_${targetClean}_${dateClean}`;
     printDocumentDirectly('printable-technical-inspection', filename, {
       pageSize: 'letter portrait',
@@ -4476,11 +4495,10 @@ export const CompanySettingsAndBackupModule = ({
                         Gancho Comercial de Entrada • Autoridad Constructiva
                       </span>
                       <h4 className="text-base font-black text-slate-900">
-                        Informe de Diagnóstico Técnico Inicial
+                        Informe Técnico de la Comunidad
                       </h4>
                       <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
-                        Presenta al comité una auditoría visual in situ de sus instalaciones críticas. Demuestra tu experiencia como
-                        <strong> Constructor Civil</strong> detectando fallas que otros administradores ignoran.
+                        Prepara informes para visitas, seguimiento, asambleas o entrega de la administración, con los antecedentes registrados para cada comunidad.
                       </p>
                     </div>
 
@@ -4502,6 +4520,21 @@ export const CompanySettingsAndBackupModule = ({
                         Imprimir
                       </button>
                     </div>
+                  </div>
+
+                  <div className="p-4 rounded-3xl bg-white border border-slate-200 space-y-3">
+                    <h5 className="font-black text-sm text-[#0F3D2E]">Contenido del informe independiente</h5>
+                    <p className="text-xs text-slate-600">Completa los antecedentes que correspondan. Los campos vacíos no se presentan como hechos.</p>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      <label className="text-xs font-bold">Motivo<select value={technicalReport.purpose} onChange={e => setTechnicalReport(v => ({...v, purpose:e.target.value}))} className="block w-full mt-1 p-2 rounded-lg border border-slate-300">{['Visita inicial','Revisión de mantenciones','Presentación a asamblea','Seguimiento','Entrega de administración','Otro'].map(v => <option key={v}>{v}</option>)}</select></label>
+                      <label className="text-xs font-bold">Dirigido a<input value={technicalReport.recipient} onChange={e => setTechnicalReport(v => ({...v, recipient:e.target.value}))} placeholder="Comité, asamblea u otro" className="block w-full mt-1 p-2 rounded-lg border border-slate-300" /></label>
+                      {[["introduction","Presentación y objetivo"],["scope","Alcance y limitaciones"],["executiveSummary","Resumen ejecutivo"],["actionPlan","Plan de acción, responsables y plazos"],["conclusion","Conclusión y próximos pasos"]].map(([key,label]) => <label key={key} className="text-xs font-bold md:col-span-2">{label}<textarea value={technicalReport[key]} onChange={e => setTechnicalReport(v => ({...v, [key]:e.target.value}))} rows={3} className="block w-full mt-1 p-2 rounded-lg border border-slate-300 font-normal" /></label>)}
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-end border-t border-slate-200 pt-3">
+                      <label className="text-xs font-bold flex-1">Comunidad para guardar el borrador privado<select value={technicalCommunityId} onChange={e => setTechnicalCommunityId(e.target.value)} className="block w-full mt-1 p-2 rounded-lg border border-slate-300"><option value="">Selecciona una comunidad</option>{communities.map(c => <option key={c.id} value={String(c.id)}>{c.name}</option>)}</select></label>
+                      <button type="button" className="px-3 py-2 rounded-lg bg-[#0F3D2E] text-white text-xs font-bold" onClick={async () => {const c=communities.find(v => String(v.id) === technicalCommunityId); if (!c) {showAlert('Selecciona una comunidad','El borrador se guarda asociado a una comunidad.','warning'); return;} try {const saved=await vaultGet(`technical-reports-${technicalCommunityId}`);const draft={id:`technical-${Date.now()}`, savedAt:new Date().toISOString(), report:technicalReport, inspection:technicalInspection};const next=[draft,...(Array.isArray(saved) ? saved : [])];await vaultPut(`technical-reports-${technicalCommunityId}`,next);setPrivateTechnicalReports(next);showAlert('Borrador guardado',`El informe se guardó en este navegador para ${c.name}. No se publicó a residentes.`,'success');} catch(error) {showAlert('No se pudo guardar',error?.message || 'Revisa el almacenamiento del navegador.','error');}}}>Guardar borrador privado</button>
+                    </div>
+                    {privateTechnicalReports.map(draft => <div key={draft.id} className="flex items-center justify-between gap-2 text-xs border border-slate-200 rounded-lg p-2"><span>{draft.report?.purpose || 'Informe técnico'} • {new Date(draft.savedAt).toLocaleDateString('es-CL')}</span><button type="button" className="font-bold text-[#0F3D2E]" onClick={() => {setTechnicalReport(draft.report); setTechnicalInspection(draft.inspection); setInspectionEditorMode('informe');}}>Abrir borrador</button></div>)}
                   </div>
 
                   {/* PANEL DE PERSONALIZACIÓN DE INSTALACIONES PARA NOTA DE ALCANCE (PÁGINA 2) */}
@@ -4637,6 +4670,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
                   </div>
 
+                  <div className="flex flex-wrap gap-2 text-xs"><button type="button" onClick={() => setInspectionEditorMode('informe')} className="p-2 rounded-lg border">Editar informe independiente</button><button type="button" onClick={() => setInspectionEditorMode('propuesta')} className="p-2 rounded-lg border">Editar diagnóstico de postulación</button><button type="button" onClick={() => {setTechnicalInspection(structuredClone(inspectionForm)); setInspectionEditorMode('informe');}} className="p-2 rounded-lg border">Copiar diagnóstico de postulación al informe</button><span className="p-2 font-bold">Editando: {inspectionEditorMode === 'informe' ? 'informe independiente' : 'postulación'}</span></div>
                   {/* AGREGAR NUEVA PARTIDA PERSONALIZADA AL DIAGNÓSTICO */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                     <input
@@ -4658,17 +4692,17 @@ export const CompanySettingsAndBackupModule = ({
 
                   <label className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
                     Fecha de la visita de inspección
-                    <input type="date" value={inspectionForm.date} onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs" />
+                    <input type="date" value={editorInspection.date} onChange={(e) => setEditorInspection(prev => ({ ...prev, date: e.target.value }))} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs" />
                     <span className="font-normal text-slate-500">Si no se indica, la fecha de inspección queda pendiente.</span>
                   </label>
                   {/* LISTADO DE PARTIDAS DE INSPECCIÓN TÉCNICA */}
                   <div className="space-y-3">
                     <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                      Partidas del Diagnóstico Técnico para {proposalConfig.targetCondo || 'el Condominio'} ({inspectionForm.items.length}):
+                      Partidas del Diagnóstico Técnico para {proposalConfig.targetCondo || 'el Condominio'} ({editorInspection.items.length}):
                     </h5>
 
                     <div className="space-y-3">
-                      {inspectionForm.items.map((item, idx) => (
+                      {editorInspection.items.map((item, idx) => (
                         <div key={item.id} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
@@ -4687,8 +4721,8 @@ export const CompanySettingsAndBackupModule = ({
                                     key={st}
                                     type="button"
                                     onClick={() => {
-                                      const updated = inspectionForm.items.map(it => it.id === item.id ? { ...it, status: st } : it);
-                                      setInspectionForm({ ...inspectionForm, items: updated });
+                                      const updated = editorInspection.items.map(it => it.id === item.id ? { ...it, status: st } : it);
+                                      setEditorInspection({ ...editorInspection, items: updated });
                                     }}
                                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
                                       isCur
@@ -4704,7 +4738,7 @@ export const CompanySettingsAndBackupModule = ({
                                   </button>
                                 );
                               })}
-                              {inspectionForm.items.length > 1 && (
+                              {editorInspection.items.length > 1 && (
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveInspectionItem(item.id)}
@@ -4726,12 +4760,16 @@ export const CompanySettingsAndBackupModule = ({
                               rows={2}
                               value={item.notes}
                               onChange={(e) => {
-                                const updated = inspectionForm.items.map(it => it.id === item.id ? { ...it, notes: e.target.value } : it);
-                                setInspectionForm({ ...inspectionForm, items: updated });
+                                const updated = editorInspection.items.map(it => it.id === item.id ? { ...it, notes: e.target.value } : it);
+                                setEditorInspection({ ...editorInspection, items: updated });
                               }}
                               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3D2E]"
                             />
                           </div>
+                          <div className="grid sm:grid-cols-2 gap-2">
+                            {[["risk","Riesgo observado"],["recommendation","Recomendación"],["priority","Prioridad"],["responsible","Responsable propuesto"],["deadline","Plazo propuesto"]].map(([key,label]) => <label key={key} className="text-[10px] font-bold text-slate-500">{label}<input value={item[key] || ''} onChange={e => setEditorInspection(prev => ({...prev, items:prev.items.map(row => row.id === item.id ? {...row,[key]:e.target.value} : row)}))} className="block w-full mt-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-normal text-slate-800" /></label>)}
+                          </div>
+                          {inspectionEditorMode === 'informe' && <div className="text-xs text-slate-600"><label className="font-bold">Fotografía del hallazgo (opcional, hasta 3 MB)<input type="file" accept="image/*" className="block mt-1" onChange={e => {const file=e.target.files?.[0]; if (!file) return; if (file.size > 3 * 1024 * 1024) {showAlert('Imagen demasiado grande','Elige una fotografía de hasta 3 MB.','warning'); e.target.value=''; return;} const reader=new FileReader(); reader.onload=() => setTechnicalInspection(prev => ({...prev,items:prev.items.map(row => row.id === item.id ? {...row,photoData:reader.result,photoName:file.name} : row)})); reader.readAsDataURL(file);}} /></label>{item.photoData && <button type="button" className="ml-2 font-bold text-rose-700" onClick={() => setTechnicalInspection(prev => ({...prev,items:prev.items.map(row => row.id === item.id ? {...row,photoData:'',photoName:''} : row)}))}>Quitar fotografía</button>}</div>}
                         </div>
                       ))}
                     </div>
@@ -8652,7 +8690,7 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
                 <div>
                   <h4 className="text-sm font-black text-slate-900">
-                    Informe de Diagnóstico Técnico Inicial
+                    Informe Técnico de la Comunidad
                   </h4>
                   <p className="text-[11px] text-slate-500 font-mono">
                     Levantamiento Preventivo de Instalaciones Críticas • Criterio Constructivo
@@ -8686,16 +8724,20 @@ export const CompanySettingsAndBackupModule = ({
             {/* CONTENEDOR DEL INFORME IMPRIMIBLE */}
             <div className="overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl">
               <div id="printable-technical-inspection" data-pdf-style={pdfStyle}>
-                {paginateInspection(inspectionForm.items).map((cards, pageIndex, pages) => (
+                {paginateInspection([
+                  ...[['Presentación y objetivo', technicalReport.introduction], ['Alcance y limitaciones', technicalReport.scope], ['Resumen ejecutivo', technicalReport.executiveSummary]].filter(([,text]) => text.trim()).map(([name,notes], i) => ({id:`intro-${i}`,name,notes, narrative:true})),
+                  ...technicalInspection.items.map(item => ({...item, notes:[item.notes, ...[['Riesgo',item.risk],['Recomendación',item.recommendation],['Prioridad',item.priority],['Responsable propuesto',item.responsible],['Plazo propuesto',item.deadline]].filter(([,value]) => value?.trim()).map(([label,value]) => `${label}: ${value}`)].filter(Boolean).join('\n')})),
+                  ...[['Plan de acción, responsables y plazos', technicalReport.actionPlan], ['Conclusión y próximos pasos', technicalReport.conclusion]].filter(([,text]) => text.trim()).map(([name,notes], i) => ({id:`end-${i}`,name,notes, narrative:true}))
+                ]).concat(technicalInspection.items.filter(item => item.photoData).map(item => [{id:`photo-${item.id}`, name:`Fotografía: ${item.name}`, photoData:item.photoData, narrative:true}])).map((cards, pageIndex, pages) => (
                   <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
                     <div className="space-y-2.5">
-                      <CanonicalPdfHeader badge="DIAGNÓSTICO TÉCNICO" description="Informe de inspección inicial" page={pageIndex + 1} community={proposalConfig.targetCondo?.trim() || inspectionForm.targetCondo || 'Condominio en evaluación'} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
-                      <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-[10px]"><div><strong className="block">Profesional evaluador: {empresaForm.adminName}</strong><span>Constructor Civil • Administrador de Condominios</span></div><span>Fecha de inspección: {formatLocalDay(inspectionForm.date || localToday())}</span></div>
-                      <h4 className="text-[10.5px] font-black uppercase border-b border-slate-200 pb-1">Evaluación de estado de instalaciones críticas</h4>
-                      <div className="space-y-1.5">{cards.map((item, idx) => <div key={item.id + '-' + idx} className="p-2 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs break-inside-avoid"><div className="flex items-center justify-between gap-2"><span className="font-black text-slate-900 text-[10.5px]">{item.name}{item.continuation ? ' (continuación)' : ''}</span><span className={`px-2 py-0.5 rounded text-[9px] font-bold ${item.status === 'Bueno' ? 'bg-emerald-100 text-emerald-800' : item.status === 'Requiere Mantención' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>{item.status}</span></div><p className="text-[10px] text-slate-600 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100" style={{whiteSpace:'pre-wrap', overflowWrap:'anywhere'}}>{item.notes}</p></div>)}</div>
+                      <CanonicalPdfHeader badge="INFORME TÉCNICO" description={technicalReport.purpose} page={pageIndex + 1} community={communities.find(c => String(c.id) === technicalCommunityId)?.name || proposalConfig.targetCondo?.trim() || technicalInspection.targetCondo || 'Comunidad por definir'} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
+                      <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-[10px]"><div><strong className="block">Profesional evaluador: {empresaForm.adminName}</strong><span>Constructor Civil • Administrador de Condominios</span></div><span>Fecha de inspección: {technicalInspection.date ? formatLocalDay(technicalInspection.date) : 'Por registrar'}</span></div>
+                      <h4 className="text-[10.5px] font-black uppercase border-b border-slate-200 pb-1">Informe técnico • {technicalReport.purpose}{technicalReport.recipient.trim() ? ` • Dirigido a: ${technicalReport.recipient}` : ''}</h4>
+                      <div className="space-y-1.5">{cards.map((item, idx) => <div key={item.id + '-' + idx} className="p-2 rounded-xl border border-slate-200 bg-white space-y-0.5 text-xs break-inside-avoid"><div className="flex items-center justify-between gap-2"><span className="font-black text-slate-900 text-[10.5px]">{item.name}{item.continuation ? ' (continuación)' : ''}</span>{!item.narrative && <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${!item.status ? 'bg-slate-100 text-slate-600' : item.status === 'Bueno' ? 'bg-emerald-100 text-emerald-800' : item.status === 'Requiere Mantención' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>{item.status || 'Por evaluar'}</span>}</div>{item.photoData ? <img src={item.photoData} alt={item.name} className="block mx-auto object-contain" style={{maxHeight:600,maxWidth:"100%"}} /> : <p className="text-[10px] text-slate-600 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100" style={{whiteSpace:'pre-wrap', overflowWrap:'anywhere'}}>{item.notes || 'Sin observaciones registradas.'}</p>}</div>)}</div>
                     </div>
                     <div className="mt-auto pt-1.5 space-y-1">
-                      {pageIndex < pages.length - 1 ? <div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: antecedentes de la inspección.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página {pageIndex + 2} →</span></div> : <><p className="text-[9px] text-slate-600"><strong>Conclusión:</strong> Diagnóstico destinado a orientar al Comité de Administración en la priorización de obras preventivas.</p><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} /></>}
+                      {pageIndex < pages.length - 1 ? <div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: antecedentes de la inspección.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página {pageIndex + 2} →</span></div> : <><p className="text-[9px] text-slate-600">Informe elaborado con los antecedentes registrados para la revisión y seguimiento de la comunidad.</p><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} /></>}
                       <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Diagnóstico técnico" page={pageIndex + 1} totalPages={pages.length} city={empresaForm.city || 'La Serena, Chile'} />
                     </div>
                   </div>

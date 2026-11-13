@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { vaultGet } from '../../utils/fileVault';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
@@ -41,6 +42,13 @@ export const MuralAndComplaintsModule = ({
   // Estados de Filtros para Documentos
   const [docSearchQuery, setDocSearchQuery] = useState('');
   const [docCategoryFilter, setDocCategoryFilter] = useState('ALL');
+  const [privateTechnicalReports, setPrivateTechnicalReports] = useState([]);
+  useEffect(() => {
+    let live = true;
+    setPrivateTechnicalReports([]);
+    if (currentCommunity?.id && currentTab === 'documentos') vaultGet(`technical-reports-${currentCommunity.id}`).then(rows => {if (live) setPrivateTechnicalReports(Array.isArray(rows) ? rows : []);}).catch(error => console.warn('No se pudieron cargar informes técnicos:', error));
+    return () => {live = false;};
+  }, [currentCommunity?.id, currentTab]);
 
   // Modales
   const [showNewAnnModal, setShowNewAnnModal] = useState(false);
@@ -992,6 +1000,11 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       {/* ========================================================================= */}
       {currentTab === 'documentos' && (
         <div className="space-y-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+            <h4 className="text-xs font-black text-[#0F3D2E]">Informes técnicos guardados en este navegador</h4>
+            <p className="text-xs text-slate-600">Borradores para administración, no publicados a residentes. Para abrirlos o generar el PDF, entra en Mi Empresa → Inspección técnica y selecciona esta comunidad.</p>
+            {privateTechnicalReports.length ? privateTechnicalReports.map(report => <div key={report.id} className="text-xs p-2 bg-slate-50 rounded-lg">{report.report?.purpose || 'Informe técnico'} • {new Date(report.savedAt).toLocaleDateString('es-CL')}</div>) : <p className="text-xs text-slate-500">No hay borradores guardados para esta comunidad en este navegador.</p>}
+          </div>
           {/* SEMÁFORO DE AUDITORÍA LEGAL LEY N° 21.442 */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
