@@ -19,6 +19,7 @@ import { resendMailService } from '../../services/resendService';
 import { generateStepPdfAttachment } from '../../utils/proposalPdfGenerator';
 import { paginateComparison } from '../../utils/comparisonPagination';
 import { paginateInspection } from '../../utils/inspectionPagination';
+import { dossierEvidencePages } from '../../utils/dossierEvidence';
 import { activeProposalConditions, changeProposalCommunity, emptyProposalConditions, loadProposalOpportunity, saveProposalOpportunity } from '../../utils/proposalConditions';
 import {
   Building2, UserCheck, ShieldCheck, Award, FileText, CheckCircle2,
@@ -300,21 +301,9 @@ export const CompanySettingsAndBackupModule = ({
         const existing = companySettings.academicBackground.find(
           (r) => r.id === master.id || r.fileName === master.fileName
         );
-        return existing?.fileData ? { ...master, fileData: existing.fileData } : master;
+        return existing ? { ...master, ...existing } : master;
       });
       const customExtras = companySettings.academicBackground.filter((item) => {
-        const text = `${item.title || ''} ${item.institution || ''} ${item.status || ''} ${item.fileName || ''}`.toLowerCase();
-        if (
-          text.includes('alumno regular') ||
-          text.includes('en curso') ||
-          text.includes('estudios') ||
-          text.includes('aiep') ||
-          text.includes('técnico') ||
-          text.includes('tecnico') ||
-          text.includes('certificado_aprobacion_curso_ley_21442.pdf')
-        ) {
-          return false;
-        }
         return !defaultCertifiedRecords.some(
           (m) => m.id === item.id || m.fileName === item.fileName || m.title.toLowerCase() === (item.title || '').toLowerCase()
         );
@@ -406,20 +395,9 @@ export const CompanySettingsAndBackupModule = ({
         const existing = companySettings.accreditationFiles.find(
           (d) => d.id === master.id || d.name?.toLowerCase() === master.name.toLowerCase()
         );
-        return existing?.fileData ? { ...master, fileData: existing.fileData } : master;
+        return existing ? { ...master, ...existing } : master;
       });
       const customExtras = companySettings.accreditationFiles.filter((item) => {
-        const text = `${item.name || ''} ${item.folio || ''} ${item.notes || ''}`.toLowerCase();
-        if (
-          text.includes('alumno regular') ||
-          text.includes('en curso') ||
-          text.includes('48.912') ||
-          text.includes('técnico') ||
-          text.includes('tecnico') ||
-          text.includes('certificado de antecedentes para fines especiales')
-        ) {
-          return false;
-        }
         return !defaultAccreditationDocs.some(
           (m) => m.id === item.id || m.name.toLowerCase() === (item.name || '').toLowerCase()
         );
@@ -452,6 +430,8 @@ export const CompanySettingsAndBackupModule = ({
       quote: 'La plataforma digital ha traído una transparencia total. Cada factura y boleta del mes está visible en línea para los copropietarios.'
     }
   ]);
+
+  const [dossierEvidenceHydrated, setDossierEvidenceHydrated] = useState(false);
 
   // Pipeline CRM de Postulaciones y Licitaciones Activas
   const [postulationPipeline, setPostulationPipeline] = useState(companySettings?.postulationPipeline || [
@@ -664,12 +644,12 @@ export const CompanySettingsAndBackupModule = ({
             subject: `Dossier Integral de Gestión & Presentación de Administración • ARANPRO para ${condo}`,
             whatsapp: `Estimados integrantes del Comité de Administración de *${condo}*:\n\n` +
               `Junto con saludarles cordialmente, les escribe *${admin}*, Constructor Civil y Administrador de Condominios acreditado bajo la Ley N° 21.442.\n\n` +
-              `Hacemos entrega formal de nuestro *Dossier Integral de Gestión y Acreditación Institucional (4 Páginas)* para poner a su consideración nuestra administración profesional en ${condo}.\n\n` +
+              `Hacemos entrega formal de nuestro *Dossier Integral de Gestión y Acreditación Institucional* para poner a su consideración nuestra administración profesional en ${condo}.\n\n` +
               `El documento adjunto respalda con hechos concretos nuestro estándar de trabajo:\n` +
-              `📄 *Pág. 1 • Metodología de Gestión:* Visitas: ${conditions.visitFrequency || "Por definir"}. Emergencias: ${conditions.emergencyResponse || "Por definir"}.\n` +
-              `📄 *Pág. 2 • Ficha Técnica de Especialista:* Constructor Civil colegiado, control directo de contratistas y fiscalización de mantenciones preventivas.\n` +
-              `📄 *Pág. 3 • Respaldo Legal y Profesional:* Registro Nacional Minvu de Administradores, certificaciones SEC, RIOHS laboral y póliza de seguro.\n` +
-              `📄 *Pág. 4 • Recomendaciones Comprobables & Suite Digital:* Cartas de respaldo y presentación de la plataforma digital.\n\n` +
+              `📄 *Presentación y condiciones:* Visitas: ${conditions.visitFrequency || "Por definir"}. Emergencias: ${conditions.emergencyResponse || "Por definir"}.\n` +
+              `📄 *Metodología de gestión:* Seguimiento técnico, financiero y operativo.\n` +
+              `📄 *Antecedentes profesionales:* Documentos respaldados disponibles y referencias confirmadas.\n` +
+              `📄 *Suite Digital:* Presentación de la plataforma.\n\n` +
               `🛡️ *Condiciones de transición:* ${conditions.transitionConditions || "Por definir con el Comité"}.\n\n` +
               `📱 *Demostración en Vivo de la Suite (1-Clic):* \n` +
               `🔗 ${demoLink}\n\n` +
@@ -678,13 +658,13 @@ export const CompanySettingsAndBackupModule = ({
             email: `Estimadas y estimados integrantes del Comité de Administración de ${condo}:\n\n` +
               `Junto con saludarles cordialmente, me dirijo a ustedes para presentarles formalmente el Dossier Institucional de ARANPRO Gestión Integral y poner a su consideración nuestra administración para ${condo}.\n\n` +
               `Como Especialista Constructor Civil y Administrador de Condominios bajo la Ley N° 21.442, nuestro enfoque combina orden financiero, presencia en terreno y herramientas digitales para que el Comité pueda decidir con antecedentes claros.\n\n` +
-              `Puntos centrales de nuestra gestión respaldados en el Dossier (4 Páginas):\n` +
+              `Puntos centrales de nuestra gestión respaldados en el Dossier:\n` +
               `1. Supervisión Técnica de Especialista: Fiscalización directa de salas de bombas, grupos electrógenos, tableros eléctricos y techumbres, con revisión rigurosa de cotizaciones y contratos.\n` +
               `2. Rendición de Cuentas en Línea: Conciliaciones bancarias al día, libros abiertos y acceso permanente a facturas y comprobantes respaldados.\n` +
               `3. Suite Digital ARANPRO: Plataforma web y app móvil. Servicios incluidos: ${conditions.includedServices || "Por definir"}. Demo en: ${demoLink}\n` +
               `4. Condiciones de transición: ${conditions.transitionConditions || "Por definir con el Comité"}.\n\n` +
               `Con el fin de evaluar sus instalaciones y conocer sus principales inquietudes, les propongo coordinar una visita técnica de diagnóstico en terreno.\n\n` +
-              `Adjunto a este correo encontrarán nuestro Dossier Integral oficial (Ficha Técnica Constructiva, Títulos, Acreditaciones y referencias).\n\n` +
+              `Adjunto a este correo encontrarán nuestro Dossier Integral con la metodología, los antecedentes disponibles y la presentación de la plataforma.\n\n` +
               `Quedo a su disposición para coordinar nuestra reunión.\n\n` +
               `Atentamente,\n\n${admin}\nConstructor Civil • Administrador de Condominios\nRepresentante Legal ARANPRO Gestión Integral\nFono: ${phone} | Sitio Web: https://aranpro.cl`
           };
@@ -698,14 +678,14 @@ export const CompanySettingsAndBackupModule = ({
             `Durante nuestro recorrido conjunto realizaremos:\n` +
             `• *Inspección Visual de Instalaciones Críticas:* Sala de bombas e hidroneumático, tableros eléctricos y generador, cubiertas/techumbres y portones/accesos.\n` +
             `• *Levantamiento de Prioridades:* Detección de riesgos latentes de falla y gastos evitables antes del invierno o temporadas de alta demanda.\n` +
-            `• *Entrega Física de nuestro Dossier Integral de 4 Páginas:* Ficha Técnica de Constructor Civil, acreditación en el Registro Nacional Minvu (Ley 21.442), cartas de recomendación de otros comités y credenciales de prueba.\n\n` +
+            `• *Entrega Física de nuestro Dossier Integral:* Metodología, antecedentes disponibles y presentación de la plataforma.\n\n` +
             `📱 *Pueden adelantar la revisión de nuestra plataforma interactiva desde su celular:* \n` +
             `🔗 ${demoLink}\n\n` +
             `¡Nos vemos en terreno en ${condo}!\n\n` +
             `Atentamente,\n*${admin}*\nConstructor Civil • ARANPRO (${phone})\nSitio Web: https://aranpro.cl`,
           email: `Estimado Comité de Administración de ${condo}:\n\n` +
             `Junto con agradecer su disposición a reunirnos, confirmamos formalmente nuestra visita técnica y reunión de diagnóstico para el día ${visitTime}.\n\n` +
-            `Durante la visita realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos) y revisaremos en conjunto las principales prioridades de mantenimiento de la comunidad. Llevaremos una copia de nuestro Dossier Integral de Postulación (Ficha Técnica Constructiva, Título Profesional, Acreditaciones Legales y Referencias Comprobables).\n\n` +
+            `Durante la visita realizaremos una inspección visual de las instalaciones críticas (sala de bombas, tableros eléctricos, cubiertas y accesos) y revisaremos en conjunto las principales prioridades de mantenimiento de la comunidad. Llevaremos una copia de nuestro Dossier Integral con la metodología y los antecedentes disponibles.\n\n` +
             `Pueden explorar la plataforma digital anticipadamente en: ${demoLink}\n\n` +
             `Adjuntamos en este correo el Dossier Integral en formato PDF para su conocimiento previo.\n\n` +
             `Quedamos a su entera disposición ante cualquier coordinación previa.\n\n` +
@@ -1666,6 +1646,8 @@ export const CompanySettingsAndBackupModule = ({
         }
       } catch (err) {
         console.warn('[fileVault] Error hidratando respaldos digitales:', err);
+      } finally {
+        if (mounted) setDossierEvidenceHydrated(true);
       }
     })();
     return () => {
@@ -1697,147 +1679,12 @@ export const CompanySettingsAndBackupModule = ({
     proposalConfig
   ]);
 
-  // Portafolio de Certificaciones Técnicas y Acreditaciones Oficiales del Dossier (sin hooks adicionales)
-  const baseCertsDossier = [
-    {
-      id: 'cert-1',
-      title: 'Constructor Civil • Especialista en Construcción Civil',
-      institution: 'Instituto Profesional / Santo Tomás',
-      status: 'Titulado',
-      year: '2018',
-      relevance: 'Revisión técnica de alcances, partidas y cubicaciones, inspección en terreno de infraestructura común, seguimiento de mantenciones preventivas y coordinación de especialistas.',
-      fileName: '01_Titulo_Profesional_Constructor_Civil_Santo_Tomas.pdf'
-    },
-    {
-      id: 'cert-2',
-      title: 'Curso Oficial de Copropiedad Inmobiliaria (Ley N° 21.442)',
-      institution: 'Learning Group / OTEC Acreditada SENCE (Resolución MINVU)',
-      status: 'Aprobado y Certificado',
-      year: '2022',
-      relevance: 'Habilitación oficial obligatoria para administración de copropiedades, cumplimiento normativo Ley N° 21.442, gestión de fondos de reserva, seguros de incendio y asambleas.',
-      fileName: '08_CERTIFICADO ley 21442_JOHN_ARANCIBIA_M.pdf'
-    },
-    {
-      id: 'cert-3',
-      title: 'Inspección Técnica de Obras (ITO) & Plan de Calidad PAC',
-      institution: 'Normativa MOP / ISO 9001 (Control de Calidad)',
-      status: 'Certificado',
-      year: '2021',
-      relevance: 'Control de especificaciones técnicas, supervisión de alcances y partidas, recepción documentada de trabajos y seguimiento riguroso de mantenciones.',
-      fileName: '02_Certificado_Inspeccion_Tecnica_de_Obras_ITO.pdf'
-    },
-    {
-      id: 'cert-4',
-      title: 'Instalador de Gas Clase 3 Autorizado SEC',
-      institution: 'Superintendencia de Electricidad y Combustibles (SEC)',
-      status: 'Licencia Vigente',
-      year: 'Vigente',
-      relevance: 'Revisión técnica de matrices de gas, centrales térmicas y calderas comunitarias, control de sellos verdes y coordinación de especialistas bajo D.S. N° 66.',
-      fileName: '06_Certificado_SEC_Superintendencia_Electricidad_y_Combustibles.pdf'
-    },
-    {
-      id: 'cert-5',
-      title: 'Contabilidad General & Gestión Financiera de Condominios',
-      institution: 'TELEDUC • Pontificia Universidad Católica de Chile',
-      status: 'Certificado UC',
-      year: '2020',
-      relevance: 'Seguimiento financiero ordenado, conciliaciones bancarias al centavo, balances de gastos comunes, control presupuestario y rendición mensual clara para el Comité.',
-      fileName: '06_Certificado_Curso_Contabilidad_General.pdf'
-    },
-    {
-      id: 'cert-6',
-      title: 'Gestión de Proyectos (Project Management) & Presupuestos',
-      institution: 'Google / Coursera & Instituto Profesional IPLACEX',
-      status: 'Certificación Profesional',
-      year: '2021',
-      relevance: 'Planificación metódica de mejoras, evaluación comparativa de presupuestos, control de costos unitarios y programación anual de mantenciones.',
-      fileName: '05_Certificado_Internacional_Project_Management_Google_Coursera.pdf'
-    }
-  ];
-
-  const dossierAcademicPortfolio = [
-    ...baseCertsDossier,
-    ...(academicRecords || []).filter(r => {
-      if (r.includeInProposal === false) return false;
-      const txt = `${r.title || ''} ${r.institution || ''} ${r.status || ''} ${r.fileName || ''}`.toLowerCase();
-      if (
-        txt.includes('alumno regular') ||
-        txt.includes('en curso') ||
-        txt.includes('estudios') ||
-        txt.includes('aiep') ||
-        txt.includes('técnico') ||
-        txt.includes('tecnico') ||
-        txt.includes('certificado_aprobacion_curso_ley_21442.pdf')
-      ) {
-        return false;
-      }
-      return !baseCertsDossier.some(b => b.fileName === r.fileName || b.title.toLowerCase() === (r.title || '').toLowerCase());
-    })
-  ];
-
-  const baseDocsDossier = [
-    {
-      id: 'acc-1',
-      name: 'Comprobante de Inscripción Registro Nacional de Administradores (MINVU)',
-      issuer: 'Ministerio de Vivienda y Urbanismo (Minvu)',
-      folio: 'Ley N° 21.442 • En Trámite',
-      status: 'En trámite ★★★'
-    },
-    {
-      id: 'acc-2',
-      name: 'Certificado de Título Profesional — Especialista Constructor Civil',
-      issuer: 'Instituto Profesional / Santo Tomás',
-      folio: 'Registro Profesional Oficial',
-      status: 'Vigente'
-    },
-    {
-      id: 'acc-3',
-      name: 'Certificado Oficial Aprobación Curso Copropiedad Inmobiliaria',
-      issuer: 'Learning Group / SENCE',
-      folio: 'Resolución Acreditada MINVU',
-      status: 'Vigente'
-    },
-    {
-      id: 'acc-4',
-      name: 'Licencia Instalador de Gas Clase 3 Autorizado SEC',
-      issuer: 'Superintendencia de Electricidad y Combustibles (SEC)',
-      folio: 'RUT 16.012.871-2',
-      status: 'Vigente'
-    },
-    {
-      id: 'acc-5',
-      name: 'Certificado de Inspección Técnica de Obras (ITO) & Aseguramiento PAC',
-      issuer: 'Organismo Certificador de Obras',
-      folio: 'Normativa MOP / ISO 9001',
-      status: 'Vigente'
-    },
-    {
-      id: 'acc-6',
-      name: 'Certificado de Antecedentes para Fines Especiales',
-      issuer: 'Servicio de Registro Civil e Identificación',
-      folio: 'Art. 84° Ley N° 21.442',
-      status: 'Vigente'
-    }
-  ];
-
-  const dossierAccreditationDocs = [
-    ...baseDocsDossier,
-    ...(accreditationDocs || []).filter(d => {
-      if (d.includeInDossier === false) return false;
-      const txt = `${d.name || ''} ${d.folio || ''} ${d.notes || ''}`.toLowerCase();
-      if (
-        txt.includes('alumno regular') ||
-        txt.includes('en curso') ||
-        txt.includes('48.912') ||
-        txt.includes('técnico') ||
-        txt.includes('tecnico') ||
-        txt.includes('certificado de antecedentes para fines especiales')
-      ) {
-        return false;
-      }
-      return !baseDocsDossier.some(b => b.name.toLowerCase() === (d.name || '').toLowerCase());
-    })
-  ];
+  // Solo evidencia respaldada y referencias confirmadas; no modifica los registros guardados.
+  const dossierPagesOfEvidence = dossierEvidencePages(academicRecords, accreditationDocs, committeeReferences);
+  const dossierTotalPages = dossierPagesOfEvidence.length + 3;
+  const dossierMissingFiles = academicRecords.some(r => r.includeInProposal !== false && (r.fileError || (r.fileId && !r.fileData))) || accreditationDocs.some(r => r.includeInDossier !== false && (r.fileError || (r.fileId && !r.fileData)));
+  const dossierEvidenceStatus = !dossierEvidenceHydrated ? 'pending' : dossierMissingFiles ? 'unavailable' : 'ready';
+  const dossierDemoUrl = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://portaladministracion.aranpro.cl/?demo=comunidad';
 
   const packageFilesCount = useMemo(() => {
     return (
@@ -2335,31 +2182,15 @@ export const CompanySettingsAndBackupModule = ({
     }
   };
 
-  // Imprimir Dossier Integral de Licitación (Carta + Ficha Técnica Constructiva + Diplomas + Cartas Recomendación)
-  const handlePrintDossier = () => {
-    if (!previewDossierModal) setPreviewDossierModal(true);
-    const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
-    const dateClean = (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
-    const filename = `ARANPRO_Dossier_Integral_Licitacion_${targetClean}_${dateClean}`;
-    printDocumentDirectly('printable-full-dossier', filename, {
-      pageSize: 'letter portrait',
-      fitPage: false,
-      margin: '0',
-      extraStyles: `${canonicalPdfHeaderStyles}
-        @page { size: letter portrait; margin: 0 !important; }
-        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
-        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
-        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
-        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
-        .transition-final-footer { gap: 8px !important; }
-        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
-        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
-        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
-        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
-        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
-        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
-        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
-    });
+  // La bandeja y el correo comparten el mismo PDF del dossier.
+  const handlePrintDossier = async () => {
+    try {
+      const pdf = await generateStepPdfAttachment({ stepNumber: 2, proposalConfig, empresaForm, signatureImage: signatureImage || companySettings?.signatureDataUrl || '' });
+      downloadDataUrl(`data:application/pdf;base64,${pdf.contentBase64}`, pdf.filename);
+    } catch (error) {
+      console.error('Error generando dossier:', error);
+      showAlert('No se pudo generar el dossier', error?.message || 'Vuelve a intentarlo. No se descargó ningún documento.', 'error');
+    }
   };
 
   // Imprimir Brochure Ejecutivo de la App & Portal Web (PDF Carta)
@@ -3986,7 +3817,7 @@ export const CompanySettingsAndBackupModule = ({
                                 Reunión Presencial • En Terreno
                               </span>
                               <span className="text-[10px] font-bold text-slate-500">
-                                Dossier Maestro de 4 Páginas
+                                Dossier Maestro
                               </span>
                             </div>
                             <h4 className="text-base font-black text-slate-900 mt-0.5">
@@ -4067,7 +3898,7 @@ export const CompanySettingsAndBackupModule = ({
                                 Modalidad Prospección Consultiva (Entrega de Dossier sin Visita Previa)
                               </strong>
                               <p className="text-[11px] text-emerald-800 leading-snug mt-0.5">
-                                El correo y WhatsApp presentarán el Dossier Integral de 4 Páginas, las condiciones configuradas y la posibilidad de coordinar una visita técnica de diagnóstico en terreno.
+                                El correo y WhatsApp presentarán el Dossier Integral, las condiciones configuradas y la posibilidad de coordinar una visita técnica de diagnóstico en terreno.
                               </p>
                             </div>
                           </div>
@@ -4082,7 +3913,7 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
-                          Ver Dossier Maestro (4 Pág)
+                          Ver Dossier Maestro
                         </button>
                         <button
                           type="button"
@@ -4090,7 +3921,7 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          Imprimir Dossier
+                          Descargar Dossier PDF
                         </button>
                         <button
                           type="button"
@@ -7373,7 +7204,7 @@ export const CompanySettingsAndBackupModule = ({
                     Dossier Integral de Postulación & Ficha Técnica Constructiva
                   </h4>
                   <p className="text-[11px] text-slate-500 font-mono">
-                    Documento Maestro de 4 Páginas • Especialidades Constructivas • Plan 30 Días • Suite Digital & Acreditaciones
+                    Documento Maestro • Metodología • Suite Digital & Antecedentes
                   </p>
                 </div>
               </div>
@@ -7384,7 +7215,7 @@ export const CompanySettingsAndBackupModule = ({
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-md transition-all active:scale-95"
                 >
                   <Printer className="w-4 h-4 text-[#D4B895]" />
-                  Imprimir / Descargar Dossier PDF
+                  Descargar Dossier PDF
                 </button>
                 <button
                   onClick={() => setPreviewDossierModal(false)}
@@ -7440,6 +7271,7 @@ export const CompanySettingsAndBackupModule = ({
           <div className={previewDossierModal ? "overflow-y-auto flex-1 pr-1 space-y-6" : "w-[850px]"}>
             <div
               id="printable-full-dossier"
+              data-dossier-evidence-status={dossierEvidenceStatus}
               data-pdf-style={pdfStyle}
               className="bg-slate-100 p-0 max-w-4xl mx-auto space-y-6 text-slate-900"
               style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
@@ -7499,9 +7331,7 @@ export const CompanySettingsAndBackupModule = ({
                     </p>
                     <p>
                       <strong>Fecha y Lugar:</strong>{' '}
-                      {proposalConfig.proposalDate
-                        ? new Date(proposalConfig.proposalDate + 'T12:00:00').toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })
-                        : new Date().toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      <span data-current-print-date>{formatLocalDay(localToday())}</span>
                       {proposalConfig.targetCity?.trim() ? ` • ${proposalConfig.targetCity}` : ` • ${empresaForm.city || 'La Serena'}`}
                     </p>
                     <p>
@@ -7536,7 +7366,7 @@ export const CompanySettingsAndBackupModule = ({
                       )}. Nuestra propuesta integra seguimiento financiero riguroso, coordinación disciplinada del personal y proveedores, presencia periódica en terreno y herramientas digitales para que el Comité conozca en todo momento el estado de la gestión y pueda <strong>decidir con antecedentes claros, oportunos y verificables</strong>.
                     </p>
                     <p>
-                      Como <strong>Especialista Constructor Civil</strong> y Administrador de Condominios bajo la <strong>Ley N° 21.442</strong>, cuento con formación complementaria certificada en <strong>Inspección Técnica de Obras (ITO), Aseguramiento de Calidad (PAC), Control de Presupuestos, Gestión de Proyectos (Project Management), Contabilidad General (PUC) y Normativa SEC</strong>. Aplico directamente estas competencias a la revisión técnica de alcances y cantidades (cubicaciones), al seguimiento programado de mantenciones preventivas y a la documentación rigurosa de observaciones en terreno, coordinando especialistas habilitados cada vez que la intervención lo requiere.
+                      Como <strong>Constructor Civil</strong> y administrador de condominios, aplico criterios técnicos al seguimiento de mantenciones, la revisión de alcances y la coordinación de especialistas. Los antecedentes profesionales con respaldo disponible se detallan en las páginas siguientes.
                     </p>
                     <p>
                       Sabemos que <strong>cada comunidad tiene una identidad y prioridades distintas</strong>. Este documento presenta nuestra metodología y las capacidades técnicas y operativas que ponemos a su servicio; nuestra visita inicial nos permitirá conocer en terreno sus requerimientos y estructurar un plan de trabajo con frecuencias de atención, responsabilidades y entregables claramente definidos.
@@ -7642,7 +7472,7 @@ export const CompanySettingsAndBackupModule = ({
                   <div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600">
                     <span>• Metodología de gestión</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página 2 →</span>
                   </div>
-                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Presentación institucional" page={1} totalPages={4} city={empresaForm.city || 'La Serena, Chile'} />
+                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Presentación institucional" page={1} totalPages={dossierTotalPages} city={empresaForm.city || 'La Serena, Chile'} />
                 </div>
               </div>
 
@@ -7738,17 +7568,17 @@ export const CompanySettingsAndBackupModule = ({
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-1">
                       <h4 className="text-[11px] font-black text-[#0F3D2E] uppercase tracking-wide">
-                        Plan de Trabajo Inicial & Puesta en Marcha Ordenada (Primeros 30 Días)
+                        Plan de Trabajo Inicial & Puesta en Marcha Ordenada
                       </h4>
                       <span className="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        Metodología con Entregables Definidos
+                        Actividades sujetas a la propuesta
                       </span>
                     </div>
 
                     <div className="space-y-2 text-xs">
                       <div className="p-2.5 rounded-xl border border-slate-200 bg-white flex items-start gap-3 shadow-xs">
                         <span className="px-2 py-1 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
-                          DÍAS 1 - 10
+                          ETAPA 1
                         </span>
                         <div>
                           <strong className="text-slate-900 block text-[10.5px]">Recepción Documentada, Conciliación Financiera y Revisión Legal</strong>
@@ -7760,7 +7590,7 @@ export const CompanySettingsAndBackupModule = ({
 
                       <div className="p-2.5 rounded-xl border border-slate-200 bg-white flex items-start gap-3 shadow-xs">
                         <span className="px-2 py-1 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
-                          DÍAS 11 - 20
+                          ETAPA 2
                         </span>
                         <div>
                           <strong className="text-slate-900 block text-[10.5px]">Inspección Técnica de Bienes Comunes y Coordinación de Equipos</strong>
@@ -7772,7 +7602,7 @@ export const CompanySettingsAndBackupModule = ({
 
                       <div className="p-2.5 rounded-xl border border-slate-200 bg-white flex items-start gap-3 shadow-xs">
                         <span className="px-2 py-1 bg-[#0F3D2E] text-[#D4B895] rounded-md font-mono font-bold text-[9.5px] shrink-0">
-                          DÍAS 21 - 30
+                          ETAPA 3
                         </span>
                         <div>
                           <strong className="text-slate-900 block text-[10.5px]">Habilitación de Herramientas Digitales y Entrega de Informe Inicial</strong>
@@ -7789,10 +7619,10 @@ export const CompanySettingsAndBackupModule = ({
                     <strong className="text-[#0F3D2E] block text-[10.5px]">Compromiso de Cercanía: Presencia en Terreno & Comunicación Directa</strong>
                     <div className="grid grid-cols-2 gap-2 text-[9.5px] text-slate-700 pt-0.5">
                       <div>
-                        <strong>• Visitas Presenciales Programadas:</strong> Presencia periódica en el condominio para supervisar labores del personal, verificar trabajos de proveedores y atender inquietudes en terreno.
+                        <strong>• Visitas Presenciales Programadas:</strong> Frecuencia de visitas: {activeProposalConditions(proposalConfig).visitFrequency || "Por definir con el Comité"}.
                       </div>
                       <div>
-                        <strong>• Canal Directo con el Comité y Emergencias:</strong> Comunicación fluida para el seguimiento semanal de acuerdos y disponibilidad inmediata ante urgencias operativas de la comunidad.
+                        <strong>• Canal Directo con el Comité y Emergencias:</strong> Atención de emergencias: {activeProposalConditions(proposalConfig).emergencyResponse || "Por definir con el Comité"}.
                       </div>
                     </div>
                   </div>
@@ -7802,157 +7632,17 @@ export const CompanySettingsAndBackupModule = ({
                   <div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600">
                     <span>• Acreditación y referencias</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página 3 →</span>
                   </div>
-                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Metodología y terreno" page={2} totalPages={4} city={empresaForm.city || 'La Serena, Chile'} />
+                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Metodología y terreno" page={2} totalPages={dossierTotalPages} city={empresaForm.city || 'La Serena, Chile'} />
                 </div>
               </div>
 
-              {/* ==================== PÁGINA 3: ESPECIALIDAD CONSTRUCTIVA, ACREDITACIONES Y REFERENCIAS ==================== */}
-              <div
-                data-pdf-style={pdfStyle}
-                className="dossier-page page-3 bg-white p-6 pl-10 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
-                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-              >
-                {/* Filete doble izquierdo Alternativa 4 */}
-                <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
-                  <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
-                  <div className="w-[2px] h-full bg-transparent" />
-                  <div className="w-[1.5px] h-full bg-[#D4B895]" />
-                </div>
-
-                {/* Sello de agua central sutil */}
-                <div
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 opacity-[0.035]"
-                  aria-hidden="true"
-                >
-                  <img
-                    src="/brand/ARANPRO_sello_circular_integral_transparente.png"
-                    alt=""
-                    className="w-[420px] h-[420px] object-contain"
-                  />
-                </div>
-
-                <div className="space-y-3 relative z-10">
-                  <CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Acreditación y referencias" page={3} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')}
-                    brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
-                    email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
-
-                  {/* SECCIÓN 2: FORMACIÓN PROFESIONAL, ESPECIALIDAD CONSTRUCTIVA Y CAPACITACIONES CERTIFICADAS */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
-                        2
-                      </div>
-                      <div>
-                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                          Especialidad Constructiva, Formación Profesional y Capacitaciones Certificadas
-                        </h2>
-                        <p className="text-[8.5px] text-slate-500 leading-tight">
-                          Respaldos académicos y competencias técnicas del Administrador Titular ({empresaForm.adminName}) aplicadas directamente al condominio
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Grilla de 6 Certificaciones Profesionales y Técnicas en 2 Columnas fijas */}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {dossierAcademicPortfolio.slice(0, 6).map((item) => (
-                        <div key={item.id} className="p-2 rounded-xl border border-slate-300 bg-slate-50/90 space-y-1 shadow-2xs flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-start justify-between gap-1">
-                              <span className="font-black text-slate-900 text-[10px] leading-normal truncate block">{item.title}</span>
-                              <span className="px-1.5 py-0.5 rounded text-[7px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
-                                {item.status}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between text-[8px] text-slate-500">
-                              <span className="truncate">Institución: <strong className="text-slate-700">{item.institution}</strong></span>
-                              <span className="shrink-0 font-mono font-bold text-slate-600 ml-1">{item.year}</span>
-                            </div>
-                            <p className="text-slate-700 bg-white px-2 py-1 rounded border border-slate-200/80 text-[8px] leading-snug mt-0.5 overflow-hidden max-h-[34px] block">
-                              <strong>Aporte Práctico:</strong> {item.relevance}
-                            </p>
-                          </div>
-                          <div className="text-[7.5px] text-emerald-800 font-mono font-bold truncate pt-0.5 border-t border-slate-200/60">
-                            ✓ Respaldo Oficial: {item.fileName}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Índice de Documentos Legales y Técnicos Acreditados en Carpeta Oficial */}
-                    <div className="pt-1 space-y-1">
-                      <span className="text-[9px] font-black uppercase text-[#0F3D2E] block">
-                        Carpeta Oficial de Documentos Legales, Normativos y de Especialidad:
-                      </span>
-                      <div className="grid grid-cols-2 gap-1.5 text-[8.5px]">
-                        {dossierAccreditationDocs.slice(0, 6).map((doc, idx) => (
-                          <div key={doc.id} className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 shadow-2xs">
-                            <div className="min-w-0">
-                              <strong className="text-slate-900 block leading-normal truncate text-[8.5px]">
-                                Anexo {idx + 1}: {doc.name}
-                              </strong>
-                              <span className="text-[7.5px] text-slate-500 block truncate">
-                                {doc.issuer || 'Institución Oficial'} {doc.folio ? `• ${doc.folio}` : ''}
-                              </span>
-                            </div>
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[7.5px] shrink-0 whitespace-nowrap">
-                              ✓ {doc.status || 'Vigente'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SECCIÓN 3: REFERENCIAS DE COMITÉS */}
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
-                        3
-                      </div>
-                      <div>
-                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
-                          Referencias Comprobables de Comités de Administración
-                        </h2>
-                        <p className="text-[8.5px] text-slate-500 leading-tight">
-                          Testimonios y antecedentes de contacto de representantes comunitarios que avalan nuestra gestión
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {committeeReferences.map(ref => (
-                        <div key={ref.id} className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1 shadow-2xs">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="font-black text-slate-900 text-[10px]">{ref.contactName}</span>
-                            <span className="text-[8px] font-bold text-[#0F3D2E] text-right">{ref.role} • {ref.communityName}</span>
-                          </div>
-                          <p className="text-slate-500 text-[8px] font-mono">Fono Contacto: {ref.phone}</p>
-                          <blockquote className="text-slate-700 italic bg-white px-2 py-1 rounded border border-slate-200 text-[8.5px] leading-snug">
-                            "{String(ref.quote || '').includes('administración anterior')
-                              ? 'Gestión muy cercana, ordenada y con gran dominio técnico en terreno. El seguimiento de las mantenciones de salas de bombas y la claridad en los informes nos permiten tomar decisiones con total tranquilidad.'
-                              : ref.quote}"
-                          </blockquote>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recuadro de Garantía Institucional y Cumplimiento Ley 21.442 */}
-                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-[#0F3D2E]/10 via-[#F5F4EF] to-transparent border border-[#0F3D2E]/20 text-[8.5px] text-slate-700 space-y-1">
-                    <strong className="text-[#0F3D2E] block text-[9.5px]">Garantía Institucional de Respaldo ARANPRO:</strong>
-                    <p className="leading-snug">
-                      Nuestra postulación se formaliza bajo contrato de prestación de servicios con entregables claramente estipulados, rendición mensual de cuentas documentada y fiscalización contable continua, garantizando a la comunidad el fiel cumplimiento de las obligaciones legales establecidas en la <strong>Ley N° 21.442</strong>.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-auto pt-2 space-y-1 relative z-10">
-                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600">
-                    <span>• Suite digital</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página 4 →</span>
-                  </div>
-                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Acreditación y referencias" page={3} totalPages={4} city={empresaForm.city || 'La Serena, Chile'} />
-                </div>
-              </div>
+              {dossierPagesOfEvidence.map((cards, pageIndex) => <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed relative overflow-hidden" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
+                <div className="space-y-3"><CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Acreditación y referencias" page={pageIndex + 3} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
+                  <h2 className="text-sm font-black text-[#0F3D2E]">Antecedentes y referencias</h2>
+                  <p className="text-[9px] text-slate-500">Los archivos originales de respaldo se adjuntan por separado cuando corresponda.</p>
+                  {cards.length ? <div className="space-y-2">{cards.map((card, index) => <div key={card.id + '-' + index} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1"><strong className="text-[#0F3D2E]">{card.name}{card.continuation ? ' (continuación)' : ''}</strong><p className="text-[10.5px] leading-relaxed text-slate-700" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{card.notes}</p></div>)}</div> : <p className="p-3 border border-slate-200 rounded-xl text-slate-600">No hay antecedentes con archivo disponible ni referencias confirmadas para incluir.</p>}
+                </div><div className="mt-auto pt-2 space-y-1"><div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600"><span>• {pageIndex < dossierPagesOfEvidence.length - 1 ? 'Continúan antecedentes y referencias' : 'Suite digital'}</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página {pageIndex + 4} →</span></div><CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Acreditación y referencias" page={pageIndex + 3} totalPages={dossierTotalPages} city={empresaForm.city || 'La Serena, Chile'} /></div>
+              </div>)}
 
               {/* ==================== PÁGINA 4: SUITE DIGITAL ARANPRO, DEMO EN VIVO CON QR & FIRMA OFICIAL ==================== */}
               <div
@@ -7980,7 +7670,7 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
 
                 <div className="space-y-3 relative z-10">
-                  <CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Suite digital y demostración" page={4} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')}
+                  <CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Suite digital y demostración" page={dossierTotalPages} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')}
                     brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
                     email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
 
@@ -8116,7 +7806,7 @@ export const CompanySettingsAndBackupModule = ({
                           ★ Demo Interactiva en Vivo
                         </span>
                         <span className="text-[8px] font-bold text-slate-500 font-mono">
-                          Acceso directo: aranpro.cl/?demo=comunidad
+                          Acceso directo: {dossierDemoUrl}
                         </span>
                       </div>
                       <h4 className="text-[11px] font-black text-[#0F3D2E] leading-tight">
@@ -8139,7 +7829,7 @@ export const CompanySettingsAndBackupModule = ({
 
                     <div className="shrink-0 p-2 bg-white rounded-xl border border-slate-300 shadow-xs text-center">
                       <AranproQrCode 
-                        value={typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://administracion.aranpro.cl/?demo=comunidad'} 
+                        value={dossierDemoUrl}
                         size={82} 
                         alt="Código QR Demo Escaneable ARANPRO" 
                       />
@@ -8152,7 +7842,7 @@ export const CompanySettingsAndBackupModule = ({
 
                 <div className="mt-auto pt-1.5 space-y-1 relative z-10">
                   <CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={empresaForm.phone || '+56 9 5811 8504'} email={empresaForm.email || 'contacto@aranpro.cl'} website={empresaForm.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm.adminName} adminRut={(empresaForm.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} />
-                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Suite digital y demostración" page={4} totalPages={4} city={empresaForm.city || 'La Serena, Chile'} />
+                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Suite digital y demostración" page={dossierTotalPages} totalPages={dossierTotalPages} city={empresaForm.city || 'La Serena, Chile'} />
                 </div>
               </div>
             </div>
