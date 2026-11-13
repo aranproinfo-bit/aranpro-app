@@ -188,33 +188,33 @@ Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente de
   return (
     <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-teal-50/70 border border-teal-200 hover:border-teal-300 transition-all space-y-4">
       {/* 1. ENCABEZADO UNIFICADO CON LOS PASOS 1, 2, 3 Y 4 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => setIsOpen(!isOpen)}>
-          <div className="w-10 h-10 rounded-2xl bg-teal-200 text-teal-900 flex items-center justify-center font-black text-lg shrink-0 mt-0.5 shadow-xs">
-            5
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h4 className="text-base font-black text-slate-900">
-                Paso 5: Notificación al Saliente, Pauta de Traspaso & Cláusulas del Acta
-              </h4>
-              <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      <div className="flex flex-col gap-2.5 border-b border-teal-200/60 pb-3">
+        {/* Fila Superior: Número + Título Completo + Flecha Desplegable */}
+        <div className="flex items-center justify-between gap-3 cursor-pointer select-none w-full" onClick={() => setIsOpen(!isOpen)}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-teal-200 text-teal-900 flex items-center justify-center font-black text-lg shrink-0 shadow-xs">
+              5
             </div>
-            <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                ★ PASO 5 • ADJUDICACIÓN & RECEPCIÓN FORMAL
-              </span>
-              <span className="text-[10px] font-bold text-slate-500">
-                Ley N° 21.442 & DS N° 7 MINVU
-              </span>
-            </div>
+            <h4 className="text-base font-black text-slate-900 leading-snug">
+              Paso 5: Notificación al Saliente, Pauta de Traspaso & Cláusulas del Acta
+            </h4>
           </div>
+          <ChevronDown className={`w-5 h-5 text-slate-500 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-1 rounded-xl">
-            {proposalConfig.targetCondo || 'Comunidad'}
-          </span>
+        {/* Fila Inferior: Chips y Selector de Diseño PDF */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pl-0 sm:pl-[52px]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+              ★ PASO 5 • ADJUDICACIÓN & RECEPCIÓN FORMAL
+            </span>
+            <span className="text-[10px] font-bold text-slate-500">
+              Ley N° 21.442 & DS N° 7 MINVU
+            </span>
+            <span className="text-[11px] font-mono font-bold text-[#0F3D2E] bg-[#F5F4EF] border border-[#D4B895] px-2.5 py-0.5 rounded-xl">
+              {proposalConfig.targetCondo || 'Comunidad'}
+            </span>
+          </div>
           <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
         </div>
       </div>
