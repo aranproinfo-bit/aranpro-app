@@ -576,13 +576,13 @@ export const CompanySettingsAndBackupModule = ({
   const [inspectionForm, setInspectionForm] = useState({
     targetCondo: proposalConfig.targetCondo || 'Condominio en Evaluación',
     inspector: empresaForm.adminName,
-    date: '', // vacío = fecha actual al generar; permite registrar una visita anterior
+    date: '', // La fecha de visita se registra solo cuando se conoce.
     items: [
-      { id: 'bombas', name: 'Sala de Bombas & Sistema Hidroneumático', status: 'Requiere Mantención', notes: 'Bombas operativas con fuga leve en sello mecánico de Bomba 2. Manómetro principal descalibrado; requiere regulación de presostato.' },
-      { id: 'cubiertas', name: 'Cubiertas, Techumbres & Bajadas de Agua', status: 'Crítico', notes: 'Membrana asfáltica con fisuras en sector poniente; canaletas con acumulación de sedimentos. Riesgo de filtración en temporada de lluvias.' },
-      { id: 'electricidad', name: 'Tableros Eléctricos & Grupo Electrógeno', status: 'Bueno', notes: 'Tablero general rotulado según norma SEC. Generador de emergencia operativo con transferencia automática probada.' },
-      { id: 'incendios', name: 'Red Húmeda, Red Seca & Seguro Colectivo (Art. 43°)', status: 'Requiere Mantención', notes: 'Extintores con certificación vencida en pisos 3 y 4. Mangueras de red húmeda operativas con presión adecuada.' },
-      { id: 'contable', name: 'Fondo de Reserva Legal & Estado Contable (Art. 39° Ley 21.442)', status: 'Crítico', notes: 'La comunidad requiere regularizar la tasa mínima del 5% de recargo para el Fondo de Reserva exigida por el Art. 39° de la Ley N° 21.442.' }
+      { id: 'bombas', name: 'Sala de Bombas & Sistema Hidroneumático', status: '', notes: '' },
+      { id: 'cubiertas', name: 'Cubiertas, Techumbres & Bajadas de Agua', status: '', notes: '' },
+      { id: 'electricidad', name: 'Tableros Eléctricos & Grupo Electrógeno', status: '', notes: '' },
+      { id: 'incendios', name: 'Red Húmeda, Red Seca & Seguro Colectivo (Art. 43°)', status: '', notes: '' },
+      { id: 'contable', name: 'Fondo de Reserva Legal & Estado Contable (Art. 39° Ley 21.442)', status: '', notes: '' }
     ],
     uninspectedSystems: DEFAULT_UNINSPECTED_SYSTEMS,
     customScopeText: ''
@@ -1968,14 +1968,14 @@ export const CompanySettingsAndBackupModule = ({
     if (systems.length === 0) {
       return (
         <>
-          Aquellas instalaciones o subsistemas de alta complejidad técnica no individualizados en el detalle inferior <u>no han sido desestimados ni omitidos</u> bajo ninguna circunstancia. Debido a su naturaleza crítica, su diagnóstico certero exige protocolos dinámicos de prueba de esfuerzo, apertura técnica con instrumental y fiscalización de los libros de mantención de las empresas vigentes, lo cual se abordará con exhaustividad técnica en el <strong>Plan de Auditoría e Inventario Inicial durante los primeros 30 días</strong> al asumir la gestión.
+          Aquellas instalaciones o subsistemas de alta complejidad técnica no individualizados en el detalle inferior <u>no han sido desestimados ni omitidos</u> bajo ninguna circunstancia. Debido a su naturaleza crítica, su diagnóstico certero exige protocolos dinámicos de prueba de esfuerzo, apertura técnica con instrumental y fiscalización de los libros de mantención de las empresas vigentes, lo cual se abordará con exhaustividad técnica en el <strong>plan de revisión inicial, según las condiciones acordadas</strong> al asumir la gestión.
         </>
       );
     }
 
     return (
       <>
-        Aquellas instalaciones o subsistemas no individualizados en el detalle inferior (tales como <strong>{systems.join(', ')}</strong>) <u>no han sido desestimados ni omitidos</u> bajo ninguna circunstancia. Debido a su naturaleza crítica, su diagnóstico certero exige protocolos dinámicos de prueba de esfuerzo, apertura técnica con instrumental y fiscalización de los libros de mantención de las empresas vigentes, lo cual se abordará con exhaustividad técnica en el <strong>Plan de Auditoría e Inventario Inicial durante los primeros 30 días</strong> al asumir la gestión.
+        Aquellas instalaciones o subsistemas no individualizados en el detalle inferior (tales como <strong>{systems.join(', ')}</strong>) <u>no han sido desestimados ni omitidos</u> bajo ninguna circunstancia. Debido a su naturaleza crítica, su diagnóstico certero exige protocolos dinámicos de prueba de esfuerzo, apertura técnica con instrumental y fiscalización de los libros de mantención de las empresas vigentes, lo cual se abordará con exhaustividad técnica en el <strong>plan de revisión inicial, según las condiciones acordadas</strong> al asumir la gestión.
       </>
     );
   };
@@ -2161,35 +2161,17 @@ export const CompanySettingsAndBackupModule = ({
     window.open(url, '_blank');
   };
 
-  // Imprimir Propuesta Formal & Diagnóstico Técnico en PDF Carta (2 Páginas)
-  const handlePrintProposal = () => {
-    if (!previewProposalModal) setPreviewProposalModal(true);
-    refreshPrintDates('printable-commercial-proposal');
-    const targetClean = (proposalConfig.targetCondo || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
-    const dateClean = localToday().replace(/[^0-9]/g, '');
-    const filename = `ARANPRO_Propuesta_Formal_y_Diagnostico_${targetClean}_${dateClean}`;
-    printDocumentDirectly('printable-commercial-proposal', filename, {
-      pageSize: 'letter portrait',
-      fitPage: false,
-      margin: '0',
-      extraStyles: `${canonicalPdfHeaderStyles}
-        @page { size: letter portrait; margin: 0 !important; }
-        .dossier-page { height: 279.4mm !important; min-height: 279.4mm !important; max-height: 279.4mm !important; padding: 8mm 16mm 8mm 17mm !important; border-left: 3.3mm solid #0F3D2E !important; background-image: linear-gradient(#D4B895, #D4B895) !important; background-size: 1.2mm 100% !important; background-position: 0.5mm 0 !important; background-repeat: no-repeat !important; }
-        .dossier-page > div[aria-hidden="true"], .aranpro-print-watermark { display: none !important; }
-        .transition-header img[src*="ARANPRO_logo_horizontal"] { width: 37mm !important; max-width: 37mm !important; height: auto !important; max-height: 11mm !important; object-fit: contain !important; }
-        .proposal-page-footer { gap: 8px !important; font-size: 8px !important; white-space: nowrap !important; }
-        .transition-final-footer { gap: 8px !important; }
-        .transition-final-footer .transition-footer-details { gap: 8px !important; flex: 1 1 auto; min-width: 0; }
-        .transition-final-footer .transition-footer-seal { flex: 0 0 auto; gap: 6px !important; }
-        .transition-final-footer .transition-footer-seal > div { white-space: nowrap; }
-        .transition-final-footer .transition-footer-seal > div > div:first-child { font-size: 8px !important; letter-spacing: 0 !important; }
-        .transition-final-footer .transition-footer-seal > div > div:last-child { font-size: 7.5px !important; }
-        .transition-final-footer .transition-footer-contact { flex: 0 0 auto; white-space: nowrap; font-size: 8px !important; padding-left: 8px !important; }
-        .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
-    });
+  // Descarga y correo usan el mismo documento y generador.
+  const handlePrintProposal = async () => {
+    try {
+      const pdf = await generateStepPdfAttachment({ stepNumber: 3, proposalConfig, empresaForm, signatureImage: signatureImage || companySettings?.signatureDataUrl || '' });
+      downloadDataUrl(`data:application/pdf;base64,${pdf.contentBase64}`, pdf.filename);
+    } catch (error) {
+      console.error('Error generando propuesta:', error);
+      showAlert('No se pudo generar la propuesta', error?.message || 'Vuelve a intentarlo.', 'error');
+    }
   };
 
-  // La descarga usa exactamente el mismo generador que el adjunto del correo.
   const handlePrintColdLetter = async () => {
     try {
       const pdf = await generateStepPdfAttachment({ stepNumber: 1, proposalConfig, empresaForm, signatureImage: signatureImage || companySettings?.signatureDataUrl || '' });
@@ -4104,7 +4086,7 @@ export const CompanySettingsAndBackupModule = ({
                           className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                          Imprimir Propuesta (3 Pág)
+                          Descargar Propuesta PDF
                         </button>
                         <button
                           type="button"
@@ -4693,7 +4675,7 @@ export const CompanySettingsAndBackupModule = ({
                   <label className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
                     Fecha de la visita de inspección
                     <input type="date" value={inspectionForm.date} onChange={(e) => setInspectionForm(prev => ({ ...prev, date: e.target.value }))} className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs" />
-                    <span className="font-normal text-slate-500">Sin fecha indicada se usa el día de generación.</span>
+                    <span className="font-normal text-slate-500">Si no se indica, la fecha de inspección queda pendiente.</span>
                   </label>
                   {/* LISTADO DE PARTIDAS DE INSPECCIÓN TÉCNICA */}
                   <div className="space-y-3">
@@ -6219,7 +6201,7 @@ export const CompanySettingsAndBackupModule = ({
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-xs transition-all active:scale-95"
                 >
                   <Printer className="w-4 h-4 text-[#D4B895]" />
-                  Imprimir / Descargar Propuesta PDF (3 Pág)
+                  Descargar Propuesta PDF
                 </button>
                 <button
                   onClick={() => setPreviewProposalModal(false)}
@@ -6564,7 +6546,7 @@ export const CompanySettingsAndBackupModule = ({
                         : `Estimados ${proposalConfig.targetRecipient}:`}
                     </p>
                     <p>
-                      Junto con saludarles cordialmente y agradecer la provechosa visita técnica realizada en terreno a sus dependencias, tengo el agrado de presentar a ustedes la <strong>Propuesta Operativa y Económica Definitiva</strong> de <strong>{empresaForm.provisionalName}</strong> para asumir formalmente la administración, fiscalización técnica y custodia patrimonial de {proposalConfig.targetCondo?.trim() ? <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong> : <strong>su distinguida comunidad</strong>}, en estricto cumplimiento de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
+                      Junto con saludarles cordialmente, tengo el agrado de presentar a ustedes la <strong>Propuesta Operativa y Económica Definitiva</strong> de <strong>{empresaForm.provisionalName}</strong> para asumir formalmente la administración, fiscalización técnica y custodia patrimonial de {proposalConfig.targetCondo?.trim() ? <strong className="text-[#0F3D2E]">{proposalConfig.targetCondo}</strong> : <strong>su distinguida comunidad</strong>}, en estricto cumplimiento de la <strong>Ley N° 21.442 de Copropiedad Inmobiliaria</strong>.
                     </p>
                     <p>
                       Nuestra filosofía de trabajo sitúa la transparencia y la rigurosidad constructiva en el centro de la gestión. Entendemos que la transición puede generar incertidumbres financieras y operativas. <strong>Condiciones de inicio o transición:</strong> {activeProposalConditions(proposalConfig).transitionConditions || 'Por definir con el Comité'}.
@@ -6678,7 +6660,7 @@ export const CompanySettingsAndBackupModule = ({
                     page={2} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'}
                     legalText={`${empresaForm.companyRut && !String(empresaForm.companyRut).includes('76.999.888') ? `RUT Empresa: ${empresaForm.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria`}
                   />
-                  <div className="flex justify-between text-[9px] font-semibold text-slate-600"><span>DEPARTAMENTO TÉCNICO & AUDITORÍA CONSTRUCTIVA</span><span>Fecha de inspección: {inspectionForm.date ? formatLocalDay(inspectionForm.date) : <span data-current-print-date>{formatLocalDay(localToday())}</span>}</span></div>
+                  <div className="flex justify-between text-[9px] font-semibold text-slate-600"><span>DEPARTAMENTO TÉCNICO & AUDITORÍA CONSTRUCTIVA</span><span>Fecha de inspección: {inspectionForm.date ? formatLocalDay(inspectionForm.date) : 'Por registrar'}</span></div>
 
                   {/* Datos del Inspector Técnico */}
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
@@ -6710,7 +6692,7 @@ export const CompanySettingsAndBackupModule = ({
                       </strong>
                     </div>
                     <p className="text-justify leading-snug">
-                      El presente informe recopila de manera fidedigna las observaciones preliminares levantadas <em>in situ</em> durante el recorrido inspectivo guiado a las áreas e instalaciones de uso común del condominio. Su objetivo primordial es constatar el estado real de conservación, identificar vulnerabilidades operativas tempranas, fatiga o desgaste prematuro de materiales, y orientar con rigor de <strong>Constructor Civil colegiado</strong> al Comité de Administración en la priorización de obras preventivas antes de que deriven en emergencias de alto impacto presupuestario.
+                      Este informe presenta las observaciones registradas <em>in situ</em> sobre las áreas e instalaciones de uso común del condominio. Su objetivo primordial es constatar el estado real de conservación, identificar vulnerabilidades operativas tempranas, fatiga o desgaste prematuro de materiales, y orientar con rigor de <strong>Constructor Civil</strong> al Comité de Administración en la priorización de obras preventivas antes de que deriven en emergencias de alto impacto presupuestario.
                     </p>
                     <div
                       className="p-1.5 rounded-lg border text-[10px] text-slate-700 space-y-0.5"
@@ -6723,7 +6705,7 @@ export const CompanySettingsAndBackupModule = ({
                     >
                       <div className="font-bold text-[#0F3D2E] flex items-center gap-1 text-[10.5px]">
                         <span>ℹ</span>
-                        <span>Nota de Alcance Técnico & Auditoría Especializada de 30 Días:</span>
+                        <span>Nota de Alcance Técnico:</span>
                       </div>
                       <p className="leading-snug text-justify text-slate-600">
                         {renderAuditScopeText()}
@@ -6734,8 +6716,8 @@ export const CompanySettingsAndBackupModule = ({
                   {/* Partidas Evaluadas */}
                   <div className="space-y-1">
                     <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-0.5 flex items-center justify-between">
-                      <span>Estado de Instalaciones Críticas Inspeccionadas:</span>
-                      <span className="text-[9.5px] text-slate-500 font-mono font-normal">Muestra preliminar in situ</span>
+                      <span>Estado de instalaciones a evaluar:</span>
+                      <span className="text-[9.5px] text-slate-500 font-mono font-normal">Observaciones registradas</span>
                     </h4>
 
                     <div className="space-y-1">
@@ -6746,18 +6728,18 @@ export const CompanySettingsAndBackupModule = ({
                             <span
                               className="px-2 py-0.5 rounded text-[9.5px] font-bold border"
                               style={{
-                                backgroundColor: item.status === 'Bueno' ? '#d1fae5' : item.status === 'Requiere Mantención' ? '#fef3c7' : '#ffe4e6',
-                                color: item.status === 'Bueno' ? '#065f46' : item.status === 'Requiere Mantención' ? '#92400e' : '#9f1239',
-                                borderColor: item.status === 'Bueno' ? '#a7f3d0' : item.status === 'Requiere Mantención' ? '#fde68a' : '#fecdd3',
+                                backgroundColor: !item.status ? '#f1f5f9' : item.status === 'Bueno' ? '#d1fae5' : item.status === 'Requiere Mantención' ? '#fef3c7' : '#ffe4e6',
+                                color: !item.status ? '#475569' : item.status === 'Bueno' ? '#065f46' : item.status === 'Requiere Mantención' ? '#92400e' : '#9f1239',
+                                borderColor: !item.status ? '#cbd5e1' : item.status === 'Bueno' ? '#a7f3d0' : item.status === 'Requiere Mantención' ? '#fde68a' : '#fecdd3',
                                 WebkitPrintColorAdjust: 'exact',
                                 printColorAdjust: 'exact'
                               }}
                             >
-                              {item.status}
+                              {item.status || "Por evaluar"}
                             </span>
                           </div>
                           <p className="text-[10.5px] text-slate-700 leading-snug bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                            {item.notes}
+                            {item.notes || "Sin observaciones registradas."}
                           </p>
                         </div>
                       ))}
@@ -6908,7 +6890,7 @@ export const CompanySettingsAndBackupModule = ({
                       </span>
                     </div>
                     <p className="text-slate-100 text-justify leading-snug text-[10.5px]">
-                      Asumir la administración de su condominio no es para nosotros un mero encargo comercial ni una función de gabinete; representa un <strong>compromiso ético y profesional indeclinable</strong> con el resguardo patrimonial y la calidad de vida de su comunidad. Ponemos a su entera disposición nuestra solvencia técnica como <strong>Constructor Civil colegiado</strong>, el estricto apego a la <strong>Ley N° 21.442</strong> y una plataforma digital transparente que devolverá al Comité la tranquilidad, el orden y la dignidad directiva que se merece. Agradecemos su confianza y quedamos a su entera disposición para iniciar juntos este camino de excelencia.
+                      Asumir la administración de su condominio no es para nosotros un mero encargo comercial ni una función de gabinete; representa un <strong>compromiso ético y profesional indeclinable</strong> con el resguardo patrimonial y la calidad de vida de su comunidad. Ponemos a su entera disposición nuestra solvencia técnica como <strong>Constructor Civil</strong>, el estricto apego a la <strong>Ley N° 21.442</strong> y una plataforma digital transparente que devolverá al Comité la tranquilidad, el orden y la dignidad directiva que se merece. Agradecemos su confianza y quedamos a su entera disposición para iniciar juntos este camino de excelencia.
                     </p>
                   </div>
                 </div>
