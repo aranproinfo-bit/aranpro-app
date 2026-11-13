@@ -1,7 +1,9 @@
 // Redacción base: solo describe lo registrado y no atribuye una visita o falla no confirmada.
+export const hasTechnicalFinding = item => ['status', 'notes', 'risk', 'recommendation', 'priority', 'responsible', 'deadline', 'photoData'].some(key => String(item[key] || '').trim());
+
 export function technicalReportText(report = {}, inspection = {}, community = '') {
   const items = inspection.items || [];
-  const recorded = items.filter(item => ['status', 'notes', 'risk', 'recommendation', 'priority', 'responsible', 'deadline'].some(key => String(item[key] || '').trim()));
+  const recorded = items.filter(hasTechnicalFinding);
   const critical = recorded.filter(item => item.status === 'Crítico').length;
   const maintenance = recorded.filter(item => item.status === 'Requiere Mantención').length;
   const good = recorded.filter(item => item.status === 'Bueno').length;
@@ -11,7 +13,7 @@ export function technicalReportText(report = {}, inspection = {}, community = ''
   const counts = [critical && `${critical} ${critical === 1 ? 'figura como crítica' : 'figuran como críticas'}`, maintenance && `${maintenance} ${maintenance === 1 ? 'requiere mantención' : 'requieren mantención'}`, good && `${good} ${good === 1 ? 'figura en buen estado' : 'figuran en buen estado'}`].filter(Boolean);
   const summary = recorded.length
     ? `Se incorporaron antecedentes para ${recorded.length} ${recorded.length === 1 ? 'partida' : 'partidas'}${counts.length ? `: ${counts.join('; ')}` : ''}. ${pending ? `Hay ${pending} ${pending === 1 ? 'partida sin estado ni observación' : 'partidas sin estado ni observaciones'}, que permanecen pendientes de evaluación. ` : ''}El detalle de cada partida permite distinguir lo observado de las medidas propuestas y facilita que el comité o la asamblea identifique las materias que necesitan revisión, seguimiento o una evaluación especializada.`
-    : 'Al preparar este informe aún no se han registrado estados ni observaciones de las instalaciones. En consecuencia, las partidas incluidas se presentan como pendientes de evaluación y no es posible concluir que exista una falla ni que las instalaciones se encuentren en buen estado. El resumen se actualizará a medida que se incorporen antecedentes.';
+    : 'Al preparar este informe aún no se han registrado estados ni observaciones de las instalaciones. Las partidas permanecen pendientes de evaluación y no es posible concluir que exista una falla ni que las instalaciones se encuentren en buen estado. El resumen se actualizará a medida que se incorporen antecedentes.';
   const recommendations = items.filter(item => String(item.recommendation || '').trim());
   const action = recommendations.length
     ? 'Las recomendaciones registradas en cada partida constituyen una base para definir un plan de trabajo. Se propone revisar su alcance, solicitar antecedentes o presupuestos cuando corresponda y acordar con la comunidad la prioridad, el responsable y el plazo de cada medida. Posteriormente, conviene dejar constancia de las decisiones, avances y verificaciones de cierre.'
