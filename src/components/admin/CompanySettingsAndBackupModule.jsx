@@ -7786,7 +7786,7 @@ export const CompanySettingsAndBackupModule = ({
                   </div>}
 
                   {/* Recuadro de Garantía Institucional y Cumplimiento Ley 21.442 */}
-                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-[#0F3D2E]/10 via-[#F5F4EF] to-transparent border border-[#0F3D2E]/20 text-[8.5px] text-slate-700 space-y-1">
+                  <div className="p-2.5 rounded-xl bg-[#F5F4EF] border border-[#D4B895] text-[8.5px] text-slate-700 space-y-1">
                     <strong className="text-[#0F3D2E] block text-[9.5px]">Garantía Institucional de Respaldo ARANPRO:</strong>
                     <p className="leading-snug">
                       Nuestra postulación se formaliza bajo contrato de prestación de servicios con entregables claramente estipulados, rendición mensual de cuentas documentada y fiscalización contable continua, garantizando a la comunidad el fiel cumplimiento de las obligaciones legales establecidas en la <strong>Ley N° 21.442</strong>.
