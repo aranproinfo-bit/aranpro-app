@@ -1920,7 +1920,11 @@ export const CompanySettingsAndBackupModule = ({
       status: '',
       notes: ''
     };
-    setEditorInspection(prev => ({
+    setInspectionForm(prev => ({
+      ...prev,
+      items: [...prev.items, newItem]
+    }));
+    setTechnicalInspection(prev => ({
       ...prev,
       items: [...prev.items, newItem]
     }));
@@ -1928,7 +1932,11 @@ export const CompanySettingsAndBackupModule = ({
   };
 
   const handleRemoveInspectionItem = (id) => {
-    setEditorInspection(prev => ({
+    setInspectionForm(prev => ({
+      ...prev,
+      items: prev.items.filter(it => it.id !== id)
+    }));
+    setTechnicalInspection(prev => ({
       ...prev,
       items: prev.items.filter(it => it.id !== id)
     }));
@@ -8731,7 +8739,7 @@ export const CompanySettingsAndBackupModule = ({
                   ...[['Presentación y objetivo', technicalText.introduction], ['Alcance y limitaciones', technicalText.scope], ['Resumen ejecutivo', technicalText.executiveSummary]].map(([name,notes], i) => ({id:`intro-${i}`,name,notes, narrative:true})),
                   ...technicalInspection.items.filter(hasTechnicalFinding).map(item => ({...item, notes:[item.notes, ...[['Riesgo',item.risk],['Recomendación',item.recommendation],['Prioridad',item.priority],['Responsable propuesto',item.responsible],['Plazo propuesto',item.deadline]].filter(([,value]) => value?.trim()).map(([label,value]) => `${label}: ${value}`)].filter(Boolean).join('\n'), photoData: undefined})),
                   ...[['Plan de acción y seguimiento', technicalText.actionPlan], ['Conclusión y próximos pasos', technicalText.conclusion]].map(([name,notes], i) => ({id:`end-${i}`,name,notes, narrative:true}))
-                ], {maxWeight: 58, maxCards: 7}).concat(technicalInspection.items.filter(item => item.photoData).map(item => [{id:`photo-${item.id}`, name:`Fotografía: ${item.name}`, photoData:item.photoData, narrative:true}])).map((cards, pageIndex, pages) => (
+                ], {maxWeight: 65, maxCards: 7}).concat(technicalInspection.items.filter(item => item.photoData).map(item => [{id:`photo-${item.id}`, name:`Fotografía: ${item.name}`, photoData:item.photoData, narrative:true}])).map((cards, pageIndex, pages) => (
                   <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
                     <div className="space-y-2.5">
                       <CanonicalPdfHeader badge="INFORME TÉCNICO" description={technicalReport.purpose} page={pageIndex + 1} community={communities.find(c => String(c.id) === technicalCommunityId)?.name || proposalConfig.targetCondo?.trim() || technicalInspection.targetCondo || 'Comunidad por definir'} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
