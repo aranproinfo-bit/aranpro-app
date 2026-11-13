@@ -6,6 +6,8 @@ const isExampleReference = ref =>
   (ref.id === 'ref-1' && ref.contactName === 'Carlos Morales Rojas' && ref.phone === '+56988776655' && ref.communityName === 'Condominio Los Cerezos' && String(ref.quote || '').startsWith('Gestión muy cercana, ordenada y con gran dominio técnico en terreno.')) ||
   (ref.id === 'ref-2' && ref.contactName === 'Marcela Castillo Gómez' && ref.phone === '+56977665544' && ref.communityName === 'Condominio Los Cerezos' && String(ref.quote || '').startsWith('La plataforma digital ha traído una transparencia total.'));
 
+export const confirmedDossierReferences = references => references.filter(ref => ref.confirmed && !isExampleReference(ref));
+
 const fields = entries => entries.filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '').map(([label, value]) => `${label}: ${value}`).join('\n');
 
 export function dossierEvidencePages(academicRecords = [], accreditationDocs = [], references = []) {

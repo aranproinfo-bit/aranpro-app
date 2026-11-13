@@ -19,7 +19,7 @@ import { resendMailService } from '../../services/resendService';
 import { generateStepPdfAttachment } from '../../utils/proposalPdfGenerator';
 import { paginateComparison } from '../../utils/comparisonPagination';
 import { paginateInspection } from '../../utils/inspectionPagination';
-import { dossierEvidencePages } from '../../utils/dossierEvidence';
+import { dossierEvidencePages, confirmedDossierReferences } from '../../utils/dossierEvidence';
 import { activeProposalConditions, changeProposalCommunity, emptyProposalConditions, loadProposalOpportunity, saveProposalOpportunity } from '../../utils/proposalConditions';
 import {
   Building2, UserCheck, ShieldCheck, Award, FileText, CheckCircle2,
@@ -1695,8 +1695,12 @@ export const CompanySettingsAndBackupModule = ({
   ]);
 
   // Solo evidencia respaldada y referencias confirmadas; no modifica los registros guardados.
-  const dossierPagesOfEvidence = dossierEvidencePages(academicRecords, accreditationDocs, committeeReferences);
-  const dossierTotalPages = dossierPagesOfEvidence.length + 3;
+  const confirmedReferences = confirmedDossierReferences(committeeReferences);
+  const extraAcademic = academicRecords.filter(item => item.includeInProposal !== false).slice(6);
+  const extraDocs = accreditationDocs.filter(item => item.includeInDossier !== false).slice(6);
+  const extraReferences = confirmedReferences.slice(2);
+  const extraDossierPages = extraAcademic.length || extraDocs.length || extraReferences.length ? dossierEvidencePages(extraAcademic, extraDocs, extraReferences) : [];
+  const dossierTotalPages = extraDossierPages.length + 4;
   const dossierEvidenceStatus = dossierEvidenceHydrated ? 'ready' : 'pending';
   const dossierDemoUrl = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://portaladministracion.aranpro.cl/?demo=comunidad';
 
@@ -7650,12 +7654,160 @@ export const CompanySettingsAndBackupModule = ({
                 </div>
               </div>
 
-              {dossierPagesOfEvidence.map((cards, pageIndex) => <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed relative overflow-hidden" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
-                <div className="space-y-3"><CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Acreditación y referencias" page={pageIndex + 3} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
+              {/* ==================== PÁGINA 3: ESPECIALIDAD CONSTRUCTIVA, ACREDITACIONES Y REFERENCIAS ==================== */}
+              <div
+                data-pdf-style={pdfStyle}
+                className="dossier-page page-3 bg-white p-6 pl-10 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed relative overflow-hidden"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {/* Filete doble izquierdo Alternativa 4 */}
+                <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
+                  <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
+                  <div className="w-[2px] h-full bg-transparent" />
+                  <div className="w-[1.5px] h-full bg-[#D4B895]" />
+                </div>
+
+                {/* Sello de agua central sutil */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 opacity-[0.035]"
+                  aria-hidden="true"
+                >
+                  <img
+                    src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                    alt=""
+                    className="w-[420px] h-[420px] object-contain"
+                  />
+                </div>
+
+                <div className="space-y-3 relative z-10">
+                  <CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Acreditación y referencias" page={3} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')}
+                    brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'}
+                    email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
+
+                  {/* SECCIÓN 2: FORMACIÓN PROFESIONAL, ESPECIALIDAD CONSTRUCTIVA Y CAPACITACIONES CERTIFICADAS */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
+                        2
+                      </div>
+                      <div>
+                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                          Especialidad Constructiva, Formación Profesional y Capacitaciones Certificadas
+                        </h2>
+                        <p className="text-[8.5px] text-slate-500 leading-tight">
+                          Respaldos académicos y competencias técnicas del Administrador Titular ({empresaForm.adminName}) aplicadas directamente al condominio
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Grilla de 6 Certificaciones Profesionales y Técnicas en 2 Columnas fijas */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {academicRecords.filter(item => item.includeInProposal !== false).slice(0, 6).map((item) => (
+                        <div key={item.id} className="p-2 rounded-xl border border-slate-300 bg-slate-50/90 space-y-1 shadow-2xs flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-start justify-between gap-1">
+                              <span className="font-black text-slate-900 text-[10px] leading-normal truncate block">{item.title}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[7px] font-bold bg-[#0F3D2E] text-[#D4B895] shrink-0 whitespace-nowrap">
+                                {item.status}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-[8px] text-slate-500">
+                              <span className="truncate">Institución: <strong className="text-slate-700">{item.institution}</strong></span>
+                              <span className="shrink-0 font-mono font-bold text-slate-600 ml-1">{item.year}</span>
+                            </div>
+                            <p className="text-slate-700 bg-white px-2 py-1 rounded border border-slate-200/80 text-[8px] leading-snug mt-0.5 overflow-hidden max-h-[34px] block">
+                              <strong>Aporte Práctico:</strong> {item.relevance}
+                            </p>
+                          </div>
+                          <div className="text-[7.5px] text-emerald-800 font-mono font-bold truncate pt-0.5 border-t border-slate-200/60">
+                            {item.fileData ? `✓ Respaldo disponible: ${item.fileName}` : "Certificación informada"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Índice de Documentos Legales y Técnicos Acreditados en Carpeta Oficial */}
+                    <div className="pt-1 space-y-1">
+                      <span className="text-[9px] font-black uppercase text-[#0F3D2E] block">
+                        Carpeta Oficial de Documentos Legales, Normativos y de Especialidad:
+                      </span>
+                      <div className="grid grid-cols-2 gap-1.5 text-[8.5px]">
+                        {accreditationDocs.filter(item => item.includeInDossier !== false).slice(0, 6).map((doc, idx) => (
+                          <div key={doc.id} className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 shadow-2xs">
+                            <div className="min-w-0">
+                              <strong className="text-slate-900 block leading-normal truncate text-[8.5px]">
+                                Anexo {idx + 1}: {doc.name}
+                              </strong>
+                              <span className="text-[7.5px] text-slate-500 block truncate">
+                                {doc.issuer || 'Institución Oficial'} {doc.folio ? `• ${doc.folio}` : ''}
+                              </span>
+                            </div>
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[7.5px] shrink-0 whitespace-nowrap">
+                              ✓ {doc.status || 'Vigente'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SECCIÓN 3: REFERENCIAS DE COMITÉS */}
+                  {confirmedReferences.length > 0 && <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-[#0F3D2E] text-[#D4B895] rounded-md font-black text-[10px] flex items-center justify-center shrink-0">
+                        3
+                      </div>
+                      <div>
+                        <h2 className="font-black text-[11px] uppercase text-[#0F3D2E] tracking-tight leading-tight">
+                          Referencias Comprobables de Comités de Administración
+                        </h2>
+                        <p className="text-[8.5px] text-slate-500 leading-tight">
+                          Testimonios y antecedentes de contacto de representantes comunitarios que avalan nuestra gestión
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {confirmedReferences.slice(0, 2).map(ref => (
+                        <div key={ref.id} className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1 shadow-2xs">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-black text-slate-900 text-[10px]">{ref.contactName}</span>
+                            <span className="text-[8px] font-bold text-[#0F3D2E] text-right">{ref.role} • {ref.communityName}</span>
+                          </div>
+                          <p className="text-slate-500 text-[8px] font-mono">Fono Contacto: {ref.phone}</p>
+                          <blockquote className="text-slate-700 italic bg-white px-2 py-1 rounded border border-slate-200 text-[8.5px] leading-snug">
+                            "{String(ref.quote || '').includes('administración anterior')
+                              ? 'Gestión muy cercana, ordenada y con gran dominio técnico en terreno. El seguimiento de las mantenciones de salas de bombas y la claridad en los informes nos permiten tomar decisiones con total tranquilidad.'
+                              : ref.quote}"
+                          </blockquote>
+                        </div>
+                      ))}
+                    </div>
+                  </div>}
+
+                  {/* Recuadro de Garantía Institucional y Cumplimiento Ley 21.442 */}
+                  <div className="p-2.5 rounded-xl bg-gradient-to-r from-[#0F3D2E]/10 via-[#F5F4EF] to-transparent border border-[#0F3D2E]/20 text-[8.5px] text-slate-700 space-y-1">
+                    <strong className="text-[#0F3D2E] block text-[9.5px]">Garantía Institucional de Respaldo ARANPRO:</strong>
+                    <p className="leading-snug">
+                      Nuestra postulación se formaliza bajo contrato de prestación de servicios con entregables claramente estipulados, rendición mensual de cuentas documentada y fiscalización contable continua, garantizando a la comunidad el fiel cumplimiento de las obligaciones legales establecidas en la <strong>Ley N° 21.442</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-auto pt-2 space-y-1 relative z-10">
+                  <div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600">
+                    <span>• {extraDossierPages.length ? "Continúan antecedentes" : "Suite digital"}</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página 4 →</span>
+                  </div>
+                  <CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Acreditación y referencias" page={3} totalPages={dossierTotalPages} city={empresaForm.city || 'La Serena, Chile'} />
+                </div>
+              </div>
+
+              {extraDossierPages.map((cards, pageIndex) => <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed relative overflow-hidden" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
+                <div className="space-y-3"><CanonicalPdfHeader badge="DOSSIER INSTITUCIONAL" description="Acreditación y referencias" page={pageIndex + 4} community={proposalConfig.targetCondo?.trim() || (proposalConfig.leaveRecipientBlank ? '__________________________' : 'Comunidad de Copropietarios')} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm.email || 'contacto@aranpro.cl'} phone={empresaForm.phone || '+56 9 5811 8504'} city={empresaForm.city || 'La Serena, Chile'} />
                   <h2 className="text-sm font-black text-[#0F3D2E]">Antecedentes y referencias</h2>
                   <p className="text-[9px] text-slate-500">Los archivos originales de respaldo se adjuntan por separado cuando corresponda.</p>
                   {cards.length ? <div className="space-y-2">{cards.map((card, index) => <div key={card.id + '-' + index} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1"><strong className="text-[#0F3D2E]">{card.name}{card.continuation ? ' (continuación)' : ''}</strong><p className="text-[10.5px] leading-relaxed text-slate-700" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{card.notes}</p></div>)}</div> : <p className="p-3 border border-slate-200 rounded-xl text-slate-600">No hay antecedentes con archivo disponible ni referencias confirmadas para incluir.</p>}
-                </div><div className="mt-auto pt-2 space-y-1"><div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600"><span>• {pageIndex < dossierPagesOfEvidence.length - 1 ? 'Continúan antecedentes y referencias' : 'Suite digital'}</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página {pageIndex + 4} →</span></div><CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Acreditación y referencias" page={pageIndex + 3} totalPages={dossierTotalPages} city={empresaForm.city || 'La Serena, Chile'} /></div>
+                </div><div className="mt-auto pt-2 space-y-1"><div className="pt-1 border-t border-slate-200 flex items-center justify-between gap-2 text-[10px] text-slate-600"><span>• {pageIndex < extraDossierPages.length - 1 ? 'Continúan antecedentes y referencias' : 'Suite digital'}</span><span className="font-bold text-[#0F3D2E] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Continúa en Página {pageIndex + 5} →</span></div><CanonicalPdfPageFooter website={empresaForm.website || 'https://aranpro.cl'} label="Acreditación y referencias" page={pageIndex + 4} totalPages={dossierTotalPages} city={empresaForm.city || 'La Serena, Chile'} /></div>
               </div>)}
 
               {/* ==================== PÁGINA 4: SUITE DIGITAL ARANPRO, DEMO EN VIVO CON QR & FIRMA OFICIAL ==================== */}
