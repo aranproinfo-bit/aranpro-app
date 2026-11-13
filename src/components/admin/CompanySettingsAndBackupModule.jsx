@@ -432,6 +432,7 @@ export const CompanySettingsAndBackupModule = ({
   ]);
 
   const [dossierEvidenceHydrated, setDossierEvidenceHydrated] = useState(false);
+  const evidenceSaveQueue = useRef(Promise.resolve());
 
   // Pipeline CRM de Postulaciones y Licitaciones Activas
   const [postulationPipeline, setPostulationPipeline] = useState(companySettings?.postulationPipeline || [
@@ -1639,9 +1640,7 @@ export const CompanySettingsAndBackupModule = ({
           setCompanySettings((prev) => ({
             ...prev,
             rnacNumber: (prev?.rnacNumber && prev.rnacNumber !== '48.912') ? prev.rnacNumber : '',
-            companyRut: (prev?.companyRut && !String(prev.companyRut).includes('76.999.888')) ? prev.companyRut : '',
-            academicBackground: hydratedAcad,
-            accreditationFiles: hydratedDocs
+            companyRut: (prev?.companyRut && !String(prev.companyRut).includes('76.999.888')) ? prev.companyRut : ''
           }));
         }
       } catch (err) {
@@ -1654,6 +1653,22 @@ export const CompanySettingsAndBackupModule = ({
       mounted = false;
     };
   }, []);
+
+  // Guardar cambios de la biblioteca al confirmar cada edición, sin exigir guardar toda la empresa.
+  // La cola mantiene el orden si se editan varios archivos rápidamente.
+  useEffect(() => {
+    if (!dossierEvidenceHydrated) return;
+    evidenceSaveQueue.current = evidenceSaveQueue.current.catch(() => {}).then(async () => {
+      const [academic, documents] = await Promise.all([
+        stripAndStoreFiles(academicRecords, 'acad'),
+        stripAndStoreFiles(accreditationDocs, 'doc')
+      ]);
+      setCompanySettings(prev => ({ ...prev, academicBackground: academic, accreditationFiles: documents }));
+      if ([...academic, ...documents].some(record => record.fileError)) {
+        showAlert('No se pudo guardar un respaldo', 'Revisa el espacio disponible del navegador y vuelve a cargar el archivo.', 'warning');
+      }
+    });
+  }, [academicRecords, accreditationDocs, dossierEvidenceHydrated]);
 
   // Auditoría en tiempo real del nivel de preparación para licitaciones (Score 0-100)
   const readinessReport = useMemo(() => {
@@ -1682,8 +1697,7 @@ export const CompanySettingsAndBackupModule = ({
   // Solo evidencia respaldada y referencias confirmadas; no modifica los registros guardados.
   const dossierPagesOfEvidence = dossierEvidencePages(academicRecords, accreditationDocs, committeeReferences);
   const dossierTotalPages = dossierPagesOfEvidence.length + 3;
-  const dossierMissingFiles = academicRecords.some(r => r.includeInProposal !== false && (r.fileError || (r.fileId && !r.fileData))) || accreditationDocs.some(r => r.includeInDossier !== false && (r.fileError || (r.fileId && !r.fileData)));
-  const dossierEvidenceStatus = !dossierEvidenceHydrated ? 'pending' : dossierMissingFiles ? 'unavailable' : 'ready';
+  const dossierEvidenceStatus = dossierEvidenceHydrated ? 'ready' : 'pending';
   const dossierDemoUrl = typeof window !== 'undefined' ? `${window.location.origin}/?demo=comunidad` : 'https://portaladministracion.aranpro.cl/?demo=comunidad';
 
   const packageFilesCount = useMemo(() => {

@@ -10,13 +10,15 @@ const fields = entries => entries.filter(([, value]) => value !== undefined && v
 
 export function dossierEvidencePages(academicRecords = [], accreditationDocs = [], references = []) {
   const cards = [];
+  // TODO venta multiusuario: reemplazar los antecedentes predeterminados de ARANPRO
+  // por la información del perfil de cada administrador, sin compartirla entre cuentas.
   for (const record of academicRecords) {
-    if (record.includeInProposal === false || !record.fileData || record.fileError) continue;
-    cards.push({ id: `acad-${record.id}`, name: 'Formación profesional con respaldo disponible', notes: fields([['Título',record.title],['Institución',record.institution],['Año',record.year],['Estado informado',record.status],['Aporte',record.relevance],['Archivo',record.fileName]]) });
+    if (record.includeInProposal === false) continue;
+    cards.push({ id: `acad-${record.id}`, name: 'Formación profesional y certificaciones', notes: fields([['Título',record.title],['Institución',record.institution],['Año',record.year],['Estado informado',record.status],['Aporte',record.relevance],['Archivo',record.fileData && !record.fileError ? record.fileName : 'Respaldo no disponible en este dispositivo']]) });
   }
   for (const record of accreditationDocs) {
-    if (record.includeInDossier === false || !record.fileData || record.fileError) continue;
-    cards.push({ id: `doc-${record.id}`, name: 'Documento de acreditación con respaldo disponible', notes: fields([['Documento',record.name],['Emisor',record.issuer],['Folio',record.folio],['Estado informado',record.status],['Archivo',record.fileName]]) });
+    if (record.includeInDossier === false) continue;
+    cards.push({ id: `doc-${record.id}`, name: 'Acreditación informada', notes: fields([['Documento',record.name],['Emisor',record.issuer],['Folio',record.folio],['Estado informado',record.status],['Archivo',record.fileData && !record.fileError ? record.fileName : 'Respaldo no disponible en este dispositivo']]) });
   }
   for (const ref of references) {
     if (!ref.confirmed || isExampleReference(ref)) continue;

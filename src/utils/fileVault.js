@@ -48,7 +48,7 @@ export const vaultGet = (id) => run('readonly', (s) => s.get(id));
 export const vaultDelete = (id) => run('readwrite', (s) => s.delete(id));
 export const vaultKeys = () => run('readonly', (s) => s.getAllKeys());
 
-// id -> largo del dataUrl ya sincronizado (evita reescribir archivos grandes en cada autoguardado)
+// id -> contenido sincronizado: dos archivos distintos pueden tener el mismo tamaño.
 const synced = new Map();
 
 /**
@@ -62,9 +62,9 @@ export const stripAndStoreFiles = async (records = [], prefix = 'file') => {
       if (!r.fileData) return r;
       const id = r.fileId || `${prefix}-${r.id}`;
       try {
-        if (synced.get(id) !== r.fileData.length) {
+        if (synced.get(id) !== r.fileData) {
           await vaultPut(id, r.fileData);
-          synced.set(id, r.fileData.length);
+          synced.set(id, r.fileData);
         }
         const { fileData, ...rest } = r;
         return { ...rest, fileId: id, fileError: false };
@@ -85,7 +85,7 @@ export const hydrateFiles = async (records = []) => {
       try {
         const data = await vaultGet(r.fileId);
         if (data) {
-          synced.set(r.fileId, data.length);
+          synced.set(r.fileId, data);
           return { ...r, fileData: data };
         }
       } catch (err) {
