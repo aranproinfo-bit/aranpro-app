@@ -855,10 +855,10 @@ export const QuickDocumentsPanel = ({
                                 ? 'bg-[#0F3D2E] hover:bg-[#0A291F] text-white'
                                 : 'bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E] border border-emerald-300'
                             }`}
-                            title={['carta-valor', 'dossier-maestro', 'propuesta-formal'].includes(doc.id) ? 'Descargar PDF oficial con los datos actuales' : 'Descargar o imprimir PDF oficial con los datos actuales'}
+                            title={['carta-valor', 'dossier-maestro', 'propuesta-formal', 'brochure-app'].includes(doc.id) ? 'Descargar PDF oficial con los datos actuales' : 'Descargar o imprimir PDF oficial con los datos actuales'}
                           >
                             <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
-                            <span>{['carta-valor', 'dossier-maestro', 'propuesta-formal'].includes(doc.id) ? 'Descargar PDF' : 'Imprimir / PDF'}</span>
+                            <span>{['carta-valor', 'dossier-maestro', 'propuesta-formal', 'brochure-app'].includes(doc.id) ? 'Descargar PDF' : 'Imprimir / PDF'}</span>
                           </button>
                         )}
 

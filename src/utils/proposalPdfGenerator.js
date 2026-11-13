@@ -141,6 +141,13 @@ export const exportDomElementToPdfBase64 = async (elementOrId, options = {}) => 
         clonedEl.style.justifyContent = 'space-between';
         clonedEl.style.opacity = '1';
         clonedEl.style.visibility = 'visible';
+        if (options.forceCanonicalRoot) {
+          clonedEl.style.setProperty('border-left', '12.5px solid #0F3D2E', 'important');
+          clonedEl.style.setProperty('background-image', 'linear-gradient(#D4B895, #D4B895)', 'important');
+          clonedEl.style.setProperty('background-size', '4.5px 100%', 'important');
+          clonedEl.style.setProperty('background-position', '1.9px 0', 'important');
+          clonedEl.style.setProperty('background-repeat', 'no-repeat', 'important');
+        }
 
         // Desactivar line-clamp que corte texto verticalmente
         const clamps = clonedEl.querySelectorAll('[class*="line-clamp"]');
@@ -182,7 +189,7 @@ export const generateStepPdfAttachment = async ({
   const targetClean = targetRaw.replace(/[^a-zA-Z0-9]/g, '_');
   const currentLocalDate = new Date();
   const currentDateClean = `${currentLocalDate.getFullYear()}${String(currentLocalDate.getMonth() + 1).padStart(2, '0')}${String(currentLocalDate.getDate()).padStart(2, '0')}`;
-  const dateClean = stepNumber === 1 || stepNumber === 2 || stepNumber === 3 ? currentDateClean : (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
+  const dateClean = [1, 2, 3, 4].includes(stepNumber) ? currentDateClean : (proposalConfig.proposalDate || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
 
   let elementId = 'printable-cold-value-letter';
   let defaultFilename = targetClean
@@ -207,8 +214,8 @@ export const generateStepPdfAttachment = async ({
   } else if (stepNumber === 4) {
     elementId = 'printable-app-brochure';
     defaultFilename = targetClean
-      ? `ARANPRO_Brochure_App_${targetClean}_${dateClean}.pdf`
-      : `ARANPRO_Brochure_App_${dateClean}.pdf`;
+      ? `ARANPRO_Brochure_App_Copropietarios_${targetClean}_${dateClean}.pdf`
+      : `ARANPRO_Brochure_App_Copropietarios_${dateClean}.pdf`;
   } else if (stepNumber === 5) {
     elementId = 'printable-transition-package';
     defaultFilename = targetClean
@@ -241,6 +248,8 @@ export const generateStepPdfAttachment = async ({
         if (el.dataset.dossierEvidenceStatus !== 'ready') {
           throw new Error('No se pudieron cargar todos los archivos seleccionados de la bóveda. Revisa sus respaldos antes de generar el dossier.');
         }
+      }
+      if (stepNumber === 2 || stepNumber === 4) {
         // Evitar que el PDF capture el QR provisional de otro destino.
         const deadline = Date.now() + 5000;
         let qr = el.querySelector('img[data-qr-value]');
@@ -250,7 +259,7 @@ export const generateStepPdfAttachment = async ({
         }
         if (!qr || qr.dataset.qrReady !== 'true') throw new Error('No se pudo preparar el código QR de la demostración');
       }
-      const contentBase64 = await exportDomElementToPdfBase64(el, { filename: defaultFilename, hideDecorativeWatermark: stepNumber === 1 });
+      const contentBase64 = await exportDomElementToPdfBase64(el, { filename: defaultFilename, hideDecorativeWatermark: stepNumber === 1, forceCanonicalRoot: stepNumber === 4 });
       if (contentBase64 && contentBase64.length > 500) {
         return {
           filename: defaultFilename,
