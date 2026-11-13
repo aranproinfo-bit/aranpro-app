@@ -9,6 +9,8 @@ import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector } from '../..
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { CanonicalPdfHeader, CanonicalPdfPageFooter, CanonicalPdfFinalSignature, canonicalPdfHeaderStyles } from '../../common/CanonicalPdfParts';
 import { activeProposalConditions } from '../../../utils/proposalConditions';
+import { saferPitchAnswers } from './pitchCorrections';
+import { paginateInspection } from '../../../utils/inspectionPagination';
 
 /**
  * PITCH MASTER PANEL
@@ -34,11 +36,15 @@ export const PitchMasterPanel = ({
   renderToolboxNavbar = null
 }) => {
   // Estado de personalización dinámica
-  const [targetCondo, setTargetCondo] = useState(
-    proposalConfig.targetCondo || currentCommunity?.name || 'Comunidad Los Laureles'
-  );
+  const [targetCondo, setTargetCondo] = useState(proposalConfig.targetCondo || currentCommunity?.name || '');
   const [condoType, setCondoType] = useState('vertical'); // 'vertical' | 'horizontal' | 'mixto'
   const [strategyProfile, setStrategyProfile] = useState('tecnico'); // 'tecnico' | 'financiero' | 'legal'
+  const [responseOverrides, setResponseOverrides] = useState({});
+  const [meetingNotes, setMeetingNotes] = useState('');
+  const [meetingChecklist, setMeetingChecklist] = useState({});
+  const pitchStorageKey = `aranpro_pitch_${targetCondo.trim().toLocaleLowerCase('es-CL')}`;
+  const savePitch = () => { if (!targetCondo.trim()) {showAlert('Falta la comunidad', 'Ingresa el nombre antes de guardar.', 'warning'); return;} try { localStorage.setItem(pitchStorageKey, JSON.stringify({condoType,strategyProfile,responseOverrides,meetingNotes,meetingChecklist})); showAlert('Preparación guardada','Guardada para esta comunidad en este navegador.','success'); } catch {showAlert('No se pudo guardar','Revisa el almacenamiento del navegador.','error');} };
+  const loadPitch = () => {try {const saved=JSON.parse(localStorage.getItem(pitchStorageKey) || 'null'); if (!saved) {showAlert('Sin preparación guardada','No hay una preparación para esta comunidad en este navegador.','warning');return;} setCondoType(saved.condoType || 'vertical');setStrategyProfile(saved.strategyProfile || 'tecnico');setResponseOverrides(saved.responseOverrides || {});setMeetingNotes(saved.meetingNotes || '');setMeetingChecklist(saved.meetingChecklist || {});showAlert('Preparación recuperada','Puedes revisar y editar el libreto.','success');} catch {showAlert('No se pudo recuperar','Revisa los datos guardados en el navegador.','error');}};
 
   // Estado del arsenal de objeciones
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,16 +77,16 @@ export const PitchMasterPanel = ({
     let step1ProTip = '';
 
     if (condoType === 'vertical') {
-      step1What = `Reconocer el agotamiento real del Comité de ${condo} frente a reclamos diarios por fallas de ascensores, bombas de agua que meten ruido o colillas con gastos que nadie sabe de dónde salieron.`;
-      step1Phrase = `"Sabemos perfectamente que ustedes como integrantes del Comité están sobrecargados, respondiendo mensajes molestos a deshoras por fallas de la administración saliente. En ARANPRO no venimos a pedirles fe ciega: venimos a quitarles esa carga de los hombros desde hoy mismo con presencia técnica in situ y cuentas de cristal donde cada peso tiene respaldo bancario visible en línea."`;
+      step1What = `Conocer las prioridades del comité de ${condo} y las características de sus instalaciones y su gestión.`;
+      step1Phrase = `"Nos interesa conocer cómo funciona ${condo}, cuáles son sus prioridades y qué espera de su administración. A partir de ello podemos presentar una propuesta de gestión técnica, comunicación y rendición adaptada a sus necesidades."`;
       step1ProTip = 'No hable de usted todavía. Hable del alivio que ellos sentirán al no tener que ser el "pararrayos" de las quejas vecinales.';
     } else if (condoType === 'horizontal') {
-      step1What = `Conectar con la sensación de desprotección perimetral, áreas verdes descuidadas, portones que fallan y vecinos morosos crónicos que nadie se atreve a cobrar en ${condo}.`;
-      step1Phrase = `"En un condominio de extensión como ${condo}, el mayor desgaste del Comité es ver cómo se deterioran las calles interiores, los portones y las áreas comunes mientras una minoría no paga sus gastos comunes. Venimos a profesionalizar la gestión con la Ley N° 21.442 para proteger la plusvalía de sus casas sin que ustedes tengan que pelear con sus propios vecinos."`;
+      step1What = `Preguntar por las prioridades de ${condo}, incluyendo áreas comunes, accesos y mantenciones, sin suponer problemas no informados.`;
+      step1Phrase = `"Queremos conocer las prioridades de ${condo} y cómo podemos apoyar el cuidado de sus espacios comunes con una gestión ordenada y transparente."`;
       step1ProTip = 'Enfoque la apertura en la plusvalía patrimonial y la paz comunitaria del barrio.';
     } else {
-      step1What = `Abordar la fricción habitual entre residentes y locales comerciales/oficinas en ${condo} por el uso de estacionamientos, ruidos y prorrateo de gastos comunes diferenciados.`;
-      step1Phrase = `"Un condominio mixto como ${condo} exige un administrador que domine el Art. 6° de la Ley N° 21.442. No se puede administrar un espacio mixto con planillas simples; se requiere contabilidad segregada y reglas claras para que la actividad comercial no opaque la tranquilidad residencial."`;
+      step1What = `Comprender las necesidades residenciales y comerciales de ${condo} y revisar sus reglas y distribución de gastos.`;
+      step1Phrase = `"En ${condo} nos interesa comprender las necesidades de sus distintos usuarios y revisar las reglas y antecedentes aplicables para proponer una gestión clara."`;
       step1ProTip = 'Destaque la precisión contable y la segregación de gastos diferenciados.';
     }
 
@@ -92,24 +98,24 @@ export const PitchMasterPanel = ({
 
     if (strategyProfile === 'tecnico') {
       step2Title = 'El Diferenciador de Constructor Civil en Terreno';
-      step2What = `Demostrar que el 60% del gasto común se destina a mantenciones de infraestructura. La mayoría de los administradores son comerciales o contadores que nunca pisan la sala técnica y validan cotizaciones infladas. Tu formación de Constructor Civil ahorra millones en peritajes y fiscalización directa.`;
-      step2Phrase = `"Cuando en ${condo} falla una bomba de impulsión, un tablero eléctrico o hay filtraciones en cubiertas, mi primer paso no es llamar a ciegas a un contratista externo para que les pase una factura inflada. Mi primer paso es ponerme el casco, ingresar a la sala de máquinas, medir el amperaje o revisar la pendiente técnica, y cotizar con criterio constructivo real. Ese criterio técnico le ahorra a la comunidad entre 2 a 5 millones de pesos al año."`;
+      step2What = `Explicar cómo la formación de Constructor Civil contribuye a revisar alcances, antecedentes y cotizaciones, y a coordinar especialistas cuando corresponda.`;
+      step2Phrase = `"Para ${condo}, propongo aplicar criterio constructivo a la revisión de las mantenciones y de sus respaldos. Según la instalación y el trabajo requerido, coordinaremos a los especialistas habilitados y presentaremos al comité los antecedentes para decidir. Las visitas serán ${terms.visitFrequency || 'definidas con el comité'}."`;
       step2ProTip = 'Muestre físicamente o en pantalla el Informe de Diagnóstico Técnico Inicial que acompaña su propuesta.';
     } else if (strategyProfile === 'financiero') {
       step2Title = 'Transparencia Radical & Auditoría Bancaria 24/7';
-      step2What = `Enfocarse en la erradicación absoluta de las "cajas negras". Conciliación bancaria peso a peso en tiempo real, cartolas disponibles para el Comité y finiquitos previsionados en el fondo de reserva.`;
-      step2Phrase = `"En ARANPRO la cuenta corriente está 100% a nombre exclusivo de la Comunidad de ${condo}. El Comité mantiene la firma electrónica liberadora; nosotros armamos las nóminas con facturas verificadas en el SII y comprobantes bancarios anexos. Cero transferencias a cuentas personales, cero pagos sin factura tributaria."`;
+      step2What = `Presentar el método propuesto de rendición y revisión de respaldos, según las condiciones y accesos acordados.`;
+      step2Phrase = `"Proponemos para ${condo} una gestión financiera documentada. La preparación y autorización de pagos, y el acceso a sus respaldos, se definirán con el comité según los acuerdos y las facultades aplicables."`;
       step2ProTip = 'Resalte la segregación de funciones: la administración propone y documenta, el comité autoriza el banco.';
     } else {
       step2Title = 'Blindaje Legal Ley N° 21.442 & Asesoría Especializada';
-      step2What = `Destacar el cumplimiento riguroso de la nueva normativa de copropiedad: asambleas válidas, quórums telemáticos, actualización del reglamento ante el Conservador y cobranza judicial con título ejecutivo.`;
-      step2Phrase = `"La Ley N° 21.442 introdujo responsabilidades civiles e incluso penales para los comités que operan con administradores informales. Con nosotros, ${condo} queda completamente blindado: asambleas con quórum digital válido por RUT, reglamentos actualizados y certificados de deuda que constituyen título ejecutivo inmediato ante tribunales civiles."`;
-      step2ProTip = 'Enfatice el riesgo que corren los miembros del comité al firmar balances sin auditoría formal.';
+      step2What = `Explicar la importancia de revisar la normativa y el reglamento aplicables, documentar acuerdos y recurrir a asesoría especializada cuando corresponda.`;
+      step2Phrase = `"Proponemos acompañar a ${condo} con gestión documentada y atención a la normativa aplicable. Los acuerdos, las modalidades de asamblea y la cobranza se revisarán según los antecedentes de la comunidad, con asesoría especializada cuando corresponda."`;
+      step2ProTip = 'Explique qué respaldo se entregará y qué materias podrían requerir asesoría especializada.';
     }
 
     // Minutos 6-8: Demostración Tecnológica en Vivo
     const step3What = `Sacar el teléfono móvil o compartir pantalla para mostrar la Suite Digital ARANPRO en vivo. Enseñar la colilla interactiva, el botón de respaldo bancario con factura tributaria y el Libro Digital de Reclamos conforme al Art. 20°.`;
-    const step3Phrase = `"Miren mi teléfono en este momento: cualquier copropietario de ${condo} abre la app, pincha el gasto de mantención de ascensores o bombas y ve inmediatamente la factura del proveedor y el comprobante de transferencia bancaria oficial. Si tiene un reclamo, no manda un WhatsApp que se pierde: ingresa al Libro Oficial de Reclamos Ley 21.442 y recibe un ticket de seguimiento con plazo legal de respuesta. Con esto se acaban las dudas y la violencia en las asambleas."`;
+    const step3Phrase = `"Podemos explorar juntos la demostración de la plataforma y revisar cómo presenta la información de gastos, documentos y comunicaciones. Los accesos y funcionalidades disponibles para ${condo} dependerán de la configuración y los servicios acordados."`;
     const step3ProTip = 'Invite a un miembro del comité a escanear con su propia cámara el código QR del brochure para que interactúe.';
 
     // Minutos 9-10: Cierre y Propuesta de Traspaso Seguro
@@ -151,7 +157,7 @@ export const PitchMasterPanel = ({
       {
         num: 4,
         time: 'Minutos 9 - 10',
-        title: 'Oferta de Traspaso Seguro & Cierre sin Riesgo',
+        title: 'Propuesta de Traspaso Ordenado y Cierre',
         badge: 'Cierre Comercial',
         what: step4What,
         phrase: step4Phrase,
@@ -159,7 +165,7 @@ export const PitchMasterPanel = ({
         docRef: 'Paso 3 • Propuesta Comercial'
       }
     ];
-  }, [targetCondo, condoType, strategyProfile, terms.transitionConditions, terms.includedServices]);
+  }, [targetCondo, condoType, strategyProfile, terms.transitionConditions, terms.includedServices, terms.visitFrequency]);
 
   // ==========================================
   // 2. ARSENAL DE PREGUNTAS DIFÍCILES Y OBJECIONES (10 CASOS)
@@ -265,7 +271,9 @@ export const PitchMasterPanel = ({
       basis: 'La duración, renovación y forma de término deben precisarse en la propuesta y el contrato aplicable.',
       response: `Para ${targetCondo.trim() || 'su comunidad'}, la duración propuesta es: ${terms.contractDuration || 'por definir'}. El aviso de término propuesto es: ${terms.noticePeriod || 'por definir'}. Otras condiciones: ${terms.otherConditions || 'por definir'}.`
     }
-  ], [targetCondo, terms.emergencyResponse, terms.visitFrequency, terms.contractDuration, terms.noticePeriod, terms.otherConditions]);
+  ].map(obj => {const corrected=saferPitchAnswers[obj.id] ? {...obj, basis:saferPitchAnswers[obj.id][0], response:saferPitchAnswers[obj.id][1]} : obj; return responseOverrides[obj.id] !== undefined ? {...corrected, response:responseOverrides[obj.id]} : corrected;}), [targetCondo, terms.emergencyResponse, terms.visitFrequency, terms.contractDuration, terms.noticePeriod, terms.otherConditions, responseOverrides]);
+
+  const objectionPages = paginateInspection(OBJECTIONS_ARSENAL.map(obj => ({...obj, notes:obj.response})), {maxWeight:30, maxCards:2});
 
   // Filtrado de objeciones según término de búsqueda y categoría
   const filteredObjections = useMemo(() => {
@@ -428,7 +436,7 @@ export const PitchMasterPanel = ({
             <input
               type="text"
               value={targetCondo}
-              onChange={(e) => setTargetCondo(e.target.value)}
+              onChange={(e) => {setTargetCondo(e.target.value); setResponseOverrides({}); setMeetingNotes(''); setMeetingChecklist({}); setCondoType('vertical'); setStrategyProfile('tecnico');}}
               placeholder="Ej: Condominio Las Palmas"
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#0F3D2E] focus:border-transparent transition-all"
             />
@@ -494,6 +502,9 @@ export const PitchMasterPanel = ({
             </div>
           </div>
         </div>
+        <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50 text-xs text-slate-700"><strong className="text-[#0F3D2E]">Condiciones de la comunidad:</strong> Visitas: {terms.visitFrequency || 'Por definir'} • Emergencias: {terms.emergencyResponse || 'Por definir'} • Servicios incluidos: {terms.includedServices || 'Por definir'} • Servicios adicionales: {terms.additionalServices || 'Por definir'} • Reuniones: {terms.meetingFrequency || 'Por definir'} • Transición: {terms.transitionConditions || 'Por definir'} • Duración: {terms.contractDuration || 'Por definir'} • Aviso: {terms.noticePeriod || 'Por definir'} • Honorario: {targetCondo.trim().toLocaleLowerCase('es-CL') === (proposalConfig.targetCondo || '').trim().toLocaleLowerCase('es-CL') && Number(proposalConfig.proposedMonthlyFee) > 0 && !proposalConfig.unknownDetails ? `$${Number(proposalConfig.proposedMonthlyFee).toLocaleString('es-CL')} / mes` : 'Por definir'}.</div>
+        <div className="flex flex-wrap gap-2 text-xs"><button type="button" onClick={savePitch} className="px-3 py-2 rounded-lg bg-[#0F3D2E] text-white font-bold">Guardar preparación</button><button type="button" onClick={loadPitch} className="px-3 py-2 rounded-lg border border-slate-300 font-bold">Recuperar preparación</button><span className="text-slate-500 py-2">Se guarda por nombre de comunidad en este navegador.</span></div>
+        <details className="border border-slate-200 rounded-xl p-3 text-xs"><summary className="font-bold text-[#0F3D2E] cursor-pointer">Preparación de la reunión y notas</summary><div className="flex flex-wrap gap-3 mt-3">{['Carta de valor','Dossier','Diagnóstico','Demostración','Propuesta económica'].map(name => <label key={name} className="flex gap-1 items-center"><input type="checkbox" checked={!!meetingChecklist[name]} onChange={e => setMeetingChecklist(prev => ({...prev,[name]:e.target.checked}))} />{name}</label>)}</div><label className="block font-bold mt-3">Preguntas y acuerdos<textarea value={meetingNotes} onChange={e => setMeetingNotes(e.target.value)} rows={3} className="block w-full mt-1 p-2 border border-slate-300 rounded-lg font-normal" /></label></details>
       </div>
 
       {/* ========================================================= */}
@@ -719,7 +730,7 @@ export const PitchMasterPanel = ({
                         <div className="p-3 rounded-xl bg-red-50/80 border border-red-200 text-red-900 space-y-1">
                           <span className="font-black text-[11px] flex items-center gap-1 text-red-800">
                             <X className="w-3.5 h-3.5 text-red-600" />
-                            Error Fatal del 90% de los Administradores:
+                            Error que conviene evitar:
                           </span>
                           <p className="text-[11px] leading-relaxed">
                             {obj.fatalError}
@@ -750,6 +761,7 @@ export const PitchMasterPanel = ({
                         <p className="text-slate-800 leading-relaxed font-medium text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
                           "{obj.response}"
                         </p>
+                        <details className="text-xs"><summary className="cursor-pointer font-bold text-[#0F3D2E]">Personalizar respuesta (opcional)</summary><textarea rows={4} value={responseOverrides[obj.id] ?? obj.response} onChange={e => setResponseOverrides(prev => ({...prev,[obj.id]:e.target.value}))} className="w-full p-2 mt-2 border border-slate-300 rounded-lg" /><div className="flex flex-wrap gap-3 mt-1"><button type="button" className="font-bold text-[#0F3D2E]" onClick={() => setResponseOverrides(prev => {const next={...prev};delete next[obj.id];return next;})}>Usar respuesta propuesta</button><button type="button" className="font-bold text-[#0F3D2E]" onClick={() => {const base=saferPitchAnswers[obj.id]?.[1] || obj.response;setResponseOverrides(prev => ({...prev,[obj.id]:base.split(/(?<=[.!?])\s+/).slice(0,2).join(' ')}));}}>Usar propuesta breve</button></div></details>
                       </div>
                     </div>
                   )}
@@ -788,7 +800,7 @@ export const PitchMasterPanel = ({
                     Ficha Ejecutiva del Pitch de 10 Minutos & Matriz de Objeciones
                   </h4>
                   <p className="text-[11px] text-slate-500 font-mono">
-                    Documento de Apoyo para el Expositor • Formato Oficial ARANPRO (Carta 2 Páginas)
+                    Documento de Apoyo para el Expositor • Formato Oficial ARANPRO (Carta)
                   </p>
                 </div>
               </div>
@@ -822,9 +834,9 @@ export const PitchMasterPanel = ({
           {/* CONTENEDOR DEL DOCUMENTO IMPRIMIBLE (2 PÁGINAS) */}
           <div className={previewPitchPdfModal ? "overflow-y-auto flex-1 pr-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl" : "w-[850px]"}>
             <div id="printable-pitch-guide" data-pdf-style={pdfStyle}>
-              {[...Array(4)].map((_, pageIndex, pages) => <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
+                {[...Array(2 + objectionPages.length)].map((_, pageIndex, pages) => <div key={pageIndex} className="dossier-page bg-white p-6 flex flex-col justify-between max-w-[850px] mx-auto text-slate-900 text-xs shadow-md leading-relaxed" style={{fontFamily:'system-ui, -apple-system, sans-serif'}}>
                 <div className="space-y-3"><CanonicalPdfHeader badge="GUÍA DE PRESENTACIÓN" description={pageIndex < 2 ? 'Hoja de ruta del pitch' : 'Respuestas a objeciones'} page={pageIndex + 1} community={targetCondo || 'Comunidad'} brandName={empresaForm.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={email} phone={phone} city={empresaForm.city || 'La Serena, Chile'} />
-                  {pageIndex < 2 ? <><div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-[10px]"><strong>Comunidad:</strong> {targetCondo || 'Comunidad'} • <strong>Tipología:</strong> {condoType === 'vertical' ? 'Torre / edificio' : condoType === 'horizontal' ? 'Casas' : 'Mixto'} • <strong>Perfil:</strong> {strategyProfile} • <strong>Expositor:</strong> {adminName}</div><h3 className="text-sm font-black text-[#0F3D2E]">Hoja de ruta del pitch de 10 minutos</h3><div className="space-y-2">{pitchSteps.slice(pageIndex * 2, pageIndex * 2 + 2).map(step => <div key={step.num} className="p-3 rounded-xl border border-slate-200 space-y-1.5"><div className="flex justify-between gap-2"><strong className="text-[#0F3D2E]">{step.time} • {step.title}</strong><span className="text-[9px] text-slate-500">{step.docRef}</span></div><p><strong>Objetivo:</strong> {step.what}</p><blockquote className="italic bg-slate-50 p-2 border-l-2 border-[#0F3D2E]">{step.phrase}</blockquote><p><strong>Consejo:</strong> {step.protip}</p></div>)}</div>{pageIndex === 1 && <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[10px]"><strong>Regla de oro de la presentación:</strong> Escuchar el 60% del tiempo y hablar el 40%. No atacar personalmente al administrador saliente; centrarse en los métodos y ofrecer soluciones.</div>}</> : <><h3 className="text-sm font-black text-[#0F3D2E]">Respuestas a preguntas del Comité</h3><div className="space-y-2">{OBJECTIONS_ARSENAL.slice((pageIndex - 2) * 3, (pageIndex - 2) * 3 + 3).map(item => <div key={item.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2"><strong>{item.question}</strong><p className="bg-white p-2 rounded-lg border border-slate-200"><strong className="text-[#0F3D2E]">Respuesta:</strong> {item.response}</p></div>)}</div></>}
+                  {pageIndex < 2 ? <><div className="p-2 bg-slate-50 rounded-xl border border-slate-200 text-[10px]"><strong>Comunidad:</strong> {targetCondo || 'Comunidad'} • <strong>Tipología:</strong> {condoType === 'vertical' ? 'Torre / edificio' : condoType === 'horizontal' ? 'Casas' : 'Mixto'} • <strong>Perfil:</strong> {strategyProfile} • <strong>Expositor:</strong> {adminName}</div><h3 className="text-sm font-black text-[#0F3D2E]">Hoja de ruta del pitch de 10 minutos</h3><div className="space-y-2">{pitchSteps.slice(pageIndex * 2, pageIndex * 2 + 2).map(step => <div key={step.num} className="p-3 rounded-xl border border-slate-200 space-y-1.5"><div className="flex justify-between gap-2"><strong className="text-[#0F3D2E]">{step.time} • {step.title}</strong><span className="text-[9px] text-slate-500">{step.docRef}</span></div><p><strong>Objetivo:</strong> {step.what}</p><blockquote className="italic bg-slate-50 p-2 border-l-2 border-[#0F3D2E]">{step.phrase}</blockquote><p><strong>Consejo:</strong> {step.protip}</p></div>)}</div>{pageIndex === 1 && <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[10px]"><strong>Regla de oro de la presentación:</strong> Escuchar el 60% del tiempo y hablar el 40%. No atacar personalmente al administrador saliente; centrarse en los métodos y ofrecer soluciones.</div>}</> : <><h3 className="text-sm font-black text-[#0F3D2E]">Respuestas a preguntas del Comité</h3><div className="space-y-2">{objectionPages[pageIndex - 2].map((item, partIndex) => <div key={item.id + "-" + partIndex} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2"><strong>{item.question}{item.continuation ? " (continuación)" : ""}</strong><p className="bg-white p-2 rounded-lg border border-slate-200" style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}><strong className="text-[#0F3D2E]">Respuesta:</strong> {item.notes}</p></div>)}</div></>}
                 </div><div className="mt-auto pt-1.5 space-y-1">{pageIndex < pages.length - 1 ? <div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: guía de presentación.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página {pageIndex + 2} →</span></div> : <CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} />}<CanonicalPdfPageFooter website={website} label="Guía de presentación" page={pageIndex + 1} totalPages={pages.length} city={empresaForm.city || 'La Serena, Chile'} /></div>
               </div>)}
             </div>
