@@ -1,6 +1,6 @@
 // Distribuye observaciones sin descartar caracteres. El límite conservador deja
 // espacio para cabecera, datos del inspector y pie institucional en carta.
-export function paginateInspection(items, { maxWeight = 42, maxCards = 5 } = {}) {
+export function paginateInspection(items, { maxWeight = 42, maxCards = 5, extraWeight = () => 0 } = {}) {
   const cards = [];
   for (const item of items || []) {
     const notes = String(item.notes || '');
@@ -20,7 +20,7 @@ export function paginateInspection(items, { maxWeight = 42, maxCards = 5 } = {})
     if (!lines.length) lines.push('');
     for (let at = 0; at < lines.length; at += 14) {
       const slice = lines.slice(at, at + 14);
-      cards.push({ ...item, notes: slice.join(''), continuation: at > 0, weight: 4 + slice.length });
+      cards.push({ ...item, notes: slice.join(''), continuation: at > 0, weight: 4 + slice.length + extraWeight(item) });
     }
   }
   const pages = [];

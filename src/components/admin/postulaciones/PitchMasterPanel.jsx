@@ -273,7 +273,7 @@ export const PitchMasterPanel = ({
     }
   ].map(obj => {const corrected=saferPitchAnswers[obj.id] ? {...obj, basis:saferPitchAnswers[obj.id][0], response:saferPitchAnswers[obj.id][1]} : obj; return responseOverrides[obj.id] !== undefined ? {...corrected, response:responseOverrides[obj.id]} : corrected;}), [targetCondo, terms.emergencyResponse, terms.visitFrequency, terms.contractDuration, terms.noticePeriod, terms.otherConditions, responseOverrides]);
 
-  const objectionPages = paginateInspection(OBJECTIONS_ARSENAL.map(obj => ({...obj, notes:obj.response})), {maxWeight:30, maxCards:2});
+  const objectionPages = paginateInspection(OBJECTIONS_ARSENAL.map(obj => ({...obj, notes:obj.response})), {maxWeight:62, maxCards:4, extraWeight: obj => Math.ceil((obj.question || '').length / 75) + 2});
 
   // Filtrado de objeciones según término de búsqueda y categoría
   const filteredObjections = useMemo(() => {
