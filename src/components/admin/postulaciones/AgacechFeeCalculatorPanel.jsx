@@ -10,6 +10,7 @@ import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPd
 import { CanonicalPdfHeader, CanonicalPdfPageFooter, CanonicalPdfFinalSignature, canonicalPdfHeaderStyles } from '../../common/CanonicalPdfParts';
 import { useCommunity } from '../../../context/CommunityContext';
 import { useEconomicIndicators } from '../../../hooks/useEconomicIndicators';
+import { suggestedFeeFloor, continuousTierBase } from '../../../utils/feeFloorModel';
 
 /**
  * MATRIZ PERICIAL DE HONORARIOS ARANPRO • LEY N° 21.442
@@ -154,6 +155,7 @@ export const AgacechFeeCalculatorPanel = ({
     ufDate: '',
     ufMode: 'auto',
     minFloorUF: 15,
+    floorMode: 'auto',
     calcMethod: 'direct', // 'direct' | 'progressive'
     ageId: '',
 
@@ -188,7 +190,7 @@ export const AgacechFeeCalculatorPanel = ({
     const initial = createInitialCalc();
     try {
       const saved = storageKey && JSON.parse(localStorage.getItem(storageKey) || 'null');
-      return saved ? { ...initial, ...saved, condoName: communityName, ufMode: saved.ufMode || (saved.ufValueCLP ? 'manual' : 'auto') } : initial;
+      return saved ? { ...initial, ...saved, condoName: communityName, ufMode: saved.ufMode || (saved.ufValueCLP ? 'manual' : 'auto'), floorMode: saved.floorMode || 'manual' } : initial;
     } catch { return initial; }
   };
   const [calc, setCalc] = useState(loadCalc);
@@ -218,12 +220,14 @@ export const AgacechFeeCalculatorPanel = ({
     // El valor anterior se usa solo para una vista preliminar; la validación exige
     // ingresar una UF y fecha antes de imprimir o aplicar el honorario.
     const ufCLP = Math.max(0, Number(calc.ufValueCLP) || 38450);
-    const minFloorUF = Math.max(1, Number(calc.minFloorUF) || 15);
+    const suggestedFloorUF = suggestedFeeFloor(units);
+    const minFloorUF = calc.floorMode === 'auto' ? suggestedFloorUF : Math.max(1, Number(calc.minFloorUF) || 1);
 
     // 2. Determinar tramo y Tarifa Base en UF
     const activeTier = UNIT_TIERS.find(t => units >= t.min && units <= t.max) || UNIT_TIERS[UNIT_TIERS.length - 1];
 
     let baseUF = 0;
+    let continuityAdjusted = false;
     if (calc.calcMethod === 'progressive') {
       let remaining = units;
       const b1 = Math.min(remaining, 50);
@@ -242,7 +246,9 @@ export const AgacechFeeCalculatorPanel = ({
         baseUF += remaining * 0.14;
       }
     } else {
-      baseUF = units * activeTier.rateUF;
+      const continuous = continuousTierBase(units, activeTier.rateUF);
+      baseUF = continuous.value;
+      continuityAdjusted = continuous.adjusted;
     }
 
     // 3. Sub-sectores Contables Diferenciados (Art. 6° Ley N° 21.442)
@@ -329,6 +335,8 @@ export const AgacechFeeCalculatorPanel = ({
       declaredUnits,
       ufCLP,
       minFloorUF,
+      suggestedFloorUF,
+      continuityAdjusted,
       activeTier,
       baseUF,
       subsectors,
@@ -381,7 +389,7 @@ export const AgacechFeeCalculatorPanel = ({
     (!Number.isInteger(result.units) || result.units <= 0) && 'Indica una cantidad de unidades mayor que cero.',
     calc.declaredUnits !== '' && (!Number.isInteger(Number(calc.declaredUnits)) || Number(calc.declaredUnits) <= 0) && 'El total informado debe ser un número entero mayor que cero.',
     (!Number.isInteger(Number(calc.subsectorsCount)) || Number(calc.subsectorsCount) < 1) && 'Indica al menos un sector.',
-    (!Number.isFinite(Number(calc.minFloorUF)) || Number(calc.minFloorUF) < 1) && 'Indica un piso de honorarios de al menos 1 UF.',
+    calc.floorMode === 'manual' && (!Number.isFinite(Number(calc.minFloorUF)) || Number(calc.minFloorUF) < 1) && 'Indica un piso de honorarios de al menos 1 UF.',
     [calc.deptosCount, calc.housesCount, calc.commercialCount, calc.subsectorsCount, calc.elevatorsCount, calc.directEmployees, calc.outsourcedCompanies].some(value => value !== '' && (!Number.isInteger(Number(value)) || Number(value) < 0)) && 'Las cantidades deben ser números enteros no negativos.',
     result.breakdownUnits > 0 && result.declaredUnits > 0 && result.breakdownUnits !== result.declaredUnits && 'El desglose de unidades no coincide con el total informado.',
     (calc.typology === 'depto_only' && (result.hCount > 0 || result.cCount > 0) || calc.typology === 'house_only' && (result.dCount > 0 || result.cCount > 0) || calc.typology === 'mixed_residential' && result.cCount > 0) && 'La tipología elegida no coincide con el desglose de unidades.',
@@ -686,15 +694,21 @@ export const AgacechFeeCalculatorPanel = ({
                 <label className="block text-[10px] font-bold text-slate-600 uppercase">
                   Piso Mínimo Técnico de Honorario (UF)
                 </label>
+                <div className="flex gap-2 text-[10px] font-bold">
+                  <button type="button" aria-pressed={calc.floorMode === 'auto'} onClick={() => setCalc({ ...calc, floorMode: 'auto' })} className={`px-3 py-1.5 rounded-lg border ${calc.floorMode === 'auto' ? 'bg-[#0F3D2E] text-white' : 'bg-white text-slate-700'}`}>Sugerencia automática</button>
+                  <button type="button" aria-pressed={calc.floorMode === 'manual'} onClick={() => setCalc({ ...calc, floorMode: 'manual', minFloorUF: result.minFloorUF })} className={`px-3 py-1.5 rounded-lg border ${calc.floorMode === 'manual' ? 'bg-[#0F3D2E] text-white' : 'bg-white text-slate-700'}`}>Piso manual</button>
+                </div>
                 <input
                   type="number"
-                  min="5"
-                  max="50"
-                  step="0.5"
-                  value={calc.minFloorUF}
-                  onChange={(e) => setCalc({ ...calc, minFloorUF: e.target.value })}
+                  aria-label="Piso mínimo de honorario en UF"
+                  min="1"
+                  step="0.1"
+                  value={calc.floorMode === 'auto' ? result.minFloorUF : calc.minFloorUF}
+                  onChange={(e) => setCalc({ ...calc, floorMode: 'manual', minFloorUF: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                 />
+                <div className="flex flex-wrap gap-2 text-[10px]">{[10, 11.5, 15].map(value => <button key={value} type="button" onClick={() => setCalc({ ...calc, floorMode: 'manual', minFloorUF: value })} className="px-2 py-1 rounded-lg border border-emerald-200 text-emerald-900">{value.toLocaleString('es-CL')} UF</button>)}</div>
+                <p className="text-[10px] text-slate-500">Sugerencia ARANPRO: 10 UF hasta 20 unidades; sube gradualmente a 12 UF en 30 y a 15 UF en 65. Puedes editarla. {calc.floorMode === 'manual' ? 'Se conserva el piso manual guardado para esta comunidad.' : 'El piso se actualiza con las unidades.'}</p>
               </div>
 
               <div className="space-y-1">
@@ -1185,6 +1199,7 @@ export const AgacechFeeCalculatorPanel = ({
                 <span>1. Tarifa Base ({result.units} u. • {result.activeTier.rateUF} UF/u):</span>
                 <span className="font-mono font-bold">{result.baseUF.toFixed(2)} UF</span>
               </div>
+              {result.continuityAdjusted && <p className="text-[10px] text-emerald-200">Se mantiene la base del tramo anterior para evitar una reducción al sumar unidades.</p>}
 
               {result.subsectorsUF > 0 && (
                 <div className="flex items-center justify-between text-emerald-100">
@@ -1282,7 +1297,7 @@ export const AgacechFeeCalculatorPanel = ({
                 El modelo considera la tipología <strong>{result.typoObj.label}</strong>, {result.breakdownUnits ? `el desglose de ${[result.dCount > 0 && `${result.dCount} departamentos`, result.hCount > 0 && `${result.hCount} casas`, result.cCount > 0 && `${result.cCount} locales`].filter(Boolean).join(', ')}` : `${result.units} unidades sin desglose informado`}, {result.subsectors} sector(es), las instalaciones declaradas y la dotación informada. Las ponderaciones y tarifas son criterios del modelo ARANPRO; la distribución de gastos debe revisarse según el reglamento de la comunidad.
               </p>
               <div className="p-1.5 bg-white rounded-lg border border-slate-200 font-mono text-[10px] text-[#0F3D2E] font-bold text-center">
-                Honorario = máx( piso {result.minFloorUF} UF, [base + sectores + equipamiento + RRHH] × antigüedad ({result.ageObj.multiplier.toFixed(2)}) × tipología ({result.typoObj.multiplier.toFixed(2)}) )
+                Honorario = máx( piso {result.minFloorUF} UF {calc.floorMode === 'auto' ? 'sugerido' : 'manual'}, [base + sectores + equipos + RRHH] × antigüedad ({result.ageObj.multiplier.toFixed(2)}) × tipo ({result.typoObj.multiplier.toFixed(2)}) )
               </div>
             </div>
 
@@ -1298,7 +1313,7 @@ export const AgacechFeeCalculatorPanel = ({
               <tbody className="divide-y divide-slate-200 text-[11px]">
                 <tr>
                   <td className="p-2 font-bold">1. Base por Unidades</td>
-                  <td className="p-2 text-slate-600">{result.units} unidades totales ({result.activeTier.label} • {result.activeTier.rateUF} UF/u)</td>
+                  <td className="p-2 text-slate-600">{result.units} unidades totales ({result.activeTier.label} • {result.activeTier.rateUF} UF/u){result.continuityAdjusted ? '; base ajustada para mantener continuidad con el tramo anterior' : ''}</td>
                   <td className="p-2 text-right font-mono font-bold">{result.baseUF.toFixed(2)} UF</td>
                   <td className="p-2 text-right font-mono">{formatCLP(Math.round(result.baseUF * result.ufCLP))}</td>
                 </tr>
