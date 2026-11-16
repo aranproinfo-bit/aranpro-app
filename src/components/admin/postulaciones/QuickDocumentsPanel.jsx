@@ -1,3 +1,4 @@
+import { managementContractPrintStyles } from './ManagementContract';
 import React, { useState, useMemo } from 'react';
 import {
   Search, FileText, Download, Eye, Printer, MessageCircle, ExternalLink,
@@ -105,7 +106,7 @@ export const QuickDocumentsPanel = ({
       pageSize: 'letter portrait',
       fitPage: false,
       margin: '0',
-      extraStyles: `${canonicalPortraitPrintStyles}\n.dossier-page + .dossier-page { break-before: page !important; page-break-before: always !important; }`
+      extraStyles: managementContractPrintStyles
     });
   };
 
@@ -279,11 +280,11 @@ export const QuickDocumentsPanel = ({
     },
     {
       id: 'contrato-marco-servicios',
-      title: 'Contrato Marco Bilateral de Prestación de Servicios',
-      subtitle: 'Contrato formal bilateral de 10 cláusulas para formalizar la relación contractual cuando el comité lo solicite adicionalmente al Acta.',
+      title: 'Contrato de Administración y Prestación de Servicios',
+      subtitle: 'Contrato de 24 cláusulas y anexo: mandato, gestión, obligaciones laborales, responsabilidad, rendición y traspaso. Completar y revisar antes de firmar.',
       badge: 'Paso 5 • Contrato',
       badgeColor: 'blue',
-      format: 'PDF Oficial Carta (2 Págs)',
+      format: 'PDF Carta • Contrato completo',
       type: 'generado',
       category: 'generados',
       ready: true,

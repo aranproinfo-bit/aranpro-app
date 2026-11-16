@@ -6,6 +6,7 @@ import {
   HelpCircle, ArrowRight, BookOpen, PenTool, ExternalLink, Calendar,
   DollarSign, Sparkles, Check, X
 } from 'lucide-react';
+import { ManagementContract, managementContractPrintStyles } from './ManagementContract';
 import { printDocumentDirectly } from '../../../utils/printDocument';
 import { formatCLP } from '../../../utils/formatters';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
@@ -121,7 +122,7 @@ export const Step5TransitionPanel = ({
       pageSize: 'letter portrait',
       fitPage: false,
       margin: '0',
-      extraStyles: `${canonicalPortraitPrintStyles}\n.dossier-page + .dossier-page { break-before: page !important; page-break-before: always !important; }`,
+      extraStyles: managementContractPrintStyles,
       pdfStyle
     });
   };
@@ -147,22 +148,6 @@ export const Step5TransitionPanel = ({
       pdfStyle
     });
   };
-
-  // La vista previa y el PDF usan exactamente las mismas cláusulas.
-  const contractClauses = [
-    ['PRIMERO · OBJETO', `La Comunidad encomienda al Administrador la gestión de sus bienes y servicios comunes conforme a la Ley N° 21.442, su reglamento, el reglamento de copropiedad y los acuerdos válidamente adoptados. El administrador ejecutará las funciones legales y coordinará mantenciones, inspecciones y certificaciones que correspondan.`],
-    ['SEGUNDO · ALCANCE OPERATIVO', `Visitas presenciales: ${terms.visitFrequency || 'por definir'}. Atención de emergencias: ${terms.emergencyResponse || 'por definir'}. Asambleas y reuniones: ${terms.meetingFrequency || 'por definir'}. Los canales, horarios y medios de coordinación se acordarán entre las partes.`],
-    ['TERCERO · SERVICIOS', `Servicios incluidos: ${terms.includedServices || 'por definir'}. Servicios adicionales: ${terms.additionalServices || 'por definir'}. Otras condiciones: ${terms.otherConditions || 'por definir'}. Los servicios adicionales y su costo requerirán acuerdo previo.`],
-    ['CUARTO · HONORARIOS E INICIO', `Honorario mensual: ${feeStr}. Fecha estimada de inicio: ${terms.startDate || 'por definir'}. Condiciones de transición: ${terms.transitionConditions || 'por definir'}. Forma y fecha de pago, reajuste y tratamiento tributario: ____________________.`],
-    ['QUINTO · FONDOS Y AUTORIZACIONES', `Los recursos se administrarán en las cuentas que correspondan al condominio conforme a la ley. Las personas autorizadas, sus facultades, límites de operación y mecanismos de control se acreditarán y acordarán expresamente.`],
-    ['SEXTO · RENDICIÓN Y DOCUMENTOS', `El Administrador rendirá cuenta documentada y pormenorizada al comité mensualmente, a la asamblea en cada sesión ordinaria y al término de su administración. Mantendrá disponibles los respaldos y registros pertinentes conforme a la ley.`],
-    ['SÉPTIMO · VIGENCIA Y TÉRMINO', `Duración y renovación: ${terms.contractDuration || 'por definir'}. Aviso y condiciones de término: ${terms.noticePeriod || 'por definir'}. Lo acordado se entiende sin perjuicio de las facultades legales de remoción y de los efectos contractuales que correspondan.`],
-    ['OCTAVO · GESTIÓN Y COBRANZA', `La cobranza y las actuaciones administrativas se realizarán dentro de las facultades conferidas y conforme a la ley y al reglamento de copropiedad. Toda medida por morosidad estará sujeta a los requisitos, autorizaciones y procedimientos aplicables.`],
-    ['NOVENO · TÉRMINO Y TRASPASO', `Al finalizar el encargo, se coordinará una rendición documentada y la entrega de fondos, libros, registros, contratos, archivos y accesos por medios autorizados. Un acta identificará lo entregado, lo pendiente y sus responsables.`],
-    ['DÉCIMO · ACUERDOS Y EJEMPLARES', `Las partes verificarán sus respectivas facultades y completarán las condiciones pendientes antes de firmar. Se suscriben dos ejemplares de igual tenor, uno para cada parte.`]
-  ];
-  const renderContractClauses = (from, to) => contractClauses.slice(from, to).map(([title, text]) => <p key={title}><strong>{title}:</strong> {text}</p>);
-  const contractIntroduction = <>En <strong>{proposalConfig.targetCity?.trim() || '____________________'}</strong>, a ____________________, comparecen la comunidad <strong>{proposalConfig.targetCondo?.trim() || '____________________'}</strong>, representada por <strong>{proposalConfig.committeePresidentName?.trim() || '____________________'}</strong>, según facultades acreditadas; y <strong>{empresaForm.provisionalName?.trim() || '____________________'}</strong>, representada por <strong>{empresaForm.adminName?.trim() || '____________________'}</strong>, RUT <strong>{empresaForm.adminRut?.trim() || '____________________'}</strong>, en la calidad que corresponda. Las partes acuerdan el siguiente contrato de administración:</>;
 
   // Texto de cláusulas redactadas para el libro de actas
   const assemblyClausesText = useMemo(() => {
@@ -664,7 +649,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                     actaOrContract === 'contrato' ? 'bg-[#0F3D2E] text-white' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Contrato Marco (2 Págs)
+                  Contrato de Administración
                 </button>
               </div>
             </div>
@@ -694,7 +679,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                     className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
-                    <span>Ver Contrato (2 Págs)</span>
+                    <span>Ver Contrato Completo</span>
                   </button>
                   <button
                     type="button"
@@ -706,7 +691,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                   </button>
                 </div>
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 space-y-2 leading-relaxed">
-                  <p><strong>Contrato Marco Bilateral (10 Cláusulas):</strong> La frecuencia de visitas, atención de emergencias y condiciones se toman de la propuesta para esta comunidad. Honorario mensual: {feeStr}. Los datos que falten se indicarán como por definir.</p>
+                  <p><strong>Contrato de Administración (24 cláusulas y anexo):</strong> La frecuencia de visitas, atención de emergencias y condiciones se toman de la propuesta para esta comunidad. Honorario mensual: {feeStr}. Completa los datos de individualización y acuerdos antes de firmar. El modelo corresponde a una prestación independiente y requiere revisar la modalidad real de contratación.</p>
                 </div>
               </div>
             )}
@@ -860,7 +845,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                   <h4 className="text-sm md:text-base font-black text-slate-900">
                     {previewStep5Modal === 'carta' && 'Vista Previa: Carta de Notificación de Término (1 Pág)'}
                     {previewStep5Modal === 'checklist' && 'Vista Previa: Checklist & Pauta de Traspaso (3 Págs)'}
-                    {previewStep5Modal === 'contrato' && 'Vista Previa: Contrato Marco de Administración (2 Págs)'}
+                    {previewStep5Modal === 'contrato' && 'Vista Previa: Contrato de Administración'}
                     {previewStep5Modal === 'guias' && 'Vista Previa: Ficha Legal de Asambleas & Quórums (Horizontal)'}
                   </h4>
                   <p className="text-[10.5px] text-slate-500 font-mono">
@@ -1044,16 +1029,10 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                 </div>
               )}
 
-              {/* La vista previa comparte el contenido con el contrato imprimible. */}
+              {/* Mismo componente, redacción y firma que el documento imprimible. */}
               {previewStep5Modal === 'contrato' && (
-                <div className="space-y-6 w-full max-w-[850px]">
-                  {[0, 1].map(page => <div key={page} className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-3 text-xs leading-relaxed">
-                    <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={page + 1} community={condo} email={email} phone={phone} city={city} />
-                    {page === 0 && <p>{contractIntroduction}</p>}
-                    {renderContractClauses(page * 5, page * 5 + 5)}
-                    {page === 1 && <p>Firmas: ____________________ (Comunidad) · ____________________ (Administrador)</p>}
-                    <CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={page + 1} totalPages={2} city={city} />
-                  </div>)}
+                <div className="overflow-x-auto max-w-full">
+                  <ManagementContract proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale} pdfStyle={pdfStyle} />
                 </div>
               )}
 
@@ -1536,91 +1515,9 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
           </div>
         </div>
 
-        {/* 4. PRINTABLE CONTRATO MARCO (2 PÁGINAS CARTA) */}
+        {/* 4. Contrato: texto único para vista previa y ambas rutas de impresión. */}
         <div id="printable-management-contract" data-pdf-style={pdfStyle}>
-          {/* PÁGINA 1 */}
-          <div
-            data-pdf-style={pdfStyle}
-            className="dossier-page page-1 bg-white p-6 pl-10 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-snug relative overflow-hidden"
-            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          >
-            <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
-              <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
-              <div className="w-[2px] h-full bg-transparent" />
-              <div className="w-[1.5px] h-full bg-[#D4B895]" />
-            </div>
-
-            <div className="space-y-3 relative z-10">
-              <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={1} community={condo} email={email} phone={phone} city={city} />
-              <div className="text-center space-y-0.5 border-b-2 border-[#0F3D2E] pb-2">
-                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block">REPÚBLICA DE CHILE • LEY N° 21.442</span>
-                <h4 className="text-sm font-black text-slate-900 uppercase">
-                  CONTRATO DE PRESTACIÓN DE SERVICIOS DE ADMINISTRACIÓN PROFESIONAL DE CONDOMINIOS
-                </h4>
-                <p className="text-[10px] text-[#0F3D2E] font-bold uppercase">{condo} • {city}</p>
-              </div>
-
-              <div className="space-y-2 text-[10px] leading-relaxed text-slate-800 text-justify">
-                <p>{contractIntroduction}</p>
-                {renderContractClauses(0, 5)}
-              </div>
-            </div>
-
-            <div className="mt-auto space-y-1 relative z-10"><div className="border-y border-slate-300 py-2 flex justify-between items-center text-[10px] text-slate-600"><span>Continúa: vigencia y firma del contrato.</span><span className="border border-emerald-200 rounded-full bg-emerald-50 px-3 py-1 text-[#0F3D2E] font-bold">Continúa en página 2 →</span></div><CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={1} totalPages={2} city={city} /></div>
-          </div>
-
-          {/* PÁGINA 2 */}
-          <div
-            data-pdf-style={pdfStyle}
-            className="dossier-page page-2 bg-white p-6 pl-10 min-h-[1050px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-snug relative overflow-hidden"
-            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          >
-            <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
-              <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
-              <div className="w-[2px] h-full bg-transparent" />
-              <div className="w-[1.5px] h-full bg-[#D4B895]" />
-            </div>
-
-            <div className="space-y-3 relative z-10">
-              <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={2} community={condo} email={email} phone={phone} city={city} />
-              <div className="space-y-2 text-[10px] leading-relaxed text-slate-800 text-justify">
-                {renderContractClauses(5, 10)}
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-200 relative z-10">
-              <div className="grid grid-cols-2 gap-8 text-center text-[10.5px]">
-                <div className="space-y-1">
-                  <div className="h-12 border-b border-slate-400" />
-                  <p className="font-bold text-slate-900">{committeePresident}</p>
-                  <p className="text-[9.5px] text-[#0F3D2E] font-bold">Presidente(a) del Comité de Administración</p>
-                  <p className="text-[9px] text-slate-500 font-mono">Por la Comunidad (Comité de Administración)</p>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="h-12 flex items-end justify-center pb-0.5 overflow-visible">
-                    {effectiveSignature ? (
-                      <img
-                        src={effectiveSignature}
-                        alt="Firma Administrador"
-                        className="h-10 max-h-12 w-auto max-w-[180px] object-contain mx-auto"
-                        style={{ transform: `scale(${signatureScale})`, transformOrigin: 'bottom center' }}
-                      />
-                    ) : (
-                      <div className="border-b border-slate-400 w-full h-8" />
-                    )}
-                  </div>
-                  <div className="border-t border-[#0F3D2E] pt-0.5">
-                    <p className="font-black text-slate-900">{adminName}</p>
-                    <p className="text-[9.5px] text-[#0F3D2E] font-bold">Por ARANPRO Gestión Integral (Administrador)</p>
-                    <p className="text-[9px] text-slate-600 font-mono">Registro RNAC: verificar vigencia</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 mt-3 border-t border-slate-200 flex items-center gap-3"><AranproOfficialSeal size="sm" companyRut={empresaForm.companyRut || ''} rnacNumber="" showCaption={true} /><div className="border-l border-slate-200 pl-3 text-[9px] text-slate-600"><p><strong>Contacto Directo:</strong> {phone}</p><p><strong>Correo:</strong> {email}</p><p><strong>Sitio Web:</strong> {website}</p></div></div><CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={2} totalPages={2} city={city} />
-            </div>
-          </div>
+          <ManagementContract proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale} pdfStyle={pdfStyle} />
         </div>
 
         {/* 5. PRINTABLE FULL PACKAGE */}
