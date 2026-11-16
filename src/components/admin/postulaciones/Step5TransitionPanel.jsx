@@ -151,32 +151,31 @@ export const Step5TransitionPanel = ({
   // Texto de cláusulas redactadas para el libro de actas
   const assemblyClausesText = useMemo(() => {
     return `========================================================================================
-CLÁUSULAS OFICIALES PARA EL LIBRO DE ACTAS DE ASAMBLEA O COMITÉ DE ADMINISTRACIÓN
+PROPUESTA DE ACUERDOS PARA EL LIBRO DE ACTAS DE ASAMBLEA O COMITÉ DE ADMINISTRACIÓN
 (Conforme a la Ley N° 21.442 sobre Copropiedad Inmobiliaria y DS N° 7 MINVU 2025)
 ========================================================================================
 
-CONDOMINIO: ${condo.toUpperCase()}
-CIUDAD / COMUNA: ${city.toUpperCase()}
-FECHA DE ACUERDO: ${noticeDate}
+CONDOMINIO: ${(proposalConfig.targetCondo?.trim() || '____________________').toUpperCase()}
+CIUDAD / COMUNA: ${(proposalConfig.targetCity?.trim() || '____________________').toUpperCase()}
+FECHA DE ACUERDO: ____________________
 
 PRIMERO: TÉRMINO Y CESE DE FUNCIONES DE LA ADMINISTRACIÓN ANTERIOR.
-La Asamblea / El Comité de Administración, en uso de las facultades exclusivas conferidas por el Artículo 15 letra c) y Artículo 17 de la Ley N° 21.442, acuerda poner término a los servicios de administración prestados por ${outgoingAdmin.toUpperCase()}, otorgándole un preaviso legal de 30 días corridos contados desde su notificación formal, siendo su último día de funciones el ${endDate}. Asimismo, se le exige en cumplimiento del Artículo 20 de la citada ley, la entrega de una rendición de cuentas documentada hasta el último día de su encargo, las conciliaciones bancarias al día, el traspaso material de los Libros de Actas, registro de copropietarios y las claves bancarias y de portales institucionales (SII y Dirección del Trabajo).
+La asamblea o el comité, según sus facultades y el acuerdo que efectivamente corresponda, acuerda poner término a las funciones de ${outgoingAdmin}, dejando constancia de la fecha y forma de notificación y de las condiciones aplicables conforme al contrato, la ley y el reglamento de copropiedad. Fecha de término: ${proposalConfig.transitionEndDate?.trim() || '____________________'}. Se solicitará una rendición documentada de la gestión y se coordinará la entrega de libros, registros, antecedentes financieros, contratos, archivos y accesos institucionales, mediante un acta de traspaso que identifique lo recibido y lo pendiente. Los accesos se transferirán o revocarán por los medios autorizados por cada entidad.
 
 SEGUNDO: DESIGNACIÓN DE NUEVA ADMINISTRACIÓN PROFESIONAL.
-Se acuerda unánimemente designar como nuevo Administrador de la Comunidad a don JOHN ANDRÉS ARANCIBIA MAUREIRA, cédula nacional de identidad N° ${adminRut}, de profesión Constructor Civil, con inscripción vigente a título oneroso en el Registro Nacional de Administradores de Condominios (RNAC) dependiente del Ministerio de Vivienda y Urbanismo (MINVU), quien actuará en representación de la empresa ARANPRO GESTIÓN INTEGRAL.
+Se acuerda designar como administrador(a) a ${empresaForm.adminName?.trim() || '____________________'}, RUT ${empresaForm.adminRut?.trim() || '____________________'}, en la calidad y representación que se acrediten en el acuerdo y en el contrato correspondiente. Inicio de funciones: ${terms.startDate || '____________________'}. Se dejará constancia de la verificación de su inscripción vigente en el Registro Nacional de Administradores de Condominios, cuando corresponda, y de la aceptación del encargo. La administración se ejercerá conforme a la Ley N° 21.442, su reglamento, el reglamento de copropiedad y los acuerdos aplicables.
 
 TERCERO: HONORARIOS MENSUALES Y PLAZO DE GESTIÓN.
-Se acuerda fijar los honorarios profesionales de la administración en la suma de ${feeStr} mensuales, los que serán pagados contra la emisión de la respectiva boleta de honorarios o factura exenta dentro de los primeros 5 días hábiles de cada mes vencido. La designación regirá por el plazo legal de un año a contar de la fecha de asunción de funciones, renovable tácita y sucesivamente según lo preceptuado en el Artículo 17 de la Ley N° 21.442.
+Se acuerdan honorarios mensuales de ${feeStr}; su forma y oportunidad de pago, documentación tributaria y eventuales servicios adicionales se establecerán en el contrato o acuerdo respectivo. Duración y renovación acordadas: ${terms.contractDuration || '____________________'}. Lo anterior se entiende sin perjuicio de las facultades legales de remoción y de las consecuencias contractuales que correspondan.
 
 CUARTO: FACULTADES BANCARIAS, FINANCIERAS Y ADMINISTRATIVAS.
-Se confieren al nuevo Administrador las más amplias facultades de administración y disposición contempladas en el Artículo 20 de la Ley N° 21.442, en el Reglamento de Copropiedad del condominio y en la legislación común. En especial y a título meramente enunciativo:
-a) Bancarias: Abrir, cerrar y operar conjuntamente con los miembros autorizados del Comité de Administración las cuentas corrientes bancarias del condominio, la cuenta exclusiva del Fondo Común de Reserva, tomar depósitos a plazo, girar, endosar y depositar cheques u otros documentos mercantiles.
-b) Tributarias y Laborales: Representar válidamente a la comunidad ante el Servicio de Impuestos Internos (SII), Dirección del Trabajo (DT) y portal Previred, suscribir contratos de trabajo, anexos, liquidaciones de remuneraciones y finiquitos del personal de conserjería y aseo.
-c) Cobranza y Medidas de Apremiante: Liquidar y cobrar judicial y extrajudicialmente los gastos comunes ordinarios y extraordinarios, aplicar los recargos e intereses moratorios legales, y proceder a la suspensión justificada del servicio eléctrico u otros suministros a las unidades morosas que adeuden tres o más cuotas conforme al Artículo 20 N° 9 de la Ley N° 21.442.
+El administrador ejercerá las funciones legales y las facultades que se le otorguen válidamente, con los límites y controles establecidos por la ley, el reglamento de copropiedad y los acuerdos respectivos. Las atribuciones bancarias, de representación, contratación y firma se detallarán expresamente en el instrumento que corresponda, incluyendo responsables, modalidades y límites de autorización: ____________________. La cobranza y cualquier medida por morosidad se sujetarán a los requisitos legales y reglamentarios aplicables.
 
 QUINTO: MANDATO ESPECIAL PARA PROTOCOLIZACIÓN Y REDUCCIÓN A ESCRITURA PÚBLICA.
-Se faculta expresamente a don JOHN ANDRÉS ARANCIBIA MAUREIRA o al Presidente del Comité de Administración don(ña) ${committeePresident}, para que cualesquiera de ellos indistintamente pueda concurrir ante Notario Público a protocolizar la presente acta o reducirla a escritura pública si fuere necesario para su acreditación ante entidades bancarias, conservatorias o judiciales.`;
-  }, [condo, city, noticeDate, outgoingAdmin, endDate, adminRut, feeStr, committeePresident]);
+Se acuerda que ____________________ realice las gestiones de certificación, protocolización o reducción a escritura pública que correspondan, conforme al acuerdo adoptado y a los requisitos de la entidad ante la cual deba acreditarse. Registrar asistentes, quórum, votación y demás antecedentes del acuerdo efectivo en el acta correspondiente.
+
+RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su gestión al comité mensualmente, a la asamblea en sesión ordinaria y al término de la administración, conforme al artículo 21 de la Ley N° 21.442. Las partes coordinarán el seguimiento de los antecedentes pendientes de traspaso.`;
+  }, [proposalConfig.targetCondo, proposalConfig.targetCity, outgoingAdmin, empresaForm.adminName, empresaForm.adminRut, feeStr, terms.startDate, terms.contractDuration, proposalConfig.transitionEndDate]);
 
   const handleCopyClauses = () => {
     navigator.clipboard.writeText(assemblyClausesText);
