@@ -121,7 +121,7 @@ export const Step5TransitionPanel = ({
       pageSize: 'letter portrait',
       fitPage: false,
       margin: '0',
-      extraStyles: canonicalPortraitPrintStyles,
+      extraStyles: `${canonicalPortraitPrintStyles}\n.dossier-page + .dossier-page { break-before: page !important; page-break-before: always !important; }`,
       pdfStyle
     });
   };
@@ -148,6 +148,22 @@ export const Step5TransitionPanel = ({
     });
   };
 
+  // La vista previa y el PDF usan exactamente las mismas cláusulas.
+  const contractClauses = [
+    ['PRIMERO · OBJETO', `La Comunidad encomienda al Administrador la gestión de sus bienes y servicios comunes conforme a la Ley N° 21.442, su reglamento, el reglamento de copropiedad y los acuerdos válidamente adoptados. El administrador ejecutará las funciones legales y coordinará mantenciones, inspecciones y certificaciones que correspondan.`],
+    ['SEGUNDO · ALCANCE OPERATIVO', `Visitas presenciales: ${terms.visitFrequency || 'por definir'}. Atención de emergencias: ${terms.emergencyResponse || 'por definir'}. Asambleas y reuniones: ${terms.meetingFrequency || 'por definir'}. Los canales, horarios y medios de coordinación se acordarán entre las partes.`],
+    ['TERCERO · SERVICIOS', `Servicios incluidos: ${terms.includedServices || 'por definir'}. Servicios adicionales: ${terms.additionalServices || 'por definir'}. Otras condiciones: ${terms.otherConditions || 'por definir'}. Los servicios adicionales y su costo requerirán acuerdo previo.`],
+    ['CUARTO · HONORARIOS E INICIO', `Honorario mensual: ${feeStr}. Fecha estimada de inicio: ${terms.startDate || 'por definir'}. Condiciones de transición: ${terms.transitionConditions || 'por definir'}. Forma y fecha de pago, reajuste y tratamiento tributario: ____________________.`],
+    ['QUINTO · FONDOS Y AUTORIZACIONES', `Los recursos se administrarán en las cuentas que correspondan al condominio conforme a la ley. Las personas autorizadas, sus facultades, límites de operación y mecanismos de control se acreditarán y acordarán expresamente.`],
+    ['SEXTO · RENDICIÓN Y DOCUMENTOS', `El Administrador rendirá cuenta documentada y pormenorizada al comité mensualmente, a la asamblea en cada sesión ordinaria y al término de su administración. Mantendrá disponibles los respaldos y registros pertinentes conforme a la ley.`],
+    ['SÉPTIMO · VIGENCIA Y TÉRMINO', `Duración y renovación: ${terms.contractDuration || 'por definir'}. Aviso y condiciones de término: ${terms.noticePeriod || 'por definir'}. Lo acordado se entiende sin perjuicio de las facultades legales de remoción y de los efectos contractuales que correspondan.`],
+    ['OCTAVO · GESTIÓN Y COBRANZA', `La cobranza y las actuaciones administrativas se realizarán dentro de las facultades conferidas y conforme a la ley y al reglamento de copropiedad. Toda medida por morosidad estará sujeta a los requisitos, autorizaciones y procedimientos aplicables.`],
+    ['NOVENO · TÉRMINO Y TRASPASO', `Al finalizar el encargo, se coordinará una rendición documentada y la entrega de fondos, libros, registros, contratos, archivos y accesos por medios autorizados. Un acta identificará lo entregado, lo pendiente y sus responsables.`],
+    ['DÉCIMO · ACUERDOS Y EJEMPLARES', `Las partes verificarán sus respectivas facultades y completarán las condiciones pendientes antes de firmar. Se suscriben dos ejemplares de igual tenor, uno para cada parte.`]
+  ];
+  const renderContractClauses = (from, to) => contractClauses.slice(from, to).map(([title, text]) => <p key={title}><strong>{title}:</strong> {text}</p>);
+  const contractIntroduction = <>En <strong>{proposalConfig.targetCity?.trim() || '____________________'}</strong>, a ____________________, comparecen la comunidad <strong>{proposalConfig.targetCondo?.trim() || '____________________'}</strong>, representada por <strong>{proposalConfig.committeePresidentName?.trim() || '____________________'}</strong>, según facultades acreditadas; y <strong>{empresaForm.provisionalName?.trim() || '____________________'}</strong>, representada por <strong>{empresaForm.adminName?.trim() || '____________________'}</strong>, RUT <strong>{empresaForm.adminRut?.trim() || '____________________'}</strong>, en la calidad que corresponda. Las partes acuerdan el siguiente contrato de administración:</>;
+
   // Texto de cláusulas redactadas para el libro de actas
   const assemblyClausesText = useMemo(() => {
     return `========================================================================================
@@ -172,7 +188,7 @@ CUARTO: FACULTADES BANCARIAS, FINANCIERAS Y ADMINISTRATIVAS.
 El administrador ejercerá las funciones legales y las facultades que se le otorguen válidamente, con los límites y controles establecidos por la ley, el reglamento de copropiedad y los acuerdos respectivos. Las atribuciones bancarias, de representación, contratación y firma se detallarán expresamente en el instrumento que corresponda, incluyendo responsables, modalidades y límites de autorización: ____________________. La cobranza y cualquier medida por morosidad se sujetarán a los requisitos legales y reglamentarios aplicables.
 
 QUINTO: MANDATO ESPECIAL PARA PROTOCOLIZACIÓN Y REDUCCIÓN A ESCRITURA PÚBLICA.
-Se acuerda que ____________________ realice las gestiones de certificación, protocolización o reducción a escritura pública que correspondan, conforme al acuerdo adoptado y a los requisitos de la entidad ante la cual deba acreditarse. Registrar asistentes, quórum, votación y demás antecedentes del acuerdo efectivo en el acta correspondiente.
+Se designa a ____________________ para las gestiones de formalización. Cuando la designación sea acordada por la asamblea, el acta deberá reducirse a escritura pública en los términos del artículo 18 de la Ley N° 21.442. Registrar asistentes, quórum, votación y demás antecedentes del acuerdo efectivo en el acta correspondiente.
 
 RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su gestión al comité mensualmente, a la asamblea en sesión ordinaria y al término de la administración, conforme al artículo 21 de la Ley N° 21.442. Las partes coordinarán el seguimiento de los antecedentes pendientes de traspaso.`;
   }, [proposalConfig.targetCondo, proposalConfig.targetCity, outgoingAdmin, empresaForm.adminName, empresaForm.adminRut, feeStr, terms.startDate, terms.contractDuration, proposalConfig.transitionEndDate]);
@@ -1028,38 +1044,16 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                 </div>
               )}
 
-              {/* VISTA PREVIA 3: CONTRATO (2 PÁGINAS) */}
+              {/* La vista previa comparte el contenido con el contrato imprimible. */}
               {previewStep5Modal === 'contrato' && (
                 <div className="space-y-6 w-full max-w-[850px]">
-                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-3 text-xs leading-relaxed">
-                    <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={1} community={condo} email={email} phone={phone} city={city} />
-                    <p className="italic text-slate-600 text-[11px]">En {city}, República de Chile, entre el Comité de Administración del {condo} y la Administración Entrante.</p>
-                    <p><strong>PRIMERO (Comparecencia):</strong> El Comité de Administración, representado por don(ña) {committeePresident}, y la entidad administradora convienen el presente contrato.</p>
-                    <p><strong>SEGUNDO (Objeto):</strong> La administración integral, técnica, contable y operativa del condominio conforme a la Ley N° 21.442.</p>
-                    <p><strong>TERCERO (Honorarios):</strong> Los honorarios mensuales pactados ascienden a la suma de {feeStr} líquidos o exentos según corresponda.</p>
-                    <p><strong>CUARTO (Visitas en Terreno):</strong> Se contemplan inspecciones periódicas presenciales y atención prioritaria de emergencias 24/7.</p>
-                    <p><strong>QUINTO (Plataforma Digital):</strong> Acceso sin costo de licencias adicionales a la suite de gestión y transparencia vecinal.</p>
-                    <CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={1} totalPages={2} city={city} />
-                  </div>
-                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-3 text-xs leading-relaxed">
-                    <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={2} community={condo} email={email} phone={phone} city={city} />
-                    <p><strong>SEXTO (Vigencia):</strong> Plazo de un año renovable conforme a la Ley N° 21.442.</p>
-                    <p><strong>SÉPTIMO (Término Anticipado):</strong> Aviso formal por escrito con a lo menos 30 días de anticipación.</p>
-                    <p><strong>OCTAVO (Cuentas Corrientes):</strong> Cuentas bancarias a nombre exclusivo del condominio con firma mancomunada.</p>
-                    <p><strong>NOVENO (Rendición Mensual):</strong> Emisión documentada de gastos comunes y conciliaciones bancarias.</p>
-                    <p><strong>DÉCIMO (Ejemplares):</strong> Se firma en dos ejemplares de idéntico tenor.</p>
-                    <div className="pt-6 grid grid-cols-2 gap-8 text-center text-xs text-slate-700">
-                      <div className="border-t border-slate-400 pt-2">
-                        <p className="font-bold">{committeePresident}</p>
-                        <p className="text-[11px] text-slate-500">Por el Comité de Administración</p>
-                      </div>
-                      <div className="border-t border-slate-400 pt-2">
-                        <p className="font-bold">Administrador Entrante</p>
-                        <p className="text-[11px] text-slate-500">ARANPRO Gestión Integral</p>
-                      </div>
-                    </div>
-                    <CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={2} totalPages={2} city={city} />
-                  </div>
+                  {[0, 1].map(page => <div key={page} className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-3 text-xs leading-relaxed">
+                    <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={page + 1} community={condo} email={email} phone={phone} city={city} />
+                    {page === 0 && <p>{contractIntroduction}</p>}
+                    {renderContractClauses(page * 5, page * 5 + 5)}
+                    {page === 1 && <p>Firmas: ____________________ (Comunidad) · ____________________ (Administrador)</p>}
+                    <CanonicalPdfPageFooter website={website} label="Contrato de servicios" page={page + 1} totalPages={2} city={city} />
+                  </div>)}
                 </div>
               )}
 
@@ -1567,15 +1561,8 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
               </div>
 
               <div className="space-y-2 text-[10px] leading-relaxed text-slate-800 text-justify">
-                <p>
-                  En <strong>{city}</strong>, a {noticeDate}, entre la <strong>Comunidad del Condominio {condo}</strong>, debidamente representada por su Comité de Administración en la persona de su Presidente(a) don(ña) <strong>{committeePresident}</strong>, en adelante "La Comunidad"; y por la otra parte, <strong>ARANPRO GESTIÓN INTEGRAL</strong>, representada por don <strong>John Andrés Arancibia Maureira</strong>, Constructor Civil, cédula de identidad N° {adminRut}, con inscripción vigente en el Registro Nacional de Administradores de Condominios (RNAC) del MINVU, en adelante "El Administrador", se suscribe el presente contrato:
-                </p>
-
-                <p><strong>PRIMERO (OBJETO):</strong> La Comunidad encomienda a El Administrador la gestión integral, financiera, técnica, legal y comunitaria del condominio {condo}, en estricta sujeción a las disposiciones de la Ley N° 21.442, su Reglamento y el Reglamento de Copropiedad del condominio.</p>
-                <p><strong>SEGUNDO (ALCANCE OPERATIVO):</strong> Visitas presenciales: {terms.visitFrequency || 'por definir'}. Atención de emergencias: {terms.emergencyResponse || 'por definir'}. Asambleas y reuniones: {terms.meetingFrequency || 'por definir'}.</p>
-                <p><strong>TERCERO (SERVICIOS):</strong> Servicios incluidos: {terms.includedServices || 'por definir'}. Servicios adicionales: {terms.additionalServices || 'por definir'}. Otras condiciones: {terms.otherConditions || 'por definir'}.</p>
-                <p><strong>CUARTO (HONORARIOS):</strong> Honorario mensual: {feeStr}. Condiciones de inicio o transición: {terms.transitionConditions || 'por definir'}. Fecha estimada de inicio: {terms.startDate || 'por definir'}.</p>
-                <p><strong>QUINTO (CUENTAS BANCARIAS EXCLUSIVAS):</strong> Todos los recursos del condominio se manejarán exclusivamente en cuentas corrientes bancarias y de ahorro abiertas a nombre exclusivo de la Comunidad, prohibiéndose taxativamente el uso de cuentas personales.</p>
+                <p>{contractIntroduction}</p>
+                {renderContractClauses(0, 5)}
               </div>
             </div>
 
@@ -1597,11 +1584,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
             <div className="space-y-3 relative z-10">
               <CanonicalPdfHeader badge="CONTRATO DE SERVICIOS" description="Administración de condominios" page={2} community={condo} email={email} phone={phone} city={city} />
               <div className="space-y-2 text-[10px] leading-relaxed text-slate-800 text-justify">
-                <p><strong>SEXTO (VIGENCIA):</strong> Duración y renovación: {terms.contractDuration || 'por definir'}.</p>
-                <p><strong>SÉPTIMO (TÉRMINO ANTICIPADO):</strong> Aviso y condiciones de término: {terms.noticePeriod || 'por definir'}.</p>
-                <p><strong>OCTAVO (COBRANZA Y APREMIOS):</strong> Se faculta expresamente al Administrador para cobrar gastos comunes ordinarios y extraordinarios y solicitar el corte de suministro eléctrico a deudores de 3 cuotas impagas conforme al Art. 20 N° 9 Ley 21.442.</p>
-                <p><strong>NOVENO (GESTIÓN LABORAL):</strong> Supervisión directa del personal de conserjería y verificación mensual del pago previsional en Previred (Ley Bustos).</p>
-                <p><strong>DÉCIMO (PERSONERÍA Y EJEMPLARES):</strong> El presente contrato se firma en 2 ejemplares de idéntico tenor, quedando uno en poder de cada parte.</p>
+                {renderContractClauses(5, 10)}
               </div>
             </div>
 
@@ -1630,7 +1613,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                   <div className="border-t border-[#0F3D2E] pt-0.5">
                     <p className="font-black text-slate-900">{adminName}</p>
                     <p className="text-[9.5px] text-[#0F3D2E] font-bold">Por ARANPRO Gestión Integral (Administrador)</p>
-                    <p className="text-[9px] text-slate-600 font-mono">Inscripción RNAC MINVU Vigente</p>
+                    <p className="text-[9px] text-slate-600 font-mono">Registro RNAC: verificar vigencia</p>
                   </div>
                 </div>
               </div>

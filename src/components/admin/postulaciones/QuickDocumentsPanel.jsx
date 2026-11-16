@@ -105,7 +105,7 @@ export const QuickDocumentsPanel = ({
       pageSize: 'letter portrait',
       fitPage: false,
       margin: '0',
-      extraStyles: canonicalPortraitPrintStyles
+      extraStyles: `${canonicalPortraitPrintStyles}\n.dossier-page + .dossier-page { break-before: page !important; page-break-before: always !important; }`
     });
   };
 
