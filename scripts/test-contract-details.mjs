@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {activeContractDetails,resolveContractDetails} from '../src/utils/contractDetails.js';
+import {changeProposalCommunity,saveProposalOpportunity,loadProposalOpportunity} from '../src/utils/proposalConditions.js';
+const a={targetCondo:'Comunidad A',contractDetailsFor:'Comunidad A',contractDetails:{communityRut:'123',providerType:'Persona natural'},committeePresidentName:'Comité A'};
+const record=saveProposalOpportunity(null,a,'A','today');
+const b=changeProposalCommunity(a,'Comunidad B');
+assert.deepEqual(activeContractDetails(b),{});assert.equal(b.committeePresidentName,'');
+const restored=loadProposalOpportunity(b,record);assert.equal(activeContractDetails(restored).communityRut,'123');assert.equal(restored.committeePresidentName,'Comité A');
+const company={adminName:'Administrador',adminRut:'456',companyRut:'789'};
+assert.equal(resolveContractDetails(restored,company).legalName,'Administrador');
+assert.equal(resolveContractDetails({...restored,contractDetails:{...restored.contractDetails,legalName:''}},company).legalName,'');
+assert.deepEqual(activeContractDetails({...a,targetCondo:'Comunidad B'}),{});
+assert.deepEqual(activeContractDetails(loadProposalOpportunity(a,{id:'old',condo:'Antigua'})),{});
+console.log('CRM: guardado y recuperación correctos; sin contaminación entre comunidades; borrado explícito respetado.');

@@ -521,6 +521,9 @@ export const CompanySettingsAndBackupModule = ({
   // Configuración de Destinatario, Condominio y Propuesta Económica (Carta de Presentación & Dossier)
   const [proposalConfig, setProposalConfig] = useState({
     opportunityId: companySettings?.lastProposalConfig?.opportunityId || '',
+    contractDetails: companySettings?.lastProposalConfig?.contractDetails || {},
+    contractDetailsFor: companySettings?.lastProposalConfig?.contractDetailsFor || '',
+    committeePresidentName: companySettings?.lastProposalConfig?.committeePresidentName || '',
     proposalConditions: { ...emptyProposalConditions(), ...(companySettings?.lastProposalConfig?.proposalConditions || {}) },
     proposalConditionsFor: companySettings?.lastProposalConfig?.proposalConditionsFor || '',
     targetCondo: companySettings?.lastProposalConfig?.targetCondo || 'Valle de la Florida IV',
@@ -4312,7 +4315,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
 
                     {/* ========== PASO 5: ADJUDICACIÓN, PREAVISO AL SALIENTE & KIT DE TRASPASO ========== */}
-                    <Step5TransitionPanel
+                    <Step5TransitionPanel onSaveContract={handleSaveTargetCondoToCrm}
                       proposalConfig={proposalConfig}
                       setProposalConfig={setProposalConfig}
                       empresaForm={empresaForm}

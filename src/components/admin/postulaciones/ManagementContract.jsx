@@ -1,3 +1,4 @@
+import { resolveContractDetails } from '../../../utils/contractDetails';
 import React from 'react';
 import { managementContractSections, contractConditionLabels } from '../../../data/managementContract';
 import { activeProposalConditions } from '../../../utils/proposalConditions';
@@ -62,10 +63,12 @@ const contractStyles = `${scopedCanonicalStyles}
 
 export const managementContractPrintStyles = `@page { size:letter portrait; margin:0!important; } .aranpro-print-watermark { display:none!important; } ${contractStyles}`;
 
-export function ManagementContract({ proposalConfig = {}, empresaForm = {}, signature = '', signatureScale = 1, pdfStyle = 'alt4' }) {
+export function ManagementContract({ proposalConfig = {}, empresaForm = {}, signature = '', signatureScale = 1, pdfStyle = 'alt4', companySettings = {} }) {
+  const details = resolveContractDetails(proposalConfig, empresaForm, companySettings);
+  const d = key => value(details[key]);
   const terms = activeProposalConditions(proposalConfig);
   const annexes = contractConditionPages(terms);
-  const pages = [...contractPages, ...annexes.map((conditions, i) => ({ title: `Anexo. Condiciones particulares${i ? ' (continuación)' : ''}`, conditions }))];
+  const pages = [...contractPages, ...annexes.map((conditions, i) => ({ title: `Anexo. Condiciones particulares${i ? ' (continuación)' : ''}`, conditions })), {title: 'Anexo. Individualización y acuerdos', details:true}];
   const community = value(proposalConfig.targetCondo);
   const city = value(proposalConfig.targetCity);
   const admin = value(empresaForm.adminName);
@@ -87,7 +90,7 @@ export function ManagementContract({ proposalConfig = {}, empresaForm = {}, sign
           <div className="contract-content">
             <h2>{page.title}</h2>
             {index === 0 && <>
-              <p>En <strong>{city}</strong>, a {blank}, comparecen la Comunidad <strong>{community}</strong>, RUT {blank}, domiciliada en {blank}, representada para este acto por <strong>{representative}</strong>, RUT {blank}, conforme a la personería individualizada en el anexo; y el prestador individualizado en dicho anexo, con nombre comercial <strong>{company}</strong> y administrador responsable <strong>{admin}</strong>, RUT <strong>{rut}</strong>, en adelante «la Comunidad» y «el Administrador», respectivamente.</p>
+              <p>En <strong>{city}</strong>, a {d('signatureDate')}, comparecen la Comunidad <strong>{community}</strong>, RUT {d('communityRut')}, domiciliada en {d('communityAddress')}, representada para este acto por <strong>{representative}</strong>, RUT {d('committeeRut')}, conforme a la personería individualizada en el anexo; y el prestador individualizado en dicho anexo, con nombre comercial <strong>{company}</strong> y administrador responsable <strong>{admin}</strong>, RUT <strong>{rut}</strong>, en adelante «la Comunidad» y «el Administrador», respectivamente.</p>
               <p>Las partes convienen un encargo de administración con obligaciones recíprocas, mecanismos de control y reglas de continuidad, en los siguientes términos:</p>
             </>}
             {page.clauses?.map(([title, paragraphs]) => <section key={title} data-contract-clause={title.split('.')[0]}><h3>{title}</h3>{paragraphs.map((text, i) => <p key={i}>{text}</p>)}</section>)}
@@ -95,19 +98,19 @@ export function ManagementContract({ proposalConfig = {}, empresaForm = {}, sign
               <p>Estas condiciones se incorporan al contrato una vez revisadas y aceptadas por ambas partes. Complementan las cláusulas generales y no reducen los deberes legales del cargo.</p>
               {index === contractPages.length && <p><strong>Comunidad:</strong> {community}. <strong>Honorario mensual:</strong> {fee}. El monto, su carácter neto o total y los impuestos aplicables deben concordarse antes de la firma.</p>}
               <div className="contract-conditions">{page.conditions.map(item => <div key={item.key} className="contract-condition" data-contract-condition={item.key}><strong>{item.label}</strong><span>{item.text}</span></div>)}</div>
-              {last && <div className="contract-particulars">
-                <p><strong>Identificación del prestador:</strong> ☐ Persona natural ☐ Persona jurídica.<br />Nombre legal o razón social: {blank}. RUT: {blank}.<br />Domicilio: {blank}. Representante y personería, si procede: {blank}.<br />Inscripción RNAC informada: {value(empresaForm.rnacNumber)}. Verificación de vigencia: {blank}.</p>
-                <p><strong>Acuerdos habilitantes:</strong> acta de designación de fecha {blank}; escritura pública, notaría y repertorio: {blank}. Facultades del representante comunitario: {blank}. Acuerdo del comité sobre honorarios: {blank}.</p>
-                <p><strong>Pago y control:</strong> vencimiento y medio de pago: {blank}. Monto neto/total y tratamiento tributario: {blank}. Fórmula y periodicidad de reajuste, o sin reajuste: {blank}. Límites y autorizaciones de gasto: {blank}.</p>
-                <p><strong>Notificaciones:</strong> correo de la Comunidad: {value(proposalConfig.targetEmail)}; correo del Administrador: {value(email)}. Horarios y canal operativo: {blank}. Las partes completan o dejan expresamente sin efecto los campos que no correspondan y aceptan el contrato y su anexo.</p>
-              </div>}
             </>}
+              {page.details && <div className="contract-particulars">
+                <p><strong>Identificación del prestador:</strong> {d('providerType')}.<br />Nombre legal o razón social: {d('legalName')}. RUT: {d('providerRut')}.<br />Domicilio: {d('providerAddress')}. Representante y personería, si procede: {d('providerAuthority')}.<br />Inscripción RNAC informada: {value(empresaForm.rnacNumber)}. Verificación de vigencia: {d('rnacVerification')}.</p>
+                <p><strong>Acuerdos habilitantes:</strong> acta de designación de fecha {d('appointmentDate')}; escritura pública, notaría y repertorio: {d('deed')}. Facultades del representante comunitario: {d('committeeAuthority')}. Acuerdo del comité sobre honorarios: {d('feeAgreement')}.</p>
+                <p><strong>Pago y control:</strong> vencimiento y medio de pago: {d('payment')}. Monto neto/total y tratamiento tributario: {d('taxTreatment')}. Fórmula y periodicidad de reajuste, o sin reajuste: {d('adjustment')}. Límites y autorizaciones de gasto: {d('spendingAuthority')}.</p>
+                <p><strong>Notificaciones:</strong> correo de la Comunidad: {value(proposalConfig.targetEmail)}; correo del Administrador: {value(email)}. Horarios y canal operativo: {d('operatingChannel')}. Las partes completan o dejan expresamente sin efecto los campos que no correspondan y aceptan el contrato y su anexo.</p>
+              </div>}
           </div>
         </div>
         <div className="contract-footer">
           {last ? <>
             <div className="contract-signatures">
-              <div><div className="contract-signature-space" /><strong>{representative}</strong><br />Por la Comunidad, según personería<br />RUT: {blank}</div>
+              <div><div className="contract-signature-space" /><strong>{representative}</strong><br />Por la Comunidad, según personería<br />RUT: {d('committeeRut')}</div>
               <div><div className="contract-signature-space">{signature && <img src={signature} alt="Firma del administrador" style={{transform:`scale(${signatureScale})`,transformOrigin:'bottom center'}} />}</div><strong>{admin}</strong><br />Por el prestador, según calidad declarada<br />RUT: {rut}</div>
             </div>
             <div className="contract-seal"><AranproOfficialSeal size="sm" companyRut={empresaForm.companyRut || ''} rnacNumber="" showCaption={true} /><span><strong>Contacto:</strong> {phone}<br />{email} • {website}</span></div>

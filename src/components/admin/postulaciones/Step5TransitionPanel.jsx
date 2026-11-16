@@ -1,3 +1,4 @@
+import { ContractDetailsForm } from './ContractDetailsForm';
 import React, { useState, useMemo } from 'react';
 import {
   FileText, CheckSquare, ShieldCheck, Mail, MessageCircle, Copy, Printer,
@@ -15,6 +16,7 @@ import { activeProposalConditions } from '../../../utils/proposalConditions';
 import { CanonicalPdfHeader, CanonicalPdfPageFooter, CanonicalPdfFinalSignature, canonicalPortraitPrintStyles, canonicalLandscapePrintStyles } from '../../common/CanonicalPdfParts';
 
 export const Step5TransitionPanel = ({
+  onSaveContract,
   proposalConfig = {},
   setProposalConfig = () => {},
   empresaForm = {},
@@ -690,6 +692,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                     <span>Imprimir Contrato</span>
                   </button>
                 </div>
+                <ContractDetailsForm onSave={onSaveContract} proposalConfig={proposalConfig} setProposalConfig={setProposalConfig} empresaForm={empresaForm} companySettings={companySettings} />
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 space-y-2 leading-relaxed">
                   <p><strong>Contrato de Administración (24 cláusulas y anexo):</strong> La frecuencia de visitas, atención de emergencias y condiciones se toman de la propuesta para esta comunidad. Honorario mensual: {feeStr}. Completa los datos de individualización y acuerdos antes de firmar. El modelo corresponde a una prestación independiente y requiere revisar la modalidad real de contratación.</p>
                 </div>
@@ -1032,7 +1035,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
               {/* Mismo componente, redacción y firma que el documento imprimible. */}
               {previewStep5Modal === 'contrato' && (
                 <div className="overflow-x-auto max-w-full">
-                  <ManagementContract proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale} pdfStyle={pdfStyle} />
+                  <ManagementContract companySettings={companySettings} proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale} pdfStyle={pdfStyle} />
                 </div>
               )}
 
@@ -1517,7 +1520,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
 
         {/* 4. Contrato: texto único para vista previa y ambas rutas de impresión. */}
         <div id="printable-management-contract" data-pdf-style={pdfStyle}>
-          <ManagementContract proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale} pdfStyle={pdfStyle} />
+          <ManagementContract companySettings={companySettings} proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale} pdfStyle={pdfStyle} />
         </div>
 
         {/* 5. PRINTABLE FULL PACKAGE */}

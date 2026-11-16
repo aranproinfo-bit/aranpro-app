@@ -1,3 +1,4 @@
+import { activeContractDetails } from './contractDetails.js';
 // Condiciones de una oportunidad: vacío significa que no existe una oferta definida.
 export const emptyProposalConditions = () => ({
   visitFrequency: '', emergencyResponse: '', includedServices: '', additionalServices: '',
@@ -17,7 +18,7 @@ export function activeProposalConditions(proposal) {
 
 export function changeProposalCommunity(current, name) {
   if (name === current.targetCondo) return current;
-  return { ...current, targetCondo: name, opportunityId: '', targetCity: '', targetRecipient: '', targetPhone: '', targetEmail: '', targetUnits: '', proposedMonthlyFee: '', proposalConditions: emptyProposalConditions(), proposalConditionsFor: name, visitFrequency: '' };
+  return { ...current, targetCondo: name, opportunityId: '', contractDetails: {}, contractDetailsFor: name, committeePresidentName: '', targetCity: '', targetRecipient: '', targetPhone: '', targetEmail: '', targetUnits: '', proposedMonthlyFee: '', proposalConditions: emptyProposalConditions(), proposalConditionsFor: name, visitFrequency: '' };
 }
 
 export function saveProposalOpportunity(existing, proposal, id, now) {
@@ -39,6 +40,8 @@ export function saveProposalOpportunity(existing, proposal, id, now) {
     stage: existing?.stage || 'prospecto',
     createdAt: existing?.createdAt || now,
     updatedAt: now,
+    contractDetails: activeContractDetails(proposal),
+    committeePresidentName: proposal.committeePresidentName || '',
     proposalConditions: activeProposalConditions(proposal)
   };
 }
@@ -53,6 +56,9 @@ export function loadProposalOpportunity(current, record) {
   return {
     ...current,
     opportunityId: record.id,
+    contractDetails: record.contractDetails || {},
+    contractDetailsFor: record.condoName || record.condo || '',
+    committeePresidentName: record.committeePresidentName || '',
     targetCondo: record.condoName || record.condo || '',
     proposalConditionsFor: record.condoName || record.condo || '',
     targetCity: record.city || '',
