@@ -5,6 +5,7 @@ import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
 import { SuggestionsAndComplaintsModule } from './SuggestionsAndComplaintsModule';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
+import { useEconomicIndicators } from '../../hooks/useEconomicIndicators';
 import {
   Megaphone, FolderOpen, MessageSquare, AlertTriangle, ShieldCheck,
   Plus, Printer, Share2, Trash2, CheckCircle2, Clock, Pin,
@@ -54,6 +55,7 @@ export const MuralAndComplaintsModule = ({
   const [showNewAnnModal, setShowNewAnnModal] = useState(false);
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [showFineModal, setShowFineModal] = useState(false);
+  const indicators = useEconomicIndicators(showFineModal);
   const [activeDocPreview, setActiveDocPreview] = useState(null);
 
   // Modal de confirmación corporativo ARANPRO (reemplaza popups nativos)
@@ -98,11 +100,14 @@ export const MuralAndComplaintsModule = ({
     unitId: 'u-8',
     reason: 'Ruidos molestos y música a alto volumen fuera del horario reglamentario',
     reglamentoArticle: 'Art. 18° y 24° del Reglamento de Copropiedad',
-    amountClp: 39500, // Equiv. 1 UF aprox
-    ufEquivalent: '1.0 UF',
+    amountClp: '',
+    ufEquivalent: 'Monto por definir',
+    ufDate: '',
+    ufValue: null,
     resolutionFolio: 'SANC-2026-01',
     notifyWhatsApp: true
   });
+  const fineUfOutdated = !!fineForm.ufDate && (!indicators.ufCurrent || fineForm.ufDate !== indicators.today || fineForm.ufValue !== indicators.data?.uf?.value);
 
   // --- Documentación Obligatoria según Ley N° 21.442 (Propuesta 4) ---
   const legalRequirements = [
@@ -433,14 +438,16 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
   // 5. Cargar Multa a la Unidad en Colilla de Gastos Comunes (Propuesta 5)
   const handleApplyFineToUnit = (e) => {
     e.preventDefault();
+    if (!Number.isFinite(Number(fineForm.amountClp)) || Number(fineForm.amountClp) <= 0 || fineUfOutdated) return;
     const targetUnit = (currentCommunity?.units || []).find(u => u.id === fineForm.unitId);
     if (!targetUnit) return;
 
     const previousCharge = targetUnit.extraCharge || 0;
     const newCharge = previousCharge + Number(fineForm.amountClp);
+    const detail = `${fineForm.ufEquivalent}${fineForm.ufDate ? `; UF $${fineForm.ufValue.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} del ${fineForm.ufDate}, indicadores.cl` : ''}`;
     const newDescription = targetUnit.extraChargeDescription
-      ? `${targetUnit.extraChargeDescription} • Multa: ${fineForm.reason} (${fineForm.ufEquivalent})`
-      : `Multa: ${fineForm.reason} (${fineForm.ufEquivalent})`;
+      ? `${targetUnit.extraChargeDescription} • Multa: ${fineForm.reason} (${detail})`
+      : `Multa: ${fineForm.reason} (${detail})`;
 
     updateUnit(currentCommunity.id, targetUnit.id, {
       extraCharge: newCharge,
@@ -546,6 +553,7 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
             <td class="header">Monto Aplicado:</td>
             <td><strong style="font-size: 13px; color: #991B1B;">${formatCLP(fineForm.amountClp)}</strong> (${fineForm.ufEquivalent})</td>
           </tr>
+          ${fineForm.ufDate ? `<tr><td class="header">UF de referencia:</td><td>$${fineForm.ufValue.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} al ${fineForm.ufDate} · indicadores.cl / SII</td></tr>` : ''}
           <tr>
             <td class="header">Modalidad de Cobro:</td>
             <td>Cargado directamente en la colilla de gastos comunes del período activo para su recaudación conjunta.</td>
@@ -1708,51 +1716,23 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                   Seleccionar Escala de Multa Reglamentaria:
                 </label>
                 <div className="grid grid-cols-4 gap-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => setFineForm({ ...fineForm, amountClp: 19750, ufEquivalent: '0.5 UF' })}
-                    className={`p-2 rounded-xl border text-center font-bold text-xs cursor-pointer ${
-                      fineForm.amountClp === 19750 ? 'bg-rose-900 text-white border-rose-900' : 'bg-slate-50 text-slate-700 border-slate-200'
-                    }`}
-                  >
-                    0.5 UF ($19.750)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFineForm({ ...fineForm, amountClp: 39500, ufEquivalent: '1.0 UF' })}
-                    className={`p-2 rounded-xl border text-center font-bold text-xs cursor-pointer ${
-                      fineForm.amountClp === 39500 ? 'bg-rose-900 text-white border-rose-900' : 'bg-slate-50 text-slate-700 border-slate-200'
-                    }`}
-                  >
-                    1.0 UF ($39.500)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFineForm({ ...fineForm, amountClp: 79000, ufEquivalent: '2.0 UF' })}
-                    className={`p-2 rounded-xl border text-center font-bold text-xs cursor-pointer ${
-                      fineForm.amountClp === 79000 ? 'bg-rose-900 text-white border-rose-900' : 'bg-slate-50 text-slate-700 border-slate-200'
-                    }`}
-                  >
-                    2.0 UF ($79.000)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFineForm({ ...fineForm, amountClp: 118500, ufEquivalent: '3.0 UF' })}
-                    className={`p-2 rounded-xl border text-center font-bold text-xs cursor-pointer ${
-                      fineForm.amountClp === 118500 ? 'bg-rose-900 text-white border-rose-900' : 'bg-slate-50 text-slate-700 border-slate-200'
-                    }`}
-                  >
-                    3.0 UF ($118.500)
-                  </button>
+                  {[0.5, 1, 2, 3].map(quantity => {
+                    const amount = indicators.ufCurrent ? Math.round(indicators.data.uf.value * quantity) : null;
+                    const label = `${quantity.toFixed(1)} UF`;
+                    return <button key={quantity} type="button" disabled={!indicators.ufCurrent} onClick={() => setFineForm({ ...fineForm, amountClp: amount, ufEquivalent: label, ufDate: indicators.data.uf.date, ufValue: indicators.data.uf.value })} className={`p-2 rounded-xl border text-center font-bold text-xs disabled:opacity-40 ${fineForm.ufEquivalent === label && fineForm.ufDate === indicators.today ? 'bg-rose-900 text-white border-rose-900' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>{label}{amount !== null ? ` (${formatCLP(amount)})` : ''}</button>;
+                  })}
                 </div>
+                <p className="text-[10px] text-slate-600 mb-2">{indicators.ufCurrent ? `UF del ${indicators.data.uf.date}: $${indicators.data.uf.value.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.` : 'UF de hoy no disponible: puedes ingresar el monto manualmente en pesos.'} Datos: <a href="https://indicadores.cl/api/" target="_blank" rel="noreferrer" className="underline">indicadores.cl</a> · <a href={`https://www.sii.cl/valores_y_fechas/uf/uf${indicators.today.slice(0, 4)}.htm`} target="_blank" rel="noreferrer" className="underline">SII</a>.</p>
+                {fineUfOutdated && <p className="text-rose-700 font-bold mb-2">La UF seleccionada ya no está vigente o ha cambiado. Vuelve a elegir la escala o ingresa un monto manual.</p>}
 
                 <div className="flex items-center space-x-2">
                   <span className="text-xs font-bold text-slate-600">Monto Final a Imputar:</span>
                   <input
                     type="number"
                     min="1"
+                    required
                     value={fineForm.amountClp}
-                    onChange={(e) => setFineForm({ ...fineForm, amountClp: Number(e.target.value), ufEquivalent: 'Monto fijado' })}
+                    onChange={(e) => setFineForm({ ...fineForm, amountClp: e.target.value, ufEquivalent: 'Monto fijado', ufDate: '', ufValue: null })}
                     className="p-2 border border-slate-300 rounded-xl font-black text-rose-700 text-sm w-36"
                   />
                   <span className="text-xs font-bold text-slate-500">CLP ({fineForm.ufEquivalent})</span>

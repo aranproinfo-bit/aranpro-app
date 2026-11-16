@@ -9,6 +9,7 @@ import { printDocumentDirectly } from '../../../utils/printDocument';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../../common/MauranLogo';
 import { CanonicalPdfHeader, CanonicalPdfPageFooter, CanonicalPdfFinalSignature, canonicalPdfHeaderStyles } from '../../common/CanonicalPdfParts';
 import { useCommunity } from '../../../context/CommunityContext';
+import { useEconomicIndicators } from '../../../hooks/useEconomicIndicators';
 
 /**
  * MATRIZ PERICIAL DE HONORARIOS ARANPRO • LEY N° 21.442
@@ -128,6 +129,7 @@ export const AgacechFeeCalculatorPanel = ({
   showAlert
 }) => {
   const { companySettings } = useCommunity();
+  const indicators = useEconomicIndicators();
   const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
   const signatureImage = empresaForm?.signatureDataUrl || companySettings?.signatureDataUrl || '';
   const signatureScale = Number(companySettings?.signatureScale) || 1.65;
@@ -150,6 +152,7 @@ export const AgacechFeeCalculatorPanel = ({
     
     ufValueCLP: '',
     ufDate: '',
+    ufMode: 'auto',
     minFloorUF: 15,
     calcMethod: 'direct', // 'direct' | 'progressive'
     ageId: '',
@@ -185,12 +188,17 @@ export const AgacechFeeCalculatorPanel = ({
     const initial = createInitialCalc();
     try {
       const saved = storageKey && JSON.parse(localStorage.getItem(storageKey) || 'null');
-      return saved ? { ...initial, ...saved, condoName: communityName } : initial;
+      return saved ? { ...initial, ...saved, condoName: communityName, ufMode: saved.ufMode || (saved.ufValueCLP ? 'manual' : 'auto') } : initial;
     } catch { return initial; }
   };
   const [calc, setCalc] = useState(loadCalc);
   const [saveStatus, setSaveStatus] = useState('');
   useEffect(() => { setCalc(loadCalc()); setSaveStatus(''); }, [storageKey]);
+  useEffect(() => {
+    if (!indicators.ufCurrent) return;
+    setCalc(prev => prev.ufMode === 'auto' && (prev.ufDate !== indicators.data.uf.date || Number(prev.ufValueCLP) !== indicators.data.uf.value)
+      ? { ...prev, ufValueCLP: indicators.data.uf.value, ufDate: indicators.data.uf.date } : prev);
+  }, [storageKey, indicators.ufCurrent, indicators.data?.uf?.value, indicators.data?.uf?.date]);
   const saveCalc = () => {
     if (!storageKey) { setSaveStatus('Ingresa primero el nombre de la comunidad en la postulación.'); return; }
     try { localStorage.setItem(storageKey, JSON.stringify(calc)); setSaveStatus('Estudio guardado para esta comunidad en este navegador.'); }
@@ -378,7 +386,8 @@ export const AgacechFeeCalculatorPanel = ({
     result.breakdownUnits > 0 && result.declaredUnits > 0 && result.breakdownUnits !== result.declaredUnits && 'El desglose de unidades no coincide con el total informado.',
     (calc.typology === 'depto_only' && (result.hCount > 0 || result.cCount > 0) || calc.typology === 'house_only' && (result.dCount > 0 || result.cCount > 0) || calc.typology === 'mixed_residential' && result.cCount > 0) && 'La tipología elegida no coincide con el desglose de unidades.',
     (!Number.isFinite(Number(calc.ufValueCLP)) || Number(calc.ufValueCLP) <= 0) && 'Ingresa un valor de UF válido.',
-    !calc.ufDate && 'Indica la fecha del valor de la UF.'
+    !calc.ufDate && 'Indica la fecha del valor de la UF.',
+    calc.ufMode === 'auto' && calc.ufDate !== indicators.today && 'No hay UF automática vigente para hoy; actualiza o ingresa el valor y la fecha manualmente.'
   ].filter(Boolean);
   const equipmentDetails = [
     result.elevatorsUF > 0 && `${calc.elevatorsCount} ascensor(es)`, calc.hasBoiler && `${calc.boilersCount} caldera(s)`,
@@ -697,11 +706,13 @@ export const AgacechFeeCalculatorPanel = ({
                   min="0.01"
                   step="0.01"
                   value={calc.ufValueCLP}
-                  onChange={(e) => setCalc({ ...calc, ufValueCLP: e.target.value })}
+                  onChange={(e) => setCalc({ ...calc, ufValueCLP: e.target.value, ufMode: 'manual' })}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800"
                 />
-                <label className="block text-[10px] font-bold text-slate-600 mt-2">Fecha del valor UF<input type="date" value={calc.ufDate} onChange={e => setCalc({ ...calc, ufDate: e.target.value })} className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl" /></label>
-                <span className="text-[10px] text-slate-500">Ingreso manual: verifica el valor para la fecha indicada en el <a className="underline text-emerald-800" href={`https://www.sii.cl/valores_y_fechas/uf/uf${(calc.ufDate || String(new Date().getFullYear())).slice(0, 4)}.htm`} target="_blank" rel="noreferrer">SII</a>.</span>
+                <label className="block text-[10px] font-bold text-slate-600 mt-2">Fecha del valor UF<input type="date" value={calc.ufDate} onChange={e => setCalc({ ...calc, ufDate: e.target.value, ufMode: 'manual' })} className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl" /></label>
+                <p className="text-[10px] text-slate-500">{calc.ufMode === 'auto' ? (indicators.ufCurrent ? 'UF diaria actualizada automáticamente.' : 'UF vigente no disponible; puedes ingresarla manualmente.') : 'Valor ingresado manualmente.'} Datos: <a className="underline text-emerald-800" href="https://indicadores.cl/api/" target="_blank" rel="noreferrer">indicadores.cl</a> · <a className="underline text-emerald-800" href={`https://www.sii.cl/valores_y_fechas/uf/uf${(calc.ufDate || String(new Date().getFullYear())).slice(0, 4)}.htm`} target="_blank" rel="noreferrer">verificar en SII</a>.</p>
+                <button type="button" disabled={!indicators.ufCurrent} onClick={() => setCalc(prev => ({ ...prev, ufMode: 'auto', ufValueCLP: indicators.data.uf.value, ufDate: indicators.data.uf.date }))} className="text-[10px] font-bold text-emerald-800 underline disabled:opacity-40">Usar UF automática de hoy</button>
+                {indicators.utmCurrent && <p className="text-[10px] text-slate-500">UTM {indicators.data.utm.month}: {formatCLP(indicators.data.utm.value)}{indicators.data.ipc ? ` · IPC ${indicators.data.ipc.month}: ${indicators.data.ipc.value}%` : ''}.</p>}
                 {calc.ufDate && calc.ufDate !== new Date().toLocaleDateString('en-CA') && <span className="block text-[10px] font-bold text-amber-700">La fecha indicada no es la de hoy; confirma que corresponde a tu propuesta.</span>}
               </div>
             </div>
@@ -1259,7 +1270,7 @@ export const AgacechFeeCalculatorPanel = ({
           {/* SECCIÓN SUPERIOR */}
           <div className="space-y-2.5">
             <CanonicalPdfHeader badge="ESTUDIO DE HONORARIOS" description="Memoria técnica pericial" page={1} community={calc.condoName || 'Comunidad en evaluación'} brandName={empresaForm?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm?.email || 'contacto@aranpro.cl'} phone={empresaForm?.phone || '+56 9 5811 8504'} city={empresaForm?.city || 'La Serena, Chile'} />
-            <p className="text-[9px] text-slate-500 text-right">{result.units} unidades • UF de referencia: ${result.ufCLP.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} al {calc.ufDate.split('-').reverse().join('-')} • Emisión: {new Date().toLocaleDateString('es-CL')}</p>
+            <p className="text-[9px] text-slate-500 text-right">{result.units} unidades • UF de referencia: ${result.ufCLP.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} al {calc.ufDate.split('-').reverse().join('-')} ({calc.ufMode === 'auto' ? 'indicadores.cl / SII' : 'ingreso manual'}) • Emisión: {new Date().toLocaleDateString('es-CL')}</p>
 
             <p className="text-[10.5px] text-slate-700 leading-snug">Esta memoria presenta una estimación mensual de honorarios para la administración de la comunidad, considerando los antecedentes y características operativas registrados. Su finalidad es facilitar la revisión de la propuesta y explicar los criterios utilizados en el cálculo.</p>
 
