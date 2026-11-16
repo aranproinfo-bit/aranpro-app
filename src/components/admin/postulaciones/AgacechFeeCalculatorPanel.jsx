@@ -140,6 +140,7 @@ export const AgacechFeeCalculatorPanel = ({
     typology: '', // El usuario debe elegir la tipología de la comunidad.
     // Desglose de unidades
     declaredUnits: proposalConfig?.targetUnits || '',
+    unitSource: 'total',
     deptosCount: '',
     housesCount: '',
     commercialCount: '',
@@ -205,8 +206,10 @@ export const AgacechFeeCalculatorPanel = ({
 
     const breakdownUnits = dCount + hCount + cCount;
     const declaredUnits = Math.max(0, Number(calc.declaredUnits) || 0);
-    const units = breakdownUnits || declaredUnits;
-    const ufCLP = Math.max(0, Number(calc.ufValueCLP) || 0);
+    const units = calc.unitSource === 'breakdown' ? (breakdownUnits || declaredUnits) : (declaredUnits || breakdownUnits);
+    // El valor anterior se usa solo para una vista preliminar; la validación exige
+    // ingresar una UF y fecha antes de imprimir o aplicar el honorario.
+    const ufCLP = Math.max(0, Number(calc.ufValueCLP) || 38450);
     const minFloorUF = Math.max(1, Number(calc.minFloorUF) || 15);
 
     // 2. Determinar tramo y Tarifa Base en UF
@@ -584,8 +587,8 @@ export const AgacechFeeCalculatorPanel = ({
             </div>
 
             <label className="block text-xs font-bold text-slate-700">Total de unidades informado
-              <input type="number" min="1" step="1" value={calc.declaredUnits} onChange={e => setCalc({ ...calc, declaredUnits: e.target.value })} className="block mt-1 w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl" />
-              <span className="font-normal text-slate-500">Si ingresas un desglose, debe sumar este total. Si no conoces el desglose, puedes dejarlo vacío.</span>
+              <input type="number" min="1" step="1" value={calc.declaredUnits} onChange={e => setCalc({ ...calc, declaredUnits: e.target.value, unitSource: 'total' })} className="block mt-1 w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl" />
+              <span className="font-normal text-slate-500">El cálculo usa el último dato editado: total o desglose. Si ingresas ambos, deben coincidir antes de imprimir o aplicar.</span>
             </label>
             {/* Desglose de Unidades según Tipología */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -599,7 +602,7 @@ export const AgacechFeeCalculatorPanel = ({
                   min="0"
                   max="2000"
                   value={calc.deptosCount}
-                  onChange={(e) => setCalc({ ...calc, deptosCount: e.target.value })}
+                  onChange={(e) => setCalc({ ...calc, deptosCount: e.target.value, unitSource: 'breakdown' })}
                   className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-center font-black text-xs text-[#0F3D2E]"
                 />
                 <span className="text-[9px] text-slate-400 block text-center">Torres / Altura</span>
@@ -615,7 +618,7 @@ export const AgacechFeeCalculatorPanel = ({
                   min="0"
                   max="1000"
                   value={calc.housesCount}
-                  onChange={(e) => setCalc({ ...calc, housesCount: e.target.value })}
+                  onChange={(e) => setCalc({ ...calc, housesCount: e.target.value, unitSource: 'breakdown' })}
                   className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-center font-black text-xs text-[#0F3D2E]"
                 />
                 <span className="text-[9px] text-slate-400 block text-center">Extensión</span>
@@ -633,7 +636,7 @@ export const AgacechFeeCalculatorPanel = ({
                   min="0"
                   max="200"
                   value={calc.commercialCount}
-                  onChange={(e) => setCalc({ ...calc, commercialCount: e.target.value })}
+                  onChange={(e) => setCalc({ ...calc, commercialCount: e.target.value, unitSource: 'breakdown' })}
                   className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-center font-black text-xs text-[#0F3D2E]"
                 />
                 <span className="text-[9px] text-slate-400 block text-center">Comercio / Strip</span>
@@ -1126,9 +1129,10 @@ export const AgacechFeeCalculatorPanel = ({
               <div className="text-sm font-mono font-bold text-[#D4B895]">
                 Equivalente a {result.finalMonthlyUF.toFixed(2)} UF mensuales
               </div>
+              {(!Number(calc.ufValueCLP) || Number(calc.ufValueCLP) <= 0) && <p className="text-[11px] text-amber-200">Vista preliminar en pesos con UF antigua de $38.450. Ingresa y confirma la UF vigente y su fecha para imprimir o aplicar.</p>}
               {result.isFloorApplied && (
                 <div className="mt-2 inline-block px-2.5 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-[10px] font-bold">
-                  ★ Se aplicó el Piso Técnico de {result.minFloorUF} UF (cálculo directo daba {result.calculatedMonthlyUF.toFixed(2)} UF)
+                  El cálculo antes del mínimo es {result.calculatedMonthlyUF.toFixed(2)} UF ({formatCLP(Math.round(result.calculatedMonthlyUF * result.ufCLP))}). El honorario final permanece en el piso de {result.minFloorUF} UF mientras el cálculo sea menor.
                 </div>
               )}
             </div>
