@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Calculator, Building2, HardHat, Users, Clock, AlertTriangle,
   CheckCircle2, ArrowRight, Printer, Sparkles, DollarSign, Info, RefreshCw,
@@ -45,7 +45,7 @@ export const CONDO_TYPOLOGIES = [
     sub: 'Extensión + Altura (Ley 21.442)',
     badge: '+10% Complejidad',
     multiplier: 1.10,
-    desc: 'Coexistencia de torres y casas. Exige doble régimen de mantenciones y prorrateos segregados Art. 6°.'
+    desc: 'Coexistencia de torres y casas, con necesidades de mantención y administración que deben evaluarse.'
   },
   {
     id: 'mixed_commercial',
@@ -67,7 +67,7 @@ const UNIT_TIERS = [
 const AGE_FACTORS = [
   {
     id: 'new',
-    label: '< 2 años (0 a 3 años)',
+    label: 'Menos de 2 años',
     title: 'Recepción Final & Posventa Inmobiliaria',
     multiplier: 1.10,
     badge: '+10% Complejidad',
@@ -75,7 +75,7 @@ const AGE_FACTORS = [
   },
   {
     id: 'stable',
-    label: '2 a 8 años (3 a 7 años)',
+    label: '2 a 8 años',
     title: 'Período Operativo Estable',
     multiplier: 1.00,
     badge: '1.00x Neutro',
@@ -83,7 +83,7 @@ const AGE_FACTORS = [
   },
   {
     id: 'mid',
-    label: '9 a 20 años (8 a 15 años)',
+    label: '9 a 20 años',
     title: 'Renovaciones Iniciales & Desgaste Medio',
     multiplier: 1.15,
     badge: '+15% Mantención',
@@ -91,7 +91,7 @@ const AGE_FACTORS = [
   },
   {
     id: 'old',
-    label: '> 20 años (15+ a 25+ años)',
+    label: 'Más de 20 años',
     title: 'Desgaste Severo & Fallas Frecuentes',
     multiplier: 1.25,
     badge: '+25% Alta Exigencia',
@@ -133,30 +133,34 @@ export const AgacechFeeCalculatorPanel = ({
   const signatureScale = Number(companySettings?.signatureScale) || 1.65;
 
   // Estado del modelo de cálculo ARANPRO
-  const [calc, setCalc] = useState({
-    condoName: proposalConfig?.targetCondo || 'Condominio en Evaluación',
-    typology: 'mixed_residential', // 'depto_only' | 'house_only' | 'mixed_residential' | 'mixed_commercial'
+  const communityName = (proposalConfig?.targetCondo || '').trim();
+  const storageKey = communityName ? `aranpro_fee_v1:${communityName.toLocaleLowerCase('es-CL')}` : '';
+  const createInitialCalc = () => ({
+    condoName: communityName,
+    typology: '', // El usuario debe elegir la tipología de la comunidad.
     // Desglose de unidades
-    deptosCount: 64,
-    housesCount: 20,
-    commercialCount: 4,
+    declaredUnits: proposalConfig?.targetUnits || '',
+    deptosCount: '',
+    housesCount: '',
+    commercialCount: '',
     storageParkingCount: 0,
     // Sub-sectores contables independientes con gasto común segregado (Art. 6° Ley 21.442)
-    subsectorsCount: 2, // 1 = único, 2 = Casas y Torres, etc. (+1.5 UF por subsector contable adicional)
+    subsectorsCount: 1, // 1 = único; cada sector adicional agrega 1.5 UF
     
-    ufValueCLP: 38450,
+    ufValueCLP: '',
+    ufDate: '',
     minFloorUF: 15,
     calcMethod: 'direct', // 'direct' | 'progressive'
-    ageId: 'stable',
+    ageId: '',
 
     // Equipamiento Vertical (Torres / Departamentos)
-    elevatorsCount: 2,        // +0.5 UF c/u (con mantención Minvu)
+    elevatorsCount: 0,        // +0.5 UF c/u (con mantención Minvu)
     hasBoiler: false,         // +1.5 UF (Caldera central agua caliente/calefacción)
     boilersCount: 1,
-    hasPumpRoom: true,        // +1.0 UF (Sala de bombas / estanques agua potable)
+    hasPumpRoom: false,       // +1.0 UF (Sala de bombas / estanques agua potable)
     hasGenerator: false,      // +0.5 UF (Grupo electrógeno de respaldo)
-    hasPoolClubhouse: true,   // +1.0 UF (Piscina / Club house / Quinchos / Gym)
-    hasCctvFence: true,       // +0.5 UF (Cerco eléctrico perimetral, CCTV y portones)
+    hasPoolClubhouse: false,  // +1.0 UF (Piscina / Club house / Quinchos / Gym)
+    hasCctvFence: false,      // +0.5 UF (Cerco eléctrico perimetral, CCTV y portones)
 
     // Equipamiento de Extensión (Casas / Horizontal)
     hasDeepWell: false,       // +1.5 UF (Pozo profundo agua potable o regadío)
@@ -170,37 +174,39 @@ export const AgacechFeeCalculatorPanel = ({
     hasCommercialLoadingDock: false, // +0.8 UF (Zona de carga y descarga de camiones de abastecimiento)
 
     // Dotación de RRHH
-    directEmployees: 4,       // +0.30 UF por trabajador directo
+    directEmployees: 0,       // +0.30 UF por trabajador directo
     outsourcedCompanies: 0,   // +0.40 UF por empresa subcontratada (control F30-1)
 
     // Estado inicial de traspaso
     initialStateId: 'al_dia'
   });
+  const loadCalc = () => {
+    const initial = createInitialCalc();
+    try {
+      const saved = storageKey && JSON.parse(localStorage.getItem(storageKey) || 'null');
+      return saved ? { ...initial, ...saved, condoName: communityName } : initial;
+    } catch { return initial; }
+  };
+  const [calc, setCalc] = useState(loadCalc);
+  const [saveStatus, setSaveStatus] = useState('');
+  useEffect(() => { setCalc(loadCalc()); setSaveStatus(''); }, [storageKey]);
+  const saveCalc = () => {
+    if (!storageKey) { setSaveStatus('Ingresa primero el nombre de la comunidad en la postulación.'); return; }
+    try { localStorage.setItem(storageKey, JSON.stringify(calc)); setSaveStatus('Estudio guardado para esta comunidad en este navegador.'); }
+    catch { setSaveStatus('No se pudo guardar el estudio en este navegador.'); }
+  };
 
   // Cálculo integral de la Matriz Pericial ARANPRO
   const result = useMemo(() => {
     // 1. Total de unidades según tipología
-    let totalUnits = 0;
     const dCount = Math.max(0, Number(calc.deptosCount) || 0);
     const hCount = Math.max(0, Number(calc.housesCount) || 0);
     const cCount = Math.max(0, Number(calc.commercialCount) || 0);
 
-    if (calc.typology === 'depto_only') {
-      totalUnits = dCount > 0 ? dCount : 64;
-    } else if (calc.typology === 'house_only') {
-      totalUnits = hCount > 0 ? hCount : 50;
-    } else if (calc.typology === 'mixed_residential') {
-      totalUnits = dCount + hCount;
-      if (totalUnits === 0) totalUnits = 84;
-    } else if (calc.typology === 'mixed_commercial') {
-      totalUnits = dCount + hCount + cCount;
-      if (totalUnits === 0) totalUnits = 70;
-    } else {
-      totalUnits = Math.max(1, dCount + hCount + cCount);
-    }
-
-    const units = Math.max(1, totalUnits);
-    const ufCLP = Math.max(1000, Number(calc.ufValueCLP) || 38450);
+    const breakdownUnits = dCount + hCount + cCount;
+    const declaredUnits = Math.max(0, Number(calc.declaredUnits) || 0);
+    const units = breakdownUnits || declaredUnits;
+    const ufCLP = Math.max(0, Number(calc.ufValueCLP) || 0);
     const minFloorUF = Math.max(1, Number(calc.minFloorUF) || 15);
 
     // 2. Determinar tramo y Tarifa Base en UF
@@ -281,8 +287,8 @@ export const AgacechFeeCalculatorPanel = ({
     const finalMonthlyCLP = Math.round(finalMonthlyUF * ufCLP);
 
     // Prorrateo promedio por unidad
-    const feePerUnitUF = finalMonthlyUF / units;
-    const feePerUnitCLP = Math.round(finalMonthlyCLP / units);
+    const feePerUnitUF = units ? finalMonthlyUF / units : 0;
+    const feePerUnitCLP = units ? Math.round(finalMonthlyCLP / units) : 0;
 
     // Prorrateo referencial desagregado según peso de unidad
     let deptoUnitFeeCLP = feePerUnitCLP;
@@ -291,10 +297,10 @@ export const AgacechFeeCalculatorPanel = ({
 
     if (calc.typology === 'mixed_commercial' && cCount > 0) {
       // Los locales comerciales suelen tener un ponderador 1.4x por uso intensivo de bienes comunes
-      commUnitFeeCLP = Math.round(feePerUnitCLP * 1.4);
-      const remainingCLP = finalMonthlyCLP - (cCount * commUnitFeeCLP);
-      const resUnits = Math.max(1, units - cCount);
-      deptoUnitFeeCLP = Math.round(remainingCLP / resUnits);
+      const resUnits = Math.max(0, units - cCount);
+      const weightedBase = finalMonthlyCLP / (resUnits + cCount * 1.4);
+      commUnitFeeCLP = Math.round(weightedBase * 1.4);
+      deptoUnitFeeCLP = Math.round(weightedBase);
       houseUnitFeeCLP = deptoUnitFeeCLP;
     }
 
@@ -308,6 +314,8 @@ export const AgacechFeeCalculatorPanel = ({
       dCount,
       hCount,
       cCount,
+      breakdownUnits,
+      declaredUnits,
       ufCLP,
       minFloorUF,
       activeTier,
@@ -355,7 +363,37 @@ export const AgacechFeeCalculatorPanel = ({
     };
   }, [calc]);
 
+  const validationErrors = [
+    !communityName && 'Indica el nombre de la comunidad en la postulación.',
+    !calc.typology && 'Selecciona la tipología de la comunidad.',
+    !calc.ageId && 'Selecciona la antigüedad de la comunidad.',
+    (!Number.isInteger(result.units) || result.units <= 0) && 'Indica una cantidad de unidades mayor que cero.',
+    calc.declaredUnits !== '' && (!Number.isInteger(Number(calc.declaredUnits)) || Number(calc.declaredUnits) <= 0) && 'El total informado debe ser un número entero mayor que cero.',
+    (!Number.isInteger(Number(calc.subsectorsCount)) || Number(calc.subsectorsCount) < 1) && 'Indica al menos un sector.',
+    (!Number.isFinite(Number(calc.minFloorUF)) || Number(calc.minFloorUF) < 1) && 'Indica un piso de honorarios de al menos 1 UF.',
+    [calc.deptosCount, calc.housesCount, calc.commercialCount, calc.subsectorsCount, calc.elevatorsCount, calc.directEmployees, calc.outsourcedCompanies].some(value => value !== '' && (!Number.isInteger(Number(value)) || Number(value) < 0)) && 'Las cantidades deben ser números enteros no negativos.',
+    result.breakdownUnits > 0 && result.declaredUnits > 0 && result.breakdownUnits !== result.declaredUnits && 'El desglose de unidades no coincide con el total informado.',
+    (calc.typology === 'depto_only' && (result.hCount > 0 || result.cCount > 0) || calc.typology === 'house_only' && (result.dCount > 0 || result.cCount > 0) || calc.typology === 'mixed_residential' && result.cCount > 0) && 'La tipología elegida no coincide con el desglose de unidades.',
+    (!Number.isFinite(Number(calc.ufValueCLP)) || Number(calc.ufValueCLP) <= 0) && 'Ingresa un valor de UF válido.',
+    !calc.ufDate && 'Indica la fecha del valor de la UF.'
+  ].filter(Boolean);
+  const equipmentDetails = [
+    result.elevatorsUF > 0 && `${calc.elevatorsCount} ascensor(es)`, calc.hasBoiler && `${calc.boilersCount} caldera(s)`,
+    calc.hasPumpRoom && 'sala de bombas', calc.hasGenerator && 'generador', calc.hasPoolClubhouse && 'piscina / espacios comunes',
+    calc.hasCctvFence && 'seguridad y accesos', calc.hasDeepWell && 'pozo profundo', calc.hasWaterTreatmentPlant && 'planta de tratamiento',
+    calc.hasInternalStreetLighting && 'calles y alumbrado', calc.hasDoubleAccessGate && 'doble acceso',
+    calc.hasCommercialTraffic && 'flujo comercial', calc.hasGastronomyExhaust && 'extracción gastronómica', calc.hasCommercialLoadingDock && 'zona de carga'
+  ].filter(Boolean);
+  const ensureValid = () => {
+    if (!validationErrors.length) return true;
+    if (showAlert) showAlert('Completa los datos del estudio', validationErrors.join(' '), 'error');
+    else setSaveStatus(validationErrors.join(' '));
+    return false;
+  };
+
   const handleApplyToProposal = () => {
+    if (!ensureValid()) return;
+    saveCalc();
     if (setProposalConfig) {
       setProposalConfig(prev => ({
         ...prev,
@@ -376,13 +414,14 @@ export const AgacechFeeCalculatorPanel = ({
     if (showAlert) {
       showAlert(
         '✓ Honorario Aplicado a la Propuesta (Paso 3)',
-        `Se transfirió el honorario calculado de ${result.finalMonthlyUF.toFixed(2)} UF (${formatCLP(result.finalMonthlyCLP)} / mes • ${formatCLP(result.feePerUnitCLP)} por unidad) a la Carta Formal de Propuesta Económica del Paso 3.`,
+        `Se transfirió el honorario mensual base de ${result.finalMonthlyUF.toFixed(2)} UF (${formatCLP(result.finalMonthlyCLP)} / mes). ${result.initObj.surchargeUF > 0 ? 'El recargo temporal de puesta en marcha no se transfirió; debes acordarlo por separado.' : ''}`,
         'success'
       );
     }
   };
 
   const handlePrintFeeSheet = () => {
+    if (!ensureValid()) return;
     const cleanName = (calc.condoName || 'Comunidad').replace(/[^a-zA-Z0-9]/g, '_');
     printDocumentDirectly('printable-aranpro-fee-sheet', `ARANPRO_Estudio_Honorarios_Pericial_${cleanName}`, {
       pageSize: 'letter portrait',
@@ -425,7 +464,7 @@ export const AgacechFeeCalculatorPanel = ({
             Calculadora Profesional de Honorarios por Complejidad Operativa
           </h4>
           <p className="text-xs text-emerald-100/90 max-w-3xl leading-relaxed">
-            Estructurada con criterio de <strong>Constructor Civil</strong> para tasar objetivamente comunidades de altura, extensión horizontal y <strong>condominios mixtos (casas + torres o locales comerciales)</strong> con sub-prorrateos segregados según el <strong>Art. 6° de la Ley N° 21.442</strong>.
+            Estima el honorario según los antecedentes ingresados y los criterios comerciales de ARANPRO. Revisa el reglamento de copropiedad cuando existan sectores con gastos diferenciados.
           </p>
         </div>
 
@@ -449,6 +488,12 @@ export const AgacechFeeCalculatorPanel = ({
         </div>
       </div>
 
+      <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50 text-xs text-slate-800 space-y-2">
+        <p><strong>Comunidad:</strong> {communityName || 'Por indicar en la postulación'}. Los equipos no marcados no se consideran en el cálculo; revisa la tipología, antigüedad y dotación antes de usar el resultado.</p>
+        <div className="flex flex-wrap items-center gap-3"><button type="button" onClick={saveCalc} className="px-3 py-2 rounded-lg bg-[#0F3D2E] text-white font-bold">Guardar estudio de esta comunidad</button><span>Guardado local en este navegador; no se sincroniza entre dispositivos.</span></div>
+        {saveStatus && <p role="status">{saveStatus}</p>}
+        {validationErrors.length > 0 && <p className="text-amber-900"><strong>Antes de imprimir o aplicar:</strong> {validationErrors.join(' ')}</p>}
+      </div>
       {/* FÓRMULA MATEMÁTICA VISUAL ARANPRO */}
       <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/90 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-start gap-2.5">
@@ -460,7 +505,7 @@ export const AgacechFeeCalculatorPanel = ({
               Fórmula Pericial ARANPRO (Complejidad Multidimensional & Ley N° 21.442):
             </span>
             <p className="font-mono text-[11px] font-bold text-[#0F3D2E]">
-              Honorario = máx( Piso {result.minFloorUF} UF , [ Tarifa Base + Sub-Sectores Art. 6° + Equipamiento + RRHH ] × Factor Antigüedad × Factor Mixto )
+              Honorario = máx( Piso {result.minFloorUF} UF , [ Tarifa Base + Sectores + Equipamiento + RRHH ] × Factor Antigüedad × Factor Tipología )
             </p>
           </div>
         </div>
@@ -530,7 +575,7 @@ export const AgacechFeeCalculatorPanel = ({
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[#0F3D2E]" />
                 <h5 className="text-xs font-black uppercase tracking-wider text-slate-900">
-                  1. Desglose de Unidades & Sectores Contables (Art. 6° Ley 21.442)
+                  1. Unidades y sectores de la comunidad
                 </h5>
               </div>
               <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#0F3D2E] border border-emerald-200">
@@ -538,6 +583,10 @@ export const AgacechFeeCalculatorPanel = ({
               </span>
             </div>
 
+            <label className="block text-xs font-bold text-slate-700">Total de unidades informado
+              <input type="number" min="1" step="1" value={calc.declaredUnits} onChange={e => setCalc({ ...calc, declaredUnits: e.target.value })} className="block mt-1 w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl" />
+              <span className="font-normal text-slate-500">Si ingresas un desglose, debe sumar este total. Si no conoces el desglose, puedes dejarlo vacío.</span>
+            </label>
             {/* Desglose de Unidades según Tipología */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {/* Departamentos */}
@@ -593,7 +642,7 @@ export const AgacechFeeCalculatorPanel = ({
               {/* Sectores Contables Art. 6° */}
               <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-2xl space-y-1">
                 <label className="block text-[10px] font-bold text-[#0F3D2E] uppercase">
-                  Sectores Art. 6°
+                  Sectores a evaluar
                 </label>
                 <input
                   type="number"
@@ -614,7 +663,7 @@ export const AgacechFeeCalculatorPanel = ({
               <div className="p-2.5 rounded-xl bg-emerald-50/90 border border-emerald-200 text-[10.5px] text-emerald-950 flex items-start gap-2">
                 <ShieldCheck className="w-4 h-4 text-[#0F3D2E] shrink-0 mt-0.5" />
                 <p className="leading-snug">
-                  <strong>Cumplimiento Art. 6° Ley N° 21.442:</strong> La comunidad cuenta con <strong>{result.subsectors} sectores contables independientes</strong> (ej: sector torres, sector casas o locales). Esto exige conciliación bancaria separada, contabilidad segregada y colillas con prorrateos independientes para no cobrar gastos cruzados. Ponderación: <strong>+{result.subsectorsUF.toFixed(1)} UF/mes</strong>.
+                  Se consideran <strong>{result.subsectors} sectores</strong> para estimar la carga administrativa. La distribución de gastos depende de los antecedentes y del reglamento aplicable. Ponderación del modelo: <strong>+{result.subsectorsUF.toFixed(1)} UF/mes</strong>.
                 </p>
               </div>
             )}
@@ -642,19 +691,21 @@ export const AgacechFeeCalculatorPanel = ({
                 </label>
                 <input
                   type="number"
-                  min="30000"
-                  max="60000"
-                  step="50"
+                  min="0.01"
+                  step="0.01"
                   value={calc.ufValueCLP}
                   onChange={(e) => setCalc({ ...calc, ufValueCLP: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800"
                 />
+                <label className="block text-[10px] font-bold text-slate-600 mt-2">Fecha del valor UF<input type="date" value={calc.ufDate} onChange={e => setCalc({ ...calc, ufDate: e.target.value })} className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl" /></label>
+                <span className="text-[10px] text-slate-500">Ingreso manual: verifica el valor para la fecha indicada en el <a className="underline text-emerald-800" href={`https://www.sii.cl/valores_y_fechas/uf/uf${(calc.ufDate || String(new Date().getFullYear())).slice(0, 4)}.htm`} target="_blank" rel="noreferrer">SII</a>.</span>
+                {calc.ufDate && calc.ufDate !== new Date().toLocaleDateString('en-CA') && <span className="block text-[10px] font-bold text-amber-700">La fecha indicada no es la de hoy; confirma que corresponde a tu propuesta.</span>}
               </div>
             </div>
           </div>
 
           {/* BLOQUE 2: EQUIPAMIENTO VERTICAL (TORRES) */}
-          {(calc.typology === 'depto_only' || calc.typology === 'mixed_residential' || calc.typology === 'mixed_commercial') && (
+          {(
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <div className="flex items-center gap-2">
@@ -741,12 +792,18 @@ export const AgacechFeeCalculatorPanel = ({
                   </div>
                   <Zap className="w-4 h-4 text-amber-500 shrink-0" />
                 </label>
+                {[['hasPoolClubhouse', 'Piscina y espacios comunes', '+1,0 UF'], ['hasCctvFence', 'Seguridad y accesos', '+0,5 UF']].map(([key, label, price]) => (
+                  <label key={key} className="p-3 rounded-2xl border bg-slate-50 border-slate-200 flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={calc[key]} onChange={e => setCalc({ ...calc, [key]: e.target.checked })} className="w-4 h-4" />
+                    <span><strong className="block">{label}</strong><span className="text-[10px] text-slate-500">{price}</span></span>
+                  </label>
+                ))}
               </div>
             </div>
           )}
 
           {/* BLOQUE 3: EQUIPAMIENTO DE EXTENSIÓN (CASAS) */}
-          {(calc.typology === 'house_only' || calc.typology === 'mixed_residential') && (
+          {(
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <div className="flex items-center gap-2">
@@ -841,7 +898,7 @@ export const AgacechFeeCalculatorPanel = ({
           )}
 
           {/* BLOQUE 4: COMPLEJIDAD COMERCIAL (LOCALES / STRIP CENTER) */}
-          {calc.typology === 'mixed_commercial' && (
+          {(
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <div className="flex items-center gap-2">
@@ -1045,7 +1102,7 @@ export const AgacechFeeCalculatorPanel = ({
             <div className="flex items-center justify-between border-b border-white/15 pb-3">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#D4B895] block">
-                  Tasación Pericial ARANPRO
+                  Estimación de honorarios ARANPRO
                 </span>
                 <h5 className="text-base font-black text-white">
                   Desglose de Honorarios Mensuales
@@ -1060,7 +1117,7 @@ export const AgacechFeeCalculatorPanel = ({
             {/* MONTO PRINCIPAL */}
             <div className="p-4 rounded-2xl bg-white/10 border border-white/15 text-center space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#D4B895] block">
-                Honorario Mensual Recomendado
+                Honorario Mensual Estimado {validationErrors.length > 0 ? '(datos pendientes)' : ''}
               </span>
               <div className="text-3xl font-black text-white tracking-tight">
                 {formatCLP(result.finalMonthlyCLP)}
@@ -1116,7 +1173,7 @@ export const AgacechFeeCalculatorPanel = ({
 
               {result.subsectorsUF > 0 && (
                 <div className="flex items-center justify-between text-emerald-100">
-                  <span>2. Sub-sectores Art. 6° ({result.subsectors} contabilidades):</span>
+                  <span>2. Sectores evaluados ({result.subsectors}):</span>
                   <span className="font-mono font-bold">+{result.subsectorsUF.toFixed(2)} UF</span>
                 </div>
               )}
@@ -1152,6 +1209,13 @@ export const AgacechFeeCalculatorPanel = ({
               </div>
             </div>
 
+            <div className="p-3 rounded-xl bg-white/10 text-xs space-y-1">
+              <strong>Resultado para la propuesta: {formatCLP(result.finalMonthlyCLP)} / mes</strong>
+              <p>El promedio por unidad es solo referencial; la distribución real depende del reglamento.</p>
+              {result.initObj.surchargeUF > 0 && <p>Puesta en marcha: +{result.initObj.surchargeUF.toFixed(2)} UF/mes durante 3 meses; total temporal {result.onboardingMonthlyUF.toFixed(2)} UF ({formatCLP(result.onboardingMonthlyCLP)})/mes. Este recargo no se transfiere con el botón y debe acordarse por separado.</p>}
+              {validationErrors.length > 0 && <p>Completa y revisa los datos señalados antes de usar este resultado preliminar.</p>}
+            </div>
+
             {/* BOTONES DE ACCIÓN */}
             <div className="space-y-2 pt-1">
               <button
@@ -1160,7 +1224,7 @@ export const AgacechFeeCalculatorPanel = ({
                 className="w-full py-3 px-4 rounded-2xl bg-[#D4B895] hover:bg-[#c5a77e] text-[#0F3D2E] font-black text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
               >
                 <Sparkles className="w-4 h-4" />
-                Aplicar {formatCLP(result.finalMonthlyCLP)} a la Propuesta (Paso 3)
+                Aplicar honorario base {formatCLP(result.finalMonthlyCLP)} a la Propuesta (Paso 3)
               </button>
 
               <div className="pt-1">
@@ -1191,17 +1255,19 @@ export const AgacechFeeCalculatorPanel = ({
           {/* SECCIÓN SUPERIOR */}
           <div className="space-y-2.5">
             <CanonicalPdfHeader badge="ESTUDIO DE HONORARIOS" description="Memoria técnica pericial" page={1} community={calc.condoName || 'Comunidad en evaluación'} brandName={empresaForm?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL'} email={empresaForm?.email || 'contacto@aranpro.cl'} phone={empresaForm?.phone || '+56 9 5811 8504'} city={empresaForm?.city || 'La Serena, Chile'} />
-            <p className="text-[9px] text-slate-500 text-right">{result.units} unidades totales • UF de referencia: {formatCLP(result.ufCLP)}</p>
+            <p className="text-[9px] text-slate-500 text-right">{result.units} unidades • UF de referencia: ${result.ufCLP.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} al {calc.ufDate.split('-').reverse().join('-')} • Emisión: {new Date().toLocaleDateString('es-CL')}</p>
+
+            <p className="text-[10.5px] text-slate-700 leading-snug">Esta memoria presenta una estimación mensual de honorarios para la administración de la comunidad, considerando los antecedentes y características operativas registrados. Su finalidad es facilitar la revisión de la propuesta y explicar los criterios utilizados en el cálculo.</p>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
               <div className="font-black text-[#0F3D2E] uppercase text-[10.5px]">
-                1. Fundamentación Técnica & Criterio Legal (Ley N° 21.442)
+                1. Antecedentes y criterios de evaluación
               </div>
               <p className="text-slate-600 text-[10.5px] leading-snug">
-                El honorario profesional de administración se determina bajo el <strong>Modelo Pericial ARANPRO</strong>, evaluando la tipología constructiva (<strong>{result.typoObj.label}</strong>), el desglose de unidades ({result.dCount > 0 ? `${result.dCount} departamentos, ` : ''}{result.hCount > 0 ? `${result.hCount} casas, ` : ''}{result.cCount > 0 ? `${result.cCount} locales comerciales` : ''}), la existencia de <strong>{result.subsectors} sectores contables segregados según el Art. 6° de la Ley N° 21.442</strong>, el equipamiento crítico a fiscalizar en terreno y la carga laboral de nómina.
+                El modelo considera la tipología <strong>{result.typoObj.label}</strong>, {result.breakdownUnits ? `el desglose de ${[result.dCount > 0 && `${result.dCount} departamentos`, result.hCount > 0 && `${result.hCount} casas`, result.cCount > 0 && `${result.cCount} locales`].filter(Boolean).join(', ')}` : `${result.units} unidades sin desglose informado`}, {result.subsectors} sector(es), las instalaciones declaradas y la dotación informada. Las ponderaciones y tarifas son criterios del modelo ARANPRO; la distribución de gastos debe revisarse según el reglamento de la comunidad.
               </p>
               <div className="p-1.5 bg-white rounded-lg border border-slate-200 font-mono text-[10px] text-[#0F3D2E] font-bold text-center">
-                Honorario Final = máx( Piso {result.minFloorUF} UF , [ Tarifa Base + Sub-Sectores Art. 6° + Equipamiento + RRHH ] × Factor Antigüedad ({result.ageObj.multiplier.toFixed(2)}x) × Factor Mixto ({result.typoObj.multiplier.toFixed(2)}x) )
+                Honorario = máx( piso {result.minFloorUF} UF, [base + sectores + equipamiento + RRHH] × antigüedad ({result.ageObj.multiplier.toFixed(2)}) × tipología ({result.typoObj.multiplier.toFixed(2)}) )
               </div>
             </div>
 
@@ -1222,27 +1288,17 @@ export const AgacechFeeCalculatorPanel = ({
                   <td className="p-2 text-right font-mono">{formatCLP(Math.round(result.baseUF * result.ufCLP))}</td>
                 </tr>
 
-                {result.subsectorsUF > 0 && (
                   <tr>
-                    <td className="p-2 font-bold">2. Sub-Sectores Art. 6°</td>
-                    <td className="p-2 text-slate-600">{result.subsectors} sectores con contabilidad y colillas segregadas</td>
+                    <td className="p-2 font-bold">2. Sectores evaluados</td>
+                    <td className="p-2 text-slate-600">{result.subsectors} sectores considerados en el modelo</td>
                     <td className="p-2 text-right font-mono font-bold">+{result.subsectorsUF.toFixed(2)} UF</td>
                     <td className="p-2 text-right font-mono">{formatCLP(Math.round(result.subsectorsUF * result.ufCLP))}</td>
                   </tr>
-                )}
 
                 <tr>
                   <td className="p-2 font-bold">3. Equipamiento Crítico</td>
                   <td className="p-2 text-slate-600">
-                    {[
-                      calc.elevatorsCount > 0 ? `${calc.elevatorsCount} ascensor(es)` : null,
-                      calc.hasBoiler ? 'Caldera central' : null,
-                      calc.hasPumpRoom ? 'Sala de bombas' : null,
-                      calc.hasDeepWell ? 'Pozo profundo' : null,
-                      calc.hasWaterTreatmentPlant ? 'Planta PTAS' : null,
-                      calc.hasCommercialTraffic ? 'Locales comerciales / flujo masivo' : null,
-                      calc.hasGastronomyExhaust ? 'Extracción gastronómica' : null
-                    ].filter(Boolean).join(', ') || 'Equipamiento estándar'}
+                    {equipmentDetails.join(', ') || 'Sin equipamiento adicional informado'}
                   </td>
                   <td className="p-2 text-right font-mono font-bold">+{result.totalEquipmentUF.toFixed(2)} UF</td>
                   <td className="p-2 text-right font-mono">{formatCLP(Math.round(result.totalEquipmentUF * result.ufCLP))}</td>
@@ -1274,6 +1330,8 @@ export const AgacechFeeCalculatorPanel = ({
                 </tr>
               </tbody>
             </table>
+            {result.initObj.surchargeUF > 0 && <p className="text-[10px] text-slate-700"><strong>Puesta en marcha:</strong> recargo estimado de {result.initObj.surchargeUF.toFixed(2)} UF mensuales durante los primeros tres meses; total temporal {result.onboardingMonthlyUF.toFixed(2)} UF ({formatCLP(result.onboardingMonthlyCLP)}) al mes. Se acuerda por separado y no se incluye en el honorario mensual base.</p>}
+            <p className="text-[10px] text-slate-700 leading-snug"><strong>Alcance:</strong> esta estimación se basa en los antecedentes informados y podrá ajustarse al definir el servicio y verificar las condiciones de la comunidad. El promedio por unidad es referencial y no reemplaza la distribución de gastos que corresponda. Los valores en UF se muestran redondeados; el equivalente en pesos se calcula con el valor sin redondear.</p>
           </div>
 
           <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm?.companyRut} phone={empresaForm?.phone || '+56 9 5811 8504'} email={empresaForm?.email || 'contacto@aranpro.cl'} website={empresaForm?.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm?.adminName || 'John Andrés Arancibia Maureira'} adminRut={(empresaForm?.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} /><CanonicalPdfPageFooter website={empresaForm?.website || 'https://aranpro.cl'} label="Estudio de honorarios" page={1} totalPages={1} city={empresaForm?.city || 'La Serena, Chile'} /></div>
