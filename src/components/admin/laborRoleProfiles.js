@@ -25,14 +25,38 @@ export const laborRoleProfiles = {
     'Coordinar el acceso y seguimiento de proveedores autorizados, sin sustituir las atribuciones de contratación o autorización de gastos que correspondan a otros órganos.',
     'Apoyar la entrega de información y la aplicación de procedimientos de emergencia, dentro de sus funciones, capacitación y medios disponibles.'
   ]},
+  porteria: { label: 'Portería / recepción de accesos', duties: [
+    'Atender la portería y verificar los accesos conforme a los procedimientos autorizados por la comunidad.',
+    'Registrar y transmitir novedades pertinentes, resguardar llaves y equipos asignados y efectuar la entrega de turno.',
+    'Informar incidentes y activar los canales de emergencia conforme a las instrucciones y capacitación recibidas.'
+  ]},
+  guardia: { label: 'Guardia de seguridad', duties: [
+    'Ejecutar las tareas de seguridad privada específicamente acordadas y autorizadas para la instalación, dentro de las funciones y medios legalmente permitidos.',
+    'Registrar novedades y comunicar incidentes por los canales establecidos, de acuerdo con los protocolos y la capacitación aplicables.',
+    'Utilizar únicamente los medios autorizados y seguir los procedimientos de emergencia y resguardo de las personas.'
+  ]},
+  mantenimiento: { label: 'Mantención general', duties: [
+    'Ejecutar tareas de mantención general previamente acordadas en las áreas comunes, dentro de su capacitación y de los procedimientos de seguridad informados.',
+    'Inspeccionar visualmente instalaciones y comunicar fallas, necesidades de reparación y riesgos a la administración.',
+    'Conservar y utilizar herramientas y elementos de protección entregados; las intervenciones sujetas a certificación o habilitación se asignarán a personal autorizado.'
+  ]},
+  administrativo: { label: 'Apoyo administrativo', duties: [
+    'Apoyar la organización de documentos y registros administrativos de la comunidad conforme a las instrucciones de la administración.',
+    'Atender consultas y canalizar solicitudes por los medios autorizados, registrando su seguimiento cuando corresponda.',
+    'Resguardar la información y las credenciales a las que acceda, utilizando los datos solo para las tareas autorizadas.'
+  ]},
   otro: { label: 'Otro cargo', duties: [] }
 };
 export function detectLaborRole(role) {
   const value = String(role || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   if (/conserj/.test(value)) return 'conserjeria';
+  if (/guardia/.test(value)) return 'guardia';
+  if (/porter|nochero|nochera/.test(value)) return 'porteria';
   if (/rondin|rondero|rondas/.test(value)) return 'rondin';
   if (/aseo|limpieza/.test(value)) return 'aseo';
   if (/jardin|areas verdes/.test(value)) return 'jardin';
   if (/mayordom/.test(value)) return 'mayordomo';
+  if (/mantenedor|mantencion|mantenimiento/.test(value)) return 'mantenimiento';
+  if (/administrativo|administrativa|recepcionista/.test(value)) return 'administrativo';
   return 'otro';
 }

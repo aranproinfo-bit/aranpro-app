@@ -1,3 +1,4 @@
+import LaborRoleSelect from './LaborRoleSelect';
 import LaborContractDraft from './LaborContractDraft';
 import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
@@ -362,7 +363,7 @@ export const CommunityPayrollAndStaffModule = ({
   // Guardar ficha de trabajador
   const handleSaveStaffForm = (e) => {
     e.preventDefault();
-    if (!staffForm.name.trim() || !staffForm.rut.trim()) return;
+    if (!staffForm.name.trim() || !staffForm.rut.trim() || !staffForm.role.trim()) return;
 
     const afpObj = AFP_RATES_CHILE.find((a) => a.id === staffForm.afpId) || AFP_RATES_CHILE[0];
     const healthObj = HEALTH_SYSTEMS_CHILE.find((h) => h.id === staffForm.healthId) || HEALTH_SYSTEMS_CHILE[0];
@@ -1835,22 +1836,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   2. Cargo, Turno y Contrato (Ley 21.442)
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Cargo Laboral</label>
-                    <select
-                      value={staffForm.role}
-                      onChange={(e) => setStaffForm({ ...staffForm, role: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                    >
-                      <option value="Conserje Titular Diurno">Conserje Titular Diurno</option>
-                      <option value="Conserje Nocturno & Rondas">Conserje Nocturno & Rondas</option>
-                      <option value="Conserje de Reemplazo / Fin de Semana">Conserje de Reemplazo / Fin de Semana</option>
-                      <option value="Mayordomo de Edificio">Mayordomo de Edificio</option>
-                      <option value="Auxiliar de Aseo & Espacios Comunes">Auxiliar de Aseo & Espacios Comunes</option>
-                      <option value="Jardinero & Mantenimiento Áreas Verdes">Jardinero & Mantenimiento Áreas Verdes</option>
-                      <option value="Rondero de Seguridad Nocturna">Rondero de Seguridad Nocturna</option>
-                    </select>
-                  </div>
+                  <LaborRoleSelect value={staffForm.role} onChange={role => setStaffForm({ ...staffForm, role })} />
 
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Tipo de Contrato</label>
