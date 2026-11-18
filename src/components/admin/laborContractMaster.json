@@ -1,0 +1,194 @@
+[
+  {
+    "type": "paragraph",
+    "text": "En {{comuna_firma}}, Chile, el {{fecha_real_firma}}, comparecen {{nombre_empleador}}, RUT {{rut_empleador}}, con domicilio en {{domicilio_empleador}} y correo electrónico {{correo_empleador}}, representada por {{nombre_representante}}, cédula de identidad {{rut_representante}}, en calidad de {{calidad_representante}}, conforme a {{respaldo_representacion}}. Comparece también {{nombre_trabajador}}, cédula de identidad {{rut_trabajador}}, de nacionalidad {{nacionalidad_trabajador}}, nacido o nacida el {{fecha_nacimiento}}, con domicilio en {{domicilio_trabajador}} y correo electrónico {{correo_trabajador}}. Las partes acuerdan el siguiente contrato. La persona trabajadora ingresa el {{fecha_ingreso}}.",
+    "mode": null
+  },
+  {
+    "type": "heading",
+    "text": "Primero. Cargo y lugar de trabajo"
+  },
+  {
+    "type": "paragraph",
+    "text": "La persona trabajadora desempeñará el cargo de {{nombre_cargo}} en {{nombre_condominio}}, ubicado en {{direccion_centro}}, comuna de {{comuna_centro}}. Sus instrucciones laborales se canalizarán por {{cargo_jefatura}} o quien subrogue en dicha función. Las solicitudes de residentes, visitas o proveedores que excedan las funciones pactadas se comunicarán a la jefatura. Los cambios de funciones o lugar se formalizarán según corresponda, respetando los límites del artículo 12 del Código del Trabajo.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "El trabajo se desarrollará en las instalaciones y zonas comunes comprendidas en el lugar convenido. La jefatura informará los canales de instrucciones, el procedimiento de cobertura y las personas de contacto. Las solicitudes de residentes no modifican por sí solas las condiciones de trabajo pactadas.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "Las actividades sujetas a habilitación específica se asignarán únicamente cuando se cumplan los requisitos aplicables y la persona trabajadora cuente con la capacitación y autorización que correspondan.",
+    "mode": null
+  },
+  {
+    "type": "heading",
+    "text": "Segundo. Funciones de conserjería"
+  },
+  {
+    "type": "paragraph",
+    "text": "1. Verificar las autorizaciones de ingreso, operar los medios de comunicación y acceso autorizados y registrar los datos necesarios conforme al procedimiento informado.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "2. Recibir y entregar novedades, incidencias, llaves y equipos en el tiempo previsto para la entrega de turno. Resguardar las llaves y credenciales conforme a los permisos asignados.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "3. Observar el estado visible de las áreas comunes durante las rondas autorizadas. Reportar y registrar desperfectos, peligros y obstrucciones. Ante una falla en un ascensor, tablero, portón, bomba o caldera, activar el procedimiento de aviso y resguardo. Las intervenciones técnicas se asignarán a personal habilitado.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "4. Dar aviso y activar el plan de emergencia en caso de incendio, sismo, fuga, amenaza u otro evento, dentro de las funciones y capacitación recibidas. Ante agresión o intrusión, resguardarse y activar los canales previstos.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "En la recepción y entrega del turno se verificará el estado de las instalaciones visibles, las novedades y los medios entregados para la labor. Las llaves, tarjetas y credenciales se usarán exclusivamente para tareas autorizadas; su pérdida o uso irregular se informará de inmediato según el procedimiento del empleador.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "Las rondas se efectuarán según las instrucciones y la capacitación recibidas. Su alcance no comprende reparar instalaciones eléctricas, de gas, ascensores ni otros equipos que requieran personal habilitado. Ante una falla se priorizará la seguridad, se avisará a la jefatura y se seguirá el plan de emergencia aplicable.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "La atención a residentes, visitas y proveedores se realizará con respeto. Los trabajos particulares solicitados por residentes no forman parte automáticamente de las funciones del cargo; cualquier actividad adicional requerirá el acuerdo y las condiciones que correspondan, sin alterar unilateralmente la jornada o remuneración.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "Los equipos proporcionados por el empleador se utilizarán para fines autorizados y se devolverán al término de la relación o cuando corresponda. Las reglas sobre dispositivos personales deberán ser razonables, informadas y compatibles con los derechos de la persona trabajadora.",
+    "mode": null
+  },
+  {
+    "type": "heading",
+    "text": "Tercero. Jornada, colación, descansos y asistencia"
+  },
+  {
+    "type": "paragraph",
+    "text": "La jornada ordinaria convenida es de {{horas_semanales_o_promedio}} horas y se distribuye según {{regimen_jornada}}.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "La jornada se cumple los días {{dias_trabajo}}. Para cada día o turno, rige el horario {{tabla_turnos}}, que individualiza entrada, salida, intervalo y duración de colación, tratamiento de la colación y descansos. Cuando la jornada cruza medianoche se indicará el día de término. Si hay rotación se detallará el orden del ciclo y cómo se asigna.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "El empleador organizará la cobertura de colación y relevos. La persona trabajadora registrará su jornada efectiva mediante {{sistema_asistencia}}. Si falta el relevo, avisará a {{responsable_cobertura}}, quien organizará la continuidad del servicio. El tiempo efectivamente trabajado o a disposición se registrará y tratará conforme a la ley. La ausencia de relevo no configura por sí sola una autorización para extender indefinidamente la jornada.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "El trabajo en domingos y festivos se incluirá únicamente si corresponde al régimen legal y a la distribución pactada, con los descansos y recargos que procedan. Las horas extraordinarias se regirán por los artículos 30 a 32 del Código del Trabajo. Se pactarán por escrito para necesidades temporales, dentro de los límites legales. Las horas trabajadas en exceso con conocimiento del empleador se reconocerán conforme a la ley. El contrato no sustituye un pacto específico de horas extraordinarias.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "La distribución pactada debe expresar por cada día o turno la hora de entrada y salida, el intervalo de colación, su duración y si se imputa o no a la jornada cuando corresponda. Los turnos nocturnos indicarán expresamente el día de inicio y de término. El descanso y la cobertura deberán organizarse de manera que el registro refleje el tiempo efectivamente trabajado o a disposición del empleador.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "Las modificaciones de horario, turnos o distribución se acordarán o se efectuarán únicamente en los casos y condiciones permitidos por la ley. La falta de relevo no autoriza por sí sola una extensión indefinida; debe informarse y registrarse el tiempo efectivo. Las horas extraordinarias se pactarán para necesidades temporales y se reconocerán cuando corresponda conforme a la ley.",
+    "mode": null
+  },
+  {
+    "type": "heading",
+    "text": "Cuarto. Remuneraciones y forma de pago"
+  },
+  {
+    "type": "paragraph",
+    "text": "El empleador pagará por mes vencido, el {{dia_o_regla_de_pago}}, mediante {{medio_pago}} y, cuando corresponda, en {{lugar_pago}}. Entregará la liquidación con el detalle de haberes, descuentos y cálculo de los componentes variables que correspondan.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "- Sueldo base bruto mensual de {{sueldo_base_monto}} pesos.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "- Bonos remuneracionales pactados {{bonos_pactados_con_monto_y_devengo}}.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "- Asignaciones compensatorias pactadas {{asignaciones_con_monto_y_condiciones}}.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "- Gratificación {{clausula_gratificacion_aplicable}}.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "Los conceptos remuneracionales y las asignaciones se identificarán separadamente, indicando su monto o fórmula, periodicidad y condiciones de devengo. Los beneficios adicionales se incluirán solo si fueron efectivamente pactados y podrán detallarse en un anexo.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "Los descuentos se efectuarán de acuerdo con la ley y, cuando corresponda, con la autorización válida de la persona trabajadora. La entrega de la liquidación permitirá revisar los conceptos devengados y descontados; la firma de recepción no supone renuncia general a derechos.",
+    "mode": null
+  },
+  {
+    "type": "heading",
+    "text": "Quinto. Duración"
+  },
+  {
+    "type": "paragraph",
+    "text": "El contrato es de duración indefinida y los servicios comienzan el {{fecha_ingreso}}.",
+    "mode": "indefinido"
+  },
+  {
+    "type": "paragraph",
+    "text": "El contrato comienza el {{fecha_ingreso}} y vence el {{fecha_termino_pactada}}, sin perjuicio de las causales legales de terminación y de las reglas sobre continuidad y renovación del artículo 159 N.º 4 del Código del Trabajo.",
+    "mode": "plazo_fijo"
+  },
+  {
+    "type": "heading",
+    "text": "Sexto. Seguridad, reglamento interno y buen trato"
+  },
+  {
+    "type": "paragraph",
+    "text": "El empleador informará los riesgos, procedimientos seguros y medidas de emergencia aplicables. Proporcionará sin costo los elementos de protección requeridos según tarea y riesgo. La persona trabajadora cumplirá las instrucciones preventivas aplicables e informará accidentes, incidentes y peligros. En caso de riesgo grave e inminente se aplicará el artículo 184 bis del Código del Trabajo.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "Se aplicará el reglamento laboral correspondiente al empleador y el protocolo de prevención y procedimiento de investigación y sanción del acoso sexual, laboral y violencia en el trabajo, incluida la ejercida por terceros. La entrega se acreditará mediante constancia separada y verificable. Cuando rija el artículo 154 bis, el protocolo y procedimiento se comunicarán por escrito al suscribir el contrato. El contrato se vinculará con la versión vigente del reglamento de la comunidad.",
+    "mode": null
+  },
+  {
+    "type": "paragraph",
+    "text": "El empleador informará los riesgos de las funciones, la ubicación de los elementos de emergencia y los canales de atención. La persona trabajadora comunicará incidentes, peligros y necesidades de apoyo; no se le exigirá enfrentar una situación para la que no cuente con la capacitación o habilitación necesaria.",
+    "mode": null
+  },
+  {
+    "type": "heading",
+    "text": "Séptimo. Reserva y tratamiento de información"
+  },
+  {
+    "type": "paragraph",
+    "text": "La persona trabajadora utilizará los registros de acceso, imágenes, llaves y datos de residentes y del personal para las funciones autorizadas. Comunicará incidentes por los canales definidos y evitará la divulgación o copia no autorizada. Esta obligación respeta el ejercicio de derechos laborales y el acceso a canales de denuncia, autoridades y tribunales. El empleador informará las medidas de control aplicables y gestionará los datos conforme a la normativa vigente.",
+    "mode": null
+  },
+  {
+    "type": "heading",
+    "text": "Octavo. Formalización y firmas"
+  },
+  {
+    "type": "paragraph",
+    "text": "Cada parte recibirá un ejemplar íntegro suscrito. El empleador efectuará el registro laboral en el plazo aplicable. Toda modificación pactada se documentará conforme al artículo 11 del Código del Trabajo.",
+    "mode": null
+  }
+]
