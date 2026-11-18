@@ -26,6 +26,16 @@ import {
   Palmtree, FileCheck, FileSignature, UserMinus, Scale, ShieldAlert
 } from 'lucide-react';
 
+// Ajustes propios de la liquidación: mantienen legible la ficha sin alterar otras impresiones laborales.
+const payrollSlipPrintStyles = `
+  .dossier-page .payroll-brand-logo { width: 22mm !important; height: auto !important; max-height: 13mm !important; object-fit: contain !important; }
+  .dossier-page .payroll-worker-details { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .dossier-page .payroll-net-summary { flex-direction: row !important; justify-content: space-between !important; align-items: center !important; }
+  .dossier-page .payroll-net-summary > div:last-child { text-align: right !important; }
+  .aranpro-print-watermark { display: none !important; }
+  .dossier-page .payroll-worker-details > div { min-width: 0; overflow-wrap: anywhere; }
+`;
+
 export const CommunityPayrollAndStaffModule = ({
   currentCommunity,
   activeSubTab = 'nomina',
@@ -480,7 +490,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
   const renderAranproPdfHeader = (docTypeBadge, titleText, folioText) => (
     <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-3.5 border-b-2 border-[#0F3D2E] gap-3">
       <div className="flex items-center space-x-3.5">
-        <img src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" className="h-9 w-auto shrink-0 object-contain" />
+        <img src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" className="payroll-brand-logo h-9 w-auto shrink-0 object-contain" />
         <div className="space-y-0.5">
           <div className="text-sm font-black text-[#0F3D2E] tracking-tight">
             {companySettings?.brandName || 'ARANPRO'} • {companySettings?.subtitle || 'Gestión Integral'}
@@ -2069,7 +2079,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       printDocumentDirectly(
                         'printable-community-payroll-slip',
                         `ARANPRO_Liquidacion_${selectedWorkerForSlip.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
-                        { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
+                        { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm', extraStyles: payrollSlipPrintStyles }
                       )
                     }
                     className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -2116,7 +2126,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
 
                 {/* Ficha del Trabajador */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-2.5 bg-white rounded-xl border border-slate-200 text-[10.5px]">
+                <div className="payroll-worker-details grid grid-cols-2 md:grid-cols-4 gap-2 p-2.5 bg-white rounded-xl border border-slate-200 text-[10.5px]">
                   <div>
                     <span className="text-slate-500 block text-[9.5px]">Nombre Trabajador:</span>
                     <strong className="text-slate-900 font-bold block">{selectedWorkerForSlip.name}</strong>
@@ -2267,7 +2277,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 </div>
 
                 {/* Recuadro Destacado: Líquido a Pagar en Palabras */}
-                <div className="p-2.5 bg-emerald-50 rounded-xl border-2 border-[#0F3D2E] flex flex-col md:flex-row items-center justify-between gap-2">
+                <div className="payroll-net-summary p-2.5 bg-emerald-50 rounded-xl border-2 border-[#0F3D2E] flex flex-col md:flex-row items-center justify-between gap-2">
                   <div>
                     <span className="text-[9.5px] font-black uppercase tracking-wider text-[#0F3D2E] block">
                       ALCANCE LÍQUIDO A PAGAR (NETO):
