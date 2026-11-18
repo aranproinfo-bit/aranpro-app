@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { laborContractAlerts } from '../src/utils/laborContractChecks.js';
+const base={fecha_real_firma:'2026-11-18',horas_semanales_o_promedio:42,sueldo_base_monto:553553};
+assert.deepEqual(laborContractAlerts(base),[]);
+assert.ok(laborContractAlerts({...base,horas_semanales_o_promedio:44}).some(x=>x.includes('42 horas')));
+assert.ok(laborContractAlerts({...base,sueldo_base_monto:520000}).some(x=>x.includes('ingreso mínimo')));
+assert.ok(!laborContractAlerts({...base,fecha_real_firma:'2027-02-01',sueldo_base_monto:520000}).some(x=>x.includes('ingreso mínimo')));
+assert.ok(!laborContractAlerts({...base,horas_semanales_o_promedio:20,sueldo_base_monto:300000}).some(x=>x.includes('ingreso mínimo')));
+assert.ok(laborContractAlerts({...base,horas_semanales_o_promedio:-1}).some(x=>x.includes('mayor que cero')));
+console.log('Alertas de jornada y salario: período y casos excepcionales no inferidos.');
