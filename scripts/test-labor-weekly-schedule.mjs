@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { summarizeWeeklySchedule } from '../src/utils/laborWeeklySchedule.js';
+const row={active:true,start:'08:00',end:'17:24',mealMinutes:'60',mealIncluded:'no'};
+const week=Array.from({length:7},(_,i)=>i<5?{...row}:{});
+let result=summarizeWeeklySchedule(week);
+assert.deepEqual(result.errors,[]);assert.equal(result.totalMinutes,42*60);assert.equal(result.days.length,5);
+result=summarizeWeeklySchedule([{active:true,start:'22:00',end:'07:00',mealMinutes:'60',mealIncluded:'no'}]);
+assert.equal(result.totalMinutes,480);assert.match(result.details[0],/día siguiente/);
+result=summarizeWeeklySchedule([{active:true,start:'22:00',end:'07:00',mealMinutes:'60',mealIncluded:'yes'}]);assert.equal(result.totalMinutes,540);
+result=summarizeWeeklySchedule([{active:true,start:'22:00',end:'07:00',mealMinutes:'60',mealIncluded:'no'},{active:true,start:'06:00',end:'09:00',mealMinutes:'0',mealIncluded:'no'}]);
+assert.ok(result.errors.some(x=>x.includes('superponen')));
+assert.ok(summarizeWeeklySchedule([{active:true,start:'22:00',end:'07:00',mealMinutes:'',mealIncluded:'no'}]).errors.length);
+assert.ok(summarizeWeeklySchedule([{active:true,start:'08:00',end:'08:00',mealMinutes:'0',mealIncluded:'no'}]).errors.length);
+console.log('Jornada fija: cálculo, medianoche, colación, errores y solapamientos verificados.');
