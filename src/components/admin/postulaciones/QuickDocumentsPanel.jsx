@@ -1,3 +1,4 @@
+import { printCommitteeGuide } from './CommitteeGuides';
 import { managementContractPrintStyles } from './ManagementContract';
 import React, { useState, useMemo } from 'react';
 import {
@@ -249,7 +250,7 @@ export const QuickDocumentsPanel = ({
     },
     {
       id: 'carta-termino-saliente',
-      title: 'Carta de Término de Funciones y Preaviso de 30 Días',
+      title: 'Carta de Término de Funciones al Administrador Saliente',
       subtitle: 'Notificación formal al Administrador Saliente con apercibimiento Art. 20 Ley 21.442, rendición documentada, balances y claves.',
       badge: 'Paso 5 • Traspaso',
       badgeColor: 'red',
@@ -266,7 +267,7 @@ export const QuickDocumentsPanel = ({
     {
       id: 'checklist-traspaso-3pags',
       title: 'Pauta & Checklist de Recepción de Comunidad (3 Págs)',
-      subtitle: 'Protocolo de traspaso exhaustivo en 5 bloques: Legal, Financiero (para carga en software), Laboral, Mantenimiento y Sistemas.',
+      subtitle: 'Pauta de entrega en siete bloques, con antecedentes legales, financieros, laborales, técnicos y digitales.',
       badge: 'Paso 5 • Protocolo',
       badgeColor: 'emerald',
       format: 'PDF Oficial Carta (3 Págs)',
@@ -310,34 +311,20 @@ export const QuickDocumentsPanel = ({
     },
     {
       id: 'guia-asambleas-comite',
-      title: 'Ficha Legal: Facultades Asambleas vs Comité (DS N° 7 / 2025)',
-      subtitle: 'Cuadro comparativo de atribuciones exclusivas del Comité vs materias reservadas a la Asamblea bajo la nueva ley de copropiedad.',
+      title: 'Guía del comité, asambleas y quórums',
+      subtitle: 'Guía del comité, asambleas y quórums',
       badge: 'Asesoría Comité',
       badgeColor: 'slate',
-      format: 'Ficha Legal (1 Pág)',
+      format: 'Ficha práctica (2 Págs)',
       type: 'generado',
       category: 'fichas',
       ready: true,
-      onPrint: handlePrintLegalGuides,
+      onPrint: () => printCommitteeGuide('comite', proposalConfig),
       onOpen: () => onNavigateToSection?.('flujo'),
       stepNumber: null,
       icon: ShieldCheck
     },
-    {
-      id: 'guia-materias-quorums',
-      title: 'Ficha Legal: Cuadro Maestro de Quórums y Materias (Art. 15)',
-      subtitle: 'Esquema sinóptico de sesiones ordinarias, extraordinarias de mayoría absoluta y mayoría reforzada con quórums de constitución y votación.',
-      badge: 'Asesoría Comité',
-      badgeColor: 'slate',
-      format: 'Ficha Legal (1 Pág)',
-      type: 'generado',
-      category: 'fichas',
-      ready: true,
-      onPrint: handlePrintLegalGuides,
-      onOpen: () => onNavigateToSection?.('flujo'),
-      stepNumber: null,
-      icon: Scale
-    }
+
   ], [
     setPreviewColdLetterModal, handlePrintColdLetter, handleShareWhatsApp,
     setPreviewDossierModal, handlePrintDossier,

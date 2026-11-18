@@ -1,3 +1,4 @@
+import { CommitteeGuide, guideTitles, printCommitteeGuide } from './CommitteeGuides';
 import { ContractDetailsForm } from './ContractDetailsForm';
 import React, { useState, useMemo } from 'react';
 import {
@@ -30,6 +31,7 @@ export const Step5TransitionPanel = ({
   getStepMessages = () => ({}),
   handleCopyStepMessage = () => {}
 }) => {
+  const [selectedGuide, setSelectedGuide] = useState('comite');
   const [isOpen, setIsOpen] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState('carta'); // 'carta' | 'checklist' | 'acta' | 'guias'
   const [actaOrContract, setActaOrContract] = useState('acta'); // 'acta' | 'contrato'
@@ -129,16 +131,7 @@ export const Step5TransitionPanel = ({
     });
   };
 
-  const handlePrintLegalGuides = () => {
-    const filename = `ARANPRO_Guias_Legales_Asambleas_y_Quorums_Ley21442_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
-    printDocumentDirectly('printable-legal-advisory-sheet', filename, {
-      pageSize: 'letter landscape',
-      fitPage: false,
-      margin: '0',
-      extraStyles: canonicalLandscapePrintStyles,
-      pdfStyle
-    });
-  };
+  const handlePrintLegalGuides = () => printCommitteeGuide(selectedGuide, proposalConfig);
 
   const handlePrintTransitionPackage = () => {
     const filename = `ARANPRO_Kit_Oficial_Traspaso_y_Asesoria_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
@@ -702,72 +695,13 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
         )}
 
         {/* ==================== SUBTAB 4: GUÍAS LEGALES ==================== */}
-        {activeSubTab === 'guias' && (
-          <div className="space-y-3 animate-in fade-in">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-bold text-slate-900 block">
-                  Asesoría Legal para Comités: Diferencias Prácticas y Quórums según Ley N° 21.442
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  Cuadros comparativos oficiales listos para consulta o impresión horizontal en 1 sola página.
-                </span>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setPreviewStep5Modal('guias')}
-                  className="px-3.5 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Eye className="w-3.5 h-3.5 text-[#D4B895]" />
-                  <span>Ver Ficha Quórums</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handlePrintLegalGuides}
-                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer"
-                >
-                  <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                  <span>Imprimir Ficha (Horizontal)</span>
-                </button>
-              </div>
-            </div>
+        {activeSubTab === 'guias' && <div className="space-y-4">
+          <p className="text-sm text-slate-600">Material de apoyo para entregar al comité: una guía de dos páginas sobre el comité, asambleas y quórums.</p>
+          <div className="flex flex-wrap gap-2">{Object.entries(guideTitles).map(([kind,title])=><button key={kind} type="button" className={`rounded-xl border px-4 py-2 text-sm ${selectedGuide===kind?'bg-[#0F3D2E] text-white':'bg-white'}`} onClick={()=>setSelectedGuide(kind)}>{title}</button>)}</div>
+          <div className="flex gap-2"><button type="button" className="rounded bg-[#0F3D2E] text-white px-4 py-2" onClick={()=>setPreviewStep5Modal('guias')}>Ver ficha seleccionada</button><button type="button" className="rounded border px-4 py-2" onClick={handlePrintLegalGuides}>Imprimir ficha seleccionada</button></div>
+          <div className="overflow-auto max-h-[700px]"><CommitteeGuide kind={selectedGuide} proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale}/></div>
+        </div>}
 
-            {/* TABLA ORIGINAL DE QUÓRUMS */}
-            <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#0F3D2E] text-white">
-                  <tr>
-                    <th className="p-2.5 font-bold">Tipo de Asamblea</th>
-                    <th className="p-2.5 font-bold">Materias que Pueden Tratarse</th>
-                    <th className="p-2.5 font-bold text-center">Quórum Sesionar</th>
-                    <th className="p-2.5 font-bold text-center">Quórum Acordar</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
-                  <tr>
-                    <td className="p-2.5 font-bold text-[#0F3D2E]">ORDINARIA</td>
-                    <td className="p-2.5">Rendición de cuentas y balances; designación/remoción del Comité; <strong>designación o remoción del administrador</strong>; actualizaciones plan de emergencia; asuntos ordinarios.</td>
-                    <td className="p-2.5 text-center font-bold">Mínimo 33% derechos</td>
-                    <td className="p-2.5 text-center font-bold text-emerald-800">Mayoría absoluta asistentes</td>
-                  </tr>
-                  <tr>
-                    <td className="p-2.5 font-bold text-blue-900">EXTRAORDINARIA MAYORÍA ABSOLUTA</td>
-                    <td className="p-2.5">Modificación de reglamento; remoción de miembros del comité; gastos extraordinarios que excedan 6 cuotas GGCC; uso de fondo de reserva.</td>
-                    <td className="p-2.5 text-center font-bold">Mayoría absoluta derechos</td>
-                    <td className="p-2.5 text-center font-bold text-blue-900">Mayoría absoluta derechos totales</td>
-                  </tr>
-                  <tr>
-                    <td className="p-2.5 font-bold text-purple-900">EXTRAORDINARIA MAYORÍA REFORZADA</td>
-                    <td className="p-2.5">Delegación de facultades al comité; enajenación/gravamen de bienes comunes; demolición; retribución miembros comité; seguros que modifiquen riesgos.</td>
-                    <td className="p-2.5 text-center font-bold">Al menos 66% derechos</td>
-                    <td className="p-2.5 text-center font-bold text-purple-900">66% derechos totales</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* BOTONES DE ACCIÓN INMEDIATA PASO 5 */}
@@ -849,7 +783,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                     {previewStep5Modal === 'carta' && 'Vista Previa: Carta de Notificación de Término (1 Pág)'}
                     {previewStep5Modal === 'checklist' && 'Vista Previa: Checklist & Pauta de Traspaso (3 Págs)'}
                     {previewStep5Modal === 'contrato' && 'Vista Previa: Contrato de Administración'}
-                    {previewStep5Modal === 'guias' && 'Vista Previa: Ficha Legal de Asambleas & Quórums (Horizontal)'}
+                    {previewStep5Modal === 'guias' && guideTitles[selectedGuide]}
                   </h4>
                   <p className="text-[10.5px] text-slate-500 font-mono">
                     {condo} • Ley N° 21.442 sobre Copropiedad Inmobiliaria
@@ -942,95 +876,8 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                 </div>
               )}
 
-              {/* VISTA PREVIA 2: CHECKLIST (3 PÁGINAS) */}
-              {previewStep5Modal === 'checklist' && (
-                <div className="space-y-6 w-full max-w-[850px]">
-                  {/* Pág 1 */}
-                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
-                    <CanonicalPdfHeader badge="PAUTA DE TRASPASO" description="Solicitud simple de antecedentes" page={1} community={condo} email={email} phone={phone} city={city} />
-                    <div className="space-y-3">
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">A. GOBIERNO Y DOCUMENTACIÓN LEGAL</span>
-                        <ul className="text-xs space-y-1 text-slate-700">
-                          <li>• Reglamento de copropiedad vigente y sus modificaciones</li>
-                          <li>• Libro de Actas foliado y actas de asambleas y Comité</li>
-                          <li>• Registro actualizado de copropietarios, arrendatarios y ocupantes</li>
-                          <li>• Plan de Emergencia y demás documentos de seguridad disponibles</li>
-                          <li>• Planos, manuales, garantías y antecedentes técnicos bajo custodia</li>
-                        </ul>
-                      </div>
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">B. FINANZAS, BANCO Y CONTABILIDAD</span>
-                        <ul className="text-xs space-y-1 text-slate-700">
-                          <li>• Cartolas bancarias de todas las cuentas y conciliaciones al día</li>
-                          <li>• Balance general o informe de ingresos y egresos documentado</li>
-                          <li>• Detalle de gastos comunes: emitidos, recaudados y morosos</li>
-                          <li>• Documentación de respaldo de egresos (facturas, boletas, comprobantes)</li>
-                          <li>• Fondo de Reserva: monto acumulado y acreditación bancaria</li>
-                          <li>• Fondo de Operación y Caja Chica: arqueo y efectivo entregado</li>
-                        </ul>
-                      </div>
-                    </div>
-                    <CanonicalPdfPageFooter website={website} label="Pauta de traspaso" page={1} totalPages={3} city={city} />
-                  </div>
-
-                  {/* Pág 2 */}
-                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
-                    <CanonicalPdfHeader badge="PAUTA DE TRASPASO" description="Solicitud simple de antecedentes" page={2} community={condo} email={email} phone={phone} city={city} />
-                    <div className="space-y-3">
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">C. PERSONAL, SEGURIDAD SOCIAL Y PREVISIÓN</span>
-                        <ul className="text-xs space-y-1 text-slate-700">
-                          <li>• Nómina completa de trabajadores vigentes y turnos</li>
-                          <li>• Contratos de trabajo, anexos y registros de asistencia</li>
-                          <li>• Liquidaciones de sueldo de los últimos 12 meses firmadas</li>
-                          <li>• Planillas de cotizaciones previsionales (Previred) al día</li>
-                          <li>• Finiquitos de trabajadores desvinculados en los últimos 2 años</li>
-                        </ul>
-                      </div>
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">D. OPERACIÓN, MANTENCIONES Y CONTRATOS</span>
-                        <ul className="text-xs space-y-1 text-slate-700">
-                          <li>• Contratos vigentes con proveedores de servicios y mantenedores</li>
-                          <li>• Certificaciones obligatorias (ascensores, red de gas SEC, extintores)</li>
-                          <li>• Pólizas de seguro contratadas (espacios comunes, incendio, sismo)</li>
-                          <li>• Bitácora o informes técnicos de bombas, calderas, portones, piscina</li>
-                        </ul>
-                      </div>
-                    </div>
-                    <CanonicalPdfPageFooter website={website} label="Pauta de traspaso" page={2} totalPages={3} city={city} />
-                  </div>
-
-                  {/* Pág 3 */}
-                  <div className="bg-white p-8 md:p-10 shadow-lg border-l-4 border-l-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4">
-                    <CanonicalPdfHeader badge="PAUTA DE TRASPASO" description="Solicitud simple de antecedentes" page={3} community={condo} email={email} phone={phone} city={city} />
-                    <div className="space-y-3">
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span className="font-bold text-[#0F3D2E] text-xs block mb-1.5">E. ACTIVOS, ACCESOS Y ENTREGAS MATERIALES</span>
-                        <ul className="text-xs space-y-1 text-slate-700">
-                          <li>• Llaves maestras, tarjetas, tags y controles remotos de acceso</li>
-                          <li>• Credenciales de acceso a software, correos, portales SII y bancarios</li>
-                          <li>• Inventario físico de equipamiento, herramientas y bienes muebles</li>
-                        </ul>
-                      </div>
-                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
-                        <strong>Recomendación Legal:</strong> Se sugiere que el Comité celebre una Asamblea Extraordinaria para informar a la comunidad el estado de recepción y ratificar formalmente el traspaso conforme al Art. 20 de la Ley N° 21.442.
-                      </div>
-                      <div className="pt-4 grid grid-cols-2 gap-8 text-center text-xs text-slate-700">
-                        <div className="border-t border-slate-400 pt-2">
-                          <p className="font-bold">{outgoingAdmin}</p>
-                          <p className="text-[11px] text-slate-500">Administrador(a) Saliente (Entrega)</p>
-                        </div>
-                        <div className="border-t border-slate-400 pt-2">
-                          <p className="font-bold">{committeePresident}</p>
-                          <p className="text-[11px] text-slate-500">Presidente del Comité (Recepción)</p>
-                        </div>
-                      </div>
-                    </div>
-                    <CanonicalPdfPageFooter website={website} label="Pauta de traspaso" page={3} totalPages={3} city={city} />
-                  </div>
-                </div>
-              )}
+              {/* La vista previa comparte datos y contenido con la impresión. */}
+              {previewStep5Modal === 'checklist' && <div className="overflow-x-auto max-w-full"><TransitionChecklistPrint printableId="preview-transition-checklist" condo={proposalConfig.targetCondo?.trim() || ''} outgoingAdmin={proposalConfig.outgoingAdminName?.trim() || ''} committeePresident={proposalConfig.committeePresidentName?.trim() || ''} endDate={proposalConfig.transitionEndDate?.trim() || ''} city={city} adminName={adminName} adminRut={adminRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={effectiveSignatureScale} companyRut={empresaForm.companyRut} pdfStyle={pdfStyle} status={transitionStatus} notes={transitionNotes} /></div>}
 
               {/* Mismo componente, redacción y firma que el documento imprimible. */}
               {previewStep5Modal === 'contrato' && (
@@ -1039,45 +886,8 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                 </div>
               )}
 
-              {/* VISTA PREVIA 4: GUÍAS LEGALES (HORIZONTAL) */}
-              {previewStep5Modal === 'guias' && (
-                <div className="bg-white p-6 md:p-8 shadow-lg border-t-4 border-t-[#0F3D2E] border border-slate-200 text-slate-800 space-y-4 w-full max-w-[950px]">
-                  <CanonicalPdfHeader badge="GUÍA PARA COMITÉS" description="Asambleas y quórums" page={1} community={condo} email={email} phone={phone} city={city} />
-                  <div className="overflow-x-auto border border-slate-200 rounded-xl">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-[#0F3D2E] text-white">
-                        <tr>
-                          <th className="p-2.5 font-bold">Tipo de Sesión</th>
-                          <th className="p-2.5 font-bold">Materias Principales</th>
-                          <th className="p-2.5 font-bold text-center">Quórum Constitución</th>
-                          <th className="p-2.5 font-bold text-center">Quórum Adopción</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr className="hover:bg-slate-50">
-                          <td className="p-2.5 font-bold text-slate-900">Ordinaria (Anual)</td>
-                          <td className="p-2.5 text-slate-600">Cuenta de administración, balance de gastos comunes, designación o remoción del administrador.</td>
-                          <td className="p-2.5 text-center font-mono">33% alícuotas (1ra cit.)<br/>Los que asistan (2da cit.)</td>
-                          <td className="p-2.5 text-center font-bold text-[#0F3D2E]">Mayoría absoluta de asistentes</td>
-                        </tr>
-                        <tr className="hover:bg-slate-50">
-                          <td className="p-2.5 font-bold text-slate-900">Extraordinaria Mayoría Absoluta</td>
-                          <td className="p-2.5 text-slate-600">Modificación de gastos comunes, reglamentos internos, contrataciones relevantes.</td>
-                          <td className="p-2.5 text-center font-mono">Mayoría absoluta derechos (1ra)<br/>Los que asistan (2da)</td>
-                          <td className="p-2.5 text-center font-bold text-[#0F3D2E]">Mayoría absoluta derechos totales</td>
-                        </tr>
-                        <tr className="hover:bg-slate-50">
-                          <td className="p-2.5 font-bold text-slate-900">Extraordinaria Mayoría Reforzada</td>
-                          <td className="p-2.5 text-slate-600">Modificación reglamento copropiedad, enajenación de bienes comunes, reconstrucción.</td>
-                          <td className="p-2.5 text-center font-mono">66% derechos (1ra y 2da citación)</td>
-                          <td className="p-2.5 text-center font-bold text-amber-700">66% de los derechos totales</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <CanonicalPdfPageFooter website={website} label="Asambleas y quórums" page={1} totalPages={1} city={city} />
-                </div>
-              )}
+              {previewStep5Modal === 'guias' && <div className="overflow-auto max-w-full"><CommitteeGuide kind={selectedGuide} proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale}/></div>}
+
             </div>
           </div>
         </div>
@@ -1166,7 +976,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
         </div>
 
         {/* 2. PRINTABLE CHECKLIST DE ANTECEDENTES (EXACTAMENTE 3 PÁGINAS FOLIADAS) */}
-        <TransitionChecklistPrint condo={proposalConfig.targetCondo?.trim() || ''} outgoingAdmin={proposalConfig.outgoingAdminName?.trim() || ''} committeePresident={proposalConfig.committeePresidentName?.trim() || ''} city={city} adminName={adminName} adminRut={adminRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={effectiveSignatureScale} companyRut={empresaForm.companyRut} pdfStyle={pdfStyle} status={transitionStatus} notes={transitionNotes} />
+        <TransitionChecklistPrint endDate={proposalConfig.transitionEndDate?.trim() || ''} condo={proposalConfig.targetCondo?.trim() || ''} outgoingAdmin={proposalConfig.outgoingAdminName?.trim() || ''} committeePresident={proposalConfig.committeePresidentName?.trim() || ''} city={city} adminName={adminName} adminRut={adminRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={effectiveSignatureScale} companyRut={empresaForm.companyRut} pdfStyle={pdfStyle} status={transitionStatus} notes={transitionNotes} />
         <div id="legacy-transition-checklist" data-pdf-style={pdfStyle}>
           {/* PÁGINA 1 DE 3 */}
           <div
@@ -1444,78 +1254,8 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
           </div>
         </div>
 
-        {/* 3. PRINTABLE GUÍAS LEGALES (EXACTAMENTE 1 PÁGINA HORIZONTAL CARTA SIN HOJAS VACÍAS) */}
         <div id="printable-legal-advisory-sheet" data-pdf-style={pdfStyle}>
-          <div
-            data-pdf-style={pdfStyle}
-            className="dossier-page page-1 bg-white p-6 pl-10 min-h-[195px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[1050px] leading-snug relative overflow-hidden"
-            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          >
-            <div className="absolute left-0 top-0 bottom-0 w-2 flex pointer-events-none select-none z-10" aria-hidden="true">
-              <div className="w-[2.5px] h-full bg-[#0F3D2E]" />
-              <div className="w-[2px] h-full bg-transparent" />
-              <div className="w-[1.5px] h-full bg-[#D4B895]" />
-            </div>
-
-            <div className="space-y-2 relative z-10">
-              <CanonicalPdfHeader badge="GUÍA PARA COMITÉS" description="Asambleas y quórums" page={1} community={condo} email={email} phone={phone} city={city} />
-
-              {/* TABLA EXACTA DEL PDF ORIGINAL */}
-              <div className="border border-slate-300 rounded-xl overflow-hidden">
-                <div className="bg-[#0F3D2E] text-white px-3 py-1 font-bold text-[10.5px] uppercase">
-                  ASAMBLEAS - MATERIAS Y QUÓRUM (ART. 15 LEY 21.442)
-                </div>
-                <table className="w-full text-left text-[10px] border-collapse">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-700 border-b border-slate-300">
-                      <th className="p-2 w-1/4 font-bold">Tipo de Asamblea</th>
-                      <th className="p-2 w-1/2 font-bold">Materias que Pueden Tratarse</th>
-                      <th className="p-2 w-1/8 text-center font-bold">Quórum Sesionar</th>
-                      <th className="p-2 w-1/8 text-center font-bold">Quórum Acordar</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    <tr>
-                      <td className="p-2 font-bold text-[#0F3D2E] bg-emerald-50/30">ORDINARIA</td>
-                      <td className="p-2">Rendición de cuentas y balances; designación/remoción del Comité; <strong>designación o remoción del administrador</strong>; actualizaciones plan de emergencia; asuntos ordinarios.</td>
-                      <td className="p-2 text-center font-bold">Mínimo 33% derechos</td>
-                      <td className="p-2 text-center font-bold text-emerald-800">Mayoría absoluta asistentes</td>
-                    </tr>
-                    <tr>
-                      <td className="p-2 font-bold text-blue-900 bg-blue-50/30">EXTRAORDINARIA MAYORÍA ABSOLUTA</td>
-                      <td className="p-2">Modificación de reglamento; remoción de miembros del comité; gastos extraordinarios que excedan 6 cuotas GGCC; uso de fondo de reserva.</td>
-                      <td className="p-2 text-center font-bold">Mayoría absoluta derechos</td>
-                      <td className="p-2 text-center font-bold text-blue-900">Mayoría absoluta derechos totales</td>
-                    </tr>
-                    <tr>
-                      <td className="p-2 font-bold text-purple-900 bg-purple-50/30">EXTRAORDINARIA MAYORÍA REFORZADA</td>
-                      <td className="p-2">Delegación de facultades al comité; enajenación/gravamen de bienes comunes; demolición; retribución miembros comité; seguros que modifiquen riesgos.</td>
-                      <td className="p-2 text-center font-bold">Al menos 66% derechos</td>
-                      <td className="p-2 text-center font-bold text-purple-900">66% derechos totales</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Ficha complementaria del Comité */}
-              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 grid grid-cols-2 gap-4 text-[9.5px]">
-                <div>
-                  <span className="font-bold text-[#0F3D2E] block uppercase">Facultades Exclusivas del Comité (DS N° 7 MINVU):</span>
-                  <p className="text-slate-600">• Dictar normas de convivencia y reglamentos internos operativos.</p>
-                  <p className="text-slate-600">• Autorizar convenios de pago a unidades morosas hasta 12 cuotas.</p>
-                  <p className="text-slate-600">• Aplicar multas del reglamento y aprobar presupuestos ordinarios.</p>
-                </div>
-                <div>
-                  <span className="font-bold text-rose-900 block uppercase">Materias Prohibidas (Reservadas a la Asamblea):</span>
-                  <p className="text-slate-600">• Modificación del Reglamento de Copropiedad.</p>
-                  <p className="text-slate-600">• Gastos extraordinarios que superen 6 cuotas de gastos comunes.</p>
-                  <p className="text-slate-600">• Enajenación, gravamen o demolición de bienes comunes.</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} /><CanonicalPdfPageFooter website={website} label="Asambleas y quórums" page={1} totalPages={1} city={city} /></div>
-          </div>
+          {['comite'].map(kind=><div key={kind} id={`printable-guide-${kind}`} data-pdf-style={pdfStyle}><CommitteeGuide kind={kind} proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale}/></div>)}
         </div>
 
         {/* 4. Contrato: texto único para vista previa y ambas rutas de impresión. */}

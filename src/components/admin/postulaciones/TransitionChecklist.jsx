@@ -96,9 +96,9 @@ export function TransitionChecklistScreen({ status, setStatus, notes, setNotes }
     </div>)}</div>;
 }
 
-export function TransitionChecklistPrint({ condo, city, adminName, adminRut, phone, email, website, signature, signatureScale, companyRut, pdfStyle, status, notes, outgoingAdmin, committeePresident, endDate }) {
+export function TransitionChecklistPrint({ condo, city, adminName, adminRut, phone, email, website, signature, signatureScale, companyRut, pdfStyle, status, notes, outgoingAdmin, committeePresident, endDate, printableId = 'printable-transition-checklist' }) {
   const pages = [[0, 1], [2, 3, 4], [5, 6]];
-  return <div id="printable-transition-checklist" data-pdf-style={pdfStyle}>
+  return <div id={printableId} data-pdf-style={pdfStyle}>
     {pages.map((indexes, pageIndex) => <div key={pageIndex} data-pdf-style={pdfStyle} className={`dossier-page ${pageIndex < 2 ? 'transition-page-with-notes' : ''} bg-white p-6 pl-10 flex flex-col justify-between text-slate-900 relative overflow-hidden`} style={{fontFamily:'Arial, sans-serif', minHeight:'1050px', fontSize:'10px'}}>
       <div>
         <CanonicalPdfHeader badge="PAUTA DE TRASPASO" description="Checklist de entrega de administración" community={condo} page={pageIndex + 1} email={email} phone={phone} city={city} />
