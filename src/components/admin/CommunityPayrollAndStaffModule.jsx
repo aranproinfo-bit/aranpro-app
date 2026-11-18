@@ -16,7 +16,7 @@ import {
 } from '../../utils/chileanPayrollCalculations';
 import { formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo, AranproOfficialSeal, useAranproPdfStyle, AranproPdfStyleSelector } from '../common/MauranLogo';
+import { AranproOfficialSeal, useAranproPdfStyle, AranproPdfStyleSelector } from '../common/MauranLogo';
 import {
   Users, UserPlus, FileText, Printer, CheckCircle2, AlertCircle,
   Building2, ShieldCheck, DollarSign, Calendar, Clock, Download,
@@ -414,7 +414,7 @@ export const CommunityPayrollAndStaffModule = ({
       category: 'Sueldos',
       description: `Sueldos Líquidos Personal Condominio (${payrollConsolidated.activeCount} trabajadores) - Periodo ${periodLabel}`,
       provider: `Nómina Personal ${currentCommunity.name}`,
-      providerRut: currentCommunity.bankInfo?.rut || '65.184.920-K',
+      providerRut: currentCommunity.bankInfo?.rut || '',
       documentType: 'Planilla de Sueldos Líquidos',
       documentNumber: `REM-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`,
       date: todayStr,
@@ -455,7 +455,7 @@ export const CommunityPayrollAndStaffModule = ({
   // Copiar resumen previsional al portapapeles
   const handleCopyPreviredSummary = () => {
     const text = `RESUMEN DE COTIZACIONES PREVISIONALES - PREVIRED
-Condominio: ${currentCommunity.name} (RUT: ${currentCommunity.bankInfo?.rut || '65.184.920-K'})
+Condominio: ${currentCommunity.name} (RUT: ${currentCommunity.bankInfo?.rut || ''})
 Periodo: ${periodLabel}
 Total Trabajadores: ${payrollConsolidated.activeCount}
 ---------------------------------------------
@@ -480,13 +480,13 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
   const renderAranproPdfHeader = (docTypeBadge, titleText, folioText) => (
     <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-3.5 border-b-2 border-[#0F3D2E] gap-3">
       <div className="flex items-center space-x-3.5">
-        <AranproLogo className="h-11 w-auto shrink-0" />
+        <img src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" className="h-9 w-auto shrink-0 object-contain" />
         <div className="space-y-0.5">
           <div className="text-sm font-black text-[#0F3D2E] tracking-tight">
             {companySettings?.brandName || 'ARANPRO'} • {companySettings?.subtitle || 'Gestión Integral'}
           </div>
           <div className="text-[10px] text-slate-600 font-bold tracking-wide">
-            ADMINISTRACIÓN PROFESIONAL DE CONDOMINIOS • LEY N° 21.442
+            ADMINISTRACIÓN DE CONDOMINIOS • RECURSOS HUMANOS
           </div>
           <div className="text-[9px] text-slate-500">
             {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? (
@@ -508,7 +508,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
           {currentCommunity?.name} • Folio: {folioText}
         </div>
         <div className="text-[9px] text-slate-400">
-          Santiago / Región de Coquimbo • {periodLongName}
+          {currentCommunity?.city || ''}{currentCommunity?.city ? ' • ' : ''}{periodLongName}
         </div>
       </div>
     </div>
@@ -533,7 +533,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
   const renderContinuityHeader = (docTypeBadge, titleText, folioText) => (
     <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
       <div className="flex items-center space-x-2.5">
-        <AranproLogo className="h-8 w-auto shrink-0" />
+        <img src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" className="h-7 w-auto shrink-0 object-contain" />
         <div className="space-y-0.5">
           <div className="text-xs font-black text-[#0F3D2E] tracking-tight">
             {companySettings?.brandName || 'ARANPRO'} • {companySettings?.subtitle || 'Gestión Integral'}
@@ -581,7 +581,6 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               />
             ) : (
               <div className={`${compact ? 'h-9' : 'h-12'} flex items-center justify-center`}>
-                <span className="text-[11px] text-slate-400 italic">Firma Administrador Registrada</span>
               </div>
             )}
           </div>
@@ -589,10 +588,10 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
         <div className="border-t-[1.5px] border-slate-800 pt-1.5">
           <strong className="block text-slate-900 font-black text-xs leading-tight">
-            {companySettings?.adminName || 'John Andrés Arancibia Maureira'}
+            {companySettings?.adminName || '____________________'}
           </strong>
           <p className="text-[9.5px] text-slate-600 font-mono">
-            RUT: {companySettings?.adminRut || '16.012.871-2'} • RNAC Minvu N° {companySettings?.rnacNumber || '48.912'}
+            RUT: {companySettings?.adminRut || '____________________'} • RNAC Minvu N° {companySettings?.rnacNumber || '____________________'}
           </p>
           <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">
             {sublabel}
@@ -763,7 +762,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 Trabajadores Contratados por el Condominio
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Empleador: <strong className="text-slate-700">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</strong> • RUT Patronal: <strong className="text-slate-700">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>
+                Empleador: <strong className="text-slate-700">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</strong> • RUT Patronal: <strong className="text-slate-700">{currentCommunity.bankInfo?.rut || ''}</strong>
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -2097,15 +2096,15 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   >
                     <div className="space-y-2.5">
                       {/* Cabecera Oficial ARANPRO */}
-                      {renderAranproPdfHeader('DIRECCIÓN DEL TRABAJO (DT)', 'LIQUIDACIÓN DE REMUNERACIONES', `LIQ-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
+                      {renderAranproPdfHeader('DOCUMENTO LABORAL', 'LIQUIDACIÓN DE REMUNERACIONES', `LIQ-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
 
                 {/* Datos del Empleador y Periodo */}
                 <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[10.5px]">
                   <div>
                     <span className="text-slate-500 block uppercase text-[9.5px] font-bold">Empleador (Comunidad):</span>
                     <strong className="text-slate-900 font-bold block">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</strong>
-                    <span className="text-slate-600 block">RUT Patronal: <strong className="font-mono">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong></span>
-                    <span className="text-slate-600 block">Dirección: {currentCommunity.address || 'Camino San Ramón 4500, La Serena'}</span>
+                    <span className="text-slate-600 block">RUT Patronal: <strong className="font-mono">{currentCommunity.bankInfo?.rut || '____________________'}</strong></span>
+                    <span className="text-slate-600 block">Dirección: {currentCommunity.address || '____________________'}</span>
                   </div>
 
                   <div className="text-right">
@@ -2310,7 +2309,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       <p className="text-[9.5px] text-slate-600 font-mono">RUT: {selectedWorkerForSlip.rut}</p>
                       <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">FIRMA DEL TRABAJADOR</p>
                       <p className="text-[8px] text-slate-400 mt-0.5 italic leading-tight">
-                        "Recibí conforme el líquido indicado en esta liquidación, sin tener cargo ni reclamo alguno que formular respecto de las remuneraciones del periodo."
+                        Firma de recepción de la liquidación.
                       </p>
                     </div>
                   </div>
@@ -2318,7 +2317,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   {renderAdminSignatureBlock('EN REPRESENTACIÓN DE LA COMUNIDAD (ART. 20 LEY 21.442)', true)}
                 </div>
 
-                {renderAranproPdfFooter(1, 1, 'Liquidación Individual de Remuneraciones DT')}
+                {renderAranproPdfFooter(1, 1, 'Liquidación de remuneraciones')}
               </div>
             </div>
           </div>
@@ -2383,7 +2382,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 <div>
                   <span className="text-slate-500 block text-[10px] uppercase font-bold">Comunidad Empleadora:</span>
                   <strong className="text-sm font-black text-slate-900">{currentCommunity.name}</strong>
-                  <span className="text-slate-600 block text-[11px]">RUT: {currentCommunity.bankInfo?.rut || '65.184.920-K'} • {currentCommunity.address}</span>
+                  <span className="text-slate-600 block text-[11px]">RUT: {currentCommunity.bankInfo?.rut || '____________________'} • {currentCommunity.address}</span>
                 </div>
 
                 <div className="text-right">
@@ -2544,7 +2543,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
                   <span className="text-slate-500 block text-[10px] uppercase font-bold">RUT Patronal / Empresa Pagadora:</span>
-                  <strong className="text-sm font-black text-slate-900 font-mono">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>
+                  <strong className="text-sm font-black text-slate-900 font-mono">{currentCommunity.bankInfo?.rut || '____________________'}</strong>
                   <span className="text-slate-600 block text-[11px]">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</span>
                 </div>
                 <div className="text-right">
@@ -2712,7 +2711,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
                       <div>
                         <strong className="block text-slate-900 font-bold">{currentCommunity.name}</strong>
-                        <span className="text-slate-600 block text-[11px]">RUT Patronal: {currentCommunity.bankInfo?.rut || '65.184.920-K'} • {currentCommunity.address}</span>
+                        <span className="text-slate-600 block text-[11px]">RUT Patronal: {currentCommunity.bankInfo?.rut || '____________________'} • {currentCommunity.address}</span>
                       </div>
                       <div className="text-right">
                         <span className="text-emerald-800 font-black block text-sm">{staff.length} Trabajadores Registrados</span>
@@ -2850,7 +2849,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     </div>
 
                     <p className="text-justify text-xs leading-relaxed">
-                      En la ciudad de <strong>{currentCommunity.city || 'La Serena'}</strong>, República de Chile, a {selectedWorkerForContract.startDate}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, Rol Único Tributario (RUT) N° <strong>{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>, cédula nacional de identidad N° <strong>{companySettings?.adminRut || '16.012.871-2'}</strong>, con inscripción vigente en el Registro Nacional de Administradores de Condominios del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '48.912'}</strong>), ambos domiciliados para estos efectos en <strong>{currentCommunity.address}</strong>, en adelante denominada indistintamente como "la Comunidad" o "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForContract.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForContract.rut}</strong>, de nacionalidad chilena, fecha de nacimiento registrada, domiciliado(a) en <strong>{selectedWorkerForContract.address || 'domicilio acreditado'}</strong>, en adelante "el Trabajador", se ha convenido celebrar el siguiente Contrato Individual de Trabajo:
+                      En la ciudad de <strong>{currentCommunity.city || '____________________'}</strong>, República de Chile, a {selectedWorkerForContract.startDate}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, Rol Único Tributario (RUT) N° <strong>{currentCommunity.bankInfo?.rut || '____________________'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || '____________________'}</strong>, cédula nacional de identidad N° <strong>{companySettings?.adminRut || '____________________'}</strong>, con inscripción vigente en el Registro Nacional de Administradores de Condominios del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '____________________'}</strong>), ambos domiciliados para estos efectos en <strong>{currentCommunity.address}</strong>, en adelante denominada indistintamente como "la Comunidad" o "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForContract.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForContract.rut}</strong>, de nacionalidad chilena, fecha de nacimiento registrada, domiciliado(a) en <strong>{selectedWorkerForContract.address || 'domicilio acreditado'}</strong>, en adelante "el Trabajador", se ha convenido celebrar el siguiente Contrato Individual de Trabajo:
                     </p>
 
                     <div className="space-y-3 text-justify text-xs leading-relaxed">
@@ -2859,7 +2858,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                           PRIMERO: LUGAR DE PRESTACIÓN DE LOS SERVICIOS
                         </h4>
                         <p>
-                          El Trabajador prestará sus servicios en las dependencias, áreas comunes, accesos vehiculares y peatonales, caseta de control y perímetro de la Comunidad <strong>{currentCommunity.name}</strong>, ubicada en <strong>{currentCommunity.address}</strong>, comuna de {currentCommunity.city || 'La Serena'}.
+                          El Trabajador prestará sus servicios en las dependencias, áreas comunes, accesos vehiculares y peatonales, caseta de control y perímetro de la Comunidad <strong>{currentCommunity.name}</strong>, ubicada en <strong>{currentCommunity.address}</strong>, comuna de {currentCommunity.city || '____________________'}.
                         </p>
                       </div>
 
@@ -3357,7 +3356,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     data-pdf-style={pdfStyle}
                   >
                     <div className="space-y-4">
-                      {renderAranproPdfHeader('INSTRUMENTO LABORAL DT', 'COMPROBANTE OFICIAL DE FERIADO LEGAL', `VAC-${new Date().getFullYear()}-${selectedWorkerForVacation.id}`)}
+                      {renderAranproPdfHeader('INSTRUMENTO LABORAL', 'COMPROBANTE OFICIAL DE FERIADO LEGAL', `VAC-${new Date().getFullYear()}-${selectedWorkerForVacation.id}`)}
 
                       <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
                         <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
@@ -3373,8 +3372,8 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                         <div>
                           <span className="text-slate-500 uppercase text-[9.5px] font-bold block">Comunidad Empleadora:</span>
                           <strong className="text-slate-900 block font-bold">{currentCommunity.bankInfo?.holderName || currentCommunity.name}</strong>
-                          <span className="text-slate-600 block">RUT Patronal: <strong className="font-mono">{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong></span>
-                          <span className="text-slate-600 block">Dirección: {currentCommunity.address || 'Camino San Ramón 4500, La Serena'}</span>
+                          <span className="text-slate-600 block">RUT Patronal: <strong className="font-mono">{currentCommunity.bankInfo?.rut || '____________________'}</strong></span>
+                          <span className="text-slate-600 block">Dirección: {currentCommunity.address || '____________________'}</span>
                         </div>
                         <div className="text-right">
                           <span className="text-slate-500 uppercase text-[9.5px] font-bold block">Trabajador(a):</span>
@@ -3418,7 +3417,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       {/* Declaración de Recepción Conforme */}
                       <div className="p-3 bg-white rounded-xl border border-slate-200 text-justify text-xs text-slate-700 leading-relaxed">
                         <p>
-                          En la ciudad de <strong>{currentCommunity.city || 'La Serena'}</strong>, a {new Date().toLocaleDateString('es-CL')}, el Trabajador declara que hace uso efectivo de su feriado legal anual en conformidad con lo previsto en el Artículo 67 y siguientes del Código del Trabajo, con goce íntegro de sus remuneraciones ordinarias, dejando expresa constancia de haber recibido a su entera satisfacción los días concedidos por la Comunidad Empleadora.
+                          En la ciudad de <strong>{currentCommunity.city || '____________________'}</strong>, a {new Date().toLocaleDateString('es-CL')}, el Trabajador declara que hace uso efectivo de su feriado legal anual en conformidad con lo previsto en el Artículo 67 y siguientes del Código del Trabajo, con goce íntegro de sus remuneraciones ordinarias, dejando expresa constancia de haber recibido a su entera satisfacción los días concedidos por la Comunidad Empleadora.
                         </p>
                       </div>
                     </div>
@@ -3701,7 +3700,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     data-pdf-style={pdfStyle}
                   >
                     <div className="space-y-3.5">
-                      {renderAranproPdfHeader('INSTRUMENTO LABORAL DT', 'FINIQUITO DE CONTRATO INDIVIDUAL DE TRABAJO', `FINIQ-${selectedWorkerForSeverance.id}`)}
+                      {renderAranproPdfHeader('INSTRUMENTO LABORAL', 'FINIQUITO DE CONTRATO INDIVIDUAL DE TRABAJO', `FINIQ-${selectedWorkerForSeverance.id}`)}
 
                       <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
                         <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
@@ -3713,7 +3712,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       </div>
 
                       <p className="text-justify text-xs leading-relaxed">
-                        En la ciudad de <strong>{currentCommunity.city || 'La Serena'}</strong>, República de Chile, a {new Date().toLocaleDateString('es-CL')}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, Rol Único Tributario (RUT) N° <strong>{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>, cédula nacional de identidad N° <strong>{companySettings?.adminRut || '16.012.871-2'}</strong>, con inscripción vigente en el Registro Nacional de Administradores de Condominios del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '48.912'}</strong>), ambos domiciliados en <strong>{currentCommunity.address}</strong>, en adelante denominada indistintamente como "la Comunidad" o "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForSeverance.name}</strong>, cédula de identidad N° <strong>{selectedWorkerForSeverance.rut}</strong>, domiciliado(a) en <strong>{selectedWorkerForSeverance.address || 'domicilio registrado'}</strong>, en adelante "el Trabajador", se deja constancia y se conviene en otorgar el siguiente Finiquito de Contrato de Trabajo:
+                        En la ciudad de <strong>{currentCommunity.city || '____________________'}</strong>, República de Chile, a {new Date().toLocaleDateString('es-CL')}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, Rol Único Tributario (RUT) N° <strong>{currentCommunity.bankInfo?.rut || '____________________'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || '____________________'}</strong>, cédula nacional de identidad N° <strong>{companySettings?.adminRut || '____________________'}</strong>, con inscripción vigente en el Registro Nacional de Administradores de Condominios del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '____________________'}</strong>), ambos domiciliados en <strong>{currentCommunity.address}</strong>, en adelante denominada indistintamente como "la Comunidad" o "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForSeverance.name}</strong>, cédula de identidad N° <strong>{selectedWorkerForSeverance.rut}</strong>, domiciliado(a) en <strong>{selectedWorkerForSeverance.address || 'domicilio registrado'}</strong>, en adelante "el Trabajador", se deja constancia y se conviene en otorgar el siguiente Finiquito de Contrato de Trabajo:
                       </p>
 
                       <div className="space-y-3 text-justify text-xs leading-relaxed">
@@ -3920,10 +3919,10 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     data-pdf-style={pdfStyle}
                   >
                     <div className="space-y-4">
-                      {renderAranproPdfHeader('NOTIFICACIÓN LABORAL DT', 'CARTA DE TÉRMINO DE CONTRATO DE TRABAJO', `NOTIF-${new Date().getFullYear()}-${selectedWorkerForSeverance.id}`)}
+                      {renderAranproPdfHeader('NOTIFICACIÓN LABORAL', 'CARTA DE TÉRMINO DE CONTRATO DE TRABAJO', `NOTIF-${new Date().getFullYear()}-${selectedWorkerForSeverance.id}`)}
 
                       <div className="text-right text-xs text-slate-600">
-                        {currentCommunity.city || 'La Serena'}, {new Date().toLocaleDateString('es-CL')}
+                        {currentCommunity.city || '____________________'}, {new Date().toLocaleDateString('es-CL')}
                       </div>
 
                       <div className="space-y-1">
@@ -3939,7 +3938,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                           De nuestra consideración:
                         </p>
                         <p>
-                          Por intermedio de la presente, comunicamos a usted que la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, RUT N° <strong>{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>, ha resuelto poner término al contrato individual de trabajo que la vincula con usted, a contar del día <strong>{severanceForm.terminationDate}</strong>.
+                          Por intermedio de la presente, comunicamos a usted que la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, RUT N° <strong>{currentCommunity.bankInfo?.rut || '____________________'}</strong>, ha resuelto poner término al contrato individual de trabajo que la vincula con usted, a contar del día <strong>{severanceForm.terminationDate}</strong>.
                         </p>
                         <p>
                           La causal legal invocada para fundamentar esta determinación es la establecida en el <strong>{severanceCalc.cause.article}</strong> del Código del Trabajo, esto es: <strong>"{severanceCalc.cause.name}"</strong>.
@@ -4040,7 +4039,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">
-                    {renderAranproPdfHeader('INSTRUMENTO LABORAL DT', 'PACTO DE HORAS EXTRAORDINARIAS', `PACT-HE-${selectedWorkerForOvertimePact.id}`)}
+                    {renderAranproPdfHeader('INSTRUMENTO LABORAL', 'PACTO DE HORAS EXTRAORDINARIAS', `PACT-HE-${selectedWorkerForOvertimePact.id}`)}
 
                     <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
                       <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
@@ -4052,7 +4051,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     </div>
 
                     <p className="text-justify text-xs leading-relaxed">
-                      En la ciudad de <strong>{currentCommunity.city || 'La Serena'}</strong>, a {new Date().toLocaleDateString('es-CL')}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, RUT N° <strong>{currentCommunity.bankInfo?.rut || '65.184.920-K'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>, RUT N° <strong>{companySettings?.adminRut || '16.012.871-2'}</strong>, con inscripción en el Registro Nacional de Administradores del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '48.912'}</strong>), en adelante "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForOvertimePact.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForOvertimePact.rut}</strong>, de profesión u oficio <strong>{selectedWorkerForOvertimePact.role}</strong>, en adelante "el Trabajador", se conviene celebrar el siguiente Pacto de Horas Extraordinarias:
+                      En la ciudad de <strong>{currentCommunity.city || '____________________'}</strong>, a {new Date().toLocaleDateString('es-CL')}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, RUT N° <strong>{currentCommunity.bankInfo?.rut || '____________________'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || '____________________'}</strong>, RUT N° <strong>{companySettings?.adminRut || '____________________'}</strong>, con inscripción en el Registro Nacional de Administradores del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '____________________'}</strong>), en adelante "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForOvertimePact.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForOvertimePact.rut}</strong>, de profesión u oficio <strong>{selectedWorkerForOvertimePact.role}</strong>, en adelante "el Trabajador", se conviene celebrar el siguiente Pacto de Horas Extraordinarias:
                     </p>
 
                     <div className="space-y-3 text-justify text-xs leading-relaxed">
