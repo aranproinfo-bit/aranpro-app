@@ -3,9 +3,10 @@ import { laborContractAlerts, minimumSalaryReference, validChileanRut } from '..
 const base={fecha_evaluacion:'2026-11-18',fecha_nacimiento:'1990-01-01',regimen_jornada:'Jornada ordinaria general',horas_semanales_o_promedio:42,sueldo_base_monto:553553};
 assert.deepEqual(laborContractAlerts(base),[]);
 assert.ok(laborContractAlerts({...base,horas_semanales_o_promedio:44}).some(x=>x.includes('42 horas')));
+assert.ok(laborContractAlerts({...base,fecha_evaluacion:'2028-04-26',horas_semanales_o_promedio:41}).some(x=>x.includes('40 horas')));
 assert.ok(laborContractAlerts({...base,sueldo_base_monto:520000}).some(x=>x.includes('inferior a la referencia')));
 assert.ok(laborContractAlerts({...base,horas_semanales_o_promedio:32,sueldo_base_monto:520000}).some(x=>x.includes('inferior a la referencia')));
-assert.ok(laborContractAlerts({...base,fecha_evaluacion:'2027-02-01',sueldo_base_monto:520000}).some(x=>x.includes('no está configurado')));
+assert.ok(laborContractAlerts({...base,fecha_evaluacion:'2027-02-01',sueldo_base_monto:520000}).some(x=>x.includes('No hay una referencia automática')));
 assert.ok(!laborContractAlerts({...base,regimen_jornada:'Jornada parcial',horas_semanales_o_promedio:20,sueldo_base_monto:300000}).some(x=>x.includes('inferior a la referencia')));
 assert.ok(laborContractAlerts({...base,regimen_jornada:'Jornada parcial',horas_semanales_o_promedio:20,sueldo_base_monto:200000}).some(x=>x.includes('inferior a la referencia')));
 assert.ok(laborContractAlerts({...base,fecha_nacimiento:''}).some(x=>x.includes('edad')));

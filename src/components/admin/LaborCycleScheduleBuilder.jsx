@@ -1,0 +1,16 @@
+import React from 'react';
+import { summarizeCycleSchedule } from '../../utils/laborCycleSchedule';
+
+export default function LaborCycleScheduleBuilder({length='',startDate='',rows=[],onChange,onApply,applied}) {
+  const count=Number(length), validLength=Number.isInteger(count)&&count>=1&&count<=28;
+  const result=summarizeCycleSchedule(rows,length,startDate);
+  const updateRow=(i,key,value)=>{const next=Array.from({length:validLength?count:0},(_,n)=>({...rows[n]}));next[i][key]=value;onChange({rows:next});};
+  return <section className="border border-slate-300 rounded-xl p-3 space-y-3">
+    <h3 className="font-bold text-sm text-[#0F3D2E]">Ciclo rotativo</h3>
+    <p className="text-xs text-slate-600">Indica la secuencia completa, incluidos los días de descanso. El promedio es aritmético; la distribución, descansos y autorización del régimen deben revisarse por separado.</p>
+    <div className="flex flex-wrap gap-3 text-xs"><label>Duración del ciclo (días)<input aria-label="Duración del ciclo" type="number" min="1" max="28" value={length} className="block border rounded p-1" onChange={e=>onChange({length:e.target.value})}/></label><label>Inicio del ciclo<input aria-label="Inicio del ciclo" type="date" value={startDate} className="block border rounded p-1" onChange={e=>onChange({startDate:e.target.value})}/></label></div>
+    {validLength&&Array.from({length:count},(_,i)=>{const r=rows[i]||{};return <div key={i} className="grid grid-cols-2 md:grid-cols-5 gap-2 items-end text-xs"><label>Día {i+1}<select aria-label={`Día ${i+1} tipo`} value={r.kind||''} className="block border rounded p-1 w-full" onChange={e=>updateRow(i,'kind',e.target.value)}><option value="">Seleccionar</option><option value="work">Trabajo</option><option value="rest">Descanso</option></select></label>{r.kind==='work'&&<><label>Entrada<input aria-label={`Día ${i+1} entrada`} type="time" className="block border rounded p-1 w-full" value={r.start||''} onChange={e=>updateRow(i,'start',e.target.value)}/></label><label>Salida<input aria-label={`Día ${i+1} salida`} type="time" className="block border rounded p-1 w-full" value={r.end||''} onChange={e=>updateRow(i,'end',e.target.value)}/></label><label>Colación (min)<input aria-label={`Día ${i+1} minutos de colación`} type="number" min="0" step="1" className="block border rounded p-1 w-full" value={r.mealMinutes??''} onChange={e=>updateRow(i,'mealMinutes',e.target.value)}/></label><label>Colación<select aria-label={`Día ${i+1} tratamiento de colación`} className="block border rounded p-1 w-full" value={r.mealIncluded||''} onChange={e=>updateRow(i,'mealIncluded',e.target.value)}><option value="">Seleccionar</option><option value="no">No imputada</option><option value="yes">Imputada</option></select></label></>}</div>})}
+    {result.errors.length>0?<ul className="text-xs text-amber-900 list-disc pl-4">{result.errors.map((e,i)=><li key={i}>{e}</li>)}</ul>:<p className="text-xs font-bold">Promedio aritmético: {Number(result.weeklyHours.toFixed(2))} horas por semana.</p>}
+    <button type="button" disabled={result.errors.length>0} className="border rounded px-3 py-1 text-xs disabled:opacity-40" onClick={()=>onApply(result)}>Usar ciclo en el contrato</button>{applied&&<span className="text-xs text-green-800 ml-2">Ciclo incorporado al borrador.</span>}
+  </section>;
+}

@@ -14,15 +14,20 @@ function ageAt(birth,date) {
   if(Number.isNaN(b.getTime())||b.toISOString().slice(0,10)!==birth||Number.isNaN(d.getTime())||d.toISOString().slice(0,10)!==date) return null;
   return d.getUTCFullYear()-b.getUTCFullYear()-(date.slice(5)<birth.slice(5)?1:0);
 }
-export function minimumSalaryReference(form) {
+export function minimumSalaryReference(form, liveMinimum = null) {
   const date=form.fecha_evaluacion, hours=Number(form.horas_semanales_o_promedio), age=ageAt(form.fecha_nacimiento,date);
-  if(!date || date<'2026-05-01' || date>'2026-12-31' || !Number.isFinite(hours) || hours<=0 || age===null || age===18) return null;
+  if(!date || !Number.isFinite(hours) || hours<=0 || age===null || age===18) return null;
   if(!['Jornada ordinaria general','Jornada parcial'].includes(form.regimen_jornada)) return null;
   if((form.regimen_jornada==='Jornada parcial') !== (hours<=30)) return null;
-  const full=age<18||age>65?412938:553553;
-  return { amount:hours<=30?Math.ceil(full*hours/42):full, fullAmount:full, hours, age, partial:hours<=30 };
+  const historical2026=date>='2026-05-01' && date<='2026-12-31';
+  const liveValid=liveMinimum && liveMinimum.asOf===date && liveMinimum.since<=date && liveMinimum.since?.slice(0,4)===date.slice(0,4) && Number.isFinite(liveMinimum.value) && liveMinimum.value>0 && age>18 && age<=65;
+  if(historical2026 && liveValid && liveMinimum.value!==553553) return null;
+  if(!historical2026 && !liveValid) return null;
+  const full=historical2026 ? (age<18||age>65?412938:553553) : liveMinimum.value;
+  const divisor=date>='2028-04-26'?40:date>='2026-04-26'?42:44;
+  return { amount:hours<=30?Math.ceil(full*hours/divisor):full, fullAmount:full, hours, age, partial:hours<=30, divisor, source:historical2026?'DT 2026':'Indicadores.cl (fuente informada: DT)' };
 }
-export function laborContractAlerts(form) {
+export function laborContractAlerts(form, liveMinimum = null) {
   const alerts=[];
   const hours=Number(form.horas_semanales_o_promedio);
   const salary=Number(form.sueldo_base_monto);
@@ -37,20 +42,26 @@ export function laborContractAlerts(form) {
   if (/^\d{4}-\d{2}-\d{2}$/.test(date || '') && date >= '2026-04-26' && date < '2028-04-26' && hours > 42) {
     alerts.push('La jornada supera 42 horas: revisa el límite general y si existe un régimen especial válido.');
   }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date || '') && date >= '2028-04-26' && hours > 40) {
+    alerts.push('La jornada supera 40 horas: revisa el límite general y si existe un régimen especial válido.');
+  }
   if(date >= '2026-05-01' && date <= '2026-12-31' && salary>0 && hours>0) {
     const age=ageAt(form.fecha_nacimiento,date);
     if(age===null || age===18) alerts.push('Completa y revisa la edad aplicable antes de calcular el ingreso mínimo de referencia.');
     else if(!['Jornada ordinaria general','Jornada parcial'].includes(form.regimen_jornada)) alerts.push('El mínimo para este régimen requiere revisión específica.');
     else if((form.regimen_jornada==='Jornada parcial') !== (hours<=30)) alerts.push('Revisa la clasificación de jornada parcial y las horas pactadas.');
     else {
-      const reference=minimumSalaryReference(form);
+      const reference=minimumSalaryReference(form,liveMinimum);
       if(reference && salary<reference.amount) alerts.push(`Sueldo base inferior a la referencia de $${reference.amount.toLocaleString('es-CL')}: revisa edad, jornada y conceptos que legalmente correspondan a sueldo.`);
       if(age<18) alerts.push('El trabajo de adolescentes requiere revisar autorizaciones y condiciones especiales.');
     }
   }
   if (/^\d{4}-\d{2}-\d{2}$/.test(date || '') && (date < '2026-05-01' || date > '2026-12-31')) {
-    alerts.push('El ingreso mínimo de este período no está configurado en esta comprobación; debe verificarse con una fuente vigente.');
+    const reference=minimumSalaryReference(form,liveMinimum);
+    if(!reference) alerts.push('No hay una referencia automática verificable para este período, edad o régimen; comprueba el ingreso mínimo vigente.');
+    else if(salary>0 && salary<reference.amount) alerts.push(`Sueldo base inferior a la referencia de $${reference.amount.toLocaleString('es-CL')}: revisa edad, jornada y conceptos que legalmente correspondan a sueldo.`);
   }
+  if(date>='2026-05-01' && date<='2026-12-31' && liveMinimum?.asOf===date && liveMinimum.value!==553553) alerts.push('La fuente en línea y el valor legal registrado difieren; verifica la norma vigente antes de utilizar el cálculo.');
   if(form.contractType==='plazo_fijo') {
     if(!form.fecha_inicio_contrato) alerts.push('Indica el inicio de este contrato; no lo confundas con la fecha original de ingreso.');
     if(form.fecha_inicio_contrato && form.fecha_termino_pactada && form.fecha_termino_pactada<form.fecha_inicio_contrato) alerts.push('El término es anterior al inicio de este contrato.');

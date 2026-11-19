@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { summarizeCycleSchedule } from '../src/utils/laborCycleSchedule.js';
+const shift={kind:'work',start:'20:00',end:'06:00',mealMinutes:'0',mealIncluded:'no'};
+const cycle=[shift,shift,{kind:'rest'},{kind:'rest'}];
+let result=summarizeCycleSchedule(cycle,4,'2026-11-01');
+assert.deepEqual(result.errors,[]);assert.equal(result.weeklyHours,35);assert.match(result.details[0],/día siguiente/);
+assert.ok(summarizeCycleSchedule(cycle,4,'2026-02-30').errors.length);
+assert.ok(summarizeCycleSchedule([shift,{},{}],3,'2026-11-01').errors.some(e=>e.includes('selecciona')));
+const overlap=[{kind:'work',start:'20:00',end:'06:00',mealMinutes:'0',mealIncluded:'no'},{kind:'work',start:'05:00',end:'10:00',mealMinutes:'0',mealIncluded:'no'}];
+assert.ok(summarizeCycleSchedule(overlap,2,'2026-11-01').errors.some(e=>e.includes('superponen')));
+assert.ok(summarizeCycleSchedule(cycle,29,'2026-11-01').errors.length);
+console.log('Ciclo 2x2, promedio de 35 horas, medianoche y controles verificados.');

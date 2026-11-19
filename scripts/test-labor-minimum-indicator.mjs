@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { normalizeLaborMinimum } from '../src/utils/laborMinimumIndicator.js';
+import { minimumSalaryReference, laborContractAlerts } from '../src/utils/laborContractChecks.js';
+const today='2027-02-01';
+const input={fecha:today,ingresoMinimo:{valor:600000,vigenteDesde:'2027-01-01'}};
+const live=normalizeLaborMinimum(input,today);
+assert.deepEqual(live,{value:600000,since:'2027-01-01',asOf:today});
+assert.equal(normalizeLaborMinimum({...input,fecha:'2027-01-31'},today),null);
+assert.equal(normalizeLaborMinimum({...input,ingresoMinimo:{valor:600000,vigenteDesde:'2026-12-01'}},today),null);
+assert.equal(normalizeLaborMinimum({...input,ingresoMinimo:{valor:600000,vigenteDesde:'2027-02-30'}},today),null);
+const form={fecha_evaluacion:today,fecha_nacimiento:'1990-01-01',regimen_jornada:'Jornada parcial',horas_semanales_o_promedio:21,sueldo_base_monto:299999};
+assert.equal(minimumSalaryReference(form,live).amount,300000);
+assert.ok(laborContractAlerts(form,live).some(x=>x.includes('inferior a la referencia')));
+assert.equal(minimumSalaryReference({...form,fecha_evaluacion:'2027-02-02'},live),null);
+assert.equal(minimumSalaryReference({...form,fecha_nacimiento:'1950-01-01'},live),null);
+assert.equal(minimumSalaryReference({...form,fecha_evaluacion:'2028-04-26'}, {value:600000,since:'2028-01-01',asOf:'2028-04-26'}).amount,315000);
+assert.equal(minimumSalaryReference({...form,fecha_evaluacion:'2026-11-18'}, {value:600000,since:'2026-05-01',asOf:'2026-11-18'}),null);
+console.log('Indicador: fecha, vigencia, excepciones y proporcionalidad verificados.');
