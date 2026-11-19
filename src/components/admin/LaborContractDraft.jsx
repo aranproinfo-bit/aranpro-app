@@ -9,6 +9,7 @@ import LaborScheduleBuilder from './LaborScheduleBuilder';
 import LaborCycleScheduleBuilder from './LaborCycleScheduleBuilder';
 import { useLaborMinimumIndicator } from '../../hooks/useLaborMinimumIndicator';
 import { chileToday } from '../../hooks/useEconomicIndicators';
+import { AranproOfficialSeal } from '../common/MauranLogo';
 
 import LaborContractFields, { groups, steps } from './LaborContractFields';
 
@@ -25,7 +26,7 @@ const fields = [
   ['dia_o_regla_de_pago','Día o regla de pago'],['medio_pago','Medio de pago'],['lugar_pago','Lugar de pago o no aplica'],['sueldo_base_monto','Sueldo base mensual','number'],
   ['bonos_pactados_con_monto_y_devengo','Bonos y condiciones o no aplica'],['asignaciones_con_monto_y_condiciones','Asignaciones y condiciones o no aplica'],['clausula_gratificacion_aplicable','Régimen de gratificación']
 ];
-const printStyles=ready=>`@page{size:letter portrait;margin:19mm 17mm;@top-right{content:"ARANPRO · INSTRUMENTO LABORAL";font:8px Arial;color:#0f3d2e}@bottom-left{content:"${ready ? 'CONTRATO INDIVIDUAL DE TRABAJO' : 'BORRADOR · NO APTO PARA FIRMA'}";font:8px Arial;color:#62766d}@bottom-right{content:"Página " counter(page);font:8px Arial;color:#62766d}}@page:first{@top-right{content:none}}.print-wrapper{box-shadow:none!important;padding:0!important}.labor-contract-doc{font-family:Arial,sans-serif!important;color:#1c2925!important;font-size:10.5pt!important;line-height:1.45!important}.labor-contract-doc h2{font-size:15pt!important;color:#0f3d2e!important}.labor-contract-doc h3{font-size:11pt!important;color:#0f3d2e!important;break-after:avoid!important}.labor-contract-doc p{orphans:3;widows:3}.labor-contract-doc .signatures{break-inside:avoid;margin-top:28px}.aranpro-print-watermark{display:none!important}`;
+const printStyles=ready=>`@page{size:letter portrait;margin:19mm 17mm;@bottom-left{content:"ARANPRO Gestión Integral";font:8px Arial;color:#62766d}@bottom-center{content:"${ready ? 'Contrato individual de trabajo' : 'Borrador · No apto para firma'}";font:8px Arial;color:#0f3d2e}@bottom-right{content:"Página " counter(page);font:8px Arial;color:#62766d}}.print-wrapper{box-shadow:none!important;padding:0!important}.labor-contract-doc{font-family:Arial,sans-serif!important;color:#1c2925!important;font-size:10.5pt!important;line-height:1.45!important}.labor-contract-doc h2{font-size:15pt!important;color:#0f3d2e!important}.labor-contract-doc h3{font-size:11pt!important;color:#0f3d2e!important;break-after:avoid!important}.labor-contract-doc p{orphans:3;widows:3}.labor-contract-doc .signatures,.labor-contract-end{break-inside:avoid;page-break-inside:avoid}.labor-contract-stripe{position:fixed;left:0;top:0;bottom:0;width:2mm;border-left:1.1mm solid #0f3d2e;border-right:.45mm solid #d4b895}.labor-contract-header-logo{width:22mm!important;height:auto!important;max-height:13mm!important;object-fit:contain!important}.aranpro-print-watermark{display:none!important}`;
 const printableDate=x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x||''))?x.split('-').reverse().join('/'):(x||'');
 const str=x=>String(x??'').trim();
 const localToday=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -203,12 +204,40 @@ export default function LaborContractDraft({worker,community,settings={},onClose
   </div>
     <button type="button" className="bg-[#0F3D2E] text-white rounded px-4 py-2 text-sm" onClick={printContract}>{ready ? 'Emitir contrato para firma' : 'Imprimir borrador'}</button>
 <details id="labor-field-preview" tabIndex={-1} className="rounded-lg border bg-white p-3"><summary className="cursor-pointer text-sm font-semibold">Vista previa del contrato</summary>
-    <div className="bg-slate-100 p-4 overflow-auto"><div id="labor-contract-draft"><div className="labor-contract-doc bg-white max-w-[800px] mx-auto p-8 text-sm leading-relaxed text-slate-800"><div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3 mb-4"><div className="flex items-center gap-3"><img src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" style={{width:55}}/><strong>ARANPRO · GESTIÓN INTEGRAL</strong></div><span>INSTRUMENTO LABORAL</span></div>{!ready && <p className="font-bold text-center text-amber-900">BORRADOR DE REVISIÓN · NO APTO PARA FIRMA</p>}<h2 className="font-bold my-3">Contrato individual de trabajo</h2>
+    <div className="bg-slate-100 p-4 overflow-auto"><div id="labor-contract-draft"><div className="labor-contract-doc bg-white max-w-[800px] mx-auto p-8 text-sm leading-relaxed text-slate-800">
+    <div className="labor-contract-stripe" aria-hidden="true" />
+    <div className="labor-contract-header" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,borderBottom:'2px solid #0F3D2E',paddingBottom:12,marginBottom:14}}>
+      <div style={{display:'flex',alignItems:'center',gap:12}}>
+        <img className="labor-contract-header-logo" src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" style={{width:'22mm',height:'auto',objectFit:'contain'}} />
+        <div><strong style={{fontSize:13,color:'#0F3D2E'}}>{settings.brandName || 'ARANPRO'} • {settings.subtitle || 'Gestión Integral'}</strong>
+          <div style={{fontSize:9,fontWeight:700,color:'#475569'}}>ADMINISTRACIÓN DE CONDOMINIOS • RECURSOS HUMANOS</div>
+          <div style={{fontSize:8,color:'#64748b'}}>{settings.companyRut && !String(settings.companyRut).includes('76.999.888') && <>RUT Empresa: {settings.companyRut} • </>}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
+        </div>
+      </div>
+      <div style={{textAlign:'right',maxWidth:'42%'}}>
+        <span style={{display:'inline-block',border:'1px solid #a7f3d0',borderRadius:4,background:'#ecfdf5',padding:'2px 8px',fontSize:9,fontWeight:800,color:'#0F3D2E'}}>INSTRUMENTO LABORAL</span>
+        <div style={{fontSize:10,fontWeight:800}}>CONTRATO INDIVIDUAL DE TRABAJO</div>
+        <div style={{fontSize:9,color:'#64748b'}}>{community.name}</div>
+      </div>
+    </div>
+    {!ready && <p className="font-bold text-center text-amber-900">BORRADOR DE REVISIÓN · NO APTO PARA FIRMA</p>}<h2 className="font-bold my-3">Contrato individual de trabajo</h2>
     {blocks.slice(0, firstDuty).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill(b.text)}</p>)}
     <h3 className="font-bold mt-4 mb-1">Segundo. Funciones del cargo</h3>{duties.split(/\n\s*\n/).filter(Boolean).map((text,i)=><p className="my-2 text-justify" key={i}>{text}</p>)}
     {blocks.slice(afterDuties).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill(b.mode==='plazo_fijo'?b.text.replace('{{fecha_ingreso}}','{{fecha_inicio_contrato}}'):b.text)}</p>)}
     {str(additionalTerms)&&<section><h3 className="font-bold mt-4 mb-1">Acuerdos particulares</h3><p className="my-2 text-justify" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{additionalTerms.trim()}</p></section>}
-    <div className="signatures grid grid-cols-2 gap-8 pt-10 text-center text-xs"><div>____________________________<br/>{form.nombre_trabajador||'[PENDIENTE]'}<br/>Persona trabajadora</div><div>____________________________<br/>{form.nombre_representante||'[PENDIENTE]'}<br/>Por {form.nombre_empleador||'[PENDIENTE]'}</div></div></div></div></div>
+    <div className="labor-contract-end">
+      <div className="signatures grid grid-cols-2 gap-8 pt-10 text-center text-xs"><div>____________________________<br/>{form.nombre_trabajador||'[PENDIENTE]'}<br/>Persona trabajadora</div><div>____________________________<br/>{form.nombre_representante||'[PENDIENTE]'}<br/>Por {form.nombre_empleador||'[PENDIENTE]'}</div></div>
+      <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:12,borderTop:'1px solid #cbd5e1',marginTop:24,paddingTop:10}}>
+        <AranproOfficialSeal size="sm" showText companyRut={settings.companyRut && !String(settings.companyRut).includes('76.999.888') ? settings.companyRut : ''} rnacNumber={settings.rnacNumber || ''} />
+        <div style={{fontSize:9,color:'#475569'}}><div><strong>Contacto:</strong> {settings.phone || '+56 9 5811 8504'}</div><div>{settings.website || 'https://aranpro.cl'}</div></div>
+        <div style={{textAlign:'center',minWidth:150,fontSize:9}}>
+          {(settings.signatureDataUrl || settings.signature || settings.digitalSignature) && <img src={settings.signatureDataUrl || settings.signature || settings.digitalSignature} alt="Firma de administración" style={{display:'block',height:42,width:'auto',maxWidth:140,objectFit:'contain',margin:'0 auto',transform:`scale(${Number(settings.signatureScale)||1.35})`,transformOrigin:'bottom center'}} />}
+          <div style={{borderTop:'1px solid #1e293b',paddingTop:3,fontWeight:700}}>{settings.adminName || 'Administración'}</div>
+          <div>Administración ARANPRO</div>
+        </div>
+      </div>
+      <div style={{borderTop:'1px solid #cbd5e1',marginTop:8,paddingTop:4,display:'flex',justifyContent:'space-between',fontSize:8,color:'#64748b'}}><span>ARANPRO Gestión Integral • {settings.website || 'https://aranpro.cl'}</span><span>Contrato individual de trabajo</span></div>
+    </div></div></div></div>
 </details></>}
   <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
     <div><button type="button" onClick={save} className="rounded-lg border bg-white px-3 py-2 text-sm">Guardar borrador</button>
