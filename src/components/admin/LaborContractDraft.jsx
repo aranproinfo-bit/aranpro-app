@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import blocks from './laborContractMaster.json';
 import { laborRoleProfiles, detectLaborRole } from './laborRoleProfiles';
 import { formatCLP } from '../../utils/formatters';
@@ -9,6 +9,8 @@ import LaborScheduleBuilder from './LaborScheduleBuilder';
 import LaborCycleScheduleBuilder from './LaborCycleScheduleBuilder';
 import { useLaborMinimumIndicator } from '../../hooks/useLaborMinimumIndicator';
 import { chileToday } from '../../hooks/useEconomicIndicators';
+
+import LaborContractFields, { groups, steps } from './LaborContractFields';
 
 const fields = [
   ['fecha_evaluacion','Fecha para evaluar jornada y remuneración','date'],
@@ -50,40 +52,51 @@ export default function LaborContractDraft({worker,community,settings={},onClose
   for(const k of ['fecha_real_firma','fecha_ingreso','fecha_nacimiento','fecha_inicio_contrato','fecha_termino_pactada']) variables[k]=printableDate(variables[k]);
   if(Number(form.sueldo_base_monto)>0) variables.sueldo_base_monto=formatCLP(Number(form.sueldo_base_monto)).replace(/^\$/, '');
   const fill=text=>text.replace(/\{\{([^}]+)\}\}/g,(_,k)=>str(variables[k])||'[PENDIENTE]');
-  const issues=[...fields.filter(([key])=>!str(form[key])).map(([,label])=>label),...Object.entries(fixed).filter(([,value])=>!str(value)).map(([key])=>`Dato de comunidad o trabajador: ${key.replaceAll('_',' ')}`)];
-  if(!form.contractType) issues.push('Tipo de contrato');
-  if(!str(form.regimen_jornada)) issues.push('Régimen de jornada');
-  if(['Jornada promediada','Sistema excepcional','Otro régimen'].includes(form.regimen_jornada) && !str(form.respaldo_jornada)) issues.push('Fundamento y respaldo del régimen de jornada');
-  if(['rondin','porteria','guardia'].includes(profile) && !str(form.securityReview)) issues.push('Revisión de funciones y requisitos de seguridad privada');
-  if(form.contractType==='plazo_fijo' && form.fecha_ingreso && form.fecha_termino_pactada && form.fecha_termino_pactada < form.fecha_ingreso) issues.push('La fecha de término es anterior al ingreso');
-  if(form.fecha_nacimiento && form.fecha_ingreso && form.fecha_nacimiento >= form.fecha_ingreso) issues.push('Revisar fechas de nacimiento e ingreso');
-  if(form.contractType==='plazo_fijo'&&!form.fecha_termino_pactada) issues.push('Fecha de término pactada');
-  if(!str(duties)) issues.push('Funciones del cargo');
-  if(form.scheduleMode!=='cycle' && form.scheduleRows?.some(r=>r?.active) && !form.scheduleApplied) issues.push('Revisar y aplicar el horario semanal editado');
-  if(form.scheduleMode==='cycle' && !form.cycleApplied) issues.push('Revisar y aplicar el ciclo rotativo');
-  if(str(form.tabla_turnos).includes('[colación y descansos pendientes]')) issues.push('Completar colación y descansos de la jornada');
-  if(/condiciones por confirmar/.test(`${form.bonos_pactados_con_monto_y_devengo||''} ${form.asignaciones_con_monto_y_condiciones||''}`)) issues.push('Confirmar periodicidad y condiciones de bonos y asignaciones');
+  const [step,setStep] = useState(0);
+  const panel = useRef(null);
+  const scroller = useRef(null);
+  const [loadedKeys] = useState(() => Object.keys(form).filter(key=>str(form[key])));
+  const targets = new Map();
+  const issues = [];
+  const issue = (field,message) => { targets.set(message,field); issues.push(message); };
+  for (const [key,label] of fields) if (!str(form[key])) issue(key,label);
+  if (!str(fixed.nombre_cargo)) issue('nombre_cargo','Cargo pactado');
+  if(!form.contractType) issue('contractType', 'Tipo de contrato');
+  if(!str(form.regimen_jornada)) issue('regimen_jornada', 'Régimen de jornada');
+  if(['Jornada promediada','Sistema excepcional','Otro régimen'].includes(form.regimen_jornada) && !str(form.respaldo_jornada)) issue('respaldo_jornada', 'Fundamento y respaldo del régimen de jornada');
+  if(['rondin','porteria','guardia'].includes(profile) && !str(form.securityReview)) issue('securityReview', 'Revisión de funciones y requisitos de seguridad privada');
+  if(form.contractType==='plazo_fijo' && form.fecha_ingreso && form.fecha_termino_pactada && form.fecha_termino_pactada < form.fecha_ingreso) issue('fecha_termino_pactada', 'La fecha de término es anterior al ingreso');
+  if(form.fecha_nacimiento && form.fecha_ingreso && form.fecha_nacimiento >= form.fecha_ingreso) issue('fecha_nacimiento', 'Revisar fechas de nacimiento e ingreso');
+  if(form.contractType==='plazo_fijo'&&!form.fecha_termino_pactada) issue('fecha_termino_pactada', 'Fecha de término pactada');
+  if(!str(duties)) issue('duties', 'Funciones del cargo');
+  if(form.scheduleMode!=='cycle' && form.scheduleRows?.some(r=>r?.active) && !form.scheduleApplied) issue('scheduleMode', 'Revisar y aplicar el horario semanal editado');
+  if(form.scheduleMode==='cycle' && !form.cycleApplied) issue('scheduleMode', 'Revisar y aplicar el ciclo rotativo');
+  if(str(form.tabla_turnos).includes('[colación y descansos pendientes]')) issue('tabla_turnos', 'Completar colación y descansos de la jornada');
+  if(/condiciones por confirmar/.test(`${form.bonos_pactados_con_monto_y_devengo||''} ${form.asignaciones_con_monto_y_condiciones||''}`)) issue('bonos_pactados_con_monto_y_devengo', 'Confirmar periodicidad y condiciones de bonos y asignaciones');
   const liveMinimum=minimumIndicator.reference?.asOf===chileToday()?minimumIndicator.reference:null;
   const reviews = [];
-  const legalAlerts = laborContractAlerts(form,liveMinimum,reviews);
+  const legalAlerts = laborContractAlerts(form,liveMinimum,reviews,targets);
   const minimumReference = minimumSalaryReference(form,liveMinimum);
   const needsManualMinimum = !minimumReference && !!form.regimen_jornada && !!form.fecha_evaluacion;
-  if (needsManualMinimum) {
+  const missingForMinimum = [
+    ['fecha_nacimiento','la fecha de nacimiento'], ['horas_semanales_o_promedio','las horas pactadas']
+  ].filter(([key])=>!str(form[key]));
+  if (needsManualMinimum && !missingForMinimum.length) {
     const manual = Number(form.minimumReviewed);
     if (!(Number.isFinite(manual) && manual > 0) || !str(form.minimumSource))
-      issues.push('Mínimo mensual aplicable y fuente para la jornada pactada');
+      issue('minimumReviewed', 'Mínimo mensual aplicable y fuente para la jornada pactada');
     else if (Number(form.sueldo_base_monto) < manual)
-      legalAlerts.push('El sueldo base es inferior al mínimo mensual informado.');
+      issue('sueldo_base_monto', 'El sueldo base es inferior al mínimo mensual informado.');
   }
   const pending = /\[PENDIENTE\]|\{\{[^}]+\}\}/i;
   const printedBlocks = blocks.filter(block => !block.mode || block.mode === form.contractType);
-  if (printedBlocks.some(block => pending.test(fill(block.text))) || pending.test(duties) || pending.test(additionalTerms))
-    issues.push('Reemplazar los marcadores pendientes del contrato');
+  if (!issues.length && (printedBlocks.some(block => pending.test(fill(block.text))) || pending.test(duties) || pending.test(additionalTerms)))
+    issue('preview', 'Reemplazar los marcadores pendientes del contrato');
   const reviewKey = JSON.stringify([reviews,form.fecha_evaluacion,form.fecha_nacimiento,form.regimen_jornada,
     form.horas_semanales_o_promedio,form.tabla_turnos,form.fecha_inicio_contrato,form.fecha_termino_pactada,
     form.minimumReviewed,form.minimumSource,form.sueldo_base_monto,profile]);
   const reviewNote = form.reviewKey === reviewKey ? form.reviewNote || '' : '';
-  if (reviews.length && !str(reviewNote)) issues.push('Registrar los antecedentes de la revisión indicada');
+  if (reviews.length && !str(reviewNote)) issue('reviewNote', 'Registrar los antecedentes de la revisión indicada');
   const ready = !issues.length && !legalAlerts.length;
   const printContract = () => {
     const prefix = ready ? 'ARANPRO_Contrato_Trabajo' : 'ARANPRO_Borrador_Contrato_Trabajo';
@@ -91,41 +104,117 @@ export default function LaborContractDraft({worker,community,settings={},onClose
       pageSize:'letter portrait', fitPage:false, margin:'19mm 17mm', pdfStyle:'neutral', extraStyles:printStyles(ready)
     });
   };
-  return <div className="fixed inset-0 z-50 bg-black/60 p-4 overflow-y-auto"><div className="mx-auto max-w-5xl bg-white rounded-2xl p-5 space-y-4">
-    <div className="flex justify-between"><div><h2 className="font-black text-[#0F3D2E]">Contrato individual de trabajo</h2><p className="text-xs">{worker.name} · {ready ? 'Listo para firma' : 'Borrador de revisión'}</p></div><button type="button" onClick={onClose}>Cerrar</button></div>
-    <div className="text-sm text-amber-900 bg-amber-50 p-3">Las funciones se proponen según el cargo de la ficha y se pueden editar. Los cambios aquí no modifican la ficha. El borrador se guarda solo en este navegador y puede ser accesible para quien use este perfil; no se sincroniza entre dispositivos.</div>
+
+  const specialFields = {
+    nombre_cargo:1, duties:1, contractType:1, fecha_inicio_contrato:1, fecha_termino_pactada:1,
+    fixedRenewals:1, securityReview:1, regimen_jornada:2, respaldo_jornada:2, scheduleMode:2,
+    minimumReviewed:3, reviewNote:3, preview:4
+  };
+  const stepFor = field => groups.find(group=>group.keys.includes(field))?.step ?? specialFields[field] ?? 4;
+  const pendingByStep = steps.map(()=>[]);
+  for (const message of [...issues,...legalAlerts]) {
+    const field = targets.get(message);
+    pendingByStep[stepFor(field)].push({message,field});
+  }
+  const navigate = (index,field) => {
+    setStep(index);
+    requestAnimationFrame(()=>{
+      const target = field && document.getElementById('labor-field-'+field);
+      if (target) {
+        let ancestor = target.parentElement;
+        while (ancestor) {
+          if (ancestor.tagName === 'DETAILS') ancestor.open = true;
+          ancestor = ancestor.parentElement;
+        }
+        target.focus({preventScroll:true});
+        target.scrollIntoView({block:'center'});
+      } else {
+        scroller.current?.scrollTo(0,0);
+        panel.current?.focus({preventScroll:true});
+      }
+    });
+  };
+  const renderGroups = (index,skip=[]) => groups.filter(group=>group.step===index && !skip.includes(group.keys[0])).map(group=>
+    <LaborContractFields key={group.title} group={group} fields={fields} form={form} update={update} collapseKeys={index===0?loadedKeys:[]} />);
+  const instructions = ['Completa los datos que faltan. Puedes consultar y corregir los que ya estaban cargados.',
+    'Confirma qué hará la persona, dónde trabajará y por cuánto tiempo.',
+    'Arma el turno y aplícalo al contrato, o ingresa directamente el horario pactado.',
+    'Confirma el sueldo y selecciona las condiciones acordadas. Puedes escribir una respuesta propia.',
+    'Revisa el documento. Selecciona un pendiente para corregirlo en su campo.'];
+  return <div ref={scroller} role="dialog" aria-modal="true" aria-labelledby="labor-title" className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 p-1 sm:p-5">
+    <div className="mx-auto max-w-5xl rounded-2xl bg-slate-50 shadow-xl">
+      <header className="flex items-start justify-between gap-3 rounded-t-2xl bg-[#0F3D2E] px-5 py-4 text-white">
+        <div><h2 id="labor-title" className="text-lg font-bold">Contrato individual de trabajo</h2><p className="text-sm text-emerald-100">{worker.name} · {community.name}</p></div>
+        <button type="button" className="rounded-lg border border-white/40 px-3 py-1.5 text-sm" onClick={onClose}>Cerrar</button>
+      </header>
+      <div className="grid md:grid-cols-[13rem_1fr]">
+        <nav aria-label="Pasos del contrato" className="border-b border-slate-200 p-3 md:border-b-0 md:border-r">
+          <select className="w-full rounded-lg border bg-white p-2 md:hidden" aria-label="Ir al paso" value={step} onChange={e=>navigate(Number(e.target.value))}>
+            {steps.map((title,i)=><option key={title} value={i}>{i+1} de 5 · {title}</option>)}
+          </select>
+          <div className="hidden space-y-1 md:block">{steps.map((title,i)=><button type="button" key={title} aria-current={step===i?'step':undefined} onClick={()=>navigate(i)}
+            className={'block w-full rounded-lg px-3 py-3 text-left text-sm '+(step===i?'bg-[#0F3D2E] font-bold text-white':'text-slate-700 hover:bg-slate-200')}>
+            {i+1}. {title}</button>)}</div>
+        </nav>
+        <div className="min-w-0 space-y-4 p-4 sm:p-6">
+          <div ref={panel} tabIndex={-1}><h3 className="text-xl font-bold text-[#0F3D2E]">{steps[step]}</h3><p className="mt-1 text-sm text-slate-600">{instructions[step]}</p></div>
+          {step===0 && renderGroups(0)}
+          {step===1 && <>
     {saved && saved.workerRole !== (worker.role||'') && <div className="bg-amber-50 p-3 text-sm">El cargo de la ficha cambió desde el último guardado. Revisa las funciones del borrador.</div>}
-    <label className="block text-xs font-bold">Cargo pactado<input className="block w-full border rounded px-2 py-2" value={fixed.nombre_cargo||''} onChange={e=>update('nombre_cargo',e.target.value)} /></label>
+    <label className="block text-xs font-bold">Cargo pactado<input id="labor-field-nombre_cargo" className="block w-full border rounded px-2 py-2" value={fixed.nombre_cargo||''} onChange={e=>update('nombre_cargo',e.target.value)} /></label>
     <label className="block text-xs font-bold">Funciones según cargo<select className="block border rounded px-2 py-2 mt-1" value={profile} onChange={e=>{setProfile(e.target.value);setDuties(dutiesFor(e.target.value));setSaveMessage('');}}>{Object.entries(laborRoleProfiles).map(([key,item])=><option key={key} value={key}>{item.label}</option>)}</select></label>
-    <label className="block text-xs font-bold">Funciones acordadas (editable)<textarea className="block w-full border rounded px-2 py-2 mt-1 font-normal" rows={8} value={duties} onChange={e=>{setDuties(e.target.value);setSaveMessage('');}} /></label>
+<details className="rounded-lg border bg-white p-3"><summary className="cursor-pointer text-sm font-semibold">Ver o editar las funciones propuestas</summary>
+    <label className="block text-xs font-bold">Funciones acordadas (editable)<textarea id="labor-field-duties" className="block w-full border rounded px-2 py-2 mt-1 font-normal" rows={8} value={duties} onChange={e=>{setDuties(e.target.value);setSaveMessage('');}} /></label>
+</details>
     {['rondin','porteria','guardia'].includes(profile)&&<div className="bg-amber-50 p-3 text-sm">Revisa las funciones efectivas y, cuando corresponda, los requisitos de seguridad privada, autorizaciones, capacitación y seguro aplicables. El nombre del cargo no acredita su cumplimiento.</div>}
-    <label className="block text-xs font-bold">Duración<select className="block border rounded px-2 py-2 mt-1" value={form.contractType} onChange={e=>update('contractType',e.target.value)}><option value="">Selecciona una duración</option><option value="indefinido">Indefinido</option><option value="plazo_fijo">Plazo fijo</option></select></label>
-    {form.contractType==='plazo_fijo'&&<div className="grid grid-cols-1 md:grid-cols-3 gap-3"><label className="block text-xs font-bold">Inicio de este contrato<input className="block border rounded px-2 py-2" type="date" value={form.fecha_inicio_contrato||''} onChange={e=>update('fecha_inicio_contrato',e.target.value)}/></label><label className="block text-xs font-bold">Fecha de término pactada<input className="block border rounded px-2 py-2" type="date" value={form.fecha_termino_pactada||''} onChange={e=>update('fecha_termino_pactada',e.target.value)}/></label><label className="block text-xs font-bold">Renovaciones previas<select className="block border rounded px-2 py-2" value={form.fixedRenewals||''} onChange={e=>update('fixedRenewals',e.target.value)}><option value="">Seleccionar</option><option value="0">Ninguna</option><option value="1">Una</option><option value="2+">Dos o más</option></select></label></div>}
-    <label className="block text-xs font-bold">Régimen de jornada<select className="block border rounded px-2 py-2 mt-1" value={form.regimen_jornada||''} onChange={e=>update('regimen_jornada',e.target.value)}><option value="">Seleccionar</option>{form.regimen_jornada&&!['Jornada ordinaria general','Jornada parcial','Jornada promediada','Sistema excepcional','Otro régimen'].includes(form.regimen_jornada)&&<option value={form.regimen_jornada}>{form.regimen_jornada} (valor guardado)</option>}<option>Jornada ordinaria general</option><option>Jornada parcial</option><option>Jornada promediada</option><option>Sistema excepcional</option><option>Otro régimen</option></select></label>
-    {['Jornada promediada','Sistema excepcional','Otro régimen'].includes(form.regimen_jornada)&&<label className="block text-xs font-bold">Fundamento y respaldo del régimen<input className="block w-full border rounded px-2 py-2 mt-1" value={form.respaldo_jornada||''} onChange={e=>update('respaldo_jornada',e.target.value)}/><span className="font-normal">Indica el acuerdo o resolución aplicable; requiere revisión específica.</span></label>}
-    {['rondin','porteria','guardia'].includes(profile)&&<label className="block text-xs font-bold">Revisión de seguridad privada<input className="block w-full border rounded px-2 py-2 mt-1" value={form.securityReview||''} onChange={e=>update('securityReview',e.target.value)} placeholder="Funciones y antecedentes por verificar"/><span className="font-normal">Registra qué se revisó; escribirlo no certifica autorizaciones.</span></label>}
-    <label className="block text-xs font-bold">Forma de organizar los turnos<select className="block border rounded px-2 py-2 mt-1" value={form.scheduleMode||'weekly'} onChange={e=>{const mode=e.target.value;setForm(s=>({...s,scheduleMode:mode,scheduleApplied:false,cycleApplied:false,...((s.scheduleApplied||s.cycleApplied)?{dias_trabajo:'',tabla_turnos:'',horas_semanales_o_promedio:''}:{})}));setSaveMessage('');}}><option value="weekly">Semana fija</option><option value="cycle">Ciclo rotativo</option></select></label>
-    {form.scheduleMode==='cycle' ? <LaborCycleScheduleBuilder length={form.cycleLength||''} startDate={form.cycleStart||''} rows={form.cycleRows||[]} applied={!!form.cycleApplied} onChange={changes=>{setForm(s=>({...s,...('length'in changes?{cycleLength:changes.length}:{}),...('startDate'in changes?{cycleStart:changes.startDate}:{}),...('rows'in changes?{cycleRows:changes.rows}:{}),cycleApplied:false,...(s.cycleApplied?{dias_trabajo:'',tabla_turnos:'',horas_semanales_o_promedio:''}:{})}));setSaveMessage('');}} onApply={result=>{setForm(s=>({...s,dias_trabajo:`Ciclo de ${s.cycleLength} días con inicio ${s.cycleStart}`,tabla_turnos:result.details.join(' | '),horas_semanales_o_promedio:Number(result.weeklyHours.toFixed(4)),cycleApplied:true}));setSaveMessage('');}} /> : <LaborScheduleBuilder rows={form.scheduleRows||[]} applied={!!form.scheduleApplied} onChange={rows=>{setForm(s=>({...s,scheduleRows:rows,scheduleApplied:false,...(s.scheduleApplied?{dias_trabajo:'',tabla_turnos:'',horas_semanales_o_promedio:''}:{})}));setSaveMessage('');}} onApply={result=>{setForm(s=>({...s,dias_trabajo:result.days.join(', '),tabla_turnos:result.details.join(' | '),horas_semanales_o_promedio:Number((result.totalMinutes/60).toFixed(4)),scheduleApplied:true}));setSaveMessage('');}} />}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">{fields.map(([key,label,type='text'])=><label className="text-xs font-bold" key={key}>{label}<input className="block w-full border border-slate-300 rounded px-2 py-2 mt-1" type={type} value={form[key]??''} onChange={e=>update(key,e.target.value)}/></label>)}</div>
+    {['rondin','porteria','guardia'].includes(profile)&&<label className="block text-xs font-bold">Revisión de seguridad privada<input id="labor-field-securityReview" className="block w-full border rounded px-2 py-2 mt-1" value={form.securityReview||''} onChange={e=>update('securityReview',e.target.value)} placeholder="Funciones y antecedentes por verificar"/><span className="font-normal">Registra qué se revisó; escribirlo no certifica autorizaciones.</span></label>}
+    <label className="block text-xs font-bold">Duración<select id="labor-field-contractType" className="block border rounded px-2 py-2 mt-1" value={form.contractType} onChange={e=>update('contractType',e.target.value)}><option value="">Selecciona una duración</option><option value="indefinido">Indefinido</option><option value="plazo_fijo">Plazo fijo</option></select></label>
+    {form.contractType==='plazo_fijo'&&<div className="grid grid-cols-1 md:grid-cols-3 gap-3"><label className="block text-xs font-bold">Inicio de este contrato<input className="block border rounded px-2 py-2" id="labor-field-fecha_inicio_contrato" type="date" value={form.fecha_inicio_contrato||''} onChange={e=>update('fecha_inicio_contrato',e.target.value)}/></label><label className="block text-xs font-bold">Fecha de término pactada<input className="block border rounded px-2 py-2" id="labor-field-fecha_termino_pactada" type="date" value={form.fecha_termino_pactada||''} onChange={e=>update('fecha_termino_pactada',e.target.value)}/></label><label className="block text-xs font-bold">Renovaciones previas<select id="labor-field-fixedRenewals" className="block border rounded px-2 py-2" value={form.fixedRenewals||''} onChange={e=>update('fixedRenewals',e.target.value)}><option value="">Seleccionar</option><option value="0">Ninguna</option><option value="1">Una</option><option value="2+">Dos o más</option></select></label></div>}
+{renderGroups(1)}
+<details className="rounded-lg border bg-white p-3"><summary className="cursor-pointer text-sm font-semibold">Agregar o editar un acuerdo de la comunidad{str(additionalTerms)?' · ingresado':''}</summary>
     <label className="block text-xs font-bold">Acuerdos particulares de la comunidad (opcional)<textarea className="block w-full border rounded px-2 py-2 mt-1 font-normal" rows={4} value={additionalTerms} onChange={e=>{setAdditionalTerms(e.target.value);setSaveMessage('');}} placeholder="Escribe aquí el acuerdo específico, si corresponde"/><span className="block font-normal text-slate-500 mt-1">Se incluye solo cuando escribes contenido. Debe revisarse junto con el resto del contrato.</span></label>
-    {needsManualMinimum && <fieldset className="grid gap-2 bg-slate-50 p-3 text-sm"><legend>Referencia de remuneración para este caso</legend>
-      <label>Mínimo mensual aplicable a esta jornada ($)<input type="number" min="1" className="block border rounded p-2" value={form.minimumReviewed||''} onChange={e=>update('minimumReviewed',e.target.value)} /></label>
+</details></>}
+{step===2 && <>
+    <label className="block text-xs font-bold">Régimen de jornada<select id="labor-field-regimen_jornada" className="block border rounded px-2 py-2 mt-1" value={form.regimen_jornada||''} onChange={e=>update('regimen_jornada',e.target.value)}><option value="">Seleccionar</option>{form.regimen_jornada&&!['Jornada ordinaria general','Jornada parcial','Jornada promediada','Sistema excepcional','Otro régimen'].includes(form.regimen_jornada)&&<option value={form.regimen_jornada}>{form.regimen_jornada} (valor guardado)</option>}<option>Jornada ordinaria general</option><option>Jornada parcial</option><option>Jornada promediada</option><option>Sistema excepcional</option><option>Otro régimen</option></select></label>
+    {['Jornada promediada','Sistema excepcional','Otro régimen'].includes(form.regimen_jornada)&&<label className="block text-xs font-bold">Fundamento y respaldo del régimen<input id="labor-field-respaldo_jornada" className="block w-full border rounded px-2 py-2 mt-1" value={form.respaldo_jornada||''} onChange={e=>update('respaldo_jornada',e.target.value)}/><span className="font-normal">Indica el acuerdo o resolución aplicable; requiere revisión específica.</span></label>}
+    <label className="block text-xs font-bold">Forma de organizar los turnos<select id="labor-field-scheduleMode" className="block border rounded px-2 py-2 mt-1" value={form.scheduleMode||'weekly'} onChange={e=>{const mode=e.target.value;setForm(s=>({...s,scheduleMode:mode,scheduleApplied:false,cycleApplied:false,...((s.scheduleApplied||s.cycleApplied)?{dias_trabajo:'',tabla_turnos:'',horas_semanales_o_promedio:''}:{})}));setSaveMessage('');}}><option value="weekly">Semana fija</option><option value="cycle">Ciclo rotativo</option></select></label>
+    {form.scheduleMode==='cycle' ? <LaborCycleScheduleBuilder length={form.cycleLength||''} startDate={form.cycleStart||''} rows={form.cycleRows||[]} applied={!!form.cycleApplied} onChange={changes=>{setForm(s=>({...s,...('length'in changes?{cycleLength:changes.length}:{}),...('startDate'in changes?{cycleStart:changes.startDate}:{}),...('rows'in changes?{cycleRows:changes.rows}:{}),cycleApplied:false,...(s.cycleApplied?{dias_trabajo:'',tabla_turnos:'',horas_semanales_o_promedio:''}:{})}));setSaveMessage('');}} onApply={result=>{setForm(s=>({...s,dias_trabajo:`Ciclo de ${s.cycleLength} días con inicio ${s.cycleStart}`,tabla_turnos:result.details.join(' | '),horas_semanales_o_promedio:Number(result.weeklyHours.toFixed(4)),cycleApplied:true}));setSaveMessage('');}} /> : <LaborScheduleBuilder rows={form.scheduleRows||[]} applied={!!form.scheduleApplied} onChange={rows=>{setForm(s=>({...s,scheduleRows:rows,scheduleApplied:false,...(s.scheduleApplied?{dias_trabajo:'',tabla_turnos:'',horas_semanales_o_promedio:''}:{})}));setSaveMessage('');}} onApply={result=>{setForm(s=>({...s,dias_trabajo:result.days.join(', '),tabla_turnos:result.details.join(' | '),horas_semanales_o_promedio:Number((result.totalMinutes/60).toFixed(4)),scheduleApplied:true}));setSaveMessage('');}} />}
+<details className="rounded-lg border bg-white p-3"><summary className="cursor-pointer text-sm font-semibold">{form.cycleApplied||form.scheduleApplied ? 'Horario aplicado · '+form.horas_semanales_o_promedio+' h semanales · Ver detalle' : 'Ingresar o editar el horario por escrito'}</summary>
+<LaborContractFields group={groups.find(group=>group.keys.includes('tabla_turnos'))} fields={fields} form={form} update={update}/></details>
+{renderGroups(2,['horas_semanales_o_promedio'])}</>}
+{step===3 && <>{renderGroups(3)}
+    {minimumReference&&<div className="text-xs bg-slate-50 p-3"><strong>Ingreso mínimo de referencia:</strong> {formatCLP(minimumReference.amount)} mensuales para la fecha de evaluación{minimumReference.partial?` (${minimumReference.hours} horas de ${minimumReference.divisor}, cálculo proporcional)`:' (jornada sobre 30 horas)'}. Fuente: {minimumReference.source}. Este cálculo usa la edad y el régimen ingresados; no acredita por sí solo la validez del contrato.</div>}
+    {minimumIndicator.status==='no_disponible'&&<div className="text-xs text-slate-600">No fue posible comprobar el indicador en línea; las referencias históricas disponibles siguen utilizándose cuando corresponda.</div>}
+    {needsManualMinimum && missingForMinimum.length>0 && <div className="rounded-lg bg-slate-100 p-3 text-sm">Para calcular el mínimo, completa {missingForMinimum.map(([key,label])=><button type="button" key={key} className="mx-1 text-emerald-800 underline" onClick={()=>navigate(stepFor(key),key)}>{label}</button>)}</div>}
+    {needsManualMinimum && !missingForMinimum.length && <fieldset className="grid gap-2 bg-slate-50 p-3 text-sm"><legend>Referencia de remuneración para este caso</legend>
+      <label>Mínimo mensual aplicable a esta jornada ($)<input id="labor-field-minimumReviewed" type="number" min="1" className="block border rounded p-2" value={form.minimumReviewed||''} onChange={e=>update('minimumReviewed',e.target.value)} /></label>
       <label>Fuente y vigencia del monto<input className="block w-full border rounded p-2" value={form.minimumSource||''} onChange={e=>update('minimumSource',e.target.value)} /></label>
     </fieldset>}
     {reviews.length>0 && <div className="bg-amber-50 p-3 text-sm"><ul>{reviews.map(message=><li key={message}>{message}</li>)}</ul>
-      <label>Antecedentes revisados y fundamento aplicable<textarea className="block w-full border rounded p-2" value={reviewNote} onChange={e=>{setForm(s=>({...s,reviewKey,reviewNote:e.target.value}));setSaveMessage('');}} /></label>
+      <label>Antecedentes revisados y fundamento aplicable<textarea id="labor-field-reviewNote" className="block w-full border rounded p-2" value={reviewNote} onChange={e=>{setForm(s=>({...s,reviewKey,reviewNote:e.target.value}));setSaveMessage('');}} /></label>
     </div>}
-    {issues.length>0&&<div className="text-xs bg-amber-50 p-3"><strong>Faltan antecedentes:</strong> {issues.join(' · ')}</div>}
-    {minimumReference&&<div className="text-xs bg-slate-50 p-3"><strong>Ingreso mínimo de referencia:</strong> {formatCLP(minimumReference.amount)} mensuales para la fecha de evaluación{minimumReference.partial?` (${minimumReference.hours} horas de ${minimumReference.divisor}, cálculo proporcional)`:' (jornada sobre 30 horas)'}. Fuente: {minimumReference.source}. Este cálculo usa la edad y el régimen ingresados; no acredita por sí solo la validez del contrato.</div>}
-    {minimumIndicator.status==='no_disponible'&&<div className="text-xs text-slate-600">No fue posible comprobar el indicador en línea; las referencias históricas disponibles siguen utilizándose cuando corresponda.</div>}
-    {legalAlerts.length>0&&<div className="text-xs bg-rose-50 p-3"><strong>Revisar antes de usar:</strong><ul className="list-disc pl-5">{legalAlerts.map((message,i)=><li key={i}>{message}</li>)}</ul></div>}
-    <div className="flex flex-wrap gap-3 items-center"><button type="button" className="border border-[#0F3D2E] rounded px-4 py-2 text-sm" onClick={save}>Guardar borrador</button><span role="status" className="text-xs">{saveMessage}</span></div>
+</>}
+{step===4 && <>
+  <div className="rounded-xl border border-slate-200 bg-white p-4"><strong>{ready?'Listo para firma':'Pendientes para emitir'}</strong>
+    {pendingByStep.map((items,i)=>items.length>0 && <details key={i} open={i===pendingByStep.findIndex(list=>list.length)}>
+      <summary className="cursor-pointer py-2 text-sm font-semibold">{steps[i]} · {items.length}</summary>
+      <ul className="space-y-1">{items.map(({message,field})=><li key={message}><button type="button" className="text-left text-sm text-emerald-800 underline" onClick={()=>navigate(i,field)}>{message}</button></li>)}</ul>
+    </details>)}
+  </div>
     <button type="button" className="bg-[#0F3D2E] text-white rounded px-4 py-2 text-sm" onClick={printContract}>{ready ? 'Emitir contrato para firma' : 'Imprimir borrador'}</button>
+<details id="labor-field-preview" tabIndex={-1} className="rounded-lg border bg-white p-3"><summary className="cursor-pointer text-sm font-semibold">Vista previa del contrato</summary>
     <div className="bg-slate-100 p-4 overflow-auto"><div id="labor-contract-draft"><div className="labor-contract-doc bg-white max-w-[800px] mx-auto p-8 text-sm leading-relaxed text-slate-800"><div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3 mb-4"><div className="flex items-center gap-3"><img src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" style={{width:55}}/><strong>ARANPRO · GESTIÓN INTEGRAL</strong></div><span>INSTRUMENTO LABORAL</span></div>{!ready && <p className="font-bold text-center text-amber-900">BORRADOR DE REVISIÓN · NO APTO PARA FIRMA</p>}<h2 className="font-bold my-3">Contrato individual de trabajo</h2>
     {blocks.slice(0, firstDuty).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill(b.text)}</p>)}
     <h3 className="font-bold mt-4 mb-1">Segundo. Funciones del cargo</h3>{duties.split(/\n\s*\n/).filter(Boolean).map((text,i)=><p className="my-2 text-justify" key={i}>{text}</p>)}
     {blocks.slice(afterDuties).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill(b.mode==='plazo_fijo'?b.text.replace('{{fecha_ingreso}}','{{fecha_inicio_contrato}}'):b.text)}</p>)}
     {str(additionalTerms)&&<section><h3 className="font-bold mt-4 mb-1">Acuerdos particulares</h3><p className="my-2 text-justify" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{additionalTerms.trim()}</p></section>}
     <div className="signatures grid grid-cols-2 gap-8 pt-10 text-center text-xs"><div>____________________________<br/>{form.nombre_trabajador||'[PENDIENTE]'}<br/>Persona trabajadora</div><div>____________________________<br/>{form.nombre_representante||'[PENDIENTE]'}<br/>Por {form.nombre_empleador||'[PENDIENTE]'}</div></div></div></div></div>
-  </div></div>;
+</details></>}
+  <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
+    <div><button type="button" onClick={save} className="rounded-lg border bg-white px-3 py-2 text-sm">Guardar borrador</button>
+      <p role="status" className="mt-1 text-xs text-slate-600">{saveMessage || 'Se guarda en este navegador.'}</p></div>
+    <div className="flex gap-2">{step>0 && <button type="button" className="rounded-lg border px-3 py-2 text-sm" onClick={()=>navigate(step-1)}>Atrás</button>}
+      {step<4 && <button type="button" className="rounded-lg bg-[#0F3D2E] px-4 py-2 text-sm font-semibold text-white" onClick={()=>navigate(step+1)}>Continuar</button>}</div>
+  </footer>
+</div></div></div></div>;
 }
