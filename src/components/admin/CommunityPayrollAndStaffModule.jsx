@@ -82,38 +82,6 @@ export const CommunityPayrollAndStaffModule = ({
   });
 
   // Modales
-  const [showStaffModal, setShowStaffModal] = useState(false);
-  const [editingStaffId, setEditingStaffId] = useState(null);
-  const [staffForm, setStaffForm] = useState({
-    name: '',
-    rut: '',
-    role: 'Conserje Titular Diurno',
-    category: 'Conserjería',
-    shift: 'Turno Mañana (07:00 a 15:00 hrs)',
-    weeklyHours: 44,
-    contractType: 'Contrato Indefinido',
-    startDate: new Date().toISOString().split('T')[0],
-    status: 'ACTIVO',
-    phone: '',
-    email: '',
-    address: '',
-    baseSalary: 520000,
-    hasLegalGratification: true,
-    contractualNightBonus: 0,
-    contractualResponsibilityBonus: 0,
-    allowanceColacion: 35000,
-    allowanceMovilizacion: 30000,
-    afpId: 'habitat',
-    healthId: 'fonasa',
-    mutualEntity: 'Mutual de Seguridad CChC',
-    mutualRate: 0.93,
-    isExemptFromAfc: false,
-    bankName: 'Banco Estado',
-    accountType: 'Cuenta RUT',
-    accountNumber: '',
-    vacationDaysRemaining: 15
-  });
-
   // Modal para Ver / Imprimir Liquidación de Sueldo DT
   const [selectedWorkerForSlip, setSelectedWorkerForSlip] = useState(null);
   const [showSlipModal, setShowSlipModal] = useState(false);
@@ -290,112 +258,30 @@ export const CommunityPayrollAndStaffModule = ({
     );
   }, [currentCommunity?.expenses, selectedMonth, selectedYear, periodLabel]);
 
-  // Abrir modal de creación
+  // Una sola ficha para registrar al trabajador y preparar su contrato.
   const handleOpenCreateStaff = () => {
-    setEditingStaffId(null);
-    setStaffForm({
-      name: '',
-      rut: '',
-      role: 'Conserje Titular Diurno',
-      category: 'Conserjería',
-      shift: 'Turno Mañana (07:00 a 15:00 hrs)',
-      weeklyHours: 44,
-      contractType: 'Contrato Indefinido',
-      startDate: new Date().toISOString().split('T')[0],
-      status: 'ACTIVO',
-      phone: '',
-      email: '',
-      address: '',
-      baseSalary: 520000,
-      hasLegalGratification: true,
-      contractualNightBonus: 0,
-      contractualResponsibilityBonus: 0,
-      allowanceColacion: 35000,
-      allowanceMovilizacion: 30000,
-      afpId: 'habitat',
-      healthId: 'fonasa',
-      mutualEntity: 'Mutual de Seguridad CChC',
-      mutualRate: 0.93,
-      isExemptFromAfc: false,
-      bankName: 'Banco Estado',
-      accountType: 'Cuenta RUT',
-      accountNumber: '',
-      vacationDaysRemaining: 15
-    });
-    setShowStaffModal(true);
-  };
-
-  // Abrir modal de edición
-  const handleOpenEditStaff = (w) => {
-    setEditingStaffId(w.id);
-    setStaffForm({
-      name: w.name || '',
-      rut: w.rut || '',
-      role: w.role || 'Conserje Titular Diurno',
-      category: w.category || 'Conserjería',
-      shift: w.shift || 'Turno Mañana (07:00 a 15:00 hrs)',
-      weeklyHours: w.weeklyHours || 44,
-      contractType: w.contractType || 'Contrato Indefinido',
-      startDate: w.startDate || new Date().toISOString().split('T')[0],
-      status: w.status || 'ACTIVO',
-      phone: w.phone || '',
-      email: w.email || '',
-      address: w.address || '',
-      baseSalary: w.baseSalary || 520000,
-      hasLegalGratification: w.hasLegalGratification !== false,
-      contractualNightBonus: w.contractualNightBonus || 0,
-      contractualResponsibilityBonus: w.contractualResponsibilityBonus || 0,
-      allowanceColacion: w.allowanceColacion || 35000,
-      allowanceMovilizacion: w.allowanceMovilizacion || 30000,
-      afpId: w.afpId || 'habitat',
-      healthId: w.healthId || 'fonasa',
-      mutualEntity: w.mutualEntity || 'Mutual de Seguridad CChC',
-      mutualRate: w.mutualRate || 0.93,
-      isExemptFromAfc: !!w.isExemptFromAfc,
-      bankName: w.bankName || 'Banco Estado',
-      accountType: w.accountType || 'Cuenta RUT',
-      accountNumber: w.accountNumber || '',
-      vacationDaysRemaining: w.vacationDaysRemaining || 15
-    });
-    setShowStaffModal(true);
-  };
-
-  // Guardar ficha de trabajador
-  const handleSaveStaffForm = (e) => {
-    e.preventDefault();
-    if (!staffForm.name.trim() || !staffForm.rut.trim() || !staffForm.role.trim()) return;
-
-    const afpObj = AFP_RATES_CHILE.find((a) => a.id === staffForm.afpId) || AFP_RATES_CHILE[0];
-    const healthObj = HEALTH_SYSTEMS_CHILE.find((h) => h.id === staffForm.healthId) || HEALTH_SYSTEMS_CHILE[0];
-
-    const workerData = {
-      ...staffForm,
-      baseSalary: Number(staffForm.baseSalary) || 500000,
-      weeklyHours: Number(staffForm.weeklyHours) || 44,
-      contractualNightBonus: Number(staffForm.contractualNightBonus) || 0,
-      contractualResponsibilityBonus: Number(staffForm.contractualResponsibilityBonus) || 0,
-      allowanceColacion: Number(staffForm.allowanceColacion) || 0,
-      allowanceMovilizacion: Number(staffForm.allowanceMovilizacion) || 0,
-      vacationDaysRemaining: Number(staffForm.vacationDaysRemaining) || 15,
-      afpName: afpObj.name,
-      afpRate: afpObj.rate,
-      healthName: healthObj.name,
-      healthRate: healthObj.defaultRate
-    };
-
-    let updatedStaff;
-    if (editingStaffId) {
-      updatedStaff = staff.map((s) => (s.id === editingStaffId ? { ...s, ...workerData } : s));
-    } else {
-      const newStaff = {
-        id: `stf-${Date.now()}`,
-        ...workerData
-      };
-      updatedStaff = [...staff, newStaff];
+    const draftKey = 'aranpro-new-worker:' + currentCommunity.id;
+    let id = sessionStorage.getItem(draftKey);
+    if (!id) {
+      id = 'stf-' + crypto.randomUUID();
+      sessionStorage.setItem(draftKey, id);
     }
-
-    updateCommunity(currentCommunity.id, { staff: updatedStaff });
-    setShowStaffModal(false);
+    setSelectedWorkerForContract({id, name:'', rut:'', role:'', status:'ACTIVO'});
+    setShowContractModal(true);
+  };
+  const handleOpenEditStaff = worker => {
+    setSelectedWorkerForContract(worker);
+    setShowContractModal(true);
+  };
+  const saveUnifiedWorker = worker => {
+    const normalize = value => String(value || '').replace(/[.\s-]/g,'').toUpperCase();
+    if (staff.some(item => item.id !== worker.id && normalize(item.rut) === normalize(worker.rut))) {
+      throw new Error('DUPLICATE_RUT');
+    }
+    const exists = staff.some(item => item.id === worker.id);
+    const updated = exists ? staff.map(item => item.id === worker.id ? {...item, ...worker} : item) : [...staff, worker];
+    updateCommunity(currentCommunity.id, {staff:updated});
+    sessionStorage.removeItem('aranpro-new-worker:' + currentCommunity.id);
   };
 
   // Eliminar / dar de baja trabajador
@@ -1755,290 +1641,6 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         </div>
       )}
 
-      {/* ==================== MODAL 1: CREAR / EDITAR FICHA DE TRABAJADOR ==================== */}
-      {showStaffModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2 py-0.5 rounded-full">
-                  {editingStaffId ? 'Actualizar Ficha' : 'Nueva Contratación'}
-                </span>
-                <h3 className="text-base font-black text-slate-900 mt-1">
-                  {editingStaffId ? `Editar Ficha: ${staffForm.name}` : 'Contratar Nuevo Trabajador para el Condominio'}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowStaffModal(false)}
-                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveStaffForm} className="space-y-4 text-xs">
-              <div className="space-y-2">
-                <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
-                  1. Datos Personales del Trabajador
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="block font-bold text-slate-700 mb-1">Nombre Completo *</label>
-                    <input
-                      type="text"
-                      required
-                      value={staffForm.name}
-                      onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
-                      placeholder="Ej: Juan Carlos Osorio Morales"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">RUT del Trabajador *</label>
-                    <input
-                      type="text"
-                      required
-                      value={staffForm.rut}
-                      onChange={(e) => setStaffForm({ ...staffForm, rut: e.target.value })}
-                      placeholder="Ej: 14.882.105-8"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Teléfono / WhatsApp</label>
-                    <input
-                      type="text"
-                      value={staffForm.phone}
-                      onChange={(e) => setStaffForm({ ...staffForm, phone: e.target.value })}
-                      placeholder="+56 9 8412 9901"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block font-bold text-slate-700 mb-1">Dirección de Residencia</label>
-                    <input
-                      type="text"
-                      value={staffForm.address}
-                      onChange={(e) => setStaffForm({ ...staffForm, address: e.target.value })}
-                      placeholder="Calle, Número, Comuna"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
-                  2. Cargo, Turno y Contrato (Ley 21.442)
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <LaborRoleSelect value={staffForm.role} onChange={role => setStaffForm({ ...staffForm, role })} />
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Tipo de Contrato</label>
-                    <select
-                      value={staffForm.contractType}
-                      onChange={(e) => setStaffForm({ ...staffForm, contractType: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                    >
-                      <option value="Contrato Indefinido">Contrato Indefinido</option>
-                      <option value="Contrato Plazo Fijo">Contrato Plazo Fijo</option>
-                      <option value="Contrato por Obra o Faena">Contrato por Obra o Faena</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Horas Semanales (Ley 40 Horas)</label>
-                    <select
-                      value={staffForm.weeklyHours}
-                      onChange={(e) => setStaffForm({ ...staffForm, weeklyHours: Number(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                    >
-                      <option value={44}>44 Horas Semanales (Ordinaria)</option>
-                      <option value={40}>40 Horas Semanales (Ley 40 Horas)</option>
-                      <option value={30}>30 Horas Semanales (Jornada Parcial)</option>
-                      <option value={20}>20 Horas Semanales (Part-time fin de semana)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Fecha de Ingreso</label>
-                    <input
-                      type="date"
-                      value={staffForm.startDate}
-                      onChange={(e) => setStaffForm({ ...staffForm, startDate: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
-                  3. Sueldo Base, Gratificación y Asignaciones
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Sueldo Base Mensual (CLP) *</label>
-                    <input
-                      type="number"
-                      required
-                      min={CHILE_IMM}
-                      step="5000"
-                      value={staffForm.baseSalary}
-                      onChange={(e) => setStaffForm({ ...staffForm, baseSalary: Number(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
-                    />
-                    <span className="text-[10px] text-slate-400">IMM Vigente: {formatCLP(CHILE_IMM)}</span>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Gratificación Legal Art. 50</label>
-                    <div className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl flex items-center justify-between">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={staffForm.hasLegalGratification}
-                          onChange={(e) => setStaffForm({ ...staffForm, hasLegalGratification: e.target.checked })}
-                          className="w-4 h-4 text-[#0F3D2E] rounded"
-                        />
-                        <span className="font-bold text-slate-800">25% con tope 4.75 IMM</span>
-                      </label>
-                      <span className="text-[10px] font-mono text-emerald-800 font-bold">
-                        Tope: {formatCLP(CHILE_TOPE_GRATIFICACION_MENSUAL)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Bono Turno Nocturno (Imponible)</label>
-                    <input
-                      type="number"
-                      step="5000"
-                      value={staffForm.contractualNightBonus}
-                      onChange={(e) => setStaffForm({ ...staffForm, contractualNightBonus: Number(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Bono Responsabilidad (Imponible)</label>
-                    <input
-                      type="number"
-                      step="5000"
-                      value={staffForm.contractualResponsibilityBonus}
-                      onChange={(e) => setStaffForm({ ...staffForm, contractualResponsibilityBonus: Number(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Asignación Colación (No Imponible)</label>
-                    <input
-                      type="number"
-                      step="5000"
-                      value={staffForm.allowanceColacion}
-                      onChange={(e) => setStaffForm({ ...staffForm, allowanceColacion: Number(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Asignación Movilización (No Imponible)</label>
-                    <input
-                      type="number"
-                      step="5000"
-                      value={staffForm.allowanceMovilizacion}
-                      onChange={(e) => setStaffForm({ ...staffForm, allowanceMovilizacion: Number(e.target.value) })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">
-                  4. Previsión Chilena & Datos Bancarios
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">AFP del Trabajador</label>
-                    <select
-                      value={staffForm.afpId}
-                      onChange={(e) => setStaffForm({ ...staffForm, afpId: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                    >
-                      {AFP_RATES_CHILE.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name} ({a.rate}%)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Sistema de Salud</label>
-                    <select
-                      value={staffForm.healthId}
-                      onChange={(e) => setStaffForm({ ...staffForm, healthId: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                    >
-                      {HEALTH_SYSTEMS_CHILE.map((h) => (
-                        <option key={h.id} value={h.id}>
-                          {h.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Banco para Pago</label>
-                    <input
-                      type="text"
-                      value={staffForm.bankName}
-                      onChange={(e) => setStaffForm({ ...staffForm, bankName: e.target.value })}
-                      placeholder="Ej: Banco Estado, Banco de Chile"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Tipo y N° de Cuenta</label>
-                    <input
-                      type="text"
-                      value={staffForm.accountNumber}
-                      onChange={(e) => setStaffForm({ ...staffForm, accountNumber: e.target.value })}
-                      placeholder="Cuenta RUT / Vista / Corriente"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowStaffModal(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 rounded-xl bg-[#0F3D2E] text-[#D4B895] font-black hover:bg-[#0A291F] shadow-sm"
-                >
-                  {editingStaffId ? 'Actualizar Ficha' : 'Guardar y Contratar'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* ==================== MODAL 2: VISOR E IMPRESIÓN DE LIQUIDACIÓN DE SUELDO DT ==================== */}
       {showSlipModal && selectedWorkerForSlip && (() => {
         const inputs = getWorkerInputs(selectedWorkerForSlip.id);
@@ -2784,7 +2386,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         </div>
       )}
 
-      {showContractModal && selectedWorkerForContract && <LaborContractDraft key={selectedWorkerForContract.id} worker={selectedWorkerForContract} community={currentCommunity} settings={companySettings || {}} onClose={() => setShowContractModal(false)} />}
+      {showContractModal && selectedWorkerForContract && <LaborContractDraft key={selectedWorkerForContract.id} worker={selectedWorkerForContract} community={currentCommunity} settings={companySettings || {}} onSaveWorker={saveUnifiedWorker} onClose={() => setShowContractModal(false)} />}
 
       {/* ==================== MODAL 7: REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS) ==================== */}
       {showRiohsModal && (
