@@ -1,9 +1,22 @@
 // Utilidades y Fórmulas Oficiales de Remuneraciones en Chile (Ley 21.442 & Código del Trabajo)
-// Estandarizado para condominios chilenos con valores vigentes (IMM $500.000, Gratificación Art. 50, AFP, AFC, SIS, Mutual)
+// El ingreso mínimo para cada período debe resolverse según su vigencia.
 
-export const CHILE_IMM = 500000; // Ingreso Mínimo Mensual
+export const CHILE_IMM = 553553; // Referencia mayo-diciembre 2026; no usar para otros períodos.
 export const CHILE_TOPE_GRATIFICACION_ANUAL_IMM = 4.75;
-export const CHILE_TOPE_GRATIFICACION_MENSUAL = Math.round((CHILE_IMM * CHILE_TOPE_GRATIFICACION_ANUAL_IMM) / 12); // $197.917 CLP
+export const CHILE_TOPE_GRATIFICACION_MENSUAL = Math.round((CHILE_IMM * CHILE_TOPE_GRATIFICACION_ANUAL_IMM) / 12);
+
+// Ingreso mínimo general según el mes del cálculo, no según la fecha de hoy.
+export const minimumForPayrollPeriod = (year, month, currentIndicator = null, today = '') => {
+  const period = `${year}-${String(month).padStart(2, '0')}`;
+  if (period >= '2024-01' && period <= '2024-06') return 460000;
+  if (period >= '2024-07' && period <= '2024-12') return 500000;
+  if (period >= '2025-01' && period <= '2025-04') return 510636;
+  if (period >= '2025-05' && period <= '2025-12') return 529000;
+  if (period >= '2026-01' && period <= '2026-04') return 539000;
+  if (period >= '2026-05' && period <= '2026-12') return 553553;
+  if (today.slice(0, 7) === period && currentIndicator?.asOf === today && currentIndicator.since <= today) return currentIndicator.value;
+  return null;
+};
 
 export const AFP_RATES_CHILE = [
   { id: 'habitat', name: 'AFP Habitat', rate: 11.27, code: '05' },
@@ -43,8 +56,9 @@ export const AFC_PLAZO_FIJO_EMPLEADOR = 3.0; // 3.0% a cargo empleador
 export const calculateOvertimeHourValue = (baseSalary, weeklyHours = 44) => {
   const base = Number(baseSalary) || 0;
   if (base <= 0) return 0;
-  // Fórmula legal chilena DT: (Sueldo Base / 30) * 28 / Horas Semanales * 1.5
-  const ordinaryHour = (base / 30) * (28 / weeklyHours);
+  if (!Number.isFinite(Number(weeklyHours)) || Number(weeklyHours) <= 0) return 0;
+  // DT: (sueldo / 30) × 28 / (horas semanales × 4), con recargo.
+  const ordinaryHour = (base / 30) * (7 / weeklyHours);
   return Math.round(ordinaryHour * 1.5);
 };
 
@@ -110,7 +124,7 @@ export const numberToSpanishWords = (amount) => {
 /**
  * Calcula en detalle la liquidación mensual de un trabajador de condominio
  */
-export const calculateMonthlyPayroll = (worker, monthlyInputs = {}) => {
+export const calculateMonthlyPayroll = (worker, monthlyInputs = {}, minimumIncome = CHILE_IMM) => {
   const daysWorked = monthlyInputs.daysWorked !== undefined ? Number(monthlyInputs.daysWorked) : 30;
   const overtimeHours = Number(monthlyInputs.overtimeHours) || 0;
   const extraTaxableBonus = Number(monthlyInputs.extraTaxableBonus) || 0;
@@ -124,21 +138,23 @@ export const calculateMonthlyPayroll = (worker, monthlyInputs = {}) => {
   // Prorrateo de sueldo por días trabajados si es menor a 30
   const proratedBase = Math.round((baseSalary / 30) * Math.min(30, Math.max(0, daysWorked)));
 
-  // Gratificación Legal Art. 50 (25% del sueldo con tope de 4.75 IMM al mes)
-  let gratification = 0;
-  if (worker.hasLegalGratification !== false) {
-    const rawGrat = Math.round(proratedBase * 0.25);
-    gratification = Math.min(rawGrat, CHILE_TOPE_GRATIFICACION_MENSUAL);
-  }
-
   // Horas Extras al 50%
-  const overtimeRate = calculateOvertimeHourValue(baseSalary, weeklyHours);
+  const overtimeBase = Number(monthlyInputs.overtimeSalaryBase) || baseSalary;
+  const overtimeRate = calculateOvertimeHourValue(overtimeBase, weeklyHours);
   const overtimeAmount = Math.round(overtimeHours * overtimeRate);
 
   // Bonos fijos de contrato (Turno Nocturno, Responsabilidad, etc.)
   const contractualNightBonus = Number(worker.contractualNightBonus) || 0;
   const contractualResponsibilityBonus = Number(worker.contractualResponsibilityBonus) || 0;
   const totalContractualTaxableBonuses = contractualNightBonus + contractualResponsibilityBonus;
+
+  // Anticipo de gratificación: incluye los haberes remuneracionales del período.
+  // Requiere ajuste anual y revisión del régimen aplicable.
+  let gratification = 0;
+  if (worker.hasLegalGratification === true) {
+    const rawGrat = Math.round((proratedBase + overtimeAmount + totalContractualTaxableBonuses + extraTaxableBonus) * 0.25);
+    gratification = Math.min(rawGrat, Math.round((minimumIncome * CHILE_TOPE_GRATIFICACION_ANUAL_IMM) / 12));
+  }
 
   // Total Imponible
   const totalTaxable = proratedBase + gratification + overtimeAmount + totalContractualTaxableBonuses + extraTaxableBonus;
@@ -159,7 +175,7 @@ export const calculateMonthlyPayroll = (worker, monthlyInputs = {}) => {
   const healthAmount = Math.round(totalTaxable * (healthRate / 100));
 
   // AFC Trabajador (0.6% en contrato indefinido, 0% en plazo fijo o exento)
-  const isIndefinido = worker.contractType !== 'Contrato Plazo Fijo' && worker.contractType !== 'Honorarios';
+  const isIndefinido = !/plazo\s*fijo|honorarios/i.test(worker.contractType || '');
   const afcWorkerRate = (isIndefinido && !worker.isExemptFromAfc) ? AFC_INDEFINIDO_TRABAJADOR : 0;
   const afcWorkerAmount = Math.round(totalTaxable * (afcWorkerRate / 100));
 
@@ -274,12 +290,13 @@ export const calculateSeverancePay = ({
   noticeGiven = false,
   vacationDaysPending = 0,
   workedDaysInMonth = 0,
-  afcBalanceDeduction = 0
+  afcBalanceDeduction = 0,
+  minimumIncome = CHILE_IMM
 }) => {
   const cause = TERMINATION_CAUSES_CHILE.find((c) => c.id === causeId) || TERMINATION_CAUSES_CHILE[4];
   const baseSalary = Number(worker?.baseSalary) || 0;
-  const gratification = worker?.hasLegalGratification !== false
-    ? Math.min(Math.round(baseSalary * 0.25), CHILE_TOPE_GRATIFICACION_MENSUAL)
+  const gratification = worker?.hasLegalGratification === true
+    ? Math.min(Math.round(baseSalary * 0.25), Math.round(minimumIncome * CHILE_TOPE_GRATIFICACION_ANUAL_IMM / 12))
     : 0;
   const lastGrossSalary = baseSalary + gratification; // Base legal de cálculo para indemnización
 
@@ -302,7 +319,7 @@ export const calculateSeverancePay = ({
   yearsOfService = Math.min(11, yearsOfService);
 
   // Indemnización por Años de Servicio (Art. 163)
-  const isIndefinido = worker?.contractType !== 'Contrato Plazo Fijo' && worker?.contractType !== 'Honorarios';
+  const isIndefinido = !/plazo\s*fijo|honorarios/i.test(worker?.contractType || '');
   let severanceYearsAmount = 0;
   if (cause.paysSeveranceYears && isIndefinido && yearsOfService >= 1) {
     severanceYearsAmount = yearsOfService * lastGrossSalary;

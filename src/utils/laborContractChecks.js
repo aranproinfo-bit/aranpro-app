@@ -44,6 +44,37 @@ export function laborContractAlerts(form, liveMinimum = null, reviews = null, ta
   if (form.horas_semanales_o_promedio !== '' && (!Number.isFinite(hours) || hours <= 0)) flag(alerts, 'horas_semanales_o_promedio', 'La jornada debe ser mayor que cero.');
   if (form.sueldo_base_monto !== '' && (!Number.isFinite(salary) || salary <= 0)) flag(alerts, 'sueldo_base_monto', 'El sueldo base debe ser mayor que cero.');
   if(!date) flag(alerts, 'fecha_evaluacion', 'Indica la fecha para evaluar jornada e ingreso mínimo.');
+  const effectiveDate = form.contractType === 'plazo_fijo' ? form.fecha_inicio_contrato : form.fecha_ingreso;
+  if (date && effectiveDate && date < effectiveDate) {
+    flag(review, 'fecha_evaluacion', 'La evaluación del ingreso mínimo es anterior al inicio del contrato. Comprueba el monto vigente al comenzar la prestación.');
+  }
+  if (form.tabla_turnos && !form.scheduleApplied && !form.cycleApplied) {
+    flag(review, 'tabla_turnos', 'El horario fue ingresado por escrito. Revisa su distribución, colación y descansos según el régimen aplicable.');
+  }
+  if (form.scheduleMode === 'cycle' && form.cycleApplied) {
+    flag(review, 'scheduleMode', 'El promedio del ciclo es aritmético. Revisa el régimen aplicable y los descansos antes de usarlo en el contrato.');
+  }
+  const rows = form.scheduleMode === 'cycle' ? form.cycleRows : form.scheduleRows;
+  if ((form.scheduleApplied || form.cycleApplied) && Array.isArray(rows)) {
+    const active = rows.filter(row => row && (row.active || row.kind === 'work'));
+    for (const row of active) {
+      const start = /^\d{2}:\d{2}$/.test(row.start || '') ? Number(row.start.slice(0,2))*60 + Number(row.start.slice(3)) : null;
+      const end = /^\d{2}:\d{2}$/.test(row.end || '') ? Number(row.end.slice(0,2))*60 + Number(row.end.slice(3)) : null;
+      const span = start === null || end === null ? 0 : (end-start+1440)%1440;
+      const meal = Number(row.mealMinutes);
+      if (span > 180 && Number.isFinite(meal) && meal < 30) {
+        flag(['Jornada ordinaria general','Jornada parcial'].includes(form.regimen_jornada) ? alerts : review, 'scheduleMode', 'Revisa la colación: hay un turno de más de tres horas con menos de 30 minutos de descanso.');
+        break;
+      }
+      if (form.regimen_jornada === 'Jornada parcial' && meal > 60) {
+        flag(alerts, 'scheduleMode', 'Revisa la colación de la jornada parcial: se ingresaron más de 60 minutos.');
+        break;
+      }
+    }
+    if (form.scheduleMode !== 'cycle' && form.regimen_jornada === 'Jornada ordinaria general' && (active.length < 5 || active.length > 6)) {
+      flag(review, 'scheduleMode', 'Revisa los días de distribución de la jornada ordinaria y el acuerdo aplicable.');
+    }
+  }
   if (/^\d{4}-\d{2}-\d{2}$/.test(date || '') && date >= '2026-04-26' && date < '2028-04-26' && hours > 42) {
     flag(form.regimen_jornada === 'Sistema excepcional' ? review : alerts, 'horas_semanales_o_promedio', 'La jornada supera 42 horas: revisa el límite general y si existe un régimen especial válido.');
   }

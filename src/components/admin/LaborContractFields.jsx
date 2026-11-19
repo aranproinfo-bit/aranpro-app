@@ -40,22 +40,24 @@ const hints = {
   fecha_evaluacion:'Fecha que se usará para consultar el mínimo y revisar las horas pactadas.'
 };
 
-export default function LaborContractFields({group, fields, form, update, collapseKeys=[]}) {
+export default function LaborContractFields({group, fields, form, update, collapseKeys=[], employerKind='community'}) {
   const renderField = key => {
-    const [,label,type='text'] = fields.find(([id])=>id===key);
+    const [,originalLabel,type='text'] = fields.find(([id])=>id===key);
+    const companyLabels = {nombre_empleador:'Razón social o nombre del empleador',rut_empleador:'RUT del empleador',domicilio_empleador:'Domicilio del empleador',nombre_condominio:'Nombre del lugar de trabajo'};
+    const label = employerKind==='company' ? companyLabels[key] || originalLabel : originalLabel;
     const id='labor-field-'+key;
     return <div key={key} className="min-w-0">
       <label htmlFor={id} className="block text-sm font-semibold text-slate-800">{label}</label>
       {hints[key] && <p id={id+'-help'} className="mt-1 text-xs text-slate-600">{hints[key]}</p>}
       <input id={id} aria-describedby={hints[key] ? id+'-help' : undefined} type={type} value={form[key]??''} onChange={e=>update(key,e.target.value)}
         className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-emerald-700" />
-      {choices[key] && <div className="mt-1.5 flex flex-wrap gap-1">{choices[key].map(option=><button key={option} type="button" onClick={()=>update(key,option)} className="rounded-md bg-emerald-50 px-2 py-1 text-xs text-emerald-900 hover:bg-emerald-100">{option}</button>)}</div>}
+      {choices[key] && <div className="mt-1.5 flex flex-wrap gap-1">{(employerKind==='company' && key==='calidad_representante' ? ['Representante legal del empleador'] : choices[key]).map(option=><button key={option} type="button" onClick={()=>update(key,option)} className="rounded-md bg-emerald-50 px-2 py-1 text-xs text-emerald-900 hover:bg-emerald-100">{option}</button>)}</div>}
     </div>;
   };
   const editable=group.keys.filter(key=>!collapseKeys.includes(key));
   const known=group.keys.filter(key=>collapseKeys.includes(key));
   return <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-    <h4 className="font-bold text-[#0F3D2E]">{group.title}</h4>
+    <h4 className="font-bold text-[#0F3D2E]">{employerKind==='company' && group.title==='Comunidad empleadora' ? 'Empresa empleadora' : employerKind==='company' && group.title==='Quién firma por la comunidad' ? 'Quién representa al empleador' : group.title}</h4>
     {editable.length>0 && <div className="grid gap-4 sm:grid-cols-2">{editable.map(renderField)}</div>}
     {known.length>0 && <details><summary className="cursor-pointer text-sm font-semibold text-emerald-800">Ver o editar {known.length} {known.length===1?'dato cargado':'datos cargados'}</summary>
       <div className="mt-3 grid gap-4 sm:grid-cols-2">{known.map(renderField)}</div>

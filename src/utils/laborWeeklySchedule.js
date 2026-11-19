@@ -11,7 +11,7 @@ export function summarizeWeeklySchedule(rows) {
     const r=rows?.[i]; if(!r?.active) continue;
     const start=minutes(r.start), end=minutes(r.end), meal=Number(r.mealMinutes);
     if(start===null||end===null||start===end){errors.push(`${weekDays[i]}: indica inicio y término válidos y distintos.`);continue;}
-    if(r.mealMinutes===''||!Number.isInteger(meal)||meal<0||!['yes','no'].includes(r.mealIncluded)){errors.push(`${weekDays[i]}: indica minutos y tratamiento de colación.`);continue;}
+    if(r.mealMinutes===''||r.mealMinutes==null||!Number.isInteger(meal)||meal<0||!['yes','no'].includes(r.mealIncluded)){errors.push(`${weekDays[i]}: indica minutos y tratamiento de colación.`);continue;}
     const span=(end-start+1440)%1440;
     if(meal>span){errors.push(`${weekDays[i]}: la colación supera el turno.`);continue;}
     const working=span-(r.mealIncluded==='no'?meal:0);

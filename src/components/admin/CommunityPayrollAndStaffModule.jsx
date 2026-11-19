@@ -17,6 +17,8 @@ import {
   generatePreviredTxtContent
 } from '../../utils/chileanPayrollCalculations';
 import { formatCLP } from '../../utils/formatters';
+import { useLaborMinimumIndicator } from '../../hooks/useLaborMinimumIndicator';
+import { minimumForPayrollPeriod } from '../../utils/chileanPayrollCalculations';
 import { printDocumentDirectly } from '../../utils/printDocument';
 import { AranproOfficialSeal, useAranproPdfStyle, AranproPdfStyleSelector } from '../common/MauranLogo';
 import {
@@ -59,6 +61,24 @@ export const CommunityPayrollAndStaffModule = ({
   const activeYear = currentCommunity?.activePeriod?.year || new Date().getFullYear();
   const [selectedMonth, setSelectedMonth] = useState(activeMonth);
   const [selectedYear, setSelectedYear] = useState(activeYear);
+  const indicator = useLaborMinimumIndicator();
+  const [minimumOverrides,setMinimumOverrides] = useState({});
+  const periodKey = String(selectedYear) + '-' + String(selectedMonth).padStart(2,'0');
+  const knownMinimum = minimumForPayrollPeriod(selectedYear,selectedMonth,indicator.reference,indicator.today);
+  const enteredMinimum = Number(minimumOverrides[periodKey]?.amount);
+  const minimumSource = minimumOverrides[periodKey]?.source?.trim();
+  const minimumConflict = Boolean(knownMinimum && indicator.reference?.asOf === indicator.today && indicator.today.slice(0,7)===periodKey && indicator.reference.value !== knownMinimum);
+  const confirmedMinimum = enteredMinimum>0 && minimumSource ? enteredMinimum : null;
+  const periodMinimum = minimumConflict ? confirmedMinimum : knownMinimum || confirmedMinimum;
+  const minimumForDate = date => {
+    const month = String(date||'').slice(0,7);
+    if (!/^\d{4}-\d{2}$/.test(month)) return null;
+    const [year,value] = month.split('-').map(Number);
+    if (month===periodKey) return periodMinimum;
+    const minimum = minimumForPayrollPeriod(year,value,indicator.reference,indicator.today);
+    if (minimum && indicator.reference?.asOf === indicator.today && indicator.today.slice(0,7)===month && indicator.reference.value !== minimum) return null;
+    return minimum;
+  };
   const periodLabel = `${String(selectedMonth).padStart(2, '0')}/${selectedYear}`;
   const periodLongName = `${[
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -148,6 +168,7 @@ export const CommunityPayrollAndStaffModule = ({
 
   // Descarga del archivo plano TXT para Previred (105 campos)
   const handleDownloadPreviredTxt = () => {
+    if (!ensurePayrollReady()) return;
     try {
       const txt = generatePreviredTxtContent(currentCommunity, payrollConsolidated, selectedMonth, selectedYear);
       const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
@@ -209,7 +230,7 @@ export const CommunityPayrollAndStaffModule = ({
 
     const slips = activeStaff.map((w) => {
       const inputs = getWorkerInputs(w.id);
-      const calc = calculateMonthlyPayroll(w, inputs);
+      const calc = calculateMonthlyPayroll(w, inputs, periodMinimum || 0);
 
       totalTaxable += calc.totalTaxable;
       totalNonTaxable += calc.totalNonTaxable;
@@ -245,7 +266,23 @@ export const CommunityPayrollAndStaffModule = ({
       totalPreviredLeyesSociales,
       totalCommunityCost
     };
-  }, [staff, monthlyInputs]);
+  }, [staff, monthlyInputs, periodMinimum]);
+
+  const pendingGratification = staff.filter(worker => worker.status !== 'FINIQUITADO' && typeof worker.hasLegalGratification !== 'boolean');
+  const pendingOvertime = staff.filter(worker => {
+    const inputs = getWorkerInputs(worker.id);
+    return Number(inputs.overtimeHours)>0 && (!(Number(worker.weeklyHours)>0) || !(Number(inputs.overtimeSalaryBase)>=Number(worker.baseSalary) && Number(inputs.overtimeSalaryBase)>0));
+  });
+  const ensurePayrollReady = () => {
+    if (!periodMinimum) { alert('Para calcular remuneraciones, selecciona Liquidaciones e ingresa el ingreso mínimo del período y su fuente.'); return false; }
+    if (pendingGratification.length) {
+      alert('Confirma en la ficha la modalidad de gratificación de: ' + pendingGratification.map(worker=>worker.name).join(', ') + '.');
+      return false;
+    }
+    if (!pendingOvertime.length) return true;
+    alert('Confirma la base de cálculo de horas extras para: ' + pendingOvertime.map(worker=>worker.name).join(', ') + '. Verifica las horas pactadas en la ficha y confirma una base que incluya los conceptos fijos que correspondan.');
+    return false;
+  };
 
   // Verificar si ya se registraron los gastos de sueldo en este periodo
   const alreadyExportedToExpenses = useMemo(() => {
@@ -275,11 +312,17 @@ export const CommunityPayrollAndStaffModule = ({
   };
   const saveUnifiedWorker = worker => {
     const normalize = value => String(value || '').replace(/[.\s-]/g,'').toUpperCase();
-    if (staff.some(item => item.id !== worker.id && normalize(item.rut) === normalize(worker.rut))) {
+    const persisted = JSON.parse(localStorage.getItem('condo_communities') || 'null');
+    if (!Array.isArray(persisted)) throw new Error('COMMUNITY_STORAGE_UNAVAILABLE');
+    const storedCommunity = persisted.find(item => item.id === currentCommunity.id);
+    if (!storedCommunity) throw new Error('COMMUNITY_STORAGE_UNAVAILABLE');
+    const currentStaff = storedCommunity.staff || [];
+    if (currentStaff.some(item => item.id !== worker.id && normalize(item.rut) === normalize(worker.rut))) {
       throw new Error('DUPLICATE_RUT');
     }
-    const exists = staff.some(item => item.id === worker.id);
-    const updated = exists ? staff.map(item => item.id === worker.id ? {...item, ...worker} : item) : [...staff, worker];
+    const exists = currentStaff.some(item => item.id === worker.id);
+    const updated = exists ? currentStaff.map(item => item.id === worker.id ? {...item, ...worker} : item) : [...currentStaff, worker];
+    localStorage.setItem('condo_communities', JSON.stringify(persisted.map(item => item.id === currentCommunity.id ? {...item,staff:updated} : item)));
     updateCommunity(currentCommunity.id, {staff:updated});
     sessionStorage.removeItem('aranpro-new-worker:' + currentCommunity.id);
   };
@@ -293,6 +336,7 @@ export const CommunityPayrollAndStaffModule = ({
 
   // Traspasar Sueldos e Imposiciones del Mes a Gastos Comunes (1 Clic)
   const handleExportToCommunityExpenses = () => {
+    if (!ensurePayrollReady()) return;
     if (payrollConsolidated.activeCount === 0) {
       alert('No hay trabajadores activos en la nómina para registrar.');
       return;
@@ -346,18 +390,19 @@ export const CommunityPayrollAndStaffModule = ({
       receiptNotes: `Declaración y pago electrónico en www.previred.com para ${payrollConsolidated.activeCount} trabajadores del condominio.`
     });
 
-    setExpenseIntegrationToast(`¡Listo! Se registraron exitosamente en Gastos & Respaldos los Sueldos Líquidos (${formatCLP(payrollConsolidated.totalNet)}) y las Leyes Sociales (${formatCLP(payrollConsolidated.totalPreviredLeyesSociales)}) del periodo ${periodLabel}.`);
+    setExpenseIntegrationToast(`¡Listo! Se registraron exitosamente en Gastos & Respaldos los Sueldos Líquidos (${periodMinimum ? formatCLP(payrollConsolidated.totalNet) : 'Pendiente de mínimo'}) y las Leyes Sociales (${periodMinimum ? formatCLP(payrollConsolidated.totalPreviredLeyesSociales) : 'Pendiente de mínimo'}) del periodo ${periodLabel}.`);
     setTimeout(() => setExpenseIntegrationToast(''), 7000);
   };
 
   // Copiar resumen previsional al portapapeles
   const handleCopyPreviredSummary = () => {
+    if (!ensurePayrollReady()) return;
     const text = `RESUMEN DE COTIZACIONES PREVISIONALES - PREVIRED
 Condominio: ${currentCommunity.name} (RUT: ${currentCommunity.bankInfo?.rut || ''})
 Periodo: ${periodLabel}
 Total Trabajadores: ${payrollConsolidated.activeCount}
 ---------------------------------------------
-• Masa Salarial Imponible: ${formatCLP(payrollConsolidated.totalTaxable)}
+• Masa Salarial Imponible: ${periodMinimum ? formatCLP(payrollConsolidated.totalTaxable) : 'Pendiente de mínimo'}
 • Cotizaciones AFP (Trabajadores): ${formatCLP(payrollConsolidated.totalPrevisionalDiscounts - Math.round(payrollConsolidated.totalTaxable * 0.076))}
 • Cotizaciones Salud (Fonasa/Isapre 7%): ${formatCLP(Math.round(payrollConsolidated.totalTaxable * 0.07))}
 • Seguro Cesantía AFC (Trabajador 0.6%): ${formatCLP(Math.round(payrollConsolidated.totalTaxable * 0.006))}
@@ -499,6 +544,16 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
     );
   };
 
+  if (!periodMinimum && ['liquidaciones','previred','gastos_comunes'].includes(currentSubTab)) return <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 space-y-3">
+    <h2 className="font-bold text-amber-950">Ingreso mínimo para el período de remuneración</h2>
+    <p className="text-sm">No fue posible establecer el ingreso mínimo de {periodKey} con una referencia única. Comprueba el monto general y su fuente, o selecciona otro período. El valor se utiliza para el cálculo de gratificación.</p>
+    <div className="flex flex-wrap gap-3">
+      <label>Mes <input aria-label="Mes" type="number" min="1" max="12" value={selectedMonth} onChange={e=>setSelectedMonth(Number(e.target.value))} className="border rounded p-2 w-20" /></label>
+      <label>Año <input aria-label="Año" type="number" min="2024" max="2100" value={selectedYear} onChange={e=>setSelectedYear(Number(e.target.value))} className="border rounded p-2 w-24" /></label>
+      <label>Ingreso mínimo ($) <input aria-label="Ingreso mínimo para el período" type="number" min="1" value={minimumOverrides[periodKey]?.amount||''} onChange={e=>setMinimumOverrides(v=>({...v,[periodKey]:{...v[periodKey],amount:e.target.value}}))} className="border rounded p-2 w-36" /></label>
+      <label>Fuente y vigencia <input aria-label="Fuente del ingreso mínimo" value={minimumOverrides[periodKey]?.source||''} onChange={e=>setMinimumOverrides(v=>({...v,[periodKey]:{...v[periodKey],source:e.target.value}}))} className="border rounded p-2" /></label>
+    </div>
+  </div>;
   return (
     <div className="space-y-6">
       {/* 1. Cabecera Ejecutiva del Módulo de Remuneraciones */}
@@ -549,7 +604,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
                 className="bg-transparent text-white text-xs font-black focus:outline-none cursor-pointer pr-1"
               >
-                {[2024, 2025, 2026, 2027].map((y) => (
+                {Array.from(new Set([...Array.from({length: Math.max(4, Number(indicator.today.slice(0,4)) - 2024 + 3)}, (_,i)=>2024+i), selectedYear])).sort((a,b)=>a-b).map((y) => (
                   <option key={y} value={y} className="bg-[#0F3D2E] text-white">
                     {y}
                   </option>
@@ -611,7 +666,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
           </span>
           <div className="flex items-baseline justify-between">
             <span className="text-xl md:text-2xl font-black text-slate-900">
-              {formatCLP(payrollConsolidated.totalTaxable)}
+              {periodMinimum && !pendingGratification.length && !pendingOvertime.length ? formatCLP(payrollConsolidated.totalTaxable) : 'Pendiente de revisión'}
             </span>
           </div>
           <span className="text-[10px] text-slate-500 block">
@@ -625,7 +680,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
           </span>
           <div className="flex items-baseline justify-between">
             <span className="text-xl md:text-2xl font-black text-emerald-700">
-              {formatCLP(payrollConsolidated.totalNet)}
+              {periodMinimum && !pendingGratification.length && !pendingOvertime.length ? formatCLP(payrollConsolidated.totalNet) : 'Pendiente de revisión'}
             </span>
           </div>
           <span className="text-[10px] text-slate-500 block">
@@ -639,7 +694,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
           </span>
           <div className="flex items-baseline justify-between">
             <span className="text-xl md:text-2xl font-black text-[#0F3D2E]">
-              {formatCLP(payrollConsolidated.totalPreviredLeyesSociales)}
+              {periodMinimum && !pendingGratification.length && !pendingOvertime.length ? formatCLP(payrollConsolidated.totalPreviredLeyesSociales) : 'Pendiente de revisión'}
             </span>
             <span className="text-[10px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
               Día 13
@@ -761,6 +816,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     <button
                       type="button"
                       onClick={() => {
+                        if (!ensurePayrollReady()) return;
                         setSelectedWorkerForSlip(worker);
                         setShowSlipModal(true);
                       }}
@@ -828,7 +884,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowMonthlySheetModal(true)}
+                  onClick={() => ensurePayrollReady() && setShowMonthlySheetModal(true)}
                   className="py-2 px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
                 >
                   <Printer className="w-4 h-4 text-slate-600" />
@@ -850,6 +906,11 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
             </div>
 
+            <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
+              Gratificación como anticipo referencial según los haberes ingresados y el mínimo de {formatCLP(periodMinimum)} para {periodLabel}. Fuente: {minimumConflict || !knownMinimum ? minimumSource : indicator.reference?.asOf?.slice(0,7) === periodKey && periodKey > '2026-12' ? 'indicadores.cl (fuente informada: Dirección del Trabajo)' : 'montos legales registrados'}. Revisa su procedencia, jornada parcial y ajuste anual. Los sueldos y bonos se toman de la ficha actual; verifica los montos antes de calcular períodos anteriores.
+              {pendingGratification.length>0 && <strong className="block mt-1">Pendiente confirmar la gratificación de: {pendingGratification.map(worker=>worker.name).join(', ')}. Los totales son provisionales.</strong>}
+              {pendingOvertime.length>0 && <strong className="block mt-1">Pendiente confirmar la base de horas extras de: {pendingOvertime.map(worker=>worker.name).join(', ')}. Los totales son provisionales.</strong>}
+            </div>
             {/* Tabla Interactiva de Liquidaciones del Periodo */}
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
@@ -910,6 +971,10 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                             />
                             <span className="text-[10px] text-slate-400">h</span>
                           </div>
+                          {Number(inputs.overtimeHours)>0 && <label className="block mt-2 text-left text-[10px] text-slate-700">Base mensual para horas extras ($)
+                            <input aria-label={'Base de horas extras de '+worker.name} type="number" min="1" value={inputs.overtimeSalaryBase||''} onChange={e=>handleUpdateWorkerInput(worker.id,'overtimeSalaryBase',e.target.value)} className="block w-28 rounded border p-1" />
+                            <span>Incluye los conceptos fijos que correspondan. Confirma la base antes de emitir.</span>
+                          </label>}
                           {calc.overtimeAmount > 0 && (
                             <span className="block text-[10px] text-emerald-700 font-mono">
                               +{formatCLP(calc.overtimeAmount)}
@@ -951,7 +1016,8 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                           <button
                             type="button"
                             onClick={() => {
-                              setSelectedWorkerForSlip(worker);
+                              if (!ensurePayrollReady()) return;
+                        setSelectedWorkerForSlip(worker);
                               setShowSlipModal(true);
                             }}
                             className="py-1 px-2.5 rounded-lg bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-[11px] font-bold transition-all shadow-2xs inline-flex items-center gap-1 cursor-pointer"
@@ -1015,7 +1081,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
                 <button
                   type="button"
-                  onClick={() => setShowPreviredSheetModal(true)}
+                  onClick={() => ensurePayrollReady() && setShowPreviredSheetModal(true)}
                   className="py-2.5 px-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
                 >
                   <Printer className="w-4 h-4 text-slate-600" />
@@ -1644,7 +1710,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
       {/* ==================== MODAL 2: VISOR E IMPRESIÓN DE LIQUIDACIÓN DE SUELDO DT ==================== */}
       {showSlipModal && selectedWorkerForSlip && (() => {
         const inputs = getWorkerInputs(selectedWorkerForSlip.id);
-        const slip = calculateMonthlyPayroll(selectedWorkerForSlip, inputs);
+        const slip = calculateMonthlyPayroll(selectedWorkerForSlip, inputs, periodMinimum || 0);
 
         return (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -2849,7 +2915,11 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
       {/* ==================== MODAL 10: CALCULADORA FINIQUITO LABORAL ==================== */}
       {showSeveranceModal && selectedWorkerForSeverance && (() => {
+        if (typeof selectedWorkerForSeverance.hasLegalGratification !== 'boolean') return <div className="fixed inset-0 z-50 bg-white p-8">Confirma la modalidad de gratificación en la ficha del trabajador antes de calcular su finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
+        const severanceMinimum = minimumForDate(severanceForm.terminationDate);
+        if (!severanceMinimum) return <div className="fixed inset-0 z-50 bg-white p-8 text-slate-800">Selecciona el período de término e ingresa su ingreso mínimo antes de calcular el finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
         const severanceCalc = calculateSeverancePay({
+          minimumIncome: severanceMinimum,
           worker: selectedWorkerForSeverance,
           terminationDateStr: severanceForm.terminationDate,
           causeId: severanceForm.causeId,
@@ -3040,7 +3110,11 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
       {/* ==================== MODAL 11: VISOR E IMPRESIÓN FINIQUITO LABORAL (2 PÁGINAS) ==================== */}
       {showSeverancePrintModal && selectedWorkerForSeverance && (() => {
+        if (typeof selectedWorkerForSeverance.hasLegalGratification !== 'boolean') return <div className="fixed inset-0 z-50 bg-white p-8">Confirma la modalidad de gratificación en la ficha del trabajador antes de calcular su finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
+        const severanceMinimum = minimumForDate(severanceForm.terminationDate);
+        if (!severanceMinimum) return <div className="fixed inset-0 z-50 bg-white p-8 text-slate-800">Selecciona el período de término e ingresa su ingreso mínimo antes de calcular el finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
         const severanceCalc = calculateSeverancePay({
+          minimumIncome: severanceMinimum,
           worker: selectedWorkerForSeverance,
           terminationDateStr: severanceForm.terminationDate,
           causeId: severanceForm.causeId,
@@ -3260,7 +3334,11 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
       {/* ==================== MODAL 12: VISOR E IMPRESIÓN CARTA NOTIFICACIÓN DT (1 PÁGINA) ==================== */}
       {showDismissalLetterModal && selectedWorkerForSeverance && (() => {
+        if (typeof selectedWorkerForSeverance.hasLegalGratification !== 'boolean') return <div className="fixed inset-0 z-50 bg-white p-8">Confirma la modalidad de gratificación en la ficha del trabajador antes de calcular su finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
+        const severanceMinimum = minimumForDate(severanceForm.terminationDate);
+        if (!severanceMinimum) return <div className="fixed inset-0 z-50 bg-white p-8 text-slate-800">Selecciona el período de término e ingresa su ingreso mínimo antes de calcular el finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
         const severanceCalc = calculateSeverancePay({
+          minimumIncome: severanceMinimum,
           worker: selectedWorkerForSeverance,
           terminationDateStr: severanceForm.terminationDate,
           causeId: severanceForm.causeId,

@@ -6,6 +6,7 @@ import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPd
 import { formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
 import { OfficePayrollPrint, officePayrollPrintStyles } from './OfficePayrollPrint';
+import LaborContractDraft from './LaborContractDraft';
 import {
   Building2, Briefcase, Users, Award, ShieldCheck, ArrowRight, Plus,
   TrendingUp, Target, GraduationCap, Handshake, Wrench, FileText,
@@ -172,6 +173,19 @@ export const CompanyEnterpriseHub = ({
     }
   }, [officeWorkers]);
 
+  const [officeContractWorker, setOfficeContractWorker] = useState(null);
+  const openOfficeContract = worker => {
+    const afp = String(worker.afpName || '').toLowerCase();
+    const knownAfp = ['habitat','provida','modelo','cuprum','capital','planvital','uno'].find(id=>afp.includes(id)) || '';
+    const health = String(worker.healthSystem || '').toLowerCase();
+    const healthId = health.includes('fonasa') ? 'fonasa' : health.includes('banmédica') || health.includes('banmedica') ? 'isapre_banmedica' : health.includes('consalud') ? 'isapre_consalud' : health.includes('colmena') ? 'isapre_colmena' : health.includes('cruz') ? 'isapre_cruzblanca' : '';
+    setOfficeContractWorker({...worker, afpId:worker.afpId || knownAfp, healthId:worker.healthId || healthId});
+  };
+  const saveOfficeContract = worker => {
+    const updated = officeWorkers.map(item=>item.id===worker.id ? {...item,...worker,grossSalary:item.grossSalary,healthSystem:worker.healthName} : item);
+    localStorage.setItem('aranpro_office_workers', JSON.stringify(updated));
+    setOfficeWorkers(updated);
+  };
   const [showAddWorkerModal, setShowAddWorkerModal] = useState(false);
   const [workerForm, setWorkerForm] = useState({
     name: '',
@@ -1077,6 +1091,7 @@ export const CompanyEnterpriseHub = ({
                     <p className="text-xs text-slate-500 max-w-3xl">
                       Centraliza aquí los contratos laborales, liquidaciones de sueldo, boletas de honorarios e imposiciones previsionales de tus propios asistentes y colaboradores de oficina.
                     </p>
+                    <p className="text-xs text-amber-800">La planilla de oficina usa montos brutos registrados por separado. Revisa esos montos y cotizaciones al modificar un contrato; no se actualizan automáticamente.</p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -1206,6 +1221,7 @@ export const CompanyEnterpriseHub = ({
                                 </span>
                               </td>
                               <td className="p-2.5 text-center no-print">
+                                {w.contractType !== 'Boleta de Honorarios' && <button type="button" onClick={()=>openOfficeContract(w)} className="mr-2 text-emerald-800 underline" title="Preparar contrato laboral de oficina">Contrato</button>}
                                 <button
                                   type="button"
                                   onClick={() => setOfficeWorkers((prev) => prev.filter((item) => item.id !== w.id))}
@@ -1604,6 +1620,15 @@ export const CompanyEnterpriseHub = ({
           </div>
         </div>
       )}
+      {officeContractWorker && <LaborContractDraft
+        key={officeContractWorker.id}
+        worker={officeContractWorker}
+        employerKind="company"
+        community={{id:'aranpro-office',name:companySettings?.brandName || 'Mi oficina',address:companySettings?.legalAddress || '',city:companySettings?.city || '',bankInfo:{holderName:companySettings?.legalName || '',rut:companySettings?.companyRut || ''}}}
+        settings={companySettings || {}}
+        onSaveWorker={saveOfficeContract}
+        onClose={()=>setOfficeContractWorker(null)}
+      />}
     </div>
   );
 };

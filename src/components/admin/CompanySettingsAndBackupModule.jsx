@@ -5960,12 +5960,28 @@ export const CompanySettingsAndBackupModule = ({
                     </span>
                     <h5 className="font-bold text-sm text-slate-900">Descargar Copia de Respaldo Completa</h5>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      Genera un archivo seguro .JSON con todas las comunidades, nóminas de casas, gastos históricos, actas de asambleas y certificados foliados.
+                      Incluye comunidades, personal, borradores laborales y datos de empresa guardados en este navegador. El archivo JSON contiene datos personales y no está cifrado; guárdalo en un lugar protegido.
                     </p>
                     <button
                       type="button"
                       onClick={() => {
-                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ communities, certificates, companySettings }, null, 2));
+                        const laborDrafts = {};
+                        for (let i = 0; i < localStorage.length; i++) {
+                          const key = localStorage.key(i);
+                          if (key?.startsWith('aranpro_labor_contract_draft_v1:')) laborDrafts[key] = localStorage.getItem(key);
+                        }
+                        let officeWorkers = null;
+                        try {
+                          const raw = localStorage.getItem('aranpro_office_workers');
+                          const parsed = raw ? JSON.parse(raw) : null;
+                          if (Array.isArray(parsed)) officeWorkers = parsed;
+                        } catch { officeWorkers = null; }
+                        const newWorkerDrafts = {};
+                        for (let i = 0; i < sessionStorage.length; i++) {
+                          const key = sessionStorage.key(i);
+                          if (key?.startsWith('aranpro-new-worker:')) newWorkerDrafts[key] = sessionStorage.getItem(key);
+                        }
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ communities, certificates, companySettings, officeWorkers, laborDrafts, newWorkerDrafts }, null, 2));
                         const downloadAnchor = document.createElement('a');
                         downloadAnchor.setAttribute("href", dataStr);
                         downloadAnchor.setAttribute("download", `ARANPRO_Backup_Completo_${new Date().toISOString().split('T')[0]}.json`);
@@ -6014,6 +6030,17 @@ export const CompanySettingsAndBackupModule = ({
                                     localStorage.setItem('condo_communities', JSON.stringify(parsed.communities));
                                     if (parsed.certificates) localStorage.setItem('condo_certificates', JSON.stringify(parsed.certificates));
                                     if (parsed.companySettings) localStorage.setItem('condo_company_settings', JSON.stringify(parsed.companySettings));
+                                    if (Array.isArray(parsed.officeWorkers)) localStorage.setItem('aranpro_office_workers', JSON.stringify(parsed.officeWorkers));
+                                    if (parsed.laborDrafts && typeof parsed.laborDrafts === 'object' && !Array.isArray(parsed.laborDrafts)) {
+                                      for (const [key,value] of Object.entries(parsed.laborDrafts)) {
+                                        if (key.startsWith('aranpro_labor_contract_draft_v1:') && typeof value === 'string') localStorage.setItem(key, value);
+                                      }
+                                    }
+                                    if (parsed.newWorkerDrafts && typeof parsed.newWorkerDrafts === 'object' && !Array.isArray(parsed.newWorkerDrafts)) {
+                                      for (const [key,value] of Object.entries(parsed.newWorkerDrafts)) {
+                                        if (key.startsWith('aranpro-new-worker:') && typeof value === 'string') sessionStorage.setItem(key, value);
+                                      }
+                                    }
                                     showAlert('✓ Restauración Completada', 'Los datos han sido restaurados. La página se actualizará ahora.', 'success');
                                     setTimeout(() => window.location.reload(), 1500);
                                   }
