@@ -1,7 +1,7 @@
 // Alertas acotadas; no sustituyen la determinación del régimen ni acreditan
 // que un contrato pueda firmarse. Fuentes DT: Ley 40 horas y Ord. 307/28.
 export function validChileanRut(value) {
-  const rut=String(value||'').replace(/[^0-9kK]/g,'').toUpperCase();
+  const rut=String(value||'').replace(/[.\s-]/g,'').toUpperCase();
   if(!/^\d{1,8}[0-9K]$/.test(rut) || Number(rut.slice(0,-1))===0) return false;
   let sum=0, multiplier=2;
   for(let i=rut.length-2;i>=0;i--){sum+=Number(rut[i])*multiplier;multiplier=multiplier===7?2:multiplier+1;}
@@ -27,8 +27,9 @@ export function minimumSalaryReference(form, liveMinimum = null) {
   const divisor=date>='2028-04-26'?40:date>='2026-04-26'?42:44;
   return { amount:hours<=30?Math.ceil(full*hours/divisor):full, fullAmount:full, hours, age, partial:hours<=30, divisor, source:historical2026?'DT 2026':'Indicadores.cl (fuente informada: DT)' };
 }
-export function laborContractAlerts(form, liveMinimum = null) {
+export function laborContractAlerts(form, liveMinimum = null, reviews = null) {
   const alerts=[];
+  const review = reviews ?? alerts;
   const hours=Number(form.horas_semanales_o_promedio);
   const salary=Number(form.sueldo_base_monto);
   // La fecha de evaluación es explícita: ingreso, firma y condiciones vigentes pueden diferir.
@@ -40,34 +41,37 @@ export function laborContractAlerts(form, liveMinimum = null) {
   if (form.sueldo_base_monto !== '' && (!Number.isFinite(salary) || salary <= 0)) alerts.push('El sueldo base debe ser mayor que cero.');
   if(!date) alerts.push('Indica la fecha para evaluar jornada e ingreso mínimo.');
   if (/^\d{4}-\d{2}-\d{2}$/.test(date || '') && date >= '2026-04-26' && date < '2028-04-26' && hours > 42) {
-    alerts.push('La jornada supera 42 horas: revisa el límite general y si existe un régimen especial válido.');
+    (form.regimen_jornada === 'Sistema excepcional' ? review : alerts).push('La jornada supera 42 horas: revisa el límite general y si existe un régimen especial válido.');
   }
   if (/^\d{4}-\d{2}-\d{2}$/.test(date || '') && date >= '2028-04-26' && hours > 40) {
-    alerts.push('La jornada supera 40 horas: revisa el límite general y si existe un régimen especial válido.');
+    (form.regimen_jornada === 'Sistema excepcional' ? review : alerts).push('La jornada supera 40 horas: revisa el límite general y si existe un régimen especial válido.');
   }
   if(date >= '2026-05-01' && date <= '2026-12-31' && salary>0 && hours>0) {
     const age=ageAt(form.fecha_nacimiento,date);
-    if(age===null || age===18) alerts.push('Completa y revisa la edad aplicable antes de calcular el ingreso mínimo de referencia.');
-    else if(!['Jornada ordinaria general','Jornada parcial'].includes(form.regimen_jornada)) alerts.push('El mínimo para este régimen requiere revisión específica.');
+    if(age===null || age===18) review.push('Completa y revisa la edad aplicable antes de calcular el ingreso mínimo de referencia.');
+    else if(!['Jornada ordinaria general','Jornada parcial'].includes(form.regimen_jornada)) review.push('El mínimo para este régimen requiere revisión específica.');
     else if((form.regimen_jornada==='Jornada parcial') !== (hours<=30)) alerts.push('Revisa la clasificación de jornada parcial y las horas pactadas.');
     else {
       const reference=minimumSalaryReference(form,liveMinimum);
       if(reference && salary<reference.amount) alerts.push(`Sueldo base inferior a la referencia de $${reference.amount.toLocaleString('es-CL')}: revisa edad, jornada y conceptos que legalmente correspondan a sueldo.`);
-      if(age<18) alerts.push('El trabajo de adolescentes requiere revisar autorizaciones y condiciones especiales.');
+      if(age<18) review.push('El trabajo de adolescentes requiere revisar autorizaciones y condiciones especiales.');
     }
   }
   if (/^\d{4}-\d{2}-\d{2}$/.test(date || '') && (date < '2026-05-01' || date > '2026-12-31')) {
     const reference=minimumSalaryReference(form,liveMinimum);
-    if(!reference) alerts.push('No hay una referencia automática verificable para este período, edad o régimen; comprueba el ingreso mínimo vigente.');
+    if(!reference) review.push('No hay una referencia automática verificable para este período, edad o régimen; comprueba el ingreso mínimo vigente.');
     else if(salary>0 && salary<reference.amount) alerts.push(`Sueldo base inferior a la referencia de $${reference.amount.toLocaleString('es-CL')}: revisa edad, jornada y conceptos que legalmente correspondan a sueldo.`);
   }
-  if(date>='2026-05-01' && date<='2026-12-31' && liveMinimum?.asOf===date && liveMinimum.value!==553553) alerts.push('La fuente en línea y el valor legal registrado difieren; verifica la norma vigente antes de utilizar el cálculo.');
+  if(date>='2026-05-01' && date<='2026-12-31' && liveMinimum?.asOf===date && liveMinimum.value!==553553) review.push('La fuente en línea y el valor legal registrado difieren; verifica la norma vigente antes de utilizar el cálculo.');
   if(form.contractType==='plazo_fijo') {
     if(!form.fecha_inicio_contrato) alerts.push('Indica el inicio de este contrato; no lo confundas con la fecha original de ingreso.');
     if(form.fecha_inicio_contrato && form.fecha_termino_pactada && form.fecha_termino_pactada<form.fecha_inicio_contrato) alerts.push('El término es anterior al inicio de este contrato.');
     if(form.fecha_inicio_contrato && form.fecha_termino_pactada) {
       const d=new Date(`${form.fecha_inicio_contrato}T00:00:00Z`);d.setUTCFullYear(d.getUTCFullYear()+1);
-      if(!Number.isNaN(d.getTime()) && form.fecha_termino_pactada>d.toISOString().slice(0,10)) alerts.push('El plazo supera un año: revisa si corresponde la excepción legal y su respaldo.');
+      const maximum = new Date(d);
+      maximum.setUTCFullYear(maximum.getUTCFullYear()+1);
+      if (!Number.isNaN(maximum.getTime()) && form.fecha_termino_pactada > maximum.toISOString().slice(0,10)) alerts.push('El plazo fijo supera dos años.');
+      else if(!Number.isNaN(d.getTime()) && form.fecha_termino_pactada>d.toISOString().slice(0,10)) review.push('El plazo supera un año: revisa si corresponde la excepción legal y su respaldo.');
     }
     if(form.fixedRenewals==='2+') alerts.push('Una segunda renovación requiere revisar la transformación a contrato indefinido.');
     if(!form.fixedRenewals) alerts.push('Indica el historial de renovaciones para revisar el plazo fijo.');
