@@ -9,7 +9,7 @@ import LaborScheduleBuilder from './LaborScheduleBuilder';
 import LaborCycleScheduleBuilder from './LaborCycleScheduleBuilder';
 import { useLaborMinimumIndicator } from '../../hooks/useLaborMinimumIndicator';
 import { chileToday } from '../../hooks/useEconomicIndicators';
-import { AranproOfficialSeal } from '../common/MauranLogo';
+import LaborContractSignatures from './LaborContractSignatures';
 
 import LaborContractFields, { groups, steps } from './LaborContractFields';
 
@@ -26,7 +26,8 @@ const fields = [
   ['dia_o_regla_de_pago','Día o regla de pago'],['medio_pago','Medio de pago'],['lugar_pago','Lugar de pago o no aplica'],['sueldo_base_monto','Sueldo base mensual','number'],
   ['bonos_pactados_con_monto_y_devengo','Bonos y condiciones o no aplica'],['asignaciones_con_monto_y_condiciones','Asignaciones y condiciones o no aplica'],['clausula_gratificacion_aplicable','Régimen de gratificación']
 ];
-const printStyles=ready=>`@page{size:letter portrait;margin:19mm 17mm;@bottom-left{content:"ARANPRO Gestión Integral";font:8px Arial;color:#62766d}@bottom-center{content:"${ready ? 'Contrato individual de trabajo' : 'Borrador · No apto para firma'}";font:8px Arial;color:#0f3d2e}@bottom-right{content:"Página " counter(page);font:8px Arial;color:#62766d}}.print-wrapper{box-shadow:none!important;padding:0!important}.labor-contract-doc{font-family:Arial,sans-serif!important;color:#1c2925!important;font-size:10.5pt!important;line-height:1.45!important}.labor-contract-doc h2{font-size:15pt!important;color:#0f3d2e!important}.labor-contract-doc h3{font-size:11pt!important;color:#0f3d2e!important;break-after:avoid!important}.labor-contract-doc p{orphans:3;widows:3}.labor-contract-doc .signatures,.labor-contract-end{break-inside:avoid;page-break-inside:avoid}.labor-contract-stripe{position:fixed;left:0;top:0;bottom:0;width:2mm;border-left:1.1mm solid #0f3d2e;border-right:.45mm solid #d4b895}.labor-contract-header-logo{width:22mm!important;height:auto!important;max-height:13mm!important;object-fit:contain!important}.aranpro-print-watermark{display:none!important}`;
+const safeFooter = value => JSON.stringify(String(value || '').replace(/[\r\n]/g, ' '));
+const printStyles=(ready,settings)=>`@page{size:letter portrait;margin:19mm 17mm;@bottom-left{content:${safeFooter(`ARANPRO Gestión Integral • ${settings.website || "https://aranpro.cl"}`)};font:8px Arial;color:#62766d}@bottom-center{content:"Página " counter(page) " • ${ready ? 'Contrato de trabajo' : 'Borrador de contrato'}";font:8px Arial;color:#0f3d2e}@bottom-right{content:${safeFooter(`Fono Directo: ${settings.phone || "+56 9 5811 8504"}`)};font:8px Arial;color:#62766d}}.print-wrapper{box-shadow:none!important;padding:0!important}.labor-contract-doc{font-family:Arial,sans-serif!important;color:#1c2925!important;font-size:10.5pt!important;line-height:1.45!important}.labor-contract-doc h2{font-size:15pt!important;color:#0f3d2e!important}.labor-contract-doc h3{font-size:11pt!important;color:#0f3d2e!important;break-after:avoid!important}.labor-contract-doc p{orphans:3;widows:3}.labor-contract-doc .signatures,.labor-contract-end{break-inside:avoid;page-break-inside:avoid}.labor-contract-stripe{position:fixed;left:0;top:0;bottom:0;width:2mm;border-left:1.1mm solid #0f3d2e;border-right:.45mm solid #d4b895}.labor-contract-header-logo{width:22mm!important;height:auto!important;max-height:13mm!important;object-fit:contain!important}.aranpro-print-watermark{display:none!important}`;
 const printableDate=x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x||''))?x.split('-').reverse().join('/'):(x||'');
 const str=x=>String(x??'').trim();
 const localToday=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -102,7 +103,7 @@ export default function LaborContractDraft({worker,community,settings={},onClose
   const printContract = () => {
     const prefix = ready ? 'ARANPRO_Contrato_Trabajo' : 'ARANPRO_Borrador_Contrato_Trabajo';
     printDocumentDirectly('labor-contract-draft', prefix + '_' + form.nombre_trabajador, {
-      pageSize:'letter portrait', fitPage:false, margin:'19mm 17mm', pdfStyle:'neutral', extraStyles:printStyles(ready)
+      pageSize:'letter portrait', fitPage:false, margin:'19mm 17mm', pdfStyle:'neutral', extraStyles:printStyles(ready,settings)
     });
   };
 
@@ -225,19 +226,7 @@ export default function LaborContractDraft({worker,community,settings={},onClose
     <h3 className="font-bold mt-4 mb-1">Segundo. Funciones del cargo</h3>{duties.split(/\n\s*\n/).filter(Boolean).map((text,i)=><p className="my-2 text-justify" key={i}>{text}</p>)}
     {blocks.slice(afterDuties).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill(b.mode==='plazo_fijo'?b.text.replace('{{fecha_ingreso}}','{{fecha_inicio_contrato}}'):b.text)}</p>)}
     {str(additionalTerms)&&<section><h3 className="font-bold mt-4 mb-1">Acuerdos particulares</h3><p className="my-2 text-justify" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{additionalTerms.trim()}</p></section>}
-    <div className="labor-contract-end">
-      <div className="signatures grid grid-cols-2 gap-8 pt-10 text-center text-xs"><div>____________________________<br/>{form.nombre_trabajador||'[PENDIENTE]'}<br/>Persona trabajadora</div><div>____________________________<br/>{form.nombre_representante||'[PENDIENTE]'}<br/>Por {form.nombre_empleador||'[PENDIENTE]'}</div></div>
-      <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:12,borderTop:'1px solid #cbd5e1',marginTop:24,paddingTop:10}}>
-        <AranproOfficialSeal size="sm" showText companyRut={settings.companyRut && !String(settings.companyRut).includes('76.999.888') ? settings.companyRut : ''} rnacNumber={settings.rnacNumber || ''} />
-        <div style={{fontSize:9,color:'#475569'}}><div><strong>Contacto:</strong> {settings.phone || '+56 9 5811 8504'}</div><div>{settings.website || 'https://aranpro.cl'}</div></div>
-        <div style={{textAlign:'center',minWidth:150,fontSize:9}}>
-          {(settings.signatureDataUrl || settings.signature || settings.digitalSignature) && <img src={settings.signatureDataUrl || settings.signature || settings.digitalSignature} alt="Firma de administración" style={{display:'block',height:42,width:'auto',maxWidth:140,objectFit:'contain',margin:'0 auto',transform:`scale(${Number(settings.signatureScale)||1.35})`,transformOrigin:'bottom center'}} />}
-          <div style={{borderTop:'1px solid #1e293b',paddingTop:3,fontWeight:700}}>{settings.adminName || 'Administración'}</div>
-          <div>Administración ARANPRO</div>
-        </div>
-      </div>
-      <div style={{borderTop:'1px solid #cbd5e1',marginTop:8,paddingTop:4,display:'flex',justifyContent:'space-between',fontSize:8,color:'#64748b'}}><span>ARANPRO Gestión Integral • {settings.website || 'https://aranpro.cl'}</span><span>Contrato individual de trabajo</span></div>
-    </div></div></div></div>
+    <LaborContractSignatures form={form} settings={settings} /></div></div></div>
 </details></>}
   <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
     <div><button type="button" onClick={save} className="rounded-lg border bg-white px-3 py-2 text-sm">Guardar borrador</button>
