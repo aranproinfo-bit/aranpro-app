@@ -3523,7 +3523,7 @@ _Administración ARANPRO_`;
                   >
                     <div className="flex items-center space-x-1.5 min-w-0">
                       <ShieldAlert className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'remuneraciones' && remuneracionesSubTab === 'riohs' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">8. RIOHS & Ley Karin</span>
+                      <span className="truncate">8. Reglamento y Ley Karin</span>
                     </div>
                     <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
                       activeTab === 'remuneraciones' && remuneracionesSubTab === 'riohs'

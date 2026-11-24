@@ -1,3 +1,5 @@
+import { CommunityLaborHeader, CommunityLaborFooter } from './CommunityLaborStationery';
+import { printCommunityLabor } from '../../utils/communityLaborPrint';
 import React, { useRef, useState } from 'react';
 import blocks from './laborContractMaster.json';
 import { laborRoleProfiles, detectLaborRole } from './laborRoleProfiles';
@@ -187,6 +189,7 @@ export default function LaborContractDraft({worker,community,settings={},onClose
   const printContract = () => {
     if (ready && onSaveWorker && !save()) return;
     const prefix = ready ? 'ARANPRO_Contrato_Trabajo' : 'ARANPRO_Borrador_Contrato_Trabajo';
+    if (employerKind === 'community') return printCommunityLabor('labor-contract-draft', prefix + '_' + form.nombre_trabajador);
     printDocumentDirectly('labor-contract-draft', prefix + '_' + form.nombre_trabajador, {
       pageSize:'letter portrait', fitPage:false, margin:'19mm 17mm', pdfStyle:'neutral', extraStyles:printStyles(ready,settings)
     });
@@ -311,6 +314,7 @@ export default function LaborContractDraft({worker,community,settings={},onClose
     <button type="button" className="bg-[#0F3D2E] text-white rounded px-4 py-2 text-sm" onClick={printContract}>{ready ? 'Emitir contrato para firma' : 'Imprimir borrador'}</button>
 <details id="labor-field-preview" tabIndex={-1} className="rounded-lg border bg-white p-3"><summary className="cursor-pointer text-sm font-semibold">Vista previa del contrato</summary>
     <div className="bg-slate-100 p-4 overflow-auto"><div id="labor-contract-draft"><div className="labor-contract-doc bg-white max-w-[800px] mx-auto p-8 text-sm leading-relaxed text-slate-800">
+    {employerKind === 'community' ? <CommunityLaborHeader community={community} settings={settings} badge="INSTRUMENTO LABORAL" title="Contrato individual de trabajo"/> : <>
     <div className="labor-contract-stripe" aria-hidden="true" />
     <div className="labor-contract-header" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,borderBottom:'2px solid #0F3D2E',paddingBottom:12,marginBottom:14}}>
       <div style={{display:'flex',alignItems:'center',gap:12}}>
@@ -326,12 +330,15 @@ export default function LaborContractDraft({worker,community,settings={},onClose
         <div style={{fontSize:9,color:'#64748b'}}>{community.name}</div>
       </div>
     </div>
+    </>}
     {!ready && <p className="font-bold text-center text-amber-900">BORRADOR DE REVISIÓN · NO APTO PARA FIRMA</p>}<h2 className="font-bold my-3">Contrato individual de trabajo</h2>
     {blocks.slice(0, firstDuty).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill(b.text)}</p>)}
     <h3 className="font-bold mt-4 mb-1">Segundo. Funciones del cargo</h3>{duties.split(/\n\s*\n/).filter(Boolean).map((text,i)=><p className="my-2 text-justify" key={i}>{text}</p>)}
     {blocks.slice(afterDuties).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill((b.mode==='plazo_fijo'?b.text.replace('{{fecha_ingreso}}','{{fecha_inicio_contrato}}'):b.text).replace('reglamento de la comunidad','reglamento aplicable del empleador'))}</p>)}
     {str(additionalTerms)&&<section><h3 className="font-bold mt-4 mb-1">Acuerdos particulares</h3><p className="my-2 text-justify" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{additionalTerms.trim()}</p></section>}
-    <LaborContractSignatures form={form} settings={settings} includeSignature={includeSignature} employerKind={employerKind} /></div></div></div>
+    <LaborContractSignatures form={form} settings={settings} includeSignature={includeSignature} employerKind={employerKind} />
+    {employerKind === 'community' && <div hidden data-footer-template=""><CommunityLaborFooter settings={settings} title={ready ? 'Contrato individual de trabajo' : 'Borrador · Contrato individual de trabajo'}/></div>}
+    </div></div></div>
 </details></>}
   <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
     <div><button type="button" onClick={save} className="rounded-lg border bg-white px-3 py-2 text-sm">{onSaveWorker ? 'Guardar ficha y contrato' : 'Guardar borrador'}</button>

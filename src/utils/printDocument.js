@@ -39,8 +39,8 @@ export const getActivePdfStyle = (options = {}, el = null) => {
 /**
  * Genera las reglas CSS específicas para la alternativa visual seleccionada ('alt4' | 'alt1' | 'alt2')
  */
-const buildPdfVisualStyleCss = (pdfStyle, hasDossierPages) => {
-  const targetSelector = hasDossierPages ? '.dossier-page' : '.print-wrapper';
+const buildPdfVisualStyleCss = (pdfStyle, hasDossierPages, sheetSelector) => {
+  const targetSelector = sheetSelector || (hasDossierPages ? '.dossier-page' : '.print-wrapper');
   if (pdfStyle === 'neutral') {
     return `
       ${targetSelector} { border: none !important; background-image: none !important; padding: 0 !important; justify-content: flex-start !important; }
@@ -212,7 +212,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
     `
       : '';
 
-    const visualStyleCss = buildPdfVisualStyleCss(activePdfStyle, hasDossierPages);
+    const visualStyleCss = buildPdfVisualStyleCss(activePdfStyle, hasDossierPages, options.sheetSelector);
 
     const doc = iframe.contentWindow || iframe.contentDocument;
     const iDoc = doc.document || doc;
@@ -223,7 +223,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
         <head>
           <meta charset="utf-8" />
           <title>${sanitizedTitle}</title>
-          <script src="https://cdn.tailwindcss.com"></script>
+          ${options.useBundledStyles ? '' : '<script src="https://cdn.tailwindcss.com"></script>'}
           ${existingStyles}
           <style>
             @page {
@@ -456,6 +456,26 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
       // Ignorar restricciones de origen cruzado si ocurrieran
     }
 
+    if (options.prepareDocument) {
+      const job = iDoc.querySelector('.print-wrapper');
+      const prepareAndPrint = async () => {
+        try {
+          if (iDoc.readyState !== 'complete') await new Promise(resolve => doc.addEventListener('load', resolve, { once: true }));
+          await Promise.all(Array.from(iDoc.images, img => img.decode().catch(() => {})));
+          await iDoc.fonts.ready;
+          if (job !== iDoc.querySelector('.print-wrapper')) return;
+          options.prepareDocument(iDoc);
+          doc.focus();
+          doc.print();
+        } catch (error) {
+          console.error('Error de composición del documento', error);
+          cleanup();
+          window.alert('No fue posible preparar las hojas de este documento. Vuelve a abrir la impresión.');
+        }
+      };
+      void prepareAndPrint();
+      return;
+    }
     setTimeout(() => {
       try {
         iframe.contentWindow.focus();

@@ -1,5 +1,10 @@
+import { CommunityLaborHeader, CommunityLaborFooter } from './CommunityLaborStationery';
+import CommunityLaborAnnex from './CommunityLaborAnnex';
+import CommunityPreventionDocument from './CommunityPreventionDocument';
+import CommunitySettlementDocument from './CommunitySettlementDocument';
 import LaborRoleSelect from './LaborRoleSelect';
 import LaborContractDraft from './LaborContractDraft';
+import OvertimeAgreementDraft from './OvertimeAgreementDraft';
 import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import {
@@ -11,9 +16,7 @@ import {
   calculateOvertimeHourValue,
   calculateMonthlyPayroll,
   numberToSpanishWords,
-  TERMINATION_CAUSES_CHILE,
   calculateVacationBalance,
-  calculateSeverancePay,
   generatePreviredTxtContent
 } from '../../utils/chileanPayrollCalculations';
 import { formatCLP } from '../../utils/formatters';
@@ -40,7 +43,9 @@ const payrollSlipPrintStyles = `
   .dossier-page .payroll-worker-details > div { min-width: 0; overflow-wrap: anywhere; }
 `;
 
-export const CommunityPayrollAndStaffModule = ({
+export const CommunityPayrollAndStaffModule = props => <CommunityStaffPanel key={props.currentCommunity?.id} {...props}/>;
+
+const CommunityStaffPanel = ({
   currentCommunity,
   activeSubTab = 'nomina',
   onSubTabChange
@@ -70,15 +75,6 @@ export const CommunityPayrollAndStaffModule = ({
   const minimumConflict = Boolean(knownMinimum && indicator.reference?.asOf === indicator.today && indicator.today.slice(0,7)===periodKey && indicator.reference.value !== knownMinimum);
   const confirmedMinimum = enteredMinimum>0 && minimumSource ? enteredMinimum : null;
   const periodMinimum = minimumConflict ? confirmedMinimum : knownMinimum || confirmedMinimum;
-  const minimumForDate = date => {
-    const month = String(date||'').slice(0,7);
-    if (!/^\d{4}-\d{2}$/.test(month)) return null;
-    const [year,value] = month.split('-').map(Number);
-    if (month===periodKey) return periodMinimum;
-    const minimum = minimumForPayrollPeriod(year,value,indicator.reference,indicator.today);
-    if (minimum && indicator.reference?.asOf === indicator.today && indicator.today.slice(0,7)===month && indicator.reference.value !== minimum) return null;
-    return minimum;
-  };
   const periodLabel = `${String(selectedMonth).padStart(2, '0')}/${selectedYear}`;
   const periodLongName = `${[
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -108,6 +104,7 @@ export const CommunityPayrollAndStaffModule = ({
 
   // Modal para Ver / Imprimir Contrato de Trabajo DT
   const [selectedWorkerForContract, setSelectedWorkerForContract] = useState(null);
+  const [annexWorker,setAnnexWorker] = useState(null);
   const [showContractModal, setShowContractModal] = useState(false);
 
   // Modal para Ver / Imprimir Planilla Mensual de Remuneraciones (Libro de Sueldos)
@@ -141,27 +138,10 @@ export const CommunityPayrollAndStaffModule = ({
   // Estado y Modales para Finiquito Laboral & Carta de Despido (Art. 159, 160, 161)
   const [selectedWorkerForSeverance, setSelectedWorkerForSeverance] = useState(null);
   const [showSeveranceModal, setShowSeveranceModal] = useState(false);
-  const [showSeverancePrintModal, setShowSeverancePrintModal] = useState(false);
-  const [showDismissalLetterModal, setShowDismissalLetterModal] = useState(false);
-  const [severanceForm, setSeveranceForm] = useState({
-    terminationDate: new Date().toISOString().split('T')[0],
-    causeId: '161_1',
-    noticeGiven: false,
-    vacationDaysPending: 10,
-    workedDaysInMonth: 15,
-    afcBalanceDeduction: 0,
-    reasonDetail: 'Reestructuración y racionalización de turnos del personal de copropiedad acordada por el Comité de Administración.'
-  });
-
   // Estado y Modal para Pacto Bilateral de Horas Extras (Art. 32 Código del Trabajo)
   const [selectedWorkerForOvertimePact, setSelectedWorkerForOvertimePact] = useState(null);
   const [showOvertimePactModal, setShowOvertimePactModal] = useState(false);
-  const [overtimePactForm, setOvertimePactForm] = useState({
-    startDate: '01/11/2026',
-    endDate: '31/01/2027',
-    maxHoursPerDay: 2,
-    motive: 'Necesidades operacionales temporales, cobertura de contingencias de acceso, suplencias de turnos de conserjería e inspecciones de salas técnicas del condominio.'
-  });
+
 
   // Estado para Protocolo Ley Karin
   const [showKarinModal, setShowKarinModal] = useState(false);
@@ -420,83 +400,14 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
   };
 
   // Helper para generar cabecera corporativa estándar ARANPRO en PDFs
-  const renderAranproPdfHeader = (docTypeBadge, titleText, folioText) => (
-    <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-3.5 border-b-2 border-[#0F3D2E] gap-3">
-      <div className="flex items-center space-x-3.5">
-        <img src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" className="payroll-brand-logo h-9 w-auto shrink-0 object-contain" />
-        <div className="space-y-0.5">
-          <div className="text-sm font-black text-[#0F3D2E] tracking-tight">
-            {companySettings?.brandName || 'ARANPRO'} • {companySettings?.subtitle || 'Gestión Integral'}
-          </div>
-          <div className="text-[10px] text-slate-600 font-bold tracking-wide">
-            ADMINISTRACIÓN DE CONDOMINIOS • RECURSOS HUMANOS
-          </div>
-          <div className="text-[9px] text-slate-500">
-            {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? (
-              <>RUT Empresa: <strong>{companySettings.companyRut}</strong> • </>
-            ) : null}
-            Ley N° 21.442 de Copropiedad Inmobiliaria
-          </div>
-        </div>
-      </div>
-
-      <div className="text-right space-y-0.5 shrink-0">
-        <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200 inline-block">
-          {docTypeBadge}
-        </span>
-        <div className="text-xs font-black text-slate-900">
-          {titleText}
-        </div>
-        <div className="text-[10px] text-slate-600 font-mono">
-          {currentCommunity?.name} • Folio: {folioText}
-        </div>
-        <div className="text-[9px] text-slate-400">
-          {currentCommunity?.city || ''}{currentCommunity?.city ? ' • ' : ''}{periodLongName}
-        </div>
-      </div>
-    </div>
+  const renderAranproPdfHeader = (badge, title, folio) => (
+    <CommunityLaborHeader settings={companySettings} community={currentCommunity} badge={badge} title={title} folio={folio} period={periodLongName}/>
   );
-
-  // Helper para generar pie de página institucional estándar ARANPRO en PDFs
-  const renderAranproPdfFooter = (pageNumber, totalPages, documentTitle) => {
-    const website = companySettings?.website || 'https://aranpro.cl';
-    const phone = companySettings?.phone || '+56 9 5811 8504';
-    return (
-      <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between text-[9px] text-slate-500 font-mono mt-auto">
-        <div>ARANPRO Gestión Integral • {website}</div>
-        <div className="font-bold text-[#0F3D2E]">
-          Página {pageNumber} de {totalPages} • {documentTitle}
-        </div>
-        <div>Fono Directo: {phone}</div>
-      </div>
-    );
-  };
+  const renderAranproPdfFooter = (page, total, title) => (
+    <CommunityLaborFooter settings={companySettings} title={title} page={page} total={total}/>
+  );
 
   // Helper para membrete de continuidad en páginas 2+
-  const renderContinuityHeader = (docTypeBadge, titleText, folioText) => (
-    <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-2">
-      <div className="flex items-center space-x-2.5">
-        <img src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" className="h-7 w-auto shrink-0 object-contain" />
-        <div className="space-y-0.5">
-          <div className="text-xs font-black text-[#0F3D2E] tracking-tight">
-            {companySettings?.brandName || 'ARANPRO'} • {companySettings?.subtitle || 'Gestión Integral'}
-          </div>
-          <div className="text-[8.5px] text-slate-500 font-mono">
-            {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
-          </div>
-        </div>
-      </div>
-      <div className="text-right">
-        <span className="text-[8.5px] font-black uppercase text-[#0F3D2E] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-          {docTypeBadge} • Continuación
-        </span>
-        <div className="text-[10px] font-bold text-slate-800">{titleText}</div>
-        <div className="text-[8.5px] text-slate-500 font-mono">Folio: {folioText}</div>
-      </div>
-    </div>
-  );
-
-  // Helper para firma del administrador con firma manuscrita digital subida + timbre oficial ARANPRO al lado
   const renderAdminSignatureBlock = (sublabel = 'POR LA ADMINISTRACIÓN DELEGADA (LEY N° 21.442)', compact = false) => {
     const adminSignature = companySettings?.signatureDataUrl || companySettings?.signature || companySettings?.digitalSignature || '';
     const adminScale = Number(companySettings?.signatureScale) || 1.35;
@@ -795,7 +706,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       </div>
                       <div className="flex items-center justify-between text-slate-600">
                         <span>Jornada:</span>
-                        <span className="font-bold text-slate-800">{worker.weeklyHours || 44} hrs / {worker.shift?.split('(')[0] || 'Diurno'}</span>
+                        <span className="font-bold text-slate-800">{worker.weeklyHours ? worker.weeklyHours+' hrs' : 'Jornada por confirmar'} / {worker.shift?.split('(')[0] || 'Diurno'}</span>
                       </div>
                       <div className="flex items-center justify-between text-slate-600">
                         <span>Sueldo Base:</span>
@@ -1309,13 +1220,13 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   Contratos Individuales de Trabajo DT
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Contratos laborales de 2 páginas con descriptor de funciones, turnos, sigilo Ley 19.628 y acreditación RNAC.
+                  Contrato y anexos por trabajador, con sus funciones, jornada y condiciones de remuneración.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-                  {staff.length} Contratos Registrados
+                  {staff.length} fichas de personal
                 </span>
               </div>
             </div>
@@ -1324,11 +1235,11 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div className="flex items-center gap-2.5">
                 <FileCheck className="w-4 h-4 text-[#0F3D2E] shrink-0" />
                 <span className="text-slate-600">
-                  Contratos individuales de trabajo de 2 páginas con cláusulas de conserjería, sigilo Ley 19.628, turnos y acreditación RNAC.
+                  Consulta el contrato de cada trabajador o prepara un anexo cuando cambien su jornada o remuneración.
                 </span>
               </div>
               <span className="text-[11px] font-bold text-slate-700 shrink-0">
-                {staff.length} Contratos Registrados
+                {staff.length} fichas de personal
               </span>
             </div>
 
@@ -1345,7 +1256,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
                     <p className="text-xs text-slate-600">{worker.role}</p>
                     <span className="text-[11px] text-slate-400 block font-mono">
-                      Ingreso: {worker.startDate} • {worker.weeklyHours || 44} hrs
+                      Ingreso: {worker.startDate} • {worker.weeklyHours ? worker.weeklyHours+' hrs' : 'Jornada por confirmar'}
                     </span>
                   </div>
 
@@ -1359,8 +1270,9 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                       className="flex-1 py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer"
                     >
                       <FileText className="w-3.5 h-3.5" />
-                      <span>Ver Contrato Detallado DT</span>
+                      <span>Ver contrato de trabajo</span>
                     </button>
+                    <button type="button" onClick={()=>setAnnexWorker(worker)} className="rounded-xl border border-[#0f3d2e] px-3 py-2 text-xs font-bold text-[#0f3d2e]">Preparar anexo</button>
                   </div>
                 </div>
               ))}
@@ -1492,7 +1404,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     Pacto Bilateral Escrito Obligatorio (Art. 32 Código del Trabajo)
                   </strong>
                   <span className="text-amber-800 text-[11px]">
-                    Para pagar horas extraordinarias sin contingencias laborales con la DT, la ley exige firmar previamente un pacto con vigencia máxima de 3 meses. Recargo legal del 50% sobre el sueldo base.
+                    El pacto escrito identifica la necesidad temporal, la jornada y la vigencia. Registra y remunera también las horas extraordinarias trabajadas con conocimiento del empleador.
                   </span>
                 </div>
               </div>
@@ -1511,7 +1423,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     <h4 className="text-sm font-black text-slate-900">{worker.name}</h4>
                     <p className="text-xs text-slate-600">{worker.role}</p>
                     <span className="text-[11px] text-slate-500 block font-mono">
-                      Valor Hora Extra 50%: {formatCLP(calculateOvertimeHourValue(worker.baseSalary, worker.weeklyHours || 44))}
+                      Referencia solo sueldo base: {Number(worker.baseSalary) > 0 && Number(worker.weeklyHours) > 0 ? formatCLP(calculateOvertimeHourValue(worker.baseSalary, worker.weeklyHours)) : 'datos de sueldo o jornada pendientes'} · Revisar conceptos y mínimo aplicable
                     </span>
                   </div>
 
@@ -1524,7 +1436,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     className="w-full py-2 px-3 rounded-xl bg-[#0F3D2E] text-[#D4B895] hover:bg-[#0A291F] text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                   >
                     <Clock className="w-3.5 h-3.5" />
-                    <span>Ver / Emitir Pacto Horas Extras DT</span>
+                    <span>Preparar pacto de horas extras</span>
                   </button>
                 </div>
               ))}
@@ -1559,7 +1471,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     Finiquitos Laborales & Notificaciones de Término (Art. 159, 160 y 161)
                   </strong>
                   <span className="text-slate-600 text-[11px]">
-                    Calcula indemnizaciones por años de servicio, preaviso, feriado proporcional y genera el Finiquito Notarial y la Carta Certificada DT.
+                    Prepara el finiquito con el detalle de haberes, descuentos, reservas y respaldos. Para despidos, también puedes preparar la comunicación de término.
                   </span>
                 </div>
               </div>
@@ -1590,17 +1502,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   <button
                     type="button"
                     onClick={() => {
-                      const vac = calculateVacationBalance(worker.startDate, worker.vacationDaysTaken || 0);
                       setSelectedWorkerForSeverance(worker);
-                      setSeveranceForm({
-                        terminationDate: new Date().toISOString().split('T')[0],
-                        causeId: '161_1',
-                        noticeGiven: false,
-                        vacationDaysPending: vac.daysRemaining || 10,
-                        workedDaysInMonth: 15,
-                        afcBalanceDeduction: 0,
-                        reasonDetail: 'Reestructuración y racionalización de turnos del personal de copropiedad acordada por el Comité de Administración.'
-                      });
                       setShowSeveranceModal(true);
                     }}
                     className="w-full py-2 px-3 rounded-xl bg-slate-900 text-amber-200 hover:bg-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
@@ -1625,33 +1527,13 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   Normativa de Orden, Higiene & Seguridad • Ley N° 21.442, Ley N° 16.744 y Ley N° 21.643
                 </span>
                 <h3 className="text-base font-black text-slate-900 mt-1">
-                  Reglamento Interno (RIOHS) & Protocolo Ley Karin
+                  Reglamento interno y protocolo Ley Karin
                 </h3>
                 <p className="text-xs text-slate-500">
                   Instrumentos normativos oficiales exigibles por la Inspección del Trabajo y la Seremi de Salud.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowKarinModal(true)}
-                  className="py-2.5 px-3.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-900 text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                  title="Protocolo obligatorio de prevención de acoso y violencia laboral"
-                >
-                  <ShieldAlert className="w-4 h-4 text-rose-600" />
-                  <span>Protocolo Ley Karin</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowRiohsModal(true)}
-                  className="py-2.5 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-2 shadow-xs transition-all cursor-pointer shrink-0"
-                >
-                  <ScrollText className="w-4 h-4" />
-                  <span>Ver RIOHS Oficial</span>
-                </button>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1662,10 +1544,10 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     Normativa de Orden e Higiene
                   </span>
                   <h4 className="text-base font-black text-slate-900">
-                    Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)
+                    Reglamento interno de la comunidad (RIHS o RIOHS)
                   </h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Instrumento normativo completo de 2 páginas adaptado a la Ley N° 21.442 de Copropiedad Inmobiliaria, Ley N° 16.744 sobre Accidentes del Trabajo y Código del Trabajo.
+                    La aplicación prepara un reglamento según la dotación de la comunidad. Con diez o más trabajadores permanentes, incorpora también las normas de orden.
                   </p>
                 </div>
 
@@ -1675,7 +1557,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   className="py-2.5 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
                 >
                   <ScrollText className="w-4 h-4" />
-                  <span>Ver / Imprimir RIOHS Completo (PDF)</span>
+                  <span>Preparar reglamento</span>
                 </button>
               </div>
 
@@ -1699,7 +1581,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                   className="py-2.5 px-4 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-black flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
                 >
                   <ShieldAlert className="w-4 h-4" />
-                  <span>Ver / Imprimir Protocolo Ley Karin (PDF)</span>
+                  <span>Protocolo Ley Karin</span>
                 </button>
               </div>
             </div>
@@ -2454,179 +2336,8 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
       {showContractModal && selectedWorkerForContract && <LaborContractDraft key={selectedWorkerForContract.id} worker={selectedWorkerForContract} community={currentCommunity} settings={companySettings || {}} onSaveWorker={saveUnifiedWorker} onClose={() => setShowContractModal(false)} />}
 
-      {/* ==================== MODAL 7: REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS) ==================== */}
-      {showRiohsModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <ScrollText className="w-5 h-5 text-[#0F3D2E]" />
-                <div>
-                  <h3 className="text-base font-black text-slate-900">
-                    Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)
-                  </h3>
-                  <span className="text-xs text-slate-500">{currentCommunity.name} • Código del Trabajo & Ley Karin N° 21.643</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <AranproPdfStyleSelector />
-                <button
-                  type="button"
-                  onClick={() =>
-                    printDocumentDirectly(
-                      'printable-community-riohs-document',
-                      `ARANPRO_RIOHS_${currentCommunity.name.replace(/\s+/g, '_')}`,
-                      { pdfStyle, fitPage: false, margin: '4mm 6mm 4mm 6mm' }
-                    )
-                  }
-                  className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Imprimir RIOHS Completo (PDF)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowRiohsModal(false)}
-                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* DOCUMENTO RIOHS IMPRIMIBLE (2 PÁGINAS EDITORIALES) */}
-            <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
-              <div id="printable-community-riohs-document" className="space-y-6 print-area">
-                {/* ==================== PÁGINA 1: DISPOSICIONES, JORNADA Y OBLIGACIONES ==================== */}
-                <div
-                  className="dossier-page page-1 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
-                  data-pdf-style={pdfStyle}
-                >
-                  <div className="space-y-4">
-                    {renderAranproPdfHeader('NORMATIVA LABORAL', 'REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD (RIOHS)', 'RIOHS-2026')}
-
-                    <div className="text-center space-y-1 border-b border-slate-200 pb-3">
-                      <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
-                        REGLAMENTO INTERNO DE ORDEN, HIGIENE Y SEGURIDAD
-                      </h2>
-                      <p className="text-[11px] text-slate-600 font-bold">
-                        COMUNIDAD {currentCommunity.name.toUpperCase()} • LEY N° 16.744, LEY N° 21.442 Y LEY KARIN N° 21.643
-                      </p>
-                    </div>
-
-                    <div className="space-y-4 text-justify text-xs leading-relaxed">
-                      <div>
-                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                          TÍTULO I: DISPOSICIONES GENERALES, ÁMBITO DE APLICACIÓN Y OBJETIVOS
-                        </h4>
-                        <p className="mt-1">
-                          El presente Reglamento Interno regula las condiciones, requisitos, derechos, deberes y normas de higiene y seguridad laboral que rigen para todos los trabajadores dependientes de la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, en conformidad a lo dispuesto en el Libro I, Título III del Código del Trabajo, en la Ley N° 16.744 sobre Accidentes del Trabajo y Enfermedades Profesionales, y en la Ley N° 21.442 de Copropiedad Inmobiliaria. Su cumplimiento es estrictamente obligatorio para la totalidad de la dotación y personal de reemplazo.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                          TÍTULO II: DE LA JORNADA DE TRABAJO, REGISTRO DE ASISTENCIA Y SISTEMA DE TURNOS
-                        </h4>
-                        <p className="mt-1">
-                          El personal cumplirá la jornada pactada en sus contratos individuales de trabajo. El control diario de asistencia, horas de entrada, salida y tiempo de colación se registrará obligatoriamente a través del Libro de Asistencia foliado o sistema electrónico validado por la Dirección del Trabajo (DT). Ningún trabajador podrá hacer abandono de su puesto antes de la llegada de su relevo formal y debida entrega de novedades asentadas en el Libro de Conserjería.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                          TÍTULO III: OBLIGACIONES PRIMORDIALES DEL PERSONAL DE CONSERJERÍA, RONDAS Y ASEO
-                        </h4>
-                        <p className="mt-1">
-                          Son obligaciones fundamentales del personal de copropiedad:
-                        </p>
-                        <ul className="list-disc pl-5 mt-1 space-y-1 text-slate-700">
-                          <li>Mantener un trato de máximo respeto, probidad, prudencia y cortesía hacia copropietarios, arrendatarios, visitas y Comité de Administración.</li>
-                          <li>Controlar e individualizar en los registros de acceso a todo peatón y vehículo ajeno al condominio, verificando autorización previa.</li>
-                          <li>Operar con celo y diligencia los sistemas de citofonía, circuito cerrado de televisión (CCTV), portones automáticos y barreras de acceso.</li>
-                          <li>Custodiar las llaves de salas técnicas y recintos comunitarios, prohibiéndose su entrega sin autorización expresa de la Administración.</li>
-                          <li>Utilizar en forma permanente los Elementos de Protección Personal (EPP) suministrados por el Empleador durante toda la jornada.</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {renderAranproPdfFooter(1, 2, 'Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)')}
-                </div>
-
-                {/* ==================== PÁGINA 2: LEY KARIN, SEGURIDAD, EPP, SANCIONES Y FIRMAS ==================== */}
-                <div
-                  className="dossier-page page-2 bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
-                  data-pdf-style={pdfStyle}
-                >
-                  <div className="space-y-4">
-                    {renderContinuityHeader('NORMATIVA LABORAL', `REGLAMENTO INTERNO RIOHS • ${currentCommunity.name}`, 'RIOHS-2026')}
-
-                    <div className="space-y-4 text-justify text-xs leading-relaxed">
-                      <div>
-                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                          TÍTULO IV: PROTOCOLO OBLIGATORIO DE PREVENCIÓN DEL ACOSO LABORAL, SEXUAL Y VIOLENCIA EN EL TRABAJO (LEY KARIN N° 21.643)
-                        </h4>
-                        <p className="mt-1">
-                          La Comunidad y la Administración prohíben terminantemente cualquier conducta constitutiva de acoso laboral, acoso sexual o violencia física o psicológica en el trabajo, sea por parte de copropietarios, miembros del Comité, superiores jerárquicos o terceros. Se establecen canales formales y confidenciales para la recepción inmediata de denuncias ante la Administración Titular, adoptándose medidas cautelares de resguardo y derivación a la Dirección del Trabajo y Mutualidad respectiva en los plazos legales.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                          TÍTULO V: NORMAS DE SEGURIDAD EN INSTALACIONES CRÍTICAS COMUNITARIAS
-                        </h4>
-                        <p className="mt-1">
-                          Se prohíbe terminantemente el ingreso de personas no autorizadas o residentes a salas de bombas de impulsión de agua potable, calderas, generadores de emergencia, tableros eléctricos de fuerza y fosas de recirculación. El personal de conserjería mantendrá cerrado con candado o llave dichos recintos y reportará cualquier fuga de agua, olor a gas, sobrecalentamiento o caída de fase de manera urgente a la Administración.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                          TÍTULO VI: ELEMENTOS DE PROTECCIÓN PERSONAL (EPP), ACCIDENTES DEL TRABAJO Y MUTUALIDAD
-                        </h4>
-                        <p className="mt-1">
-                          La Comunidad proporcionará oportunamente al personal el calzado de seguridad dieléctrico, guantes de nitrilo, chalecos reflectantes de alta visibilidad para turnos nocturnos y protectores auditivos. En caso de siniestro laboral o de trayecto, se aplicará de inmediato el protocolo de derivación a la Mutualidad adherida (Mutual de Seguridad / ACHS / IST) y notificación a la Dirección del Trabajo.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-[#0F3D2E] uppercase text-xs">
-                          TÍTULO VII: SANCIONES, PROCEDIMIENTO DE RECLAMOS, VIGENCIA Y EJEMPLARES
-                        </h4>
-                        <p className="mt-1">
-                          Las infracciones a este reglamento serán sancionadas conforme al Código del Trabajo mediante amonestación verbal, censura por escrito con copia a la Inspección del Trabajo, y multas proporcionales a beneficio de fondos de bienestar. El presente instrumento comenzará a regir formalmente transcurridos 30 días desde su notificación y entrega de copias a los trabajadores y al Comité de Administración.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Firmas y Pie Institucional anclados al fondo */}
-                  <div className="mt-auto space-y-4 pt-6">
-                    <div className="grid grid-cols-2 gap-12 text-center text-xs">
-                      {renderAdminSignatureBlock('POR LA ADMINISTRACIÓN DELEGADA (LEY N° 21.442)')}
-
-                      <div className="space-y-1 text-center">
-                        <div className="h-16 flex items-end justify-center mb-1">
-                          {/* Espacio visación Comité */}
-                        </div>
-                        <div className="border-t-[1.5px] border-slate-900 pt-1.5">
-                          <strong className="block text-slate-900 font-black text-xs leading-tight">Comité de Administración</strong>
-                          <p className="text-[9.5px] text-slate-600 font-mono">{currentCommunity.name}</p>
-                          <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">LEY N° 21.442 DE COPROPIEDAD INMOBILIARIA</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {renderAranproPdfFooter(2, 2, 'Reglamento Interno de Orden, Higiene y Seguridad (RIOHS)')}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {annexWorker && <CommunityLaborAnnex key={currentCommunity.id+':'+annexWorker.id} community={currentCommunity} worker={annexWorker} settings={companySettings||{}} onClose={()=>setAnnexWorker(null)}/>}
+      {(showRiohsModal || showKarinModal) && <CommunityPreventionDocument key={currentCommunity.id+':'+showRiohsModal} kind={showRiohsModal?'regulation':'karin'} community={currentCommunity} settings={companySettings||{}} onSave={laborPrevention=>updateCommunity(currentCommunity.id,{laborPrevention})} onClose={()=>{setShowRiohsModal(false);setShowKarinModal(false);}}/>}
 
       {/* ==================== MODAL 8: FORMULARIO SOLICITUD DE VACACIONES ==================== */}
       {showVacationModal && selectedWorkerForVacation && (
@@ -2913,812 +2624,9 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         );
       })()}
 
-      {/* ==================== MODAL 10: CALCULADORA FINIQUITO LABORAL ==================== */}
-      {showSeveranceModal && selectedWorkerForSeverance && (() => {
-        if (typeof selectedWorkerForSeverance.hasLegalGratification !== 'boolean') return <div className="fixed inset-0 z-50 bg-white p-8">Confirma la modalidad de gratificación en la ficha del trabajador antes de calcular su finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
-        const severanceMinimum = minimumForDate(severanceForm.terminationDate);
-        if (!severanceMinimum) return <div className="fixed inset-0 z-50 bg-white p-8 text-slate-800">Selecciona el período de término e ingresa su ingreso mínimo antes de calcular el finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
-        const severanceCalc = calculateSeverancePay({
-          minimumIncome: severanceMinimum,
-          worker: selectedWorkerForSeverance,
-          terminationDateStr: severanceForm.terminationDate,
-          causeId: severanceForm.causeId,
-          noticeGiven: severanceForm.noticeGiven,
-          vacationDaysPending: severanceForm.vacationDaysPending,
-          workedDaysInMonth: severanceForm.workedDaysInMonth,
-          afcBalanceDeduction: severanceForm.afcBalanceDeduction
-        });
-        return (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-slate-800" />
-                  <div>
-                    <h3 className="text-base font-black text-slate-900">
-                      Simulador y Emisión de Finiquito Laboral
-                    </h3>
-                    <span className="text-xs text-slate-500 font-bold">
-                      {selectedWorkerForSeverance.name} • RUT {selectedWorkerForSeverance.rut}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSeveranceModal(false)}
-                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+      {showSeveranceModal && selectedWorkerForSeverance && <CommunitySettlementDocument key={currentCommunity.id+':'+selectedWorkerForSeverance.id} community={currentCommunity} worker={selectedWorkerForSeverance} settings={companySettings||{}} onClose={()=>setShowSeveranceModal(false)}/>}
+      {showOvertimePactModal && selectedWorkerForOvertimePact && <OvertimeAgreementDraft key={selectedWorkerForOvertimePact.id} worker={selectedWorkerForOvertimePact} community={currentCommunity} settings={companySettings || {}} onClose={() => setShowOvertimePactModal(false)} />}
 
-              {/* Formulario Interactivo de Parámetros de Término */}
-              <div className="space-y-3.5 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Causal Legal de Término (Código del Trabajo) *</label>
-                    <select
-                      value={severanceForm.causeId}
-                      onChange={(e) => setSeveranceForm({ ...severanceForm, causeId: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold cursor-pointer"
-                    >
-                      {TERMINATION_CAUSES_CHILE.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.article}: {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Fecha Término de Funciones *</label>
-                    <input
-                      type="date"
-                      value={severanceForm.terminationDate}
-                      onChange={(e) => setSeveranceForm({ ...severanceForm, terminationDate: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Días Vacaciones Pendientes</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={severanceForm.vacationDaysPending}
-                      onChange={(e) => setSeveranceForm({ ...severanceForm, vacationDaysPending: Number(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Días Trabajados en el Mes</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="30"
-                      value={severanceForm.workedDaysInMonth}
-                      onChange={(e) => setSeveranceForm({ ...severanceForm, workedDaysInMonth: Number(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Descuento Aporte AFC Empleador</label>
-                    <input
-                      type="number"
-                      value={severanceForm.afcBalanceDeduction}
-                      onChange={(e) => setSeveranceForm({ ...severanceForm, afcBalanceDeduction: Number(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                      placeholder="Art. 13 Ley 19.728"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <input
-                    type="checkbox"
-                    id="severanceNoticeGiven"
-                    checked={severanceForm.noticeGiven}
-                    onChange={(e) => setSeveranceForm({ ...severanceForm, noticeGiven: e.target.checked })}
-                    className="w-4 h-4 text-[#0F3D2E] rounded"
-                  />
-                  <label htmlFor="severanceNoticeGiven" className="text-slate-800 font-bold cursor-pointer">
-                    Se notificó el despido por escrito con al menos 30 días de anticipación (Exime del pago de Mes de Aviso)
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Fundamento de Hechos de la Carta de Despido</label>
-                  <textarea
-                    rows="2"
-                    value={severanceForm.reasonDetail}
-                    onChange={(e) => setSeveranceForm({ ...severanceForm, reasonDetail: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"
-                  />
-                </div>
-
-                {/* Resumen Financiero Calculado en Tiempo Real */}
-                <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-[#0F3D2E] space-y-2.5">
-                  <span className="text-[10px] font-black uppercase text-[#0F3D2E] tracking-wider block">
-                    LIQUIDACIÓN CONTABLE DE INDEMNIZACIONES (CÓDIGO DEL TRABAJO)
-                  </span>
-                  <div className="grid grid-cols-2 gap-2 text-[11px]">
-                    <div className="flex justify-between py-1 border-b border-emerald-200">
-                      <span className="text-slate-600">Última Remuneración Base + Grat.:</span>
-                      <strong className="font-mono text-slate-900">{formatCLP(severanceCalc.lastGrossSalary)}</strong>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-emerald-200">
-                      <span className="text-slate-600">Años Computados ({severanceCalc.yearsOfService} años):</span>
-                      <strong className="font-mono text-slate-900">{formatCLP(severanceCalc.severanceYearsAmount)}</strong>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-emerald-200">
-                      <span className="text-slate-600">Mes de Aviso Previo (Art. 161):</span>
-                      <strong className="font-mono text-slate-900">{formatCLP(severanceCalc.substituteNoticeAmount)}</strong>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-emerald-200">
-                      <span className="text-slate-600">Feriado Proporcional (Vacaciones):</span>
-                      <strong className="font-mono text-slate-900">{formatCLP(severanceCalc.proportionalVacationAmount)}</strong>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-emerald-200">
-                      <span className="text-slate-600">Días Pendientes Mes ({severanceForm.workedDaysInMonth} d):</span>
-                      <strong className="font-mono text-slate-900">{formatCLP(severanceCalc.pendingSalaryAmount)}</strong>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-emerald-200">
-                      <span className="text-slate-600">Descuento Seguro Cesantía AFC:</span>
-                      <strong className="font-mono text-rose-700">-{formatCLP(severanceCalc.afcDeduction)}</strong>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 flex items-baseline justify-between border-t border-[#0F3D2E]">
-                    <span className="font-black text-xs text-[#0F3D2E] uppercase">TOTAL NETO A PAGAR FINIQUITO:</span>
-                    <strong className="text-xl font-black text-[#0F3D2E] font-mono">{formatCLP(severanceCalc.totalNetSeverance)}</strong>
-                  </div>
-                </div>
-
-                {/* Acciones de Emisión */}
-                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSeveranceModal(false);
-                      setShowDismissalLetterModal(true);
-                    }}
-                    className="py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
-                  >
-                    <FileText className="w-4 h-4 text-slate-600" />
-                    <span>Ver Carta Notificación DT</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSeveranceModal(false);
-                      setShowSeverancePrintModal(true);
-                    }}
-                    className="py-2.5 px-5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Ver e Imprimir Finiquito Completo (PDF)</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ==================== MODAL 11: VISOR E IMPRESIÓN FINIQUITO LABORAL (2 PÁGINAS) ==================== */}
-      {showSeverancePrintModal && selectedWorkerForSeverance && (() => {
-        if (typeof selectedWorkerForSeverance.hasLegalGratification !== 'boolean') return <div className="fixed inset-0 z-50 bg-white p-8">Confirma la modalidad de gratificación en la ficha del trabajador antes de calcular su finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
-        const severanceMinimum = minimumForDate(severanceForm.terminationDate);
-        if (!severanceMinimum) return <div className="fixed inset-0 z-50 bg-white p-8 text-slate-800">Selecciona el período de término e ingresa su ingreso mínimo antes de calcular el finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
-        const severanceCalc = calculateSeverancePay({
-          minimumIncome: severanceMinimum,
-          worker: selectedWorkerForSeverance,
-          terminationDateStr: severanceForm.terminationDate,
-          causeId: severanceForm.causeId,
-          noticeGiven: severanceForm.noticeGiven,
-          vacationDaysPending: severanceForm.vacationDaysPending,
-          workedDaysInMonth: severanceForm.workedDaysInMonth,
-          afcBalanceDeduction: severanceForm.afcBalanceDeduction
-        });
-        return (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-[#0F3D2E]" />
-                  <div>
-                    <h3 className="text-base font-black text-slate-900">
-                      Finiquito de Contrato Individual de Trabajo • DT & Notaría
-                    </h3>
-                    <span className="text-xs text-slate-500">{selectedWorkerForSeverance.name} • {severanceCalc.cause.article}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <AranproPdfStyleSelector />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      printDocumentDirectly(
-                        'printable-community-severance-doc',
-                        `ARANPRO_Finiquito_${selectedWorkerForSeverance.name.replace(/\s+/g, '_')}`,
-                        { pdfStyle, fitPage: false, margin: '4mm 6mm 4mm 6mm' }
-                      )
-                    }
-                    className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Imprimir Finiquito (PDF)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowSeverancePrintModal(false)}
-                    className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* DOCUMENTO DE FINIQUITO IMPRIMIBLE (2 PÁGINAS EDITORIALES) */}
-              <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
-                <div id="printable-community-severance-doc" className="space-y-6 print-area">
-                  {/* PÁGINA 1: COMPARECENCIA, CAUSAL Y LIQUIDACIÓN CONTABLE */}
-                  <div
-                    className="dossier-page page-1 bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
-                    data-pdf-style={pdfStyle}
-                  >
-                    <div className="space-y-3.5">
-                      {renderAranproPdfHeader('INSTRUMENTO LABORAL', 'FINIQUITO DE CONTRATO INDIVIDUAL DE TRABAJO', `FINIQ-${selectedWorkerForSeverance.id}`)}
-
-                      <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
-                        <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
-                          FINIQUITO DE CONTRATO INDIVIDUAL DE TRABAJO
-                        </h2>
-                        <p className="text-[10px] text-slate-600 font-bold">
-                          LEY N° 21.442 DE COPROPIEDAD INMOBILIARIA Y CÓDIGO DEL TRABAJO DE CHILE
-                        </p>
-                      </div>
-
-                      <p className="text-justify text-xs leading-relaxed">
-                        En la ciudad de <strong>{currentCommunity.city || '____________________'}</strong>, República de Chile, a {new Date().toLocaleDateString('es-CL')}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, Rol Único Tributario (RUT) N° <strong>{currentCommunity.bankInfo?.rut || '____________________'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || '____________________'}</strong>, cédula nacional de identidad N° <strong>{companySettings?.adminRut || '____________________'}</strong>, con inscripción vigente en el Registro Nacional de Administradores de Condominios del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '____________________'}</strong>), ambos domiciliados en <strong>{currentCommunity.address}</strong>, en adelante denominada indistintamente como "la Comunidad" o "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForSeverance.name}</strong>, cédula de identidad N° <strong>{selectedWorkerForSeverance.rut}</strong>, domiciliado(a) en <strong>{selectedWorkerForSeverance.address || 'domicilio registrado'}</strong>, en adelante "el Trabajador", se deja constancia y se conviene en otorgar el siguiente Finiquito de Contrato de Trabajo:
-                      </p>
-
-                      <div className="space-y-3 text-justify text-xs leading-relaxed">
-                        <div>
-                          <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                            PRIMERO: VIGENCIA DE LA RELACIÓN LABORAL Y CARGO DESEMPEÑADO
-                          </h4>
-                          <p>
-                            El Trabajador prestó sus servicios en calidad de <strong>{selectedWorkerForSeverance.role}</strong> para la Comunidad desde el día <strong>{selectedWorkerForSeverance.startDate}</strong> hasta el día <strong>{severanceForm.terminationDate}</strong>, fecha en que ha concluido formal y legalmente la relación laboral. El tiempo servido computable asciende a <strong>{severanceCalc.yearsOfService} años</strong> ({severanceCalc.monthsTotal} meses de servicios continuos).
-                          </p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                            SEGUNDO: CAUSAL LEGAL DE TÉRMINO DEL CONTRATO
-                          </h4>
-                          <p>
-                            Las partes dejan expresa constancia de que la relación contractual ha terminado por la causal establecida en el <strong>{severanceCalc.cause.article}</strong> del Código del Trabajo, esto es: <strong>"{severanceCalc.cause.name}"</strong>.
-                          </p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                            TERCERO: LIQUIDACIÓN DE INDEMNIZACIONES Y HABERES LEGALES
-                          </h4>
-                          <div className="border border-slate-300 rounded-xl overflow-hidden mt-1">
-                            <table className="w-full text-[11px]">
-                              <thead className="bg-[#0F3D2E] text-white uppercase text-[9.5px]">
-                                <tr>
-                                  <th className="p-2 text-left">Concepto Laboral / Indemnización</th>
-                                  <th className="p-2 text-right">Monto (CLP)</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-100">
-                                <tr>
-                                  <td className="p-2 text-slate-700">Indemnización Legal por Años de Servicio (Art. 163): {severanceCalc.yearsOfService} Años</td>
-                                  <td className="p-2 text-right font-mono font-bold">{formatCLP(severanceCalc.severanceYearsAmount)}</td>
-                                </tr>
-                                <tr>
-                                  <td className="p-2 text-slate-700">Indemnización Sustitutiva de Aviso Previo (Art. 161 Inc. 2°)</td>
-                                  <td className="p-2 text-right font-mono font-bold">{formatCLP(severanceCalc.substituteNoticeAmount)}</td>
-                                </tr>
-                                <tr>
-                                  <td className="p-2 text-slate-700">Feriado Proporcional Pendiente (Art. 73): {severanceForm.vacationDaysPending} Días Hábiles</td>
-                                  <td className="p-2 text-right font-mono font-bold">{formatCLP(severanceCalc.proportionalVacationAmount)}</td>
-                                </tr>
-                                <tr>
-                                  <td className="p-2 text-slate-700">Remuneración Proporcional Días Trabajados Mes de Término ({severanceForm.workedDaysInMonth} días)</td>
-                                  <td className="p-2 text-right font-mono font-bold">{formatCLP(severanceCalc.pendingSalaryAmount)}</td>
-                                </tr>
-                                {severanceCalc.afcDeduction > 0 && (
-                                  <tr className="text-rose-700 bg-rose-50/50">
-                                    <td className="p-2">Menos: Deducción Aporte Empleador Seguro de Cesantía AFC (Art. 13 Ley N° 19.728)</td>
-                                    <td className="p-2 text-right font-mono font-bold">-{formatCLP(severanceCalc.afcDeduction)}</td>
-                                  </tr>
-                                )}
-                                <tr className="bg-emerald-50 text-[#0F3D2E] font-black border-t-2 border-[#0F3D2E] text-xs">
-                                  <td className="p-2.5 uppercase">TOTAL ALCANCE LÍQUIDO A PAGAR FINIQUITO:</td>
-                                  <td className="p-2.5 text-right font-mono text-sm">{formatCLP(severanceCalc.totalNetSeverance)}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                          <p className="mt-1 text-[10px] text-slate-600 font-bold">
-                            SON: {severanceCalc.totalNetSeveranceWords}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {renderAranproPdfFooter(1, 2, 'Finiquito de Contrato de Trabajo DT')}
-                  </div>
-
-                  {/* PÁGINA 2: CLÁUSULAS LIBERATORIAS, LEY BUSTOS Y RATIFICACIÓN MINISTRO DE FE */}
-                  <div
-                    className="dossier-page page-2 bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px] leading-relaxed"
-                    data-pdf-style={pdfStyle}
-                  >
-                    <div className="space-y-3.5">
-                      {renderContinuityHeader('INSTRUMENTO LABORAL', `FINIQUITO DE CONTRATO • ${selectedWorkerForSeverance.name}`, `FINIQ-${selectedWorkerForSeverance.id}`)}
-
-                      <div className="space-y-3 text-justify text-xs leading-relaxed">
-                        <div>
-                          <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                            CUARTO: FINIQUITO Y AMPLIO PODER LIBERATORIO
-                          </h4>
-                          <p>
-                            El Trabajador declara recibir en este acto la suma total y única indicada en la cláusula precedente a su más entera conformidad, mediante transferencia bancaria. Con ello, las partes declaran que la Comunidad ha pagado íntegra y oportunamente todas y cada una de las remuneraciones, horas extras, gratificaciones, feriados y cotizaciones adeudadas, no quedando cargo, diferencia ni reclamo ulterior que formular, otorgándose recíprocamente el más amplio, completo y definitivo finiquito.
-                          </p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                            QUINTO: ACREDITACIÓN DE COTIZACIONES PREVISIONALES AL DÍA (LEY BUSTOS N° 19.631)
-                          </h4>
-                          <p>
-                            En conformidad con lo prescrito en el Artículo 162 del Código del Trabajo (Ley N° 19.631), el Empleador acredita fehacientemente que la totalidad de las cotizaciones previsionales de pensiones (AFP {selectedWorkerForSeverance.afpName}), salud ({selectedWorkerForSeverance.healthName}), seguro de cesantía (AFC) y ley de accidentes del trabajo correspondientes a todo el periodo servido se encuentran íntegramente declaradas y pagadas en Previred, adjuntándose los respectivos certificados oficiales al presente instrumento.
-                          </p>
-                        </div>
-
-                        <div>
-                          <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                            SEXTO: RESERVA DE DERECHOS Y RATIFICACIÓN SOLEMNE
-                          </h4>
-                          <p>
-                            Las partes ratifican el presente finiquito de conformidad a lo dispuesto en el Artículo 177 del Código del Trabajo, facultando al portador de copia autorizada para requerir su protocolización o exhibición ante los organismos pertinentes.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Firmas Solemnes en 3 columnas */}
-                    <div className="mt-auto space-y-4 pt-6">
-                      <div className="grid grid-cols-2 gap-10 text-center text-xs">
-                        <div className="space-y-1 text-center">
-                          <div className="h-14 flex items-end justify-center mb-1">
-                            {/* Espacio firma trabajador */}
-                          </div>
-                          <div className="border-t-[1.5px] border-slate-900 pt-1.5">
-                            <strong className="block text-slate-900 font-black text-xs leading-tight">{selectedWorkerForSeverance.name}</strong>
-                            <p className="text-[9.5px] text-slate-600 font-mono">RUT: {selectedWorkerForSeverance.rut}</p>
-                            <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">EL TRABAJADOR (RECIBÍ CONFORME)</p>
-                          </div>
-                        </div>
-
-                        {renderAdminSignatureBlock('POR LA COMUNIDAD EMPLEADORA (ART. 20 LEY 21.442)')}
-                      </div>
-
-                      {/* Recuadro de Ratificación Ministro de Fe */}
-                      <div className="p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-center text-[10px] text-slate-600">
-                        <strong className="block text-slate-900 text-[10.5px]">RATIFICACIÓN ANTE MINISTRO DE FE (ART. 177 CÓDIGO DEL TRABAJO)</strong>
-                        <span>Ratificado ante mí por las partes, previa lectura e individualización de sus cédulas de identidad, a ____ de ________________ de 2026.</span>
-                        <div className="mt-4 pt-1 border-t border-dashed border-slate-400 max-w-[280px] mx-auto text-[9px] font-bold uppercase text-slate-500">
-                          Notario Público / Inspector del Trabajo / Presidente del Comité
-                        </div>
-                      </div>
-
-                      {renderAranproPdfFooter(2, 2, 'Finiquito de Contrato de Trabajo DT')}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ==================== MODAL 12: VISOR E IMPRESIÓN CARTA NOTIFICACIÓN DT (1 PÁGINA) ==================== */}
-      {showDismissalLetterModal && selectedWorkerForSeverance && (() => {
-        if (typeof selectedWorkerForSeverance.hasLegalGratification !== 'boolean') return <div className="fixed inset-0 z-50 bg-white p-8">Confirma la modalidad de gratificación en la ficha del trabajador antes de calcular su finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
-        const severanceMinimum = minimumForDate(severanceForm.terminationDate);
-        if (!severanceMinimum) return <div className="fixed inset-0 z-50 bg-white p-8 text-slate-800">Selecciona el período de término e ingresa su ingreso mínimo antes de calcular el finiquito.<button type="button" onClick={()=>{setShowSeveranceModal(false);setShowSeverancePrintModal(false);setShowDismissalLetterModal(false);}} className="ml-4 underline">Cerrar</button></div>;
-        const severanceCalc = calculateSeverancePay({
-          minimumIncome: severanceMinimum,
-          worker: selectedWorkerForSeverance,
-          terminationDateStr: severanceForm.terminationDate,
-          causeId: severanceForm.causeId,
-          noticeGiven: severanceForm.noticeGiven,
-          vacationDaysPending: severanceForm.vacationDaysPending,
-          workedDaysInMonth: severanceForm.workedDaysInMonth,
-          afcBalanceDeduction: severanceForm.afcBalanceDeduction
-        });
-        return (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-[#0F3D2E]" />
-                  <div>
-                    <h3 className="text-base font-black text-slate-900">
-                      Carta Notificación Formal de Término de Contrato
-                    </h3>
-                    <span className="text-xs text-slate-500">{selectedWorkerForSeverance.name} • Inspección del Trabajo</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <AranproPdfStyleSelector />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      printDocumentDirectly(
-                        'printable-community-dismissal-letter',
-                        `ARANPRO_Carta_Termino_${selectedWorkerForSeverance.name.replace(/\s+/g, '_')}`,
-                        { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
-                      )
-                    }
-                    className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Imprimir Carta Notificación (PDF)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowDismissalLetterModal(false)}
-                    className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* CONTENEDOR IMPRIMIBLE CARTA NOTIFICACIÓN */}
-              <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
-                <div id="printable-community-dismissal-letter" className="print-area">
-                  <div
-                    className="dossier-page bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px]"
-                    data-pdf-style={pdfStyle}
-                  >
-                    <div className="space-y-4">
-                      {renderAranproPdfHeader('NOTIFICACIÓN LABORAL', 'CARTA DE TÉRMINO DE CONTRATO DE TRABAJO', `NOTIF-${new Date().getFullYear()}-${selectedWorkerForSeverance.id}`)}
-
-                      <div className="text-right text-xs text-slate-600">
-                        {currentCommunity.city || '____________________'}, {new Date().toLocaleDateString('es-CL')}
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Señor(a):</span>
-                        <strong className="text-sm font-black text-slate-900 block">{selectedWorkerForSeverance.name}</strong>
-                        <span className="text-slate-600 block">Cédula Nacional de Identidad N° <strong>{selectedWorkerForSeverance.rut}</strong></span>
-                        <span className="text-slate-600 block">Cargo: <strong>{selectedWorkerForSeverance.role}</strong> • Comunidad {currentCommunity.name}</span>
-                        <span className="text-slate-500 block text-[11px]">Domicilio: {selectedWorkerForSeverance.address || 'Domicilio Registrado'}</span>
-                      </div>
-
-                      <div className="space-y-3 text-justify text-xs leading-relaxed text-slate-800">
-                        <p>
-                          De nuestra consideración:
-                        </p>
-                        <p>
-                          Por intermedio de la presente, comunicamos a usted que la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, RUT N° <strong>{currentCommunity.bankInfo?.rut || '____________________'}</strong>, ha resuelto poner término al contrato individual de trabajo que la vincula con usted, a contar del día <strong>{severanceForm.terminationDate}</strong>.
-                        </p>
-                        <p>
-                          La causal legal invocada para fundamentar esta determinación es la establecida en el <strong>{severanceCalc.cause.article}</strong> del Código del Trabajo, esto es: <strong>"{severanceCalc.cause.name}"</strong>.
-                        </p>
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                          <strong className="block text-[11px] text-slate-900 mb-1">Fundamentos de Hecho:</strong>
-                          <p className="text-[11px] text-slate-700 italic">
-                            "{severanceForm.reasonDetail}"
-                          </p>
-                        </div>
-                        <p>
-                          Asimismo, en conformidad a lo dispuesto en el Artículo 162 del Código del Trabajo (Ley N° 19.631), adjuntamos a esta notificación el certificado oficial emitido por Previred que acredita que la totalidad de sus imposiciones previsionales de pensiones, salud, cesantía y accidentes del trabajo se encuentran declaradas y pagadas íntegramente al último día del mes anterior al despido.
-                        </p>
-                        <p>
-                          El proyecto de finiquito y el pago de las indemnizaciones legales que le corresponden estarán a su disposición dentro del plazo legal de diez días hábiles contados desde la separación del cargo en las oficinas de la Administración o Notaría respectiva.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Firmas y Constancia de Notificación */}
-                    <div className="mt-auto space-y-4 pt-6">
-                      <div className="grid grid-cols-2 gap-12 text-center text-xs">
-                        <div className="space-y-1 text-center">
-                          <div className="h-12 flex items-end justify-center mb-1">
-                            {/* Espacio firma trabajador */}
-                          </div>
-                          <div className="border-t-[1.5px] border-slate-800 pt-1.5">
-                            <strong className="block text-slate-900 font-black text-xs leading-tight">{selectedWorkerForSeverance.name}</strong>
-                            <p className="text-[9.5px] text-slate-600 font-mono">RUT: {selectedWorkerForSeverance.rut}</p>
-                            <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">FIRMA DE RECEPCIÓN COPIA TRABAJADOR</p>
-                            <span className="text-[8.5px] text-slate-400 block mt-0.5">Fecha Recepción: ____/____/2026</span>
-                          </div>
-                        </div>
-
-                        {renderAdminSignatureBlock('POR LA COMUNIDAD EMPLEADORA (ART. 20 LEY 21.442)', true)}
-                      </div>
-
-                      <div className="text-[9.5px] text-slate-500 text-center border-t border-slate-200 pt-2">
-                        Copia remitida a la Inspección del Trabajo respectiva en cumplimiento del Art. 162 del Código del Trabajo.
-                      </div>
-
-                      {renderAranproPdfFooter(1, 1, 'Carta Notificación de Término Laboral DT')}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ==================== MODAL 13: VISOR E IMPRESIÓN PACTO HORAS EXTRAS DT (1 PÁGINA) ==================== */}
-      {showOvertimePactModal && selectedWorkerForOvertimePact && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-amber-700" />
-                <div>
-                  <h3 className="text-base font-black text-slate-900">
-                    Pacto Bilateral de Trabajo en Horas Extraordinarias
-                  </h3>
-                  <span className="text-xs text-slate-500">{selectedWorkerForOvertimePact.name} • Art. 32 Código del Trabajo</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <AranproPdfStyleSelector />
-                <button
-                  type="button"
-                  onClick={() =>
-                    printDocumentDirectly(
-                      'printable-community-overtime-pact',
-                      `ARANPRO_Pacto_Horas_Extras_${selectedWorkerForOvertimePact.name.replace(/\s+/g, '_')}`,
-                      { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
-                    )
-                  }
-                  className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Imprimir Pacto DT (PDF)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowOvertimePactModal(false)}
-                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* CONTENEDOR IMPRIMIBLE DEL PACTO DE HORAS EXTRAS */}
-            <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
-              <div id="printable-community-overtime-pact" className="print-area">
-                <div
-                  className="dossier-page bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px]"
-                  data-pdf-style={pdfStyle}
-                >
-                  <div className="space-y-4">
-                    {renderAranproPdfHeader('INSTRUMENTO LABORAL', 'PACTO DE HORAS EXTRAORDINARIAS', `PACT-HE-${selectedWorkerForOvertimePact.id}`)}
-
-                    <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
-                      <h2 className="text-sm font-black uppercase tracking-wider text-slate-900">
-                        PACTO DE TRABAJO EN HORAS EXTRAORDINARIAS
-                      </h2>
-                      <p className="text-[10px] text-slate-600 font-bold">
-                        ARTÍCULO 32 DEL CÓDIGO DEL TRABAJO • LEY N° 21.442 DE COPROPIEDAD INMOBILIARIA
-                      </p>
-                    </div>
-
-                    <p className="text-justify text-xs leading-relaxed">
-                      En la ciudad de <strong>{currentCommunity.city || '____________________'}</strong>, a {new Date().toLocaleDateString('es-CL')}, entre la <strong>COMUNIDAD {currentCommunity.name.toUpperCase()}</strong>, RUT N° <strong>{currentCommunity.bankInfo?.rut || '____________________'}</strong>, debidamente representada por su Administrador Titular don <strong>{companySettings?.adminName || '____________________'}</strong>, RUT N° <strong>{companySettings?.adminRut || '____________________'}</strong>, con inscripción en el Registro Nacional de Administradores del MINVU (RNAC N° <strong>{companySettings?.rnacNumber || '____________________'}</strong>), en adelante "el Empleador"; y por la otra parte don(ña) <strong>{selectedWorkerForOvertimePact.name}</strong>, cédula nacional de identidad N° <strong>{selectedWorkerForOvertimePact.rut}</strong>, de profesión u oficio <strong>{selectedWorkerForOvertimePact.role}</strong>, en adelante "el Trabajador", se conviene celebrar el siguiente Pacto de Horas Extraordinarias:
-                    </p>
-
-                    <div className="space-y-3 text-justify text-xs leading-relaxed">
-                      <div>
-                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                          PRIMERO: NATURALEZA Y JUSTIFICACIÓN TRANSITORIA DE LAS LABORES
-                        </h4>
-                        <p>
-                          Las partes dejan constancia que el presente acuerdo tiene por exclusivo fundamento atender a necesidades operacionales o contingencias temporales de copropiedad que demandan continuidad de servicio, tales como: <em>{overtimePactForm.motive}</em>.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                          SEGUNDO: VIGENCIA MÁXIMA TRIMESTRAL
-                        </h4>
-                        <p>
-                          Conforme a lo ordenado por el inciso final del Artículo 32 del Código del Trabajo, el presente pacto tiene una vigencia temporal máxima de tres (3) meses, rigiendo desde el <strong>{overtimePactForm.startDate}</strong> hasta el <strong>{overtimePactForm.endDate}</strong>, fecha en que caducará de pleno derecho, pudiendo renovarse únicamente si subsisten las contingencias justificadas.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                          TERCERO: LÍMITE MÁXIMO DIARIO Y RECARGO LEGAL DEL 50%
-                        </h4>
-                        <p>
-                          Las horas extraordinarias sólo podrán pactarse hasta por un máximo de <strong>dos (2) horas por día</strong>. El Empleador liquidará y pagará cada hora extraordinaria con el recargo legal del <strong>cincuenta por ciento (50%)</strong> sobre el sueldo base acordado, equivaliendo para este trabajador a la suma de <strong>{formatCLP(calculateOvertimeHourValue(selectedWorkerForOvertimePact.baseSalary, selectedWorkerForOvertimePact.weeklyHours || 44))} por hora extraordinaria</strong>.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-slate-900 uppercase text-[11px]">
-                          CUARTO: REGISTRO DE ASISTENCIA Y CONTROL
-                        </h4>
-                        <p>
-                          El cumplimiento y control de las horas extraordinarias efectivamente laboradas se registrará fehacientemente en el Libro de Asistencia del Condominio o sistema de control electrónico autorizado por la Dirección del Trabajo.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Firmas Legales ancladas al fondo */}
-                  <div className="mt-auto space-y-4 pt-6">
-                    <div className="grid grid-cols-2 gap-12 text-center text-xs">
-                      <div className="space-y-1 text-center">
-                        <div className="h-12 flex items-end justify-center mb-1">
-                          {/* Espacio firma trabajador */}
-                        </div>
-                        <div className="border-t-[1.5px] border-slate-800 pt-1.5">
-                          <strong className="block text-slate-900 font-black text-xs leading-tight">{selectedWorkerForOvertimePact.name}</strong>
-                          <p className="text-[9.5px] text-slate-600 font-mono">RUT: {selectedWorkerForOvertimePact.rut}</p>
-                          <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">FIRMA DEL TRABAJADOR</p>
-                        </div>
-                      </div>
-
-                      {renderAdminSignatureBlock('POR LA COMUNIDAD EMPLEADORA (ART. 20 LEY 21.442)', true)}
-                    </div>
-
-                    {renderAranproPdfFooter(1, 1, 'Pacto Bilateral de Horas Extraordinarias DT')}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== MODAL 14: VISOR E IMPRESIÓN PROTOCOLO LEY KARIN (1 PÁGINA) ==================== */}
-      {showKarinModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-rose-700" />
-                <div>
-                  <h3 className="text-base font-black text-slate-900">
-                    Protocolo de Prevención & Denuncias • Ley Karin N° 21.643
-                  </h3>
-                  <span className="text-xs text-slate-500">Comunidad {currentCommunity.name} • Dirección del Trabajo</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <AranproPdfStyleSelector />
-                <button
-                  type="button"
-                  onClick={() =>
-                    printDocumentDirectly(
-                      'printable-community-karin-protocol',
-                      `ARANPRO_Protocolo_Ley_Karin_${currentCommunity.name.replace(/\s+/g, '_')}`,
-                      { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
-                    )
-                  }
-                  className="py-2 px-4 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Imprimir Protocolo Ley Karin (PDF)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowKarinModal(false)}
-                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* CONTENEDOR IMPRIMIBLE DEL PROTOCOLO LEY KARIN */}
-            <div className="bg-slate-100 p-3 md:p-5 rounded-2xl max-h-[75vh] overflow-y-auto">
-              <div id="printable-community-karin-protocol" className="print-area">
-                <div
-                  className="dossier-page bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[850px]"
-                  data-pdf-style={pdfStyle}
-                >
-                  <div className="space-y-4">
-                    {renderAranproPdfHeader('NORMATIVA LABORAL OBLIGATORIA', 'PROTOCOLO OFICIAL DE PREVENCIÓN LEY KARIN', 'KARIN-2026')}
-
-                    <div className="text-center space-y-0.5 border-b border-slate-200 pb-2">
-                      <h2 className="text-sm font-black uppercase tracking-wider text-rose-950">
-                        PROTOCOLO DE PREVENCIÓN DEL ACOSO LABORAL, SEXUAL Y VIOLENCIA EN EL TRABAJO
-                      </h2>
-                      <p className="text-[10px] text-slate-600 font-bold">
-                        COMUNIDAD {currentCommunity.name.toUpperCase()} • LEY N° 21.643 (LEY KARIN) Y LEY N° 21.442
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 text-justify text-xs leading-relaxed text-slate-800">
-                      <div>
-                        <h4 className="font-black text-rose-900 uppercase text-[11px]">
-                          1. DECLARACIÓN DE TOLERANCIA CERO Y ÁMBITO DE APLICACIÓN
-                        </h4>
-                        <p>
-                          La Comunidad de Copropietarios y su Administración declaran de manera irrestricta que el respeto recíproco y la dignidad humana son valores inviolables. Queda terminantemente prohibida toda conducta que constituya acoso laboral, acoso sexual o violencia en el trabajo en dependencias del condominio, sea protagonizada por copropietarios, arrendatarios, visitas, prestadores de servicios o integrantes del Comité hacia el personal de conserjería, mayordomía o aseo, y viceversa.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-rose-900 uppercase text-[11px]">
-                          2. CANALES FORMALES Y CONFIDENCIALES DE DENUNCIA
-                        </h4>
-                        <p>
-                          Toda persona afectada o testigo podrá presentar denuncia verbal o escrita ante la Administración Titular o ante la Dirección del Trabajo (DT). La Administración mantendrá estricta confidencialidad de la identidad de denunciantes y testigos, prohibiéndose cualquier tipo de represalia laboral o comunitaria.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-rose-900 uppercase text-[11px]">
-                          3. MEDIDAS CAUTELARES INMEDIATAS DE RESGUARDO (PLAZO 48 HORAS)
-                        </h4>
-                        <p>
-                          Recibida la denuncia, la Administración adoptará en un plazo no superior a 48 horas las medidas cautelares necesarias, tales como la reubicación de turno, prohibición de interacción directa del denunciado con la caseta de conserjería y derivación inmediata a la Mutualidad adherida para apoyo y contención psicológica temprana.
-                        </p>
-                      </div>
-
-                      <div>
-                        <h4 className="font-black text-rose-900 uppercase text-[11px]">
-                          4. DERIVACIÓN OBLIGATORIA A LA INSPECCIÓN DEL TRABAJO
-                        </h4>
-                        <p>
-                          En los casos en que la investigación deba ser sustanciada por la autoridad pública, los antecedentes serán remitidos a la Dirección del Trabajo en un plazo no mayor a tres (3) días hábiles, acatando el Comité de Administración de manera estricta los pronunciamientos y sanciones que ordene la resolución administrativa.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Firmas Institucionales ancladas al fondo */}
-                  <div className="mt-auto space-y-4 pt-6">
-                    <div className="grid grid-cols-2 gap-12 text-center text-xs">
-                      {renderAdminSignatureBlock('POR LA ADMINISTRACIÓN DELEGADA (LEY N° 21.442)', true)}
-
-                      <div className="space-y-1 text-center">
-                        <div className="h-12 flex items-end justify-center mb-1">
-                          {/* Espacio visación Comité */}
-                        </div>
-                        <div className="border-t-[1.5px] border-slate-900 pt-1.5">
-                          <strong className="block text-slate-900 font-black text-xs leading-tight">Comité de Administración</strong>
-                          <p className="text-[9.5px] text-slate-600 font-mono">{currentCommunity.name}</p>
-                          <p className="text-[9px] text-[#0F3D2E] font-bold uppercase">LEY N° 21.442 Y LEY KARIN N° 21.643</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {renderAranproPdfFooter(1, 1, 'Protocolo Oficial Ley Karin N° 21.643')}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,0 +1,167 @@
+[
+  {
+    "type": "heading",
+    "text": "Pacto de trabajo en horas extraordinarias"
+  },
+  {
+    "type": "paragraph",
+    "text": "En {{comuna_firma}}, a {{fecha_firma}}, comparecen {{nombre_empleador}}, RUT {{rut_empleador}}, con domicilio en {{domicilio_empleador}}, representada por {{nombre_representante}}, cédula de identidad {{rut_representante}}, en calidad de {{calidad_representante}} y conforme a {{respaldo_representacion}}, en adelante el empleador, y {{nombre_trabajador}}, cédula de identidad {{rut_trabajador}}, con domicilio en {{domicilio_trabajador}}, quien desempeña el cargo de {{cargo}}, en adelante la persona trabajadora. Las partes acuerdan el siguiente pacto."
+  },
+  {
+    "type": "heading",
+    "text": "Primero. Relación laboral y jornada de referencia"
+  },
+  {
+    "type": "paragraph",
+    "text": "Este pacto se vincula al contrato de trabajo celebrado el {{fecha_contrato_origen}}, con fecha de ingreso {{fecha_ingreso}}, y a sus modificaciones vigentes. Los servicios se prestan en {{nombre_condominio}}, ubicado en {{direccion_centro}}, comuna de {{comuna_centro}}."
+  },
+  {
+    "type": "paragraph",
+    "text": "La jornada ordinaria aplicable durante este pacto es de {{horas_ordinarias}} horas {{unidad_computo_jornada}}, distribuida conforme a {{distribucion_jornada_o_referencia_precisa}}. Cuando corresponda un ciclo promediado, pacto especial o sistema excepcional, su fundamento y respaldo se individualizan en {{respaldo_regimen}}."
+  },
+  {
+    "type": "paragraph",
+    "text": "El trabajo extraordinario se determinará respecto de la jornada legal o contractual aplicable. Se respetará la jornada contractual inferior al máximo legal y la reducción que corresponda durante la vigencia del pacto."
+  },
+  {
+    "type": "heading",
+    "text": "Segundo. Necesidad temporal y tareas"
+  },
+  {
+    "type": "paragraph",
+    "text": "El trabajo extraordinario responde a la siguiente situación temporal de la comunidad."
+  },
+  {
+    "type": "paragraph",
+    "text": "{{descripcion_concreta_necesidad_temporal}}"
+  },
+  {
+    "type": "paragraph",
+    "text": "Esta situación requiere {{tareas_extraordinarias}} durante {{periodo_necesidad}}, por las siguientes circunstancias que justifican el trabajo adicional {{justificacion_trabajo_adicional}}."
+  },
+  {
+    "type": "paragraph",
+    "text": "Las tareas se realizarán dentro de las funciones contratadas y de la capacitación y habilitación de la persona trabajadora. La administración revisará la subsistencia de la necesidad antes de solicitar el trabajo adicional. Una necesidad habitual de dotación o de cobertura permanente deberá abordarse mediante la organización del servicio y de sus jornadas."
+  },
+  {
+    "type": "heading",
+    "text": "Tercero. Vigencia y renovación"
+  },
+  {
+    "type": "paragraph",
+    "text": "El pacto rige desde {{fecha_inicio}} hasta {{fecha_termino}}, ambas fechas incluidas, por un período que no excederá de tres meses, conforme al inciso primero del artículo 32 del Código del Trabajo. Se suscribe previamente a las labores que autoriza."
+  },
+  {
+    "type": "paragraph",
+    "text": "Al término de su vigencia, cualquier renovación deberá constar en un nuevo acuerdo escrito, identificar la necesidad temporal subsistente o sobreviniente y establecer su propio período de duración, dentro del límite legal. La administración conservará el respaldo de cada acuerdo."
+  },
+  {
+    "type": "paragraph",
+    "text": "Las horas efectivamente trabajadas en exceso con conocimiento del empleador se reconocerán en los términos del artículo 32, incluso cuando falte el pacto escrito o haya vencido su vigencia."
+  },
+  {
+    "type": "heading",
+    "text": "Cuarto. Solicitud, límites y descanso"
+  },
+  {
+    "type": "paragraph",
+    "text": "Dentro de la necesidad descrita, {{cargo_responsable_solicitud}} comunicará por {{medio_comunicacion}} la fecha, tarea, horario y duración prevista del trabajo extraordinario. La persona trabajadora y la jefatura registrarán la programación y cualquier modificación que afecte su ejecución."
+  },
+  {
+    "type": "paragraph",
+    "text": "La realización de las horas se ajustará a la regla general de hasta dos horas extraordinarias por día y a los límites adicionales del régimen de jornada aplicable. Se respetarán los descansos legales y contractuales. El trabajo en domingos, festivos o días de descanso requiere verificar las condiciones que lo habiliten."
+  },
+  {
+    "type": "paragraph",
+    "text": "Antes de asignar sobretiempo, el empleador comprobará que la naturaleza de la labor y las condiciones de ejecución sean compatibles con la salud de la persona trabajadora. Informará los riesgos y medidas de control y proporcionará los medios y elementos de protección que correspondan."
+  },
+  {
+    "type": "paragraph",
+    "text": "La entrega de turno se organizará dentro del tiempo de trabajo. Ante ausencia de relevo se informará a {{responsable_relevo}}, quien gestionará la cobertura y las instrucciones necesarias, dentro del marco legal."
+  },
+  {
+    "type": "heading",
+    "text": "Quinto. Registro y determinación de horas"
+  },
+  {
+    "type": "paragraph",
+    "text": "La persona trabajadora registrará su entrada, salida y demás marcaciones mediante {{sistema_asistencia}}. La administración determinará las horas efectivamente realizadas y su calificación conforme al régimen aplicable, conservando el respaldo de la solicitud, la asistencia y el cálculo."
+  },
+  {
+    "type": "paragraph",
+    "text": "Las diferencias o fallas del sistema se informarán por {{canal_correccion_asistencia}}. Su corrección dejará constancia del horario efectivo, motivo, antecedentes y conocimiento de la persona trabajadora."
+  },
+  {
+    "type": "paragraph",
+    "text": "La falta de una autorización administrativa interna no elimina el derecho al pago de las horas extraordinarias realizadas con conocimiento del empleador. Los tiempos de entrega de novedades, instrucciones u otras tareas exigidas se incluirán en el registro cuando constituyan jornada de trabajo."
+  },
+  {
+    "type": "heading",
+    "text": "Sexto. Base de cálculo, recargo y pago"
+  },
+  {
+    "type": "paragraph",
+    "text": "El empleador pagará las horas extraordinarias con un recargo de {{porcentaje_recargo}} por ciento, que será al menos del 50%, calculado sobre el sueldo correspondiente a la jornada ordinaria."
+  },
+  {
+    "type": "paragraph",
+    "text": "La base incluirá todos los conceptos remuneracionales que reúnan jurídicamente los requisitos de sueldo del artículo 42 letra a) del Código del Trabajo, aunque reciban el nombre de bono o asignación. Si no existe sueldo convenido o este es inferior al ingreso mínimo legal aplicable, se empleará la base mínima que exige el artículo 32."
+  },
+  {
+    "type": "paragraph",
+    "text": "Para la remuneración mensual y jornada semanal ordinaria contempladas en este pacto, el detalle es el siguiente."
+  },
+  {
+    "type": "table",
+    "rows": [
+      [
+        "Elemento de cálculo",
+        "Dato aplicable"
+      ],
+      [
+        "Período de referencia",
+        "{{periodo_referencia_calculo}}"
+      ],
+      [
+        "Conceptos computables como sueldo",
+        "{{conceptos_sueldo_computables}}"
+      ],
+      [
+        "Base mensual de cálculo",
+        "{{base_mensual_calculo}}"
+      ],
+      [
+        "Jornada semanal para el cálculo",
+        "{{horas_semanales_calculo}}"
+      ],
+      [
+        "Recargo acordado",
+        "{{porcentaje_recargo}} %"
+      ],
+      [
+        "Fórmula aplicable",
+        "{{formula_aplicable}}"
+      ],
+      [
+        "Valor de referencia de la hora extraordinaria",
+        "{{valor_hora_referencia}}"
+      ]
+    ]
+  },
+  {
+    "type": "paragraph",
+    "text": "El valor de referencia se actualizará cuando cambien la base salarial, la jornada, el ingreso mínimo aplicable o las condiciones de un beneficio superior pactado. Se respetarán los acuerdos más favorables que correspondan."
+  },
+  {
+    "type": "paragraph",
+    "text": "Las horas extraordinarias se liquidarán y pagarán conjuntamente con las remuneraciones ordinarias del período en que se devenguen. La liquidación permitirá identificar la cantidad de horas, la base, el recargo y el monto pagado."
+  },
+  {
+    "type": "heading",
+    "text": "Séptimo. Ejemplares y vinculación"
+  },
+  {
+    "type": "paragraph",
+    "text": "Cada parte recibirá un ejemplar íntegro suscrito. Este pacto se incorpora a la documentación de la relación laboral para regular exclusivamente el trabajo extraordinario en los términos descritos. Se respetarán la antigüedad y los derechos y condiciones laborales aplicables."
+  }
+]
