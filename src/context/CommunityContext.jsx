@@ -1,3 +1,4 @@
+import { periodCharges } from '../utils/expenseBilling';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initialCommunities, initialCompanySettings, initialCertificates, initialFaqs, initialChileanProviders, initialHistoricalExpenses } from '../data/initialData';
 import { 
@@ -740,6 +741,9 @@ export const CommunityProvider = ({ children }) => {
       if (c.id !== communityId) return c;
       const newExp = {
         id: expenseData.id || `exp-${Date.now()}`,
+        billingInstallments: expenseData.billingInstallments || 1,
+        partialPaid: expenseData.partialPaid || 0,
+        pensionProofVerified: Boolean(expenseData.pensionProofVerified),
         category: expenseData.category || 'Servicios Básicos',
         description: expenseData.description || '',
         provider: expenseData.provider || '',
@@ -1040,8 +1044,9 @@ export const CommunityProvider = ({ children }) => {
 
     // Fondo de reserva del mes (% sobre gastos ordinarios)
     const reserveFundPercentage = community.reserveFundPercentage ?? 5;
-    const reserveFundAmount = Math.round(totalExpenses * (reserveFundPercentage / 100));
-    const grandTotal = totalExpenses + reserveFundAmount;
+    const billingBase = periodCharges(community).reduce((sum, item) => sum + item.amount, 0);
+    const reserveFundAmount = Math.round(billingBase * (reserveFundPercentage / 100));
+    const grandTotal = billingBase + reserveFundAmount;
 
     // Métricas de cobranza de unidades
     const units = community.units || [];
@@ -1156,6 +1161,7 @@ export const CommunityProvider = ({ children }) => {
         month: currentMonth,
         year: currentYear,
         closedAt: new Date().toISOString().split('T')[0],
+        reserveFundPercentage: c.reserveFundPercentage ?? 5,
         totalExpenses: totals.totalExpenses,
         reserveFundAmount: totals.reserveFundAmount,
         grandTotal: totals.grandTotal,

@@ -1,3 +1,4 @@
+import { periodCharges } from '../../utils/expenseBilling';
 import React, { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
@@ -7,7 +8,7 @@ import styles from './communityAccounting.css?raw';
 
 const frameDocument = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Colilla de gasto común</title><style>${styles}</style></head><body></body></html>`;
 
-function PortalCode({ url }) {
+export function PortalCode({ url }) {
   const { size, path } = useMemo(() => {
     const grid = QRCode.create(url, { errorCorrectionLevel: 'M' }).modules;
     const dots = [];
@@ -37,12 +38,13 @@ export default function IndividualExpenseBill({ community, unit, fin, totals, co
   const rate = Number(unit.sharePercentage) || 0;
   const portion = amount => Math.round(amount * rate / 100);
   const groups = new Map();
-  for (const expense of community.expenses || []) {
+  for (const { expense, amount } of periodCharges(community)) {
     if (expense.fundSource === 'fondo_reserva') continue;
     const category = expense.category?.trim() || 'Gastos operacionales generales';
-    groups.set(category, (groups.get(category) || 0) + (Number(expense.amount) || 0));
+    groups.set(category, (groups.get(category) || 0) + amount);
   }
-  const allocationDifference = fin.currentCharge - portion(totals.totalExpenses) - portion(totals.reserveFundAmount);
+  const billingBase = totals.grandTotal - totals.reserveFundAmount;
+  const allocationDifference = fin.currentCharge - portion(billingBase) - portion(totals.reserveFundAmount);
   const url = DOMAIN_CONFIG.getResidentLoginUrl(community.slug);
   const due = period.dueDate?.slice(0,10);
   const balanceLabel = fin.favorBalance > 0 ? 'Saldo a favor' : 'Saldo a pagar';
@@ -62,7 +64,7 @@ export default function IndividualExpenseBill({ community, unit, fin, totals, co
       <div className="holder"><div><span className="k">Copropietario titular</span><b>{unit.owner}</b></div><div><span className="k">RUT titular</span><b>{unit.rut || 'Sin informar'}</b></div><div><span className="k">Prorrateo de la unidad</span><b>{rate.toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:6})} %</b></div></div>
       <section><div className="row cap"><h2>Gastos de la comunidad</h2><span className="small">Montos en pesos chilenos</span></div><table><thead><tr><th>Concepto</th><th>Total comunidad</th><th>Cuota de la unidad</th></tr></thead><tbody>
       {Array.from(groups, ([category,amount])=><tr key={category}><td>{category}</td><td>{formatCLP(amount)}</td><td>{formatCLP(portion(amount))}</td></tr>)}
-      <tr><td>Subtotal de operación</td><td>{formatCLP(totals.totalExpenses)}</td><td>{formatCLP(portion(totals.totalExpenses))}</td></tr>
+      <tr><td>Subtotal de operación</td><td>{formatCLP(billingBase)}</td><td>{formatCLP(portion(billingBase))}</td></tr>
       <tr><td>Fondo de reserva · {community.reserveFundPercentage ?? 5} %</td><td>{formatCLP(totals.reserveFundAmount)}</td><td>{formatCLP(portion(totals.reserveFundAmount))}</td></tr>
       {!!allocationDifference && <tr><td>Diferencia entre prorrateo y cuota registrada</td><td>—</td><td>{formatCLP(allocationDifference)}</td></tr>}
       <tr className="sum"><td>Gasto común del mes</td><td>{formatCLP(totals.grandTotal)}</td><td>{formatCLP(fin.currentCharge)}</td></tr></tbody></table></section>

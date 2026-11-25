@@ -1,3 +1,4 @@
+import { paidToSupplier } from '../../utils/expenseBilling';
 import IndividualExpenseBill from '../common/IndividualExpenseBill';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
@@ -99,7 +100,7 @@ const groupExpensesByCategory = (expensesList) => {
     const amt = parseFloat(exp.amount) || 0;
     map[cat].expenses.push(exp);
     map[cat].total += amt;
-    if (exp.status === 'pagado') map[cat].paidTotal += amt;
+    map[cat].paidTotal += paidToSupplier(exp);
     if (!exp.receiptUrl) map[cat].unbackedCount += 1;
     if (!exp.approvedByCommittee) map[cat].unapprovedCount += 1;
   });
@@ -1459,7 +1460,9 @@ _Administración ARANPRO_`;
         dueDate: selectedHistoricalPeriodData.closedAt,
         status: 'CERRADO (HISTÓRICO)'
       },
-      expenses: periodExpenses.length > 0 ? periodExpenses : currentCommunity.expenses
+      reserveFundPercentage: selectedHistoricalPeriodData.reserveFundPercentage ?? (selectedHistoricalPeriodData.totalExpenses ? 100 * selectedHistoricalPeriodData.reserveFundAmount / selectedHistoricalPeriodData.totalExpenses : currentCommunity.reserveFundPercentage),
+      reportClosedAt: selectedHistoricalPeriodData.closedAt,
+      expenses: periodExpenses
     };
   }, [currentCommunity, selectedHistoricalPeriodData]);
 
@@ -2781,6 +2784,9 @@ _Administración ARANPRO_`;
       documentType: exp.documentType || 'Factura Electrónica',
       documentNumber: exp.documentNumber || '',
       date: exp.date || new Date().toISOString().split('T')[0],
+      billingInstallments: exp.billingInstallments || 1,
+      partialPaid: exp.partialPaid || '',
+      pensionProofVerified: Boolean(exp.pensionProofVerified),
       amount: exp.amount || '',
       fundSource: exp.fundSource || 'ordinario',
       isRecurring: exp.isRecurring !== undefined ? Boolean(exp.isRecurring) : false,
@@ -2800,7 +2806,7 @@ _Administración ARANPRO_`;
     e.preventDefault();
     if (!currentCommunity) return;
     if (editingExpense) {
-      updateExpense(currentCommunity.id, editingExpense.id, newExpenseForm);
+      updateExpense(currentCommunity.id, editingExpense.id, {...newExpenseForm, pensionProofVerified: newExpenseForm.pensionProofVerified && newExpenseForm.status === 'pagado' && !!newExpenseForm.receiptUrl});
     } else {
       addExpense(currentCommunity.id, newExpenseForm);
     }
@@ -6261,12 +6267,8 @@ _Administración ARANPRO_`;
           const totalReserve = allExpenses
             .filter(e => e.fundSource === 'fondo_reserva')
             .reduce((acc, e) => acc + (parseFloat(e.amount) || 0), 0);
-          const totalPaid = allExpenses
-            .filter(e => e.status === 'pagado')
-            .reduce((acc, e) => acc + (parseFloat(e.amount) || 0), 0);
-          const totalPending = allExpenses
-            .filter(e => e.status !== 'pagado')
-            .reduce((acc, e) => acc + (parseFloat(e.amount) || 0), 0);
+          const totalPaid = allExpenses.reduce((sum,e) => sum + paidToSupplier(e), 0);
+          const totalPending = totalOrdinary + totalReserve - totalPaid;
           const backedCount = allExpenses.filter(e => Boolean(e.receiptUrl)).length;
           const approvedCount = allExpenses.filter(e => Boolean(e.approvedByCommittee)).length;
           const grandTotal = totalOrdinary + totalReserve;
@@ -7095,7 +7097,7 @@ _Administración ARANPRO_`;
                                       >
                                         <div className="flex items-center">
                                           <span className={`w-2 h-2 rounded-full mr-1.5 ${isPaid ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                                          {isPaid ? 'PAGADO' : 'POR PAGAR'}
+                                          {isPaid ? 'PAGADO' : exp.status === 'parcial' ? 'PAGO PARCIAL' : 'POR PAGAR'}
                                         </div>
                                         {isPaid && exp.paymentReference && (
                                           <span className="text-[9px] font-mono text-emerald-700 font-normal">
@@ -12380,7 +12382,10 @@ _Administración ARANPRO_`;
                 </div>
               </div>
 
-              {/* Estado de Pago y Detalles Bancarios */}
+              {newExpenseForm.fundSource !== 'fondo_reserva' && <label className="block text-sm font-semibold">Cuotas mensuales de cobro a las unidades
+                <input className="ml-2 w-20 rounded border p-1" type="number" required min="1" max={Math.max(1,Number(newExpenseForm.amount)||1)} step="1" value={newExpenseForm.billingInstallments ?? 1} onChange={e=>setNewExpenseForm({...newExpenseForm,billingInstallments:e.target.value})}/>
+                <small className="block text-slate-600">La primera cuota corresponde al período activo. Las siguientes se incluyen al emitir los próximos meses.</small></label>}
+              {/previred|cotizaciones previsionales/i.test([newExpenseForm.provider,newExpenseForm.documentType].join(' ')) && newExpenseForm.receiptUrl && newExpenseForm.status === 'pagado' && <label className="block text-sm"><input type="checkbox" checked={!!newExpenseForm.pensionProofVerified} onChange={e=>setNewExpenseForm({...newExpenseForm,pensionProofVerified:e.target.checked})}/> Verifiqué que el comprobante adjunto acredita el pago previsional de este período.</label>}              {/* Estado de Pago y Detalles Bancarios */}
               <div className="p-3.5 bg-[#F5F4EF]/70 rounded-2xl border border-[#D4B895]/60 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="font-bold text-[#0F3D2E] uppercase text-[11px] tracking-wider">
@@ -12412,7 +12417,8 @@ _Administración ARANPRO_`;
                   </div>
                 </div>
 
-                {newExpenseForm.status === 'pagado' && (
+                <button type="button" className="text-xs font-semibold underline" onClick={()=>setNewExpenseForm({...newExpenseForm,status:'parcial',paymentDate:newExpenseForm.paymentDate || newExpenseForm.date})}>Registrar pago parcial</button>
+                {newExpenseForm.status === 'parcial' && <div className="flex gap-3"><label>Total abonado al proveedor ($) <input className="border rounded" type="number" min="1" max={Number(newExpenseForm.amount)-1} required value={newExpenseForm.partialPaid ?? ''} onChange={e=>setNewExpenseForm({...newExpenseForm,partialPaid:e.target.value})}/></label><label>Al día <input type="date" required value={newExpenseForm.paymentDate || ''} onChange={e=>setNewExpenseForm({...newExpenseForm,paymentDate:e.target.value})}/></label></div>}                {newExpenseForm.status === 'pagado' && (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-[#D4B895]/30">
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 mb-0.5">Fecha de Egreso Bancario</label>
@@ -12488,7 +12494,7 @@ _Administración ARANPRO_`;
                         reader.onload = (ev) => {
                           setNewExpenseForm(prev => ({
                             ...prev,
-                            receiptUrl: ev.target.result,
+                            pensionProofVerified: false, receiptUrl: ev.target.result,
                             fileName: file.name
                           }));
                         };
@@ -12499,7 +12505,7 @@ _Administración ARANPRO_`;
                   {newExpenseForm.receiptUrl && (
                     <button
                       type="button"
-                      onClick={() => setNewExpenseForm(prev => ({ ...prev, receiptUrl: '', fileName: '' }))}
+                      onClick={() => setNewExpenseForm(prev => ({ ...prev, pensionProofVerified:false, receiptUrl: '', fileName: '' }))}
                       className="px-3 py-2 text-xs font-bold text-rose-600 bg-rose-50 rounded-2xl border border-rose-200 hover:bg-rose-100"
                     >
                       Quitar Respaldo
@@ -12517,7 +12523,7 @@ _Administración ARANPRO_`;
                   type="text"
                   placeholder="O pega un enlace web al documento (https://...)"
                   value={newExpenseForm.receiptUrl?.startsWith('data:') ? '' : newExpenseForm.receiptUrl}
-                  onChange={(e) => setNewExpenseForm({ ...newExpenseForm, receiptUrl: e.target.value, fileName: '' })}
+                  onChange={(e) => setNewExpenseForm({ ...newExpenseForm, pensionProofVerified:false, receiptUrl: e.target.value, fileName: '' })}
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs"
                 />
               </div>
@@ -12740,7 +12746,7 @@ _Administración ARANPRO_`;
                         ? 'bg-emerald-100 text-emerald-800'
                         : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {viewingExpenseVoucher.status === 'pagado' ? 'PAGADO' : 'POR PAGAR'}
+                      {viewingExpenseVoucher.status === 'pagado' ? 'PAGADO' : viewingExpenseVoucher.status === 'parcial' ? 'PAGO PARCIAL' : 'POR PAGAR'}
                     </span>
                   </div>
                   <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
@@ -13713,7 +13719,7 @@ _Administración ARANPRO_`;
         isOpen={showExpenseReportModal}
         onClose={() => setShowExpenseReportModal(false)}
         community={communityForRendition || currentCommunity}
-        onExportCSV={exportExpensesToCSV}
+
       />
 
       {/* MODAL PROPUESTA OFICIAL DE PRESUPUESTO ANUAL Y CUOTA FIJA PARA LA ASAMBLEA (LEY N° 21.442) */}
