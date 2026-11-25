@@ -77,9 +77,18 @@ function paginate(doc) {
   const masthead=source.querySelector('[data-labor-header]');
   const footer=source.querySelector('[data-labor-footer]');
   const signatures=source.querySelector('.labor-contract-end');
-  const blocks=pageBlocks(source);
+  const report=source.hasAttribute('data-staff-report');
+  const blocks=report ? Array.from(source.querySelectorAll('[data-report-block]')) : pageBlocks(source);
+  const summary=source.querySelector('[data-report-summary]');
+  if(summary){
+    const closing=doc.createElement('div');
+    closing.className='col-span-2';
+    closing.append(summary);
+    signatures.prepend(closing);
+  }
   const output=doc.createElement('article');
   output.className='community-paper labor-pages';
+  if(report) output.classList.add('staff-report');
   wrapper.replaceChildren(output);
   let body, sheet;
   const sheets=[];
@@ -139,6 +148,12 @@ function paginate(doc) {
 
   function placeTable(table) {
     const rows=Array.from(table.tBodies).flatMap(group=>Array.from(group.rows));
+    if(table.tFoot) {
+      for(const total of table.tFoot.rows){
+        total.dataset.reportTotals='';
+        rows.push(total);
+      }
+    }
     let group;
     function startTable() {
       const part=table.cloneNode(false);if(table.tHead)part.append(table.tHead.cloneNode(true));
@@ -153,7 +168,17 @@ function paginate(doc) {
       group.append(row);
       if(fits())continue;
       row.remove();
-      if (group.rows.length || Array.from(body.children).some(child => child !== group.parentElement && !heading(child))) nextTable();
+      if (group.rows.length || Array.from(body.children).some(child => child !== group.parentElement && !heading(child))) {
+        const carry = row.hasAttribute('data-report-totals') && group.rows.length > 2
+          ? Array.from(group.rows).slice(-2) : [];
+        const previous=group;
+        nextTable();
+        if(carry.length){
+          group.append(...carry,row);
+          if(!fits()) previous.append(...carry);
+          row.remove();
+        }
+      }
       group.append(row);
       if(fits())continue;
       row.remove();
@@ -193,8 +218,20 @@ function paginate(doc) {
   output.dataset.paginated='true';
 }
 
-export function printCommunityLabor(id,name) {
-  printDocumentDirectly(id,name,{pageSize:'letter portrait',margin:'4mm 6mm',useBundledStyles:true,
-    sheetSelector:'.labor-sheet',prepareDocument:paginate,extraStyles:sheetCss});
+export function printCommunityLabor(id,name,{pdfStyle,orientation='portrait'}={}) {
+  const landscape = orientation === 'landscape';
+  const reportCss = `
+    .staff-report table th,.staff-report table td {padding:4px 3px;line-height:1.3}
+    .staff-report table {table-layout:auto;margin-top:8px}
+    .staff-report .labor-contract-end {row-gap:8px;padding-top:4mm}
+    .staff-report .labor-sheet-body {font-family:system-ui,sans-serif}
+  `;
+  const landscapeCss = landscape ? `
+    @page {size:letter landscape}
+    .community-paper.labor-pages {width:267.4mm}
+    .labor-sheet {height:206.5mm}
+  ` : '';
+  printDocumentDirectly(id,name,{pdfStyle,pageSize:'letter '+orientation,margin:'4mm 6mm',useBundledStyles:true,
+    sheetSelector:'.labor-sheet',prepareDocument:paginate,extraStyles:sheetCss+reportCss+landscapeCss});
 }
 

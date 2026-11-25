@@ -1,3 +1,4 @@
+import { printCommunityLabor } from '../../utils/communityLaborPrint';
 import { CommunityLaborHeader, CommunityLaborFooter } from './CommunityLaborStationery';
 import CommunityLaborAnnex from './CommunityLaborAnnex';
 import CommunityPreventionDocument from './CommunityPreventionDocument';
@@ -1894,10 +1895,10 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 <button
                   type="button"
                   onClick={() =>
-                    printDocumentDirectly(
+                    printCommunityLabor(
                       'printable-community-monthly-payroll-sheet',
                       `ARANPRO_Planilla_Remuneraciones_${currentCommunity.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
-                      { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
+                      { pdfStyle, orientation: 'landscape' }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -1920,12 +1921,12 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div id="printable-community-monthly-payroll-sheet" className="print-area">
                 <div
                   className="dossier-page bg-white p-6 md:p-8 pl-8 md:pl-10 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[980px]"
-                  data-pdf-style={pdfStyle}
+                  data-staff-report="" data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">
                     {renderAranproPdfHeader('LIBRO DE REMUNERACIONES', 'PLANILLA GENERAL DE SUELDOS & LEYES SOCIALES', `REM-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
 
-              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+              <div data-report-block="" className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
                 <div>
                   <span className="text-slate-500 block text-[10px] uppercase font-bold">Comunidad Empleadora:</span>
                   <strong className="text-sm font-black text-slate-900">{currentCommunity.name}</strong>
@@ -1941,7 +1942,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
               {/* Tabla Detallada */}
               <div className="overflow-x-auto">
-                <table className="w-full text-[11px] text-left border border-slate-200">
+                <table data-report-block="" className="w-full text-[11px] text-left border border-slate-200">
                   <thead>
                     <tr className="bg-[#0F3D2E] text-white font-bold uppercase text-[9px] tracking-wider">
                       <th className="p-2 border-r border-emerald-900/40">N°</th>
@@ -1994,7 +1995,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               {/* Resumen de Egreso para Gastos Comunes */}
-              <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+              <div data-report-summary="" className="grid grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
                 <div>
                   <span className="text-slate-500 block text-[10px]">1. Total Sueldos Líquidos Transferidos:</span>
                   <strong className="text-sm font-black text-emerald-800 font-mono">{formatCLP(payrollConsolidated.totalNet)}</strong>
@@ -2012,7 +2013,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
             {/* Firmas de Respaldo y Pie Institucional anclados al fondo */}
             <div className="mt-auto space-y-4 pt-6">
-              <div className="grid grid-cols-2 gap-12 text-center text-xs">
+              <div className="labor-contract-end grid grid-cols-2 gap-12 text-center text-xs">
                 {renderAdminSignatureBlock('ADMINISTRACIÓN TITULAR • LIBRO DE SUELDOS (LEY 21.442)')}
 
                 <div className="space-y-1 text-center">
@@ -2056,10 +2057,10 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 <button
                   type="button"
                   onClick={() =>
-                    printDocumentDirectly(
+                    printCommunityLabor(
                       'printable-community-previred-sheet',
                       `ARANPRO_Previred_${currentCommunity.name.replace(/\s+/g, '_')}_${periodLabel.replace('/', '_')}`,
-                      { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
+                      { pdfStyle, orientation: 'landscape' }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -2082,12 +2083,12 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div id="printable-community-previred-sheet" className="print-area">
                 <div
                   className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[880px]"
-                  data-pdf-style={pdfStyle}
+                  data-staff-report="" data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">
                     {renderAranproPdfHeader('PLANILLA PREVISIONAL', 'INFORME DE COTIZACIONES LEYES SOCIALES PREVIRED', `PREV-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)}
 
-              <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div data-report-block="" className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
                   <span className="text-slate-500 block text-[10px] uppercase font-bold">RUT Patronal / Empresa Pagadora:</span>
                   <strong className="text-sm font-black text-slate-900 font-mono">{currentCommunity.bankInfo?.rut || '____________________'}</strong>
@@ -2102,7 +2103,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
               {/* Nómina de Cotizantes */}
               <div className="border border-slate-300 rounded-xl overflow-hidden">
-                <table className="w-full text-[11px] text-left">
+                <table data-report-block="" className="w-full text-[11px] text-left">
                   <thead className="bg-[#0F3D2E] text-white font-bold uppercase text-[9px]">
                     <tr>
                       <th className="p-2">Trabajador & RUT</th>
@@ -2159,7 +2160,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
 
               {/* Recuadro de Total a Pagar */}
-              <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-[#0F3D2E] flex justify-between items-center">
+              <div data-report-summary="" className="p-4 bg-emerald-50 rounded-2xl border-2 border-[#0F3D2E] flex justify-between items-center">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] block">
                     TOTAL GENERAL A TRANSFERIR EN PREVIRED:
@@ -2180,7 +2181,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
             {/* Firmas y Pie Institucional anclados al fondo */}
             <div className="mt-auto space-y-4 pt-6">
-              <div className="grid grid-cols-2 gap-12 text-center text-xs">
+              <div className="labor-contract-end grid grid-cols-2 gap-12 text-center text-xs">
                 {renderAdminSignatureBlock('DECLARACIÓN Y PAGO PREVIRED (LEY 21.442)')}
 
                 <div className="space-y-1 text-center">
@@ -2224,10 +2225,10 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                 <button
                   type="button"
                   onClick={() =>
-                    printDocumentDirectly(
+                    printCommunityLabor(
                       'printable-community-staff-roster',
                       `ARANPRO_Nomina_Personal_${currentCommunity.name.replace(/\s+/g, '_')}`,
-                      { pdfStyle, fitPage: true, margin: '4mm 6mm 4mm 6mm' }
+                      { pdfStyle, orientation: 'portrait' }
                     )
                   }
                   className="py-2 px-4 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -2250,12 +2251,12 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               <div id="printable-community-staff-roster" className="print-area">
                 <div
                   className="dossier-page bg-white p-7 md:p-8 pl-9 md:pl-11 min-h-[780px] md:min-h-[850px] flex flex-col justify-between text-slate-900 text-xs shadow-md mx-auto max-w-[880px]"
-                  data-pdf-style={pdfStyle}
+                  data-staff-report="" data-pdf-style={pdfStyle}
                 >
                   <div className="space-y-4">
                     {renderAranproPdfHeader('REGISTRO OFICIAL', 'NÓMINA DE TRABAJADORES DEL CONDOMINIO', `NOM-${new Date().getFullYear()}`)}
 
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                    <div data-report-block="" className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
                       <div>
                         <strong className="block text-slate-900 font-bold">{currentCommunity.name}</strong>
                         <span className="text-slate-600 block text-[11px]">RUT Patronal: {currentCommunity.bankInfo?.rut || '____________________'} • {currentCommunity.address}</span>
@@ -2267,7 +2268,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     </div>
 
                     <div className="border border-slate-300 rounded-xl overflow-hidden">
-                      <table className="w-full text-[11px] text-left">
+                      <table data-report-block="" className="w-full text-[11px] text-left">
                         <thead className="bg-[#0F3D2E] text-white font-bold uppercase text-[9px]">
                           <tr>
                             <th className="p-2">N°</th>
@@ -2310,7 +2311,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
 
                   {/* Firmas y Pie Institucional anclados al fondo */}
                   <div className="mt-auto space-y-4 pt-6">
-                    <div className="grid grid-cols-2 gap-12 text-center text-xs">
+                    <div className="labor-contract-end grid grid-cols-2 gap-12 text-center text-xs">
                       {renderAdminSignatureBlock('ADMINISTRADOR TITULAR • LEY N° 21.442')}
 
                       <div className="space-y-1 text-center">
