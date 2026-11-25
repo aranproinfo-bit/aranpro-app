@@ -4,8 +4,8 @@ import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule
 import { PwaInstallButton } from '../layout/PwaPrompt';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import { formatCLP } from '../../utils/formatters';
-import { printDocumentDirectly } from '../../utils/printDocument';
-import { OfficePayrollPrint, officePayrollPrintStyles } from './OfficePayrollPrint';
+import { printCommunityLabor } from '../../utils/communityLaborPrint';
+import { OfficePayrollPrint } from './OfficePayrollPrint';
 import LaborContractDraft from './LaborContractDraft';
 import {
   Building2, Briefcase, Users, Award, ShieldCheck, ArrowRight, Plus,
@@ -1098,12 +1098,7 @@ export const CompanyEnterpriseHub = ({
                     <button
                       type="button"
                       onClick={() =>
-                        printDocumentDirectly('printable-office-payroll-sheet', 'ARANPRO_Nomina_Imposiciones_Oficina', {
-                          fitPage: false,
-                          pageSize: 'letter landscape',
-                          margin: '0',
-                          extraStyles: officePayrollPrintStyles
-                        })
+                        printCommunityLabor('printable-office-payroll-sheet', 'ARANPRO_Nomina_Imposiciones_Oficina', {pdfStyle,orientation:'landscape'})
                       }
                       className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 cursor-pointer"
                     >

@@ -1,3 +1,4 @@
+import CommunityLogoField from './CommunityLogoField';
 import React, { useState, useEffect } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import {
@@ -22,10 +23,12 @@ export const CommunitySettingsAndLegalTab = ({
     if (setActiveSubTab) setActiveSubTab(tab);
   };
 
+  const [logoBusy,setLogoBusy] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Estado del formulario de habilitación y ajustes del condominio
   const [commForm, setCommForm] = useState({
+    documentLogo: '',
     name: '',
     communityRut: '',
     type: 'Casas',
@@ -95,6 +98,7 @@ export const CommunitySettingsAndLegalTab = ({
     const calcYear = currentCommunity.constructionYear || (currentYear - age);
 
     setCommForm({
+      documentLogo: currentCommunity.documentLogo || '',
       name: currentCommunity.name || '',
       communityRut: currentCommunity.communityRut || currentCommunity.bankInfo?.rut || '65.120.450-K',
       type: currentCommunity.type || 'Casas',
@@ -152,9 +156,11 @@ export const CommunitySettingsAndLegalTab = ({
 
   const handleSaveCommunitySettings = (e) => {
     if (e) e.preventDefault();
+    if (logoBusy) return;
     if (!currentCommunity) return;
 
     updateCommunity(currentCommunity.id, {
+      documentLogo: commForm.documentLogo,
       name: commForm.name,
       communityRut: commForm.communityRut,
       type: commForm.type,
@@ -334,7 +340,7 @@ export const CommunitySettingsAndLegalTab = ({
         {currentTab === 'condominio' && (
           <button
             type="button"
-            onClick={handleSaveCommunitySettings}
+            disabled={logoBusy} onClick={handleSaveCommunitySettings}
             className="px-5 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer"
           >
             <Check className="w-4 h-4 text-[#D4B895]" />
@@ -372,6 +378,9 @@ export const CommunitySettingsAndLegalTab = ({
                 Comunidad Activa
               </span>
             </div>
+
+            {currentCommunity && <CommunityLogoField key={currentCommunity.id} value={commForm.documentLogo} onBusy={setLogoBusy}
+              onChange={documentLogo=>setCommForm(prev=>({...prev,documentLogo}))}/>}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
@@ -918,7 +927,7 @@ export const CommunitySettingsAndLegalTab = ({
 
             <div className="pt-3 border-t border-slate-100 flex justify-end">
               <button
-                type="submit"
+                type="submit" disabled={logoBusy}
                 className="px-6 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Check className="w-4 h-4 text-[#D4B895]" />

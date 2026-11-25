@@ -4,7 +4,6 @@ import React, { useRef, useState } from 'react';
 import blocks from './laborContractMaster.json';
 import { laborRoleProfiles, detectLaborRole } from './laborRoleProfiles';
 import { formatCLP } from '../../utils/formatters';
-import { printDocumentDirectly } from '../../utils/printDocument';
 import { loadLaborDraft, saveLaborDraft } from '../../utils/laborContractDraftStorage';
 import { laborContractAlerts, minimumSalaryReference, validChileanRut } from '../../utils/laborContractChecks';
 import LaborScheduleBuilder from './LaborScheduleBuilder';
@@ -31,8 +30,6 @@ const fields = [
   ['dia_o_regla_de_pago','Día o regla de pago'],['medio_pago','Medio de pago'],['lugar_pago','Lugar de pago o no aplica'],['sueldo_base_monto','Sueldo base mensual','number'],
   ['bonos_pactados_con_monto_y_devengo','Bonos y condiciones o no aplica'],['asignaciones_con_monto_y_condiciones','Asignaciones y condiciones o no aplica'],['clausula_gratificacion_aplicable','Régimen de gratificación']
 ];
-const safeFooter = value => JSON.stringify(String(value || '').replace(/[\r\n]/g, ' '));
-const printStyles=(ready,settings)=>`@page{size:letter portrait;margin:19mm 17mm;@bottom-left{content:${safeFooter(`ARANPRO Gestión Integral • ${settings.website || "https://aranpro.cl"}`)};font:8px Arial;color:#62766d}@bottom-center{content:"Página " counter(page) " • ${ready ? 'Contrato de trabajo' : 'Borrador de contrato'}";font:8px Arial;color:#0f3d2e}@bottom-right{content:${safeFooter(`Fono Directo: ${settings.phone || "+56 9 5811 8504"}`)};font:8px Arial;color:#62766d}}.print-wrapper{box-shadow:none!important;padding:0!important}.labor-contract-doc{font-family:Arial,sans-serif!important;color:#1c2925!important;font-size:10.5pt!important;line-height:1.45!important}.labor-contract-doc h2{font-size:15pt!important;color:#0f3d2e!important}.labor-contract-doc h3{font-size:11pt!important;color:#0f3d2e!important;break-after:avoid!important}.labor-contract-doc p{orphans:3;widows:3}.labor-contract-doc .signatures,.labor-contract-end{break-inside:avoid;page-break-inside:avoid}.labor-contract-stripe{position:fixed;left:0;top:0;bottom:0;width:2mm;border-left:1.1mm solid #0f3d2e;border-right:.45mm solid #d4b895}.labor-contract-header-logo{width:22mm!important;height:auto!important;max-height:13mm!important;object-fit:contain!important}.aranpro-print-watermark{display:none!important}`;
 const printableDate=x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x||''))?x.split('-').reverse().join('/'):(x||'');
 const str=x=>String(x??'').trim();
 const localToday=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -189,10 +186,7 @@ export default function LaborContractDraft({worker,community,settings={},onClose
   const printContract = () => {
     if (ready && onSaveWorker && !save()) return;
     const prefix = ready ? 'ARANPRO_Contrato_Trabajo' : 'ARANPRO_Borrador_Contrato_Trabajo';
-    if (employerKind === 'community') return printCommunityLabor('labor-contract-draft', prefix + '_' + form.nombre_trabajador);
-    printDocumentDirectly('labor-contract-draft', prefix + '_' + form.nombre_trabajador, {
-      pageSize:'letter portrait', fitPage:false, margin:'19mm 17mm', pdfStyle:'neutral', extraStyles:printStyles(ready,settings)
-    });
+    printCommunityLabor('labor-contract-draft', prefix + '_' + form.nombre_trabajador);
   };
 
   const specialFields = {
@@ -314,30 +308,14 @@ export default function LaborContractDraft({worker,community,settings={},onClose
     <button type="button" className="bg-[#0F3D2E] text-white rounded px-4 py-2 text-sm" onClick={printContract}>{ready ? 'Emitir contrato para firma' : 'Imprimir borrador'}</button>
 <details id="labor-field-preview" tabIndex={-1} className="rounded-lg border bg-white p-3"><summary className="cursor-pointer text-sm font-semibold">Vista previa del contrato</summary>
     <div className="bg-slate-100 p-4 overflow-auto"><div id="labor-contract-draft"><div className="labor-contract-doc bg-white max-w-[800px] mx-auto p-8 text-sm leading-relaxed text-slate-800">
-    {employerKind === 'community' ? <CommunityLaborHeader community={community} settings={settings} badge="INSTRUMENTO LABORAL" title="Contrato individual de trabajo"/> : <>
-    <div className="labor-contract-stripe" aria-hidden="true" />
-    <div className="labor-contract-header" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,borderBottom:'2px solid #0F3D2E',paddingBottom:12,marginBottom:14}}>
-      <div style={{display:'flex',alignItems:'center',gap:12}}>
-        <img className="labor-contract-header-logo" src="/brand/ARANPRO_isotipo_trimmed.png" alt="ARANPRO" style={{width:'22mm',height:'auto',objectFit:'contain'}} />
-        <div><strong style={{fontSize:13,color:'#0F3D2E'}}>{settings.brandName || 'ARANPRO'} • {settings.subtitle || 'Gestión Integral'}</strong>
-          <div style={{fontSize:9,fontWeight:700,color:'#475569'}}>ADMINISTRACIÓN DE CONDOMINIOS • RECURSOS HUMANOS</div>
-          <div style={{fontSize:8,color:'#64748b'}}>{settings.companyRut && !String(settings.companyRut).includes('76.999.888') && <>RUT Empresa: {settings.companyRut} • </>}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
-        </div>
-      </div>
-      <div style={{textAlign:'right',maxWidth:'42%'}}>
-        <span style={{display:'inline-block',border:'1px solid #a7f3d0',borderRadius:4,background:'#ecfdf5',padding:'2px 8px',fontSize:9,fontWeight:800,color:'#0F3D2E'}}>INSTRUMENTO LABORAL</span>
-        <div style={{fontSize:10,fontWeight:800}}>CONTRATO INDIVIDUAL DE TRABAJO</div>
-        <div style={{fontSize:9,color:'#64748b'}}>{community.name}</div>
-      </div>
-    </div>
-    </>}
+    <CommunityLaborHeader community={community} employerKind={employerKind} settings={settings} badge="INSTRUMENTO LABORAL" title="Contrato individual de trabajo"/>
     {!ready && <p className="font-bold text-center text-amber-900">BORRADOR DE REVISIÓN · NO APTO PARA FIRMA</p>}<h2 className="font-bold my-3">Contrato individual de trabajo</h2>
     {blocks.slice(0, firstDuty).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill(b.text)}</p>)}
     <h3 className="font-bold mt-4 mb-1">Segundo. Funciones del cargo</h3>{duties.split(/\n\s*\n/).filter(Boolean).map((text,i)=><p className="my-2 text-justify" key={i}>{text}</p>)}
     {blocks.slice(afterDuties).filter(b=>!b.mode||b.mode===form.contractType).map((b,i)=>b.type==='heading'?<h3 className="font-bold mt-4 mb-1" key={i}>{fill(b.text)}</h3>:<p className="my-2 text-justify" key={i}>{fill((b.mode==='plazo_fijo'?b.text.replace('{{fecha_ingreso}}','{{fecha_inicio_contrato}}'):b.text).replace('reglamento de la comunidad','reglamento aplicable del empleador'))}</p>)}
     {str(additionalTerms)&&<section><h3 className="font-bold mt-4 mb-1">Acuerdos particulares</h3><p className="my-2 text-justify" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{additionalTerms.trim()}</p></section>}
     <LaborContractSignatures form={form} settings={settings} includeSignature={includeSignature} employerKind={employerKind} />
-    {employerKind === 'community' && <div hidden data-footer-template=""><CommunityLaborFooter settings={settings} title={ready ? 'Contrato individual de trabajo' : 'Borrador · Contrato individual de trabajo'}/></div>}
+    <div hidden data-footer-template=""><CommunityLaborFooter settings={settings} title={ready ? 'Contrato individual de trabajo' : 'Borrador · Contrato individual de trabajo'}/></div>
     </div></div></div>
 </details></>}
   <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
