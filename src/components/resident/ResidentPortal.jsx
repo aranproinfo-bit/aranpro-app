@@ -1,3 +1,4 @@
+import { PaymentReceipt } from '../common/AccountingPage';
 import IndividualExpenseBill from '../common/IndividualExpenseBill';
 import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
@@ -93,7 +94,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
   const isUpToDate = fin.isFullyPaid;
 
   // Historial de pagos de esta casa
-  const unitPayments = (community.paymentReports || []).filter(p => p.unitNumber === unit.number);
+  const unitPayments = (community.paymentReports || []).filter(p => (p.unitId ? p.unitId === unit.id : p.unitNumber === unit.number));
 
   // Configuración de datos bancarios con aislamiento total para la Demostración
   const demoBankInfo = {
@@ -223,6 +224,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
     reportPayment(community.id, {
+      unitId: unit.id,
       unitNumber: unit.number,
       owner: unit.owner,
       amount: paymentForm.amount || totalToPay,
@@ -1803,103 +1805,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
       )}
 
       {/* MODAL RECIBO OFICIAL DE PAGO FOLIADO PARA EL VECINO */}
-      {activePaymentReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
-          <div 
-            id="resident-payment-receipt-printable-doc"
-            className="w-full max-w-md max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#D4B895] p-6 sm:p-7 space-y-5"
-          >
-            <div className="flex justify-between items-start border-b-2 border-[#0F3D2E] pb-4">
-              <div className="flex items-center space-x-3">
-                <AranproLogo className="h-9 w-auto" />
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#0F3D2E] block">
-                    ARANPRO • Gestión Integral
-                  </span>
-                  <h3 className="text-base font-black text-slate-900">Comprobante Oficial de Pago</h3>
-                  <p className="text-xs font-mono font-bold text-emerald-700">
-                    Folio: {activePaymentReceipt.receiptFolio || 'REC-OFICIAL'}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setActivePaymentReceipt(null)}
-                className="text-slate-400 hover:text-slate-600 no-print cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Datos de la transacción */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Comunidad:</span>
-                <span className="font-bold text-slate-900">{activePaymentReceipt.communityName || displayCommunityName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Unidad Pagadora:</span>
-                <span className="font-bold text-slate-900">Casa N° {activePaymentReceipt.unitNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Copropietario:</span>
-                <span className="font-bold text-slate-900">{activePaymentReceipt.owner}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Fecha de Pago:</span>
-                <span className="font-bold text-slate-900">{formatDate(activePaymentReceipt.date)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">N° Operación:</span>
-                <span className="font-mono font-bold text-slate-900">{activePaymentReceipt.transferNumber}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-[#D4B895] text-sm">
-                <span className="font-black text-[#0F3D2E]">MONTO PAGADO:</span>
-                <span className="font-black text-emerald-700">{formatCLP(activePaymentReceipt.amount)}</span>
-              </div>
-            </div>
-
-            {/* Timbre y Firma Digital de Emisión */}
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
-              <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-500 font-mono block">Recaudado y Validado</span>
-                <span className="font-bold text-[#0F3D2E] text-[11px] block">{companySettings?.adminName || companySettings?.administratorName || 'Administración ARANPRO'}</span>
-                <span className="text-[9px] text-slate-500 font-mono">{companySettings?.rnacNumber && companySettings.rnacNumber !== '48.912' ? `RNAC MINVU N° ${companySettings.rnacNumber}` : 'Ley N° 21.442 de Copropiedad'}</span>
-              </div>
-              <div className="text-right">
-                {companySettings?.signatureDataUrl ? (
-                  <img src={companySettings.signatureDataUrl} alt="Firma" className="max-h-11 object-contain ml-auto" />
-                ) : (
-                  <div className="h-6"></div>
-                )}
-                <span className="text-[9px] font-mono text-emerald-800 font-bold block">✓ Timbre Digital Verificado</span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 no-print">
-              <button
-                type="button"
-                onClick={() => {
-                  const commName = (displayCommunityName || 'Condominio').replace(/\s+/g, '_');
-                  const folio = (activePaymentReceipt.receiptFolio || 'REC').replace(/[^a-zA-Z0-9_-]/g, '_');
-                  printDocumentDirectly('resident-payment-receipt-printable-doc', `Recibo_Pago_${folio}_Casa_${unit.number}_${commName}`, { fitPage: true });
-                }}
-                className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
-              >
-                <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
-                Imprimir / Guardar PDF
-              </button>
-              <button
-                type="button"
-                onClick={() => setActivePaymentReceipt(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl cursor-pointer"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {activePaymentReceipt && <PaymentReceipt payment={activePaymentReceipt} community={isDemoActive ? {...community,name:displayCommunityName,documentLogo:null,slug:null} : community} company={companySettings} onClose={()=>setActivePaymentReceipt(null)}/>}
       {/* MODAL CERTIFICADO OFICIAL TIMBRADO Y VERIFICABLE (PDF / IMPRIMIBLE) */}
       {activeResidentCert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">

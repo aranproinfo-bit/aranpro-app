@@ -680,6 +680,13 @@ export const CommunityProvider = ({ children }) => {
   };
 
   // Registro manual de pago por parte del Administrador (permite monto exacto, abono parcial o pago con monto superior / saldo a favor)
+  const paymentSnapshot = (community, unit, paidAmount) => {
+    const before = getUnitFinancials(unit);
+    const after = getUnitFinancials({...unit, paidAmount});
+    const p = community.activePeriod;
+    return {period:p?.year && p?.month ? p.year+'-'+String(p.month).padStart(2,'0') : '',
+      before:before.pendingDebt-before.favorBalance, after:after.pendingDebt-after.favorBalance};
+  };
   const registerManualPayment = (communityId, unitId, paymentData) => {
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
@@ -705,14 +712,16 @@ export const CommunityProvider = ({ children }) => {
 
       // Generar comprobante foliado aprobado si el monto ingresado es > 0 y se solicita registrar movimiento
       let updatedReports = c.paymentReports || [];
-      if (enteredAmount > 0 && paymentData.createReceipt !== false) {
+      if (newPaidAmount > previousPaid && paymentData.createReceipt !== false) {
         const folioNumber = updatedReports.filter(p => p.status === 'APROBADO').length + 1;
         const receiptFolio = `REC-${new Date().getFullYear()}-${String(folioNumber).padStart(3, '0')}`;
         const newReport = {
           id: `pay-manual-${Date.now()}`,
           unitNumber: targetUnit.number,
           owner: paymentData.payerName || targetUnit.owner,
-          amount: enteredAmount,
+          unitId: targetUnit.id,
+          accountSnapshot: paymentSnapshot(c,targetUnit,newPaidAmount),
+          amount: newPaidAmount-previousPaid,
           date: paymentData.date || new Date().toISOString().split('T')[0],
           transferNumber: paymentData.transferNumber || `MAN-${Math.floor(100000 + Math.random() * 900000)}`,
           receiptImg: '',
@@ -1164,7 +1173,7 @@ export const CommunityProvider = ({ children }) => {
         billingSplitMode: c.billingSplitMode,
         allocationRows: (c.units || []).map(u => {
           const f = getUnitFinancials(u);
-          return {number:u.number,tower:u.tower,owner:u.owner,sharePercentage:u.sharePercentage,
+          return {unitId:u.id,number:u.number,tower:u.tower,owner:u.owner,sharePercentage:u.sharePercentage,
             currentCharge:f.currentCharge,extraCharge:f.extraCharge,previousDebt:f.previousDebt,
             repactedInstallment:f.repactedInstallment,creditBalance:f.creditBalance,
             paidAmount:f.paidAmount,pendingDebt:f.pendingDebt,favorBalance:f.favorBalance};
@@ -1253,6 +1262,7 @@ export const CommunityProvider = ({ children }) => {
       if (c.id !== communityId) return c;
       const newReport = {
         id: `pay-${Date.now()}`,
+        unitId: reportData.unitId,
         unitNumber: reportData.unitNumber,
         owner: reportData.owner,
         amount: parseFloat(reportData.amount) || 0,
@@ -1273,14 +1283,18 @@ export const CommunityProvider = ({ children }) => {
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
       const payment = (c.paymentReports || []).find(p => p.id === paymentId);
-      if (!payment) return c;
+      if (!payment || payment.status === 'APROBADO') return c;
+      const matches = c.units.filter(u => payment.unitId ? u.id === payment.unitId : String(u.number) === String(payment.unitNumber));
+      if (matches.length !== 1) return c;
+      const target = matches[0];
+      const snapshot = paymentSnapshot(c,target,(Number(target.paidAmount)||0)+(Number(payment.amount)||0));
 
       const folioNumber = (c.paymentReports || []).filter(p => p.status === 'APROBADO').length + 1;
       const receiptFolio = payment.receiptFolio || `REC-${new Date().getFullYear()}-${String(folioNumber).padStart(3, '0')}`;
 
       // Aplicar pago total, abono parcial o pago con saldo a favor a la unidad
       const updatedUnits = c.units.map(u => {
-        if (u.number === payment.unitNumber) {
+        if (u.id === target.id) {
           const alreadyPaid = parseFloat(u.paidAmount) || 0;
           const newTotalPaid = alreadyPaid + (parseFloat(payment.amount) || 0);
           const tempUnit = { ...u, paidAmount: newTotalPaid };
@@ -1296,7 +1310,7 @@ export const CommunityProvider = ({ children }) => {
       });
 
       const updatedReports = c.paymentReports.map(p =>
-        p.id === paymentId ? { ...p, status: 'APROBADO', receiptFolio } : p
+        p.id === paymentId ? { ...p, unitId:target.id, accountSnapshot:snapshot, status: 'APROBADO', receiptFolio } : p
       );
 
       return {
