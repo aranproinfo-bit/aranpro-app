@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
-import { formatCLP, formatDate, formatRut, generateCommunityEmailProposal } from '../../utils/formatters';
+import { cleanRut, formatCLP, formatDate, formatRut, generateCommunityEmailProposal } from '../../utils/formatters';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import { printDocumentDirectly as printFormalDocument } from '../../utils/printDocument';
 import { AssemblyQuorumModule } from './AssemblyQuorumModule';
@@ -7055,7 +7055,7 @@ _Administración ARANPRO_`;
                                             type="button"
                                             onClick={() => copyProviderBankInfo(matchingProv)}
                                             className="mt-1 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded text-[9.5px] font-bold flex items-center space-x-1 cursor-pointer transition-colors"
-                                            title={`Copiar datos bancarios de ${matchingProv.name} (${matchingProv.bankInfo.bank} - Cta ${matchingProv.bankInfo.accountNumber})`}
+                                            title={`Copiar datos bancarios de ${matchingProv.name} · Cuenta ${matchingProv.bankInfo.accountNumber}`}
                                           >
                                             {copiedBankProviderId === matchingProv.id ? (
                                               <>
@@ -7065,7 +7065,7 @@ _Administración ARANPRO_`;
                                             ) : (
                                               <>
                                                 <Landmark className="w-2.5 h-2.5 text-amber-700" />
-                                                <span>Copiar Banco ({matchingProv.bankInfo.bank.split(' ')[0]})</span>
+                                                <span>Copiar datos bancarios{matchingProv.bankInfo.bank && ` (${matchingProv.bankInfo.bank})`}</span>
                                               </>
                                             )}
                                           </button>
