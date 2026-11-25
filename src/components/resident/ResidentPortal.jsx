@@ -1,3 +1,4 @@
+import IndividualExpenseBill from '../common/IndividualExpenseBill';
 import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatCLP, formatDate, getMonthName, cleanRut } from '../../utils/formatters';
@@ -1782,142 +1783,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
       {/* MODAL COLILLA DE COBRO (IMPRIMIBLE / DESCARGABLE) */}
       {showBillModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
-          <div 
-            id="resident-bill-printable-doc"
-            className="w-full max-w-xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-slate-200 p-5 sm:p-8 space-y-5 sm:space-y-6"
-          >
-            
-            <div className="flex items-center justify-between pb-4 border-b-2 border-[#0F3D2E]">
-              <div className="flex items-center space-x-3.5">
-                <AranproLogo className="h-10 w-auto" />
-                <div>
-                  <h3 className="text-base font-black text-slate-900">{displayCommunityName}</h3>
-                  <p className="text-xs text-slate-500">Cobro de Gasto Común Oficial • Ley N° 21.442</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowBillModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 no-print cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <span className="text-slate-400 block">Unidad:</span>
-                <span className="font-bold text-slate-900 text-sm">Casa N° {unit.number}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 block">Propietario Titular:</span>
-                <span className="font-bold text-slate-900">{unit.owner}</span>
-              </div>
-              {(!unit.payerSameAsOwner && unit.additionalUsers?.length > 0) && (
-                <div className="col-span-2 pt-1 border-t border-slate-200/70">
-                  <span className="text-slate-400 block">Pagador / Arrendatario Registrado:</span>
-                  <span className="font-bold text-[#0F3D2E]">
-                    {unit.additionalUsers.map(su => `${su.name} (${su.role} • ${su.rut || 'S/RUT'})`).join(' | ')}
-                  </span>
-                </div>
-              )}
-              <div>
-                <span className="text-slate-400 block">RUT Propietario:</span>
-                <span className="font-bold text-slate-900">{unit.rut || 'No informado'}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 block">Prorrateo:</span>
-                <span className="font-bold text-slate-900">{unit.sharePercentage}%</span>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-600">Total Gastos Operacionales Comunidad:</span>
-                <span className="font-semibold text-slate-900">{formatCLP(totalExpenses)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-600">Fondo de Reserva ({community.reserveFundPercentage}%):</span>
-                <span className="font-semibold text-slate-900">{formatCLP(reserveFundAmount)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-800 font-bold">1. Gasto Común del Mes ({unit.sharePercentage}%):</span>
-                <span className="font-bold text-[#0F3D2E] text-sm">{formatCLP(currentCharge)}</span>
-              </div>
-              {extraCharge > 0 && (
-                <div className="flex justify-between py-1.5 border-b border-slate-100 text-amber-800 font-bold">
-                  <span>Cobro Individual ({unit.extraChargeDescription || 'Cargo Extra'}):</span>
-                  <span>{formatCLP(extraCharge)}</span>
-                </div>
-              )}
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-700 font-semibold">2. Saldo Anterior (No Repactado):</span>
-                <span className={`font-bold ${previousDebt > 0 ? 'text-rose-600' : 'text-slate-600'}`}>
-                  {formatCLP(previousDebt)}
-                </span>
-              </div>
-              {fin.repactacionActive && (
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
-                  <div className="flex justify-between font-black text-amber-950">
-                    <span>
-                      3. Cuota Deuda Histórica Repactada (Cuota {Math.min(fin.repactacionPaidInstallments + 1, fin.repactacionTotalInstallments)} de {fin.repactacionTotalInstallments}):
-                    </span>
-                    <span>{formatCLP(fin.repactedInstallment)}</span>
-                  </div>
-                  <div className="flex justify-between text-[11px] text-amber-800">
-                    <span>Deuda Histórica Inicial: {formatCLP(fin.repactacionTotal)} | Ya Rebajado: -{formatCLP(fin.repactacionAlreadyPaidAmount)}</span>
-                    <span className="font-bold">
-                      Saldo Convenio tras este pago: {formatCLP(Math.max(0, fin.repactacionRemainingBeforeThisMonth - fin.repactedInstallment))}
-                    </span>
-                  </div>
-                </div>
-              )}
-              {fin.creditBalance > 0 && (
-                <div className="flex justify-between py-1.5 border-b border-slate-100 text-emerald-700 font-bold">
-                  <span>Saldo a Favor Período Anterior:</span>
-                  <span>- {formatCLP(fin.creditBalance)}</span>
-                </div>
-              )}
-              <div className="flex justify-between py-1.5 border-b border-slate-200 font-bold text-slate-900">
-                <span>Total Exigible en este Período:</span>
-                <span>{formatCLP(fin.totalBilledThisPeriod)}</span>
-              </div>
-              {paidSoFar > 0 && (
-                <div className="flex justify-between py-1.5 border-b border-slate-100 text-emerald-700 font-bold">
-                  <span>Monto Pagado / Abonado Registrado:</span>
-                  <span>- {formatCLP(paidSoFar)}</span>
-                </div>
-              )}
-              {favorBalance > 0 ? (
-                <div className="flex justify-between py-3 text-sm font-black text-emerald-800 bg-emerald-50 px-3 rounded-xl border border-emerald-200">
-                  <span>SALDO A FAVOR DISPONIBLE (SE DESCUENTA EL PRÓXIMO MES):</span>
-                  <span className="text-base">+ {formatCLP(favorBalance)}</span>
-                </div>
-              ) : (
-                <div className="flex justify-between py-3 text-sm font-black text-slate-900 border-t border-slate-200">
-                  <span>MONTO EN CONTRA / TOTAL PENDIENTE A PAGAR:</span>
-                  <span className="text-base text-[#0A291F]">{formatCLP(totalToPay)}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="p-3 bg-[#F5F4EF] rounded-xl text-center text-xs text-[#0F3D2E] border border-[#D4B895]">
-              Fecha de Vencimiento: <strong>{formatDate(community.activePeriod.dueDate)}</strong>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 no-print">
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const commName = (displayCommunityName || 'Condominio').replace(/\s+/g, '_');
-                    printDocumentDirectly('resident-bill-printable-doc', `Colilla_Gasto_Comun_Casa_${unit.number}_${commName}`, { fitPage: true });
-                  }}
-                  className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
-                >
-                  <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
-                  Imprimir / Guardar PDF
-                </button>
-                <button
+          <IndividualExpenseBill community={isDemoActive ? {...community, name:displayCommunityName, bankInfo:demoBankInfo, documentLogo:null, slug:null} : community} unit={unit} fin={fin} totals={commTotals} company={companySettings}>              <button
                   type="button"
                   onClick={handleShareBill}
                   className="px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
@@ -1925,18 +1791,14 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                 >
                   <Share2 className="w-3.5 h-3.5 mr-1.5 text-white" />
                   Compartir WhatsApp
-                </button>
-              </div>
-              <button
+                </button><button
                 type="button"
                 onClick={() => setShowBillModal(false)}
                 className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl cursor-pointer"
               >
                 Cerrar
               </button>
-            </div>
-
-          </div>
+          </IndividualExpenseBill>
         </div>
       )}
 

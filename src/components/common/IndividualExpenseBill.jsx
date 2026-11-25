@@ -1,0 +1,83 @@
+import React, { useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import QRCode from 'qrcode';
+import { DOMAIN_CONFIG } from '../../config/domains';
+import { formatCLP, getMonthName } from '../../utils/formatters';
+import styles from './communityAccounting.css?raw';
+
+const frameDocument = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Colilla de gasto común</title><style>${styles}</style></head><body></body></html>`;
+
+function PortalCode({ url }) {
+  const { size, path } = useMemo(() => {
+    const grid = QRCode.create(url, { errorCorrectionLevel: 'M' }).modules;
+    const dots = [];
+    for (let y = 0; y < grid.size; y++) {
+      for (let x = 0; x < grid.size; x++) {
+        if (grid.get(y, x)) dots.push(`M${x + 4} ${y + 4}h1v1h-1z`);
+      }
+    }
+    return { size: grid.size + 8, path: dots.join('') };
+  }, [url]);
+  return <a href={url} target="_blank" rel="noreferrer" aria-label="Abrir portal de residentes"><svg viewBox={`0 0 ${size} ${size}`} width="87" height="87" shapeRendering="crispEdges"><rect width={size} height={size} fill="white"/><path d={path}/></svg></a>;
+}
+
+function Amount({ label, value, style = '' }) {
+  return <div className={'line '+style}><span>{label}</span><span>{formatCLP(value)}</span></div>;
+}
+
+export default function IndividualExpenseBill({ community, unit, fin, totals, company, children }) {
+  const frame = useRef(null);
+  const [body, setBody] = useState(null);
+  const bank = community.bankInfo || {};
+  const period = community.activePeriod || {};
+  const month = getMonthName(period.month);
+  const periodLabel = [month, period.year].filter(Boolean).join(' de ');
+  const type = ({ Edificio:'Depto.', Mixto:'Unidad', 'Locales Comerciales':'Local' })[community.type] || 'Casa';
+  const unitLabel = [type, unit.number, unit.tower].filter(Boolean).join(' ');
+  const rate = Number(unit.sharePercentage) || 0;
+  const portion = amount => Math.round(amount * rate / 100);
+  const groups = new Map();
+  for (const expense of community.expenses || []) {
+    if (expense.fundSource === 'fondo_reserva') continue;
+    const category = expense.category?.trim() || 'Gastos operacionales generales';
+    groups.set(category, (groups.get(category) || 0) + (Number(expense.amount) || 0));
+  }
+  const allocationDifference = fin.currentCharge - portion(totals.totalExpenses) - portion(totals.reserveFundAmount);
+  const url = DOMAIN_CONFIG.getResidentLoginUrl(community.slug);
+  const due = period.dueDate?.slice(0,10);
+  const balanceLabel = fin.favorBalance > 0 ? 'Saldo a favor' : 'Saldo a pagar';
+  const balance = fin.favorBalance || fin.pendingDebt;
+  async function printBill() {
+    const doc = frame.current.contentDocument;
+    doc.title = ['Colilla_Gasto_Comun',community.name,unitLabel,period.month,period.year].filter(Boolean).join('_');
+    await Promise.all(Array.from(doc.images, image => image.decode().catch(() => {})));
+    frame.current.contentWindow.print();
+  }
+  return <div className="w-full max-w-4xl bg-white rounded-xl overflow-hidden shadow-xl">
+    <iframe ref={frame} title="Colilla individual de gasto común" srcDoc={frameDocument} onLoad={e=>setBody(e.currentTarget.contentDocument.body)} style={{width:'100%',height:'min(78vh, 1056px)',border:0}}/>
+    {body && createPortal(<main className="sheet">
+      <header className="mast"><div className="identity">{community.documentLogo && <img className="symbol" src={community.documentLogo} alt="Logo de la comunidad"/>}<div><div className="k">Comunidad</div><b>{community.name}</b><div className="small">{community.city}</div></div></div><img className="ap" src="/brand/ARANPRO_logo_horizontal_transparente_trimmed.png" alt="ARANPRO Gestión Integral"/></header>
+      <div className="period"><h1>Colilla de gasto común</h1><div className="right"><span className="k">Período de cobro</span><strong>{periodLabel || 'Sin informar'}</strong></div></div>
+      <div className="hero"><div><span className="k">{balanceLabel}</span><strong>{formatCLP(balance)}</strong></div><div><span className="k">Vencimiento</span><strong>{due || 'Sin informar'}</strong></div><div><span className="k">Unidad</span><strong>{unitLabel}</strong></div></div>
+      <div className="holder"><div><span className="k">Copropietario titular</span><b>{unit.owner}</b></div><div><span className="k">RUT titular</span><b>{unit.rut || 'Sin informar'}</b></div><div><span className="k">Prorrateo de la unidad</span><b>{rate.toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:6})} %</b></div></div>
+      <section><div className="row cap"><h2>Gastos de la comunidad</h2><span className="small">Montos en pesos chilenos</span></div><table><thead><tr><th>Concepto</th><th>Total comunidad</th><th>Cuota de la unidad</th></tr></thead><tbody>
+      {Array.from(groups, ([category,amount])=><tr key={category}><td>{category}</td><td>{formatCLP(amount)}</td><td>{formatCLP(portion(amount))}</td></tr>)}
+      <tr><td>Subtotal de operación</td><td>{formatCLP(totals.totalExpenses)}</td><td>{formatCLP(portion(totals.totalExpenses))}</td></tr>
+      <tr><td>Fondo de reserva · {community.reserveFundPercentage ?? 5} %</td><td>{formatCLP(totals.reserveFundAmount)}</td><td>{formatCLP(portion(totals.reserveFundAmount))}</td></tr>
+      {!!allocationDifference && <tr><td>Diferencia entre prorrateo y cuota registrada</td><td>—</td><td>{formatCLP(allocationDifference)}</td></tr>}
+      <tr className="sum"><td>Gasto común del mes</td><td>{formatCLP(totals.grandTotal)}</td><td>{formatCLP(fin.currentCharge)}</td></tr></tbody></table></section>
+      <section className="twocol"><div><h2 className="cap">Cuenta de la unidad</h2><Amount label={'Gasto común de '+month.toLowerCase()} value={fin.currentCharge}/>
+      {!!fin.extraCharge && <Amount label={unit.extraChargeDescription || 'Cargo individual del mes'} value={fin.extraCharge}/>}
+      {!!fin.previousDebt && <Amount label="Deuda anterior fuera de convenio" value={fin.previousDebt}/>}
+      {!!fin.repactedInstallment && <Amount label={`Cuota del convenio · ${fin.repactacionPaidInstallments+1} de ${fin.repactacionTotalInstallments}`} value={fin.repactedInstallment}/>}
+      {!!fin.creditBalance && <Amount label="Saldo a favor anterior" value={-fin.creditBalance}/>}
+      <Amount label="Total cobrado en el período" value={fin.totalBilledThisPeriod} style="subtotal"/>
+      {!!fin.paidAmount && <Amount label="Abono registrado" value={-fin.paidAmount}/>}<Amount label={balanceLabel} value={balance} style="net"/></div>
+      <div className="bank"><h2>Datos para transferir</h2><b>{bank.holderName || community.name}</b><p>{bank.bank || 'Banco sin informar'}<br/>{bank.accountType} · N.º {bank.accountNumber || 'Sin informar'}<br/>RUT · {bank.rut || community.rut || 'Sin informar'}</p><p className="small">Referencia de pago</p><b>{unitLabel} · {periodLabel}</b><p>{bank.email}</p></div></section>
+      {fin.repactacionActive && <aside className="agreement"><b>Detalle del convenio</b><p>Deuda repactada: {formatCLP(fin.repactacionTotal)} · Cuotas pagadas: {fin.repactacionPaidInstallments} de {fin.repactacionTotalInstallments} ({formatCLP(fin.repactacionAlreadyPaidAmount)}).</p><p>Cuota de este período: {formatCLP(fin.repactedInstallment)} · Cuotas futuras: {formatCLP(Math.max(0,fin.repactacionRemainingBeforeThisMonth-fin.repactedInstallment))}.</p></aside>}
+      <div className="auth"><img src="/brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello ARANPRO"/><div><b>Administración delegada</b><span className="small">ARANPRO Gestión Integral</span></div><div className="sign">{company?.signatureDataUrl && <img src={company.signatureDataUrl} alt="Firma"/>}<div className="signature"><b>{company?.adminName || company?.administratorName || 'Firma de la administración'}</b></div></div></div>
+      <aside className="payment-guide"><div><h2>¿Ya transferiste? Informa tu pago</h2><ol><li>Escanea el QR o entra a <a href={url} target="_blank" rel="noreferrer">portaladministracion.aranpro.cl</a>. Inicia sesión y elige <b>Informar Pago</b>.</li><li>Indica el monto y la fecha de la transferencia. Puedes agregar el folio y un comentario.</li><li>Adjunta una foto, captura o PDF del comprobante y pulsa <b>Registrar Notificación de Pago</b>.</li></ol><p>La administración revisará la transferencia antes de emitir tu recibo.</p></div><PortalCode url={url}/></aside>
+      <footer className="foot"><span>{community.name}</span><span>Colilla de gasto común · {periodLabel}</span></footer></main>,body)}
+    <div className="flex flex-wrap items-center justify-between gap-2 p-3"><button disabled={!body} onClick={printBill} className="rounded-xl bg-[#0F3D2E] px-4 py-2 text-white text-sm font-bold">Imprimir / Guardar PDF</button>{children}</div>
+  </div>;
+}

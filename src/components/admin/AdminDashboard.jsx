@@ -1,3 +1,4 @@
+import IndividualExpenseBill from '../common/IndividualExpenseBill';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { cleanRut, formatCLP, formatDate, formatRut, generateCommunityEmailProposal } from '../../utils/formatters';
@@ -391,7 +392,6 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
   const [emisionSubTab, setEmisionSubTab] = useState('todos');
   const [companySubTab, setCompanySubTab] = useState('condominio'); // 'condominio' | 'sobre_app'
   const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
-  const [colillaDesign, setColillaDesign] = useState('ejecutiva'); // 'ejecutiva' | 'transparencia' | 'cupon'
   const [providerSearchQuery, setProviderSearchQuery] = useState('');
   const [providerCategoryFilter, setProviderCategoryFilter] = useState('ALL');
   const [providerContractFilter, setProviderContractFilter] = useState('ALL');
@@ -16749,303 +16749,13 @@ _Administración ARANPRO_`;
         </div>
       )}
 
-      {/* MODAL VER COLILLA DE COBRO DE UNA UNIDAD (IMPRIMIBLE / DESCARGABLE CON 3 DISEÑOS SELECCIONABLES) */}
+      {/* MODAL VER COLILLA DE COBRO DE UNA UNIDAD (MODELO CONTABLE DE COMUNIDADES) */}
       {activeUnitBill && currentCommunity && (() => {
         const fin = getUnitFinancials(activeUnitBill);
         const commTotals = calculateCommunityTotals(currentCommunity);
-        const bank = currentCommunity.bankInfo || {};
-        const groupedExpenses = groupExpensesByCategory(currentCommunity.expenses || []);
-
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
-            <div 
-              id="unit-bill-printable-doc"
-              className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-6 sm:p-7 space-y-4 max-h-[92vh] overflow-y-auto"
-            >
-              {/* Barra de Selección de las 3 Alternativas de Diseño de Colilla + Estilo de Hoja (Oculta en Impresión) */}
-              <div className="no-print space-y-2 pb-3 border-b border-slate-200">
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-[#F5F4EF] px-3 py-2 rounded-xl border border-[#D4B895]/60">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-[#0F3D2E]">
-                    Diseño de Colilla:
-                  </span>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {[
-                      { id: 'ejecutiva', label: '1. Ejecutiva Oficial' },
-                      { id: 'transparencia', label: '2. Transparencia Ley 21.442 (Desglose)' },
-                      { id: 'cupon', label: '3. Con Cupón Recortable Conserjería' }
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setColillaDesign(opt.id)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                          colillaDesign === opt.id
-                            ? 'bg-[#0F3D2E] text-[#D4B895] shadow-xs'
-                            : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <AranproPdfStyleSelector value={pdfStyle} onChange={setPdfStyle} compact />
-              </div>
-
-              {/* Membrete Oficial Alternativa 4 con Logo Vertical Principal */}
-              <div className="flex items-start justify-between pb-3.5 border-b-2 border-[#0F3D2E] gap-3">
-                <div className="flex items-center space-x-3">
-                  <AranproLogo variant="principal" className="h-12 w-auto" />
-                  <div className="border-l border-slate-300 pl-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0F3D2E] block">
-                      {companySettings?.brandName || 'ARANPRO'} • GESTIÓN INTEGRAL INMOBILIARIA
-                    </span>
-                    <h3 className="text-base font-black text-slate-900 leading-tight">{currentCommunity.name}</h3>
-                    <p className="text-[10.5px] text-slate-500 font-mono">
-                      RUT Comunidad: {currentCommunity.rut || bank.rut || '65.123.456-7'} • RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="text-right">
-                    <span className="inline-block px-2.5 py-0.5 rounded bg-[#0F3D2E] text-[#D4B895] text-[9.5px] font-black uppercase tracking-wider">
-                      Colilla Oficial Gasto Común
-                    </span>
-                    <p className="text-[11px] font-bold text-slate-800 mt-1">
-                      Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}
-                    </p>
-                    <p className="text-[10px] text-rose-700 font-bold">
-                      Vence: {formatDate(currentCommunity.activePeriod?.dueDate)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setActiveUnitBill(null)}
-                    className="no-print p-1.5 text-slate-400 hover:text-slate-600 rounded-full"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              {/* Ficha de la unidad y pagador */}
-              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Unidad:</span>
-                  <span className="font-black text-[#0F3D2E] text-sm">
-                    {getUnitLabel(currentCommunity.type, false)} {activeUnitBill.number}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Copropietario Titular:</span>
-                  <span className="font-bold text-slate-900">{activeUnitBill.owner}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">RUT Titular:</span>
-                  <span className="font-mono font-bold text-slate-900">{activeUnitBill.rut || 'No informado'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Prorrateo / Alícuota:</span>
-                  <span className="font-mono font-bold text-slate-900">{activeUnitBill.sharePercentage}%</span>
-                </div>
-                {(!activeUnitBill.payerSameAsOwner && activeUnitBill.additionalUsers?.length > 0) && (
-                  <div className="col-span-2 sm:col-span-4 pt-1.5 border-t border-slate-200/60">
-                    <span className="text-slate-400 text-[10px] mr-1.5">Pagador Registrado:</span>
-                    <span className="font-bold text-[#0F3D2E]">
-                      {activeUnitBill.additionalUsers.map(su => `${su.name} (${su.role})`).join(' | ')}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Diseño 2: Tabla de Desglose por Categoría de Gasto de la Comunidad (Ley 21.442) */}
-              {colillaDesign === 'transparencia' && groupedExpenses.length > 0 && (
-                <div className="border border-slate-200 rounded-xl overflow-hidden text-[11px]">
-                  <div className="bg-[#0F3D2E] text-white px-3 py-1.5 font-black uppercase tracking-wider text-[10px] flex justify-between">
-                    <span>Resumen de Egresos Comunidad por Categoría (Art. 6° Ley 21.442)</span>
-                    <span className="text-[#D4B895]">Prorrateo {activeUnitBill.sharePercentage}%</span>
-                  </div>
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-50 text-slate-500 text-[9.5px] uppercase border-b border-slate-200">
-                      <tr>
-                        <th className="px-3 py-1">Categoría de Gasto</th>
-                        <th className="px-3 py-1 text-right">Total Comunidad</th>
-                        <th className="px-3 py-1 text-right">Su Proporción</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {groupedExpenses.map((cat) => (
-                        <tr key={cat.name}>
-                          <td className="px-3 py-1 font-medium text-slate-700">{cat.name} ({cat.expenses.length})</td>
-                          <td className="px-3 py-1 text-right font-mono text-slate-600">{formatCLP(cat.total)}</td>
-                          <td className="px-3 py-1 text-right font-mono font-bold text-slate-900">
-                            {formatCLP(Math.round(cat.total * ((parseFloat(activeUnitBill.sharePercentage) || 0) / 100)))}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* Detalle numérico transparente */}
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between py-1 border-b border-slate-100 text-slate-600">
-                  <span>Total Gastos Operacionales Condominio:</span>
-                  <span className="font-semibold text-slate-900">{formatCLP(commTotals.totalExpenses)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-100 text-slate-600">
-                  <span>Fondo de Reserva Legal Art. 14° ({currentCommunity.reserveFundPercentage}%):</span>
-                  <span className="font-semibold text-slate-900">{formatCLP(commTotals.reserveFundAmount)}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100 font-bold text-slate-900">
-                  <span>1. Cuota Gasto Común del Mes:</span>
-                  <span className="font-bold text-[#0F3D2E] text-sm">{formatCLP(fin.currentCharge)}</span>
-                </div>
-                {fin.extraCharge > 0 && (
-                  <div className="flex justify-between py-1 border-b border-slate-100 text-amber-800 font-bold">
-                    <span>Cobro Individual ({activeUnitBill.extraChargeDescription || 'Extra'}):</span>
-                    <span>{formatCLP(fin.extraCharge)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between py-1 border-b border-slate-100">
-                  <span className="text-slate-700 font-semibold">2. Saldo Anterior (No Repactado):</span>
-                  <span className={`font-bold ${fin.previousDebt > 0 ? 'text-rose-600' : 'text-slate-600'}`}>
-                    {formatCLP(fin.previousDebt)}
-                  </span>
-                </div>
-
-                {/* Convenio de Deuda Histórica Repactada si aplica */}
-                {fin.repactacionActive && (
-                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
-                    <div className="flex justify-between font-black text-amber-950">
-                      <span>
-                        3. Cuota Deuda Histórica Repactada ({Math.min(fin.repactacionPaidInstallments + 1, fin.repactacionTotalInstallments)}/{fin.repactacionTotalInstallments}):
-                      </span>
-                      <span>{formatCLP(fin.repactedInstallment)}</span>
-                    </div>
-                    <div className="flex justify-between text-[10.5px] text-amber-800">
-                      <span>Deuda Inicial: {formatCLP(fin.repactacionTotal)} | Ya Rebajado: -{formatCLP(fin.repactacionAlreadyPaidAmount)}</span>
-                      <span className="font-bold">
-                        Resta tras este pago: {formatCLP(Math.max(0, fin.repactacionRemainingBeforeThisMonth - fin.repactedInstallment))}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {fin.creditBalance > 0 && (
-                  <div className="flex justify-between py-1 border-b border-slate-100 text-emerald-700 font-bold">
-                    <span>Saldo a Favor Período Anterior:</span>
-                    <span>- {formatCLP(fin.creditBalance)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between py-1.5 border-b border-slate-200 font-black text-slate-900">
-                  <span>Total Cobrado en el Mes:</span>
-                  <span>{formatCLP(fin.totalBilledThisPeriod)}</span>
-                </div>
-
-                {fin.paidAmount > 0 && (
-                  <div className="flex justify-between py-1 border-b border-slate-100 text-emerald-700 font-bold">
-                    <span>Monto Pagado / Abonado Registrado:</span>
-                    <span>- {formatCLP(fin.paidAmount)}</span>
-                  </div>
-                )}
-
-                {fin.favorBalance > 0 ? (
-                  <div className="flex justify-between py-2.5 text-sm font-black text-emerald-800 bg-emerald-50 px-3 rounded-xl border border-emerald-200">
-                    <span>SALDO A FAVOR (SE DESCUENTA EL PRÓXIMO MES):</span>
-                    <span className="text-base">+ {formatCLP(fin.favorBalance)}</span>
-                  </div>
-                ) : (
-                  <div className="flex justify-between py-2.5 px-3 rounded-xl bg-[#0F3D2E] text-white text-sm font-black">
-                    <span className="text-[#D4B895]">TOTAL LÍQUIDO A PAGAR:</span>
-                    <span className="text-base font-mono">{formatCLP(fin.pendingDebt)}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Datos Bancarios de Transferencia + Sello y Firma */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1 items-center">
-                <div className="sm:col-span-7 p-3 bg-[#F5F4EF] rounded-xl border border-[#D4B895] text-[10.5px] space-y-0.5">
-                  <div className="font-black uppercase text-[#0F3D2E] tracking-wider">
-                    Datos Oficiales de Transferencia — {currentCommunity.name}
-                  </div>
-                  <div className="text-slate-700">
-                    <strong>Banco:</strong> {bank.bank || 'Banco Estado'} • <strong>Cuenta:</strong> {bank.accountType || 'Cuenta Corriente'} N° <span className="font-mono font-bold">{bank.accountNumber || 'Por informar'}</span>
-                  </div>
-                  <div className="text-slate-700">
-                    <strong>RUT:</strong> <span className="font-mono">{bank.rut || currentCommunity.rut || '65.123.456-7'}</span> • <strong>Correo:</strong> {bank.email || companySettings?.email || 'pagos@aranpro.cl'}
-                  </div>
-                </div>
-                <div className="sm:col-span-5 flex items-center justify-between gap-2 px-2">
-                  <AranproOfficialSeal size="sm" showText={false} />
-                  <div className="text-right flex-1">
-                    {companySettings?.signatureDataUrl && (
-                      <img
-                        src={companySettings.signatureDataUrl}
-                        alt="Firma"
-                        className="max-h-11 object-contain ml-auto mb-0.5"
-                        style={{
-                          transform: `scale(${companySettings?.signatureScale || 1.35})`,
-                          transformOrigin: 'bottom right'
-                        }}
-                      />
-                    )}
-                    <div className="border-t border-[#0F3D2E] pt-0.5">
-                      <span className="text-[9.5px] font-black text-slate-900 block">
-                        {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia M.'}
-                      </span>
-                      <span className="text-[8.5px] font-mono text-[#0F3D2E] font-bold block">
-                        RNAC MINVU N° {companySettings?.rnacNumber || '48.912'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Diseño 3: Cupón Recortable de Control de Pago para Conserjería / Recaudación */}
-              {colillaDesign === 'cupon' && (
-                <div className="pt-2 border-t-2 border-dashed border-slate-400 space-y-1.5 text-[10.5px]">
-                  <div className="flex items-center justify-between text-[9.5px] font-black uppercase tracking-widest text-slate-500">
-                    <span>✂ Cupón Desprendible de Control de Pago — Conserjería / Administración</span>
-                    <span>Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-300">
-                    <div>
-                      <span className="text-[9px] text-slate-400 block uppercase">Comunidad / Unidad</span>
-                      <strong className="text-slate-900">{getUnitLabel(currentCommunity.type, false)} {activeUnitBill.number}</strong>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-slate-400 block uppercase">Copropietario</span>
-                      <strong className="text-slate-900 truncate block">{activeUnitBill.owner}</strong>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-slate-400 block uppercase">Monto Pagado / N° Op.</span>
-                      <strong className="text-[#0F3D2E] font-mono">{formatCLP(fin.pendingDebt)} / ___________</strong>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-slate-400 block uppercase">Timbre Recepción</span>
-                      <span className="text-slate-400">Fecha: ____/____/2026</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="no-print flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
-                <button
-                  onClick={() => {
-                    const commName = (currentCommunity?.name || 'Condominio').replace(/\s+/g, '_');
-                    const unitNum = activeUnitBill.number;
-                    const owner = (activeUnitBill.owner || 'Copropietario').replace(/\s+/g, '_');
-                    const period = `${currentCommunity.activePeriod?.month || ''}_${currentCommunity.activePeriod?.year || ''}`;
-                    printDocumentDirectly('unit-bill-printable-doc', `Colilla_Gasto_Comun_Casa_${unitNum}_${owner}_${commName}_${period}`, { fitPage: true });
-                  }}
-                  className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
-                >
-                  <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
-                  Imprimir / Guardar PDF
-                </button>
-                <div className="flex items-center space-x-2">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/80">
+            <IndividualExpenseBill community={currentCommunity} unit={activeUnitBill} fin={fin} totals={commTotals} company={companySettings}>
                   <button
                     onClick={() => sendEmailBill(activeUnitBill)}
                     className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold text-xs rounded-xl flex items-center"
@@ -17066,9 +16776,7 @@ _Administración ARANPRO_`;
                   >
                     Cerrar
                   </button>
-                </div>
-              </div>
-            </div>
+            </IndividualExpenseBill>
           </div>
         );
       })()}
