@@ -49,3 +49,19 @@
 .resident-handout-portal {display:flex;gap:4mm;align-items:center;margin-top:3mm;padding-top:2mm;border-top:2px solid #164535;font-size:8.5pt}
 .resident-handout-portal a {color:#164535;text-decoration:underline}
 .resident-handout-portal svg {display:block;width:21mm;height:21mm}
+.collection-debt {background:#f5f4ef;border:1px solid #d4b895;border-radius:3mm;padding:2.5mm 3mm}
+.collection-debt h4 {font-weight:800;color:#103f32;text-transform:uppercase;margin-bottom:1mm}
+.collection-debt table {width:100%;font-size:9pt;border-collapse:collapse}
+.collection-debt td {padding:.55mm 0;border-bottom:1px solid #d3dcd6}
+.collection-debt td:last-child {text-align:right;font-weight:700}
+.collection-debt .collection-total td {border-top:1.5px solid #164535;border-bottom:0;color:#103f32;font-weight:800}
+.collection-end {break-inside:avoid}
+@media print {
+ .collection-letter {display:flex;flex-direction:column;min-height:260mm;gap:2mm;font-size:9pt;line-height:1.3}
+ .collection-letter > * {margin:0!important}
+ .collection-letter .collection-end {margin-top:auto!important}
+ .collection-letter .resident-handout-sign {width:105mm}
+ .collection-letter .resident-handout-sign div {height:13mm}
+ .collection-letter .resident-handout-portal svg {width:18mm;height:18mm}
+ .collection-letter .resident-handout-portal {font-size:8pt}
+}

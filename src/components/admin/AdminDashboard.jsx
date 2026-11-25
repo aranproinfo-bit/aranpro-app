@@ -5255,7 +5255,7 @@ _Administración ARANPRO_`;
                                   }`}
                                   title={
                                     fin.monthsInDebt >= 3
-                                      ? `Generar Carta Prejudicial y Notificación Corte Art. 20 (${fin.monthsInDebt} meses moroso)`
+                                      ? `Generar Carta Prejudicial de Cobranza (${fin.monthsInDebt} meses moroso)`
                                       : `Generar Carta de Cobro Preventiva (${fin.monthsInDebt} mes moroso)`
                                   }
                                 >
@@ -5338,7 +5338,7 @@ _Administración ARANPRO_`;
                                           className="w-full px-3 py-2 text-rose-700 hover:bg-rose-50 flex items-center font-bold"
                                         >
                                           <FileText className="w-3.5 h-3.5 mr-2 text-rose-600" />
-                                          {fin.monthsInDebt >= 3 ? 'Carta Prejudicial (Art. 20)' : 'Carta de Cobro Formal'}
+                                          {fin.monthsInDebt >= 3 ? 'Carta Prejudicial' : 'Carta de Cobro Formal'}
                                         </button>
                                       )}
                                       <button
@@ -16645,7 +16645,7 @@ _Administración ARANPRO_`;
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 block uppercase font-bold">Dirección y Comuna:</span>
-                    <span className="text-slate-800">{currentCommunity.address || 'Camino Central'} • {currentCommunity.city}</span>
+                    <span className="text-slate-800">{currentCommunity.address || ''} • {currentCommunity.city}</span>
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 block uppercase font-bold">Tipo y Unidades:</span>
@@ -17066,11 +17066,8 @@ _Administración ARANPRO_`;
 
         // Registro en Bitácora
         const handleRegisterInBitacora = () => {
-          const noteType = isPrejudicial ? 'Corte de Suministro (Art. 20)' : 'Cobranza';
-          const noteText = isPrejudicial
-            ? `Se emitió y notificó CARTA PREJUDICIAL Y AVISO DE CORTE DE SUMINISTRO ELÉCTRICO (Art. 20 Ley N° 21.442) por deuda vencida de ${formatCLP(totalDebt)} (${monthsCount} meses impagos). Plazo perentorio: ${collectionLetterNoticeDays} días hábiles.`
-            : `Se emitió y notificó CARTA DE COBRO PREVENTIVA por saldo pendiente de ${formatCLP(totalDebt)} (${monthsCount} mes(es) impago). Plazo otorgado: ${collectionLetterNoticeDays} días hábiles.`;
-
+          const noteType = 'Cobranza';
+          const noteText = `Se preparó una carta de cobranza ${isPrejudicial ? 'prejudicial' : 'preventiva'} por el saldo registrado de ${formatCLP(totalDebt)}. Se solicitó responder dentro de ${collectionLetterNoticeDays} días ${collectionLetterNoticeDays <= 5 ? 'hábiles' : 'corridos'}. El envío y la recepción deben registrarse por separado una vez verificados.`;
           addUnitNote(currentCommunity.id, unit.id, {
             type: noteType,
             text: noteText,
@@ -17202,7 +17199,7 @@ _Administración ARANPRO_`;
                             : 'bg-slate-800 text-rose-300 hover:text-white'
                         }`}
                       >
-                        ⚡ Prejudicial (Art. 20)
+                        ⚡ Prejudicial
                       </button>
                       <select
                         value={collectionLetterNoticeDays}
@@ -17232,7 +17229,7 @@ _Administración ARANPRO_`;
                       <div className="flex items-center gap-2">
                         <span className="text-slate-500">Documento activo:</span>
                         <strong className={isPrejudicial ? 'text-rose-700' : 'text-[#0F3D2E]'}>
-                          {isPrejudicial ? '⚡ Carta Prejudicial y Requerimiento de Corte (Art. 20)' : 'Carta de Cobranza Preventiva y Recordatorio'}
+                          {isPrejudicial ? 'Carta de cobranza prejudicial' : 'Carta de Cobranza Preventiva y Recordatorio'}
                         </strong>
                         <span className="text-slate-400">• Plazo: {collectionLetterNoticeDays} días</span>
                       </div>
@@ -17254,7 +17251,7 @@ _Administración ARANPRO_`;
                         ) : (
                           <>
                             <ClipboardList className="w-3.5 h-3.5 mr-1 text-amber-800" />
-                            Registrar Emisión en Bitácora
+                            Registrar preparación en bitácora
                           </>
                         )}
                       </button>
@@ -17263,9 +17260,9 @@ _Administración ARANPRO_`;
                     {/* HOJA DE CARTA COMPLETA (VISIBLE DE PRINCIPIO A FIN) */}
                     <div
                       id="collection-letter-printable-doc"
-                      className="print-area bg-white p-6 sm:p-12 rounded-2xl shadow-sm border border-slate-200 space-y-6 text-slate-900 text-sm leading-relaxed"
+                      className="print-area collection-letter bg-white p-6 sm:p-12 rounded-2xl shadow-sm border border-slate-200 space-y-6 text-slate-900 text-sm leading-relaxed"
                     >
-                      {/* Membrete Institucional ARANPRO */}
+                      <article className="collection-letter">{/* Membrete Institucional ARANPRO */}
 <FinanceHeader community={currentCommunity} title="Aviso de cobranza" reference={unitFullName+' · '+new Date().toLocaleDateString('es-CL')}/>
 {/* Ficha del Destinatario */}
                       <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -17279,7 +17276,7 @@ _Administración ARANPRO_`;
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Unidad Sujeta a Requerimiento:</span>
                           <strong className="text-[#0F3D2E] text-sm">{unitFullName}</strong>
                           <div className="text-slate-600 mt-0.5">Alícuota: {unit.sharePercentage}% de prorrateo</div>
-                          <div className="text-slate-600 text-[11px]">Comunidad: {currentCommunity.name} • {currentCommunity.address || 'Camino Central'}</div>
+                          <div className="text-slate-600 text-[11px]">Comunidad: {currentCommunity.name} • {currentCommunity.address || ''}</div>
                         </div>
                       </div>
 
@@ -17301,9 +17298,9 @@ _Administración ARANPRO_`;
                             <strong>DE NUESTRA CONSIDERACIÓN:</strong>
                           </p>
                           <p>
-La administración de {currentCommunity.name} solicita revisar y regularizar el saldo de la unidad {unitFullName}. La cartola registra {formatCLP(totalDebt)} pendientes al emitir esta comunicación.</p>
-                          <table className="w-full text-xs"><tbody>{[['Cuota del período',fin.currentCharge],['Cargos individuales',fin.extraCharge],['Cuota del convenio',fin.repactedInstallment],['Saldo anterior fuera de convenio',fin.previousDebt],['Crédito anterior',-fin.creditBalance],['Abonos registrados',-fin.paidAmount],['Saldo pendiente',totalDebt]].map(([label,value])=><tr key={label}><td>{label}</td><td className="text-right">{formatCLP(value)}</td></tr>)}</tbody></table>
-                          <p>Revise los cargos y abonos de su unidad. Si ya realizó el pago, indique la fecha y el número de operación para conciliarlo. También puede solicitar un convenio sujeto al acuerdo del comité.</p><p>Solicitamos su respuesta dentro de {collectionLetterNoticeDays} días hábiles desde la recepción. En caso de persistir un saldo vencido, la administración podrá evaluar las acciones de cobro que correspondan. El artículo 32 de la Ley N° 21.442 regula el mérito ejecutivo de los avisos de cobro firmados por el administrador.</p>
+La administración de {currentCommunity.name} solicita revisar y regularizar el saldo de la unidad {unitFullName}. La cartola registra {formatCLP(totalDebt)} pendientes al emitir esta comunicación. Este saldo puede incluir cargos del período actual y saldos anteriores. Revise sus vencimientos en el estado de cuenta.</p>
+                          <div className="collection-debt"><h4>Estado de cuenta pendiente de pago</h4><table><tbody>{[['Cuota del período',fin.currentCharge],['Cargos individuales',fin.extraCharge],['Cuota del convenio',fin.repactedInstallment],['Saldo anterior fuera de convenio',fin.previousDebt],['Crédito anterior',-fin.creditBalance],['Abonos registrados',-fin.paidAmount],['Saldo pendiente',totalDebt]].filter(([label,value])=>value !== 0 || label === 'Saldo pendiente').map(([label,value])=><tr className={label === 'Saldo pendiente' ? 'collection-total' : ''} key={label}><td>{label}</td><td>{formatCLP(value)}</td></tr>)}</tbody></table></div>
+                          <p>Revise los cargos y abonos de su unidad. Si ya realizó el pago, indique la fecha y el número de operación para conciliarlo. También puede solicitar un convenio sujeto al acuerdo del comité.</p><p>La administración solicita su respuesta dentro de {collectionLetterNoticeDays} días {collectionLetterNoticeDays <= 5 ? 'hábiles' : 'corridos'} desde la recepción. En caso de persistir un saldo vencido, la administración podrá evaluar las acciones de cobro que correspondan. El artículo 32 de la Ley N° 21.442 regula el mérito ejecutivo de los avisos de cobro firmados por el administrador.</p>
                         </div>) : (<div className="space-y-3 text-sm"><p>Estimado(a) copropietario(a), la cuenta de {unitFullName} registra el siguiente saldo.</p>
 {/* Cuadro de Resumen Preventivo */}
                           <div className="my-3 p-4 bg-[#F5F4EF] rounded-2xl border border-[#D4B895]">
@@ -17370,63 +17367,14 @@ La administración de {currentCommunity.name} solicita revisar y regularizar el 
                         </div>
                       </div>
 
-                      {/* FIRMAS LEGALES */}
-                      <div className="pt-6 grid grid-cols-2 gap-8 text-center text-xs print:pt-8">
-                        <div className="space-y-1">
-                          <div className="h-20 w-full flex items-center justify-center gap-3 mb-2">
-                            <AranproOfficialSeal size="sm" showText={false} />
-                            {companySettings?.signatureDataUrl ? (
-                              <img
-                                src={companySettings.signatureDataUrl}
-                                alt="Firma Administrador"
-                                className="max-h-20 object-contain mx-auto"
-                                style={{
-                                  transform: `scale(${companySettings?.signatureScale || 1.35})`,
-                                  transformOrigin: 'bottom center'
-                                }}
-                              />
-                            ) : (
-                              <div className="w-48 h-14 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] text-slate-400 bg-slate-50/50">
-                                <span className="font-bold text-slate-500">Firma y Timbre</span>
-                                <span className="text-[7.5px] text-slate-400">Administración ARANPRO</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="w-48 mx-auto border-t-2 border-slate-900 pt-1"></div>
-                          <span className="block font-black uppercase text-slate-900">
-                            {companySettings.administratorName}
-                          </span>
-                          <span className="block text-[10px] text-slate-500 font-semibold">
-                            {companySettings.title} • {companySettings.brandName}
-                          </span>
-                          <span className="block text-[9px] font-mono text-slate-400">
-                            Registro Nacional de Administradores MINVU
-                          </span>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="h-20 w-full flex items-center justify-center mb-2">
-                            <div className="w-48 h-14 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] text-slate-400 bg-slate-50/50">
-                              <span className="font-bold text-slate-500">Firma y Timbre</span>
-                              <span className="text-[7.5px] text-slate-400">Comité de Copropietarios</span>
-                            </div>
-                          </div>
-                          <div className="w-48 mx-auto border-t-2 border-slate-900 pt-1"></div>
-                          <span className="block font-black uppercase text-slate-900">
-                            Comité de Administración
-                          </span>
-                          <span className="block text-[10px] text-slate-500 font-semibold">
-                            {currentCommunity.name}
-                          </span>
-                          <span className="block text-[9px] font-mono text-slate-400">
-                            Acuerdo de Cobranza Ley N° 21.442
-                          </span>
-                        </div>
-                      </div>
-
-                      {<footer className="flex items-center justify-between gap-4 border-t border-[#88a499] pt-3" style={{breakInside:'avoid'}}>
-                        <div><strong className="text-[#103f32]">¿Ya transferiste? Informa tu pago</strong><p className="text-xs">Escanea el QR o visita <a href={DOMAIN_CONFIG.getResidentLoginUrl(currentCommunity.slug)}>portaladministracion.aranpro.cl</a>. Inicia sesión, elige <b>Informar Pago</b> y registra tu comprobante.</p>
-                        <ResidentInstallHint/><small>{currentCommunity.name} · Aviso preventivo · {new Date().toLocaleDateString('es-CL')}</small></div><PortalCode url={DOMAIN_CONFIG.getResidentLoginUrl(currentCommunity.slug)}/></footer>}                    </div>
+                      <div className="collection-end">
+  <div className="resident-handout-sign"><div>
+    <img className="resident-seal" src="/brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello oficial de administración ARANPRO"/>
+    <span className="resident-seal-text"><strong>SELLO OFICIAL DE ADMINISTRACIÓN</strong><small>Ley N° 21.442 de Copropiedad Inmobiliaria</small></span>
+    <span>{companySettings?.signatureDataUrl && <img src={companySettings.signatureDataUrl} alt="Firma del administrador"/>}</span>
+  </div><b>{companySettings?.adminName || companySettings?.administratorName || 'Administración'}</b><small>Administración de la comunidad</small></div>
+  <div className="resident-handout-portal"><div><strong>¿Ya transferiste? Informa tu pago</strong><p>Escanea el QR o visita <a href={DOMAIN_CONFIG.getResidentLoginUrl(currentCommunity.slug)}>portaladministracion.aranpro.cl</a>. Inicia sesión, elige <b>Informar Pago</b> y registra tu comprobante.</p><ResidentInstallHint/><small>{currentCommunity.name} · {isPrejudicial ? 'Aviso prejudicial' : 'Aviso preventivo'} · {new Date().toLocaleDateString('es-CL')}</small></div><PortalCode url={DOMAIN_CONFIG.getResidentLoginUrl(currentCommunity.slug)}/></div>
+</div></article>                    </div>
                   </div>
                 )}
 
