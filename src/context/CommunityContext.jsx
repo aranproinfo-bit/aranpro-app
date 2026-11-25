@@ -1161,6 +1161,14 @@ export const CommunityProvider = ({ children }) => {
         month: currentMonth,
         year: currentYear,
         closedAt: new Date().toISOString().split('T')[0],
+        billingSplitMode: c.billingSplitMode,
+        allocationRows: (c.units || []).map(u => {
+          const f = getUnitFinancials(u);
+          return {number:u.number,tower:u.tower,owner:u.owner,sharePercentage:u.sharePercentage,
+            currentCharge:f.currentCharge,extraCharge:f.extraCharge,previousDebt:f.previousDebt,
+            repactedInstallment:f.repactedInstallment,creditBalance:f.creditBalance,
+            paidAmount:f.paidAmount,pendingDebt:f.pendingDebt,favorBalance:f.favorBalance};
+        }),
         reserveFundPercentage: c.reserveFundPercentage ?? 5,
         totalExpenses: totals.totalExpenses,
         reserveFundAmount: totals.reserveFundAmount,
