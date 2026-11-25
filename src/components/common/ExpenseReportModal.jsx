@@ -1,3 +1,4 @@
+import { ResidentInstallHint } from './ResidentInstallHint';
 import React,{useRef} from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { useCommunity } from '../../context/CommunityContext';
@@ -67,7 +68,7 @@ export const ExpenseReportModal = ({isOpen,onClose,community}) => {
     {previous.length>0 && <section><h2>Cuotas de gastos de períodos anteriores</h2>{previous.map(({expense,index,count,amount})=><Line key={expense.id} label={[expense.provider,expense.documentNumber,'Cuota '+index+' de '+count].filter(Boolean).join(' · ')} value={amount}/>)}</section>}
     <section className="twocol"><div><h2>¿En qué se gastó?</h2>{[...groups].map(([group,items])=><Line key={group} label={group} value={total(items,e=>e.amount)}/>)}<Line strong label="Total del período" value={spent}/></div><div className="bank"><h2>¿Qué se distribuye entre las unidades?</h2><Line label="Cobros ordinarios del mes" value={base}/><Line label={'Aporte al fondo de reserva · '+reserveRate+' %'} value={contribution}/><Line strong label="Total a prorratear" value={base+contribution}/><p>Se incluye la cuota que corresponde al mes. Los gastos financiados con el fondo de reserva se detallan por separado.</p></div></section>
     <div className="auth"><img src="/brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello ARANPRO"/><div><b>Administración delegada</b><span className="small">ARANPRO Gestión Integral</span></div><div className="sign">{companySettings?.signatureDataUrl && <img src={companySettings.signatureDataUrl} alt="Firma"/>}<div className="signature"><b>{companySettings?.adminName || 'Firma de la administración'}</b></div></div></div>
-    <aside className="payment-guide"><div><h2>Consulta los respaldos del período</h2><p>Ingresa a <a href={url} target="_blank" rel="noreferrer">portaladministracion.aranpro.cl</a> para revisar los gastos y sus comprobantes adjuntos. Para solicitar un respaldo, indica a la administración el período, el proveedor y el número de documento.</p></div><PortalCode url={url}/></aside>
+    <aside className="payment-guide"><div><h2>Consulta los respaldos del período</h2><p>Ingresa a <a href={url} target="_blank" rel="noreferrer">portaladministracion.aranpro.cl</a> para revisar los gastos y sus comprobantes adjuntos. Para solicitar un respaldo, indica a la administración el período, el proveedor y el número de documento.</p><ResidentInstallHint/></div><PortalCode url={url}/></aside>
     <footer className="foot"><span>{name}</span><span>Rendición general · {label}</span></footer></main></body></html>;
   const html='<!doctype html>'+renderToStaticMarkup(document);
   function csv(){

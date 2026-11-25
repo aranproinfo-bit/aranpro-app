@@ -18,4 +18,6 @@ h2{font-size:13pt;letter-spacing:-.15px;color:#103f32;margin:0}section{margin-to
 .payment-guide img {width:23mm;height:23mm;display:block}
 .sheet{height:auto;min-height:279.3mm}.symbol{object-fit:contain}.sign{text-align:center}.sign img{width:27mm;height:8mm;object-fit:contain}.signature{margin-left:0}.payment-guide,.auth,.agreement,.bank,tr{break-inside:avoid}.payment-guide svg{display:block}.sheet{overflow-wrap:anywhere}
 @media screen and (max-width:816px){.sheet{width:100%;min-height:100vh;padding:3vw}.twocol{gap:3vw}.mast .ap{max-width:27%}}
-@media screen and (max-width:540px){.twocol{grid-template-columns:1fr}.hero{gap:2mm}.hero strong{font-size:12pt}.hero div:first-child strong{font-size:18pt}.payment-guide{align-items:flex-start}.payment-guide svg{width:62px;height:62px}.period h1{font-size:16pt}}
+@media screen and (max-width:540px){.twocol{grid-template-columns:1fr}.hero{gap:2mm}.hero strong{font-size:12pt}.hero div:first-child strong{font-size:18pt}.payment-guide{align-items:flex-start}.payment-guide svg{width:62px;height:62px}.period h1{font-size:16pt}}/* Parallel rules occupy the existing header padding, including in print. */
+.mast {position:relative}
+.mast::after {content:"";position:absolute;bottom:1px;left:0;right:0;border-top:1.5px solid #bc945d;pointer-events:none}

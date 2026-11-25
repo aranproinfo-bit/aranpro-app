@@ -1165,7 +1165,15 @@ export const CommunityProvider = ({ children }) => {
       const currentMonth = c.activePeriod?.month || 11;
       const currentYear = c.activePeriod?.year || 2026;
 
+      const expensesAtClose = c.expenses || [];
       const archiveEntry = {
+        expenseChecks: {
+          totalExpensesCount: expensesAtClose.length,
+          backedCount: expensesAtClose.filter(e => e.receiptUrl).length,
+          approvedCount: expensesAtClose.filter(e => e.approvedByCommittee).length
+        },
+        administratorSignoff: { adminName: companySettings.adminName || companySettings.administratorName, signatureDataUrl: companySettings.signatureDataUrl },
+        committeeSignoff: c.closingSignoffs?.[currentYear+'-'+String(currentMonth).padStart(2,'0')] || null,
         id: `hist-${currentYear}-${currentMonth}-${Date.now()}`,
         month: currentMonth,
         year: currentYear,

@@ -1,0 +1,51 @@
+.finance-signing {color:#103e30;break-inside:avoid;padding-top:8mm}
+.finance-signers {display:flex;align-items:flex-start;gap:5mm;text-align:center}
+.finance-signer {flex:1;min-width:0;font-size:9pt}
+.finance-admin {flex:1.5}
+.finance-sign-image {height:17mm;display:flex;align-items:center;justify-content:center;gap:2mm;border-bottom:1px solid #18283a;margin-bottom:1mm}
+.finance-sign-image strong {font-size:7.5pt}
+.finance-signer small {display:block;font-size:7pt;line-height:1.35}
+.finance-sign-image .finance-seal {width:11mm!important;height:11mm!important;object-fit:contain}
+.finance-sign-image .finance-autograph {width:18mm!important;height:13mm!important;object-fit:contain}
+.finance-tail {display:flex;align-items:center;justify-content:space-between;gap:2mm;border-top:1px solid #aabbb2;margin-top:4mm;padding-top:2mm;color:#456255;font-size:7pt}
+@media print {
+  .finance-closing-sheet {box-sizing:border-box;display:flex;flex-direction:column;min-height:260mm;margin:0!important}
+  .finance-closing-sheet + .finance-closing-sheet,.finance-budget-last {break-before:page}
+  .finance-signing {margin-top:auto!important}
+}.closing-record {font:9.5pt/1.35 "Segoe UI",Arial,sans-serif;color:#19382e}
+.closing-record .closing-intro {background:#edf3ef;padding:3mm;margin-top:3mm;border-left:2px solid #ba9c73}
+.closing-record h3 {font-size:11pt;font-weight:700;margin:3.5mm 0 1mm;color:#103f32}
+.closing-record p {margin:1mm 0}
+.closing-record table {width:100%;border-collapse:collapse}
+.closing-record td,.closing-record th {padding:1mm 2mm;border-bottom:1px solid #dce5df;text-align:left}
+.closing-record th,.closing-figures {background:#edf3ef}
+.closing-record .amount {text-align:right;font-variant-numeric:tabular-nums}
+.closing-figures {display:flex;gap:4mm;padding:2mm 3mm}
+.closing-figures div {flex:1}
+.closing-figures b,.closing-figures small {display:block}
+.budget-explanation {font:10pt/1.4 "Segoe UI",Arial,sans-serif;color:#263a34;margin:2mm 0 4mm}
+.budget-explanation h3 {margin:3mm 0 1mm;font-size:11pt;font-weight:700;color:#103f32}
+.budget-explanation p {margin:1mm 0}
+.budget-explanation table {width:100%;font-size:9pt;margin:2mm 0;border-collapse:collapse}
+.budget-explanation th,.budget-explanation td {text-align:left;padding:1mm 2mm;border-bottom:1px solid #dce5df}
+.budget-explanation th {background:#edf3ef}
+/* Parallel rules occupy the existing header padding, including in print. */
+.finance-mast {position:relative}
+.finance-mast::after {content:"";position:absolute;bottom:1px;left:0;right:0;border-top:1.5px solid #bc945d;pointer-events:none}
+.finance-handout .finance-mast,.finance-log .finance-mast {margin-bottom:2mm}
+.finance-handout thead th,.finance-log .finance-summary {background:#164535;color:white}
+.finance-handout .finance-total th,.finance-log .finance-total td {background:#e5eee9;color:#103f32;border-top:1.5px solid #bc945d;font-weight:700}
+.finance-log .finance-summary {padding:2.5mm 3mm;margin-top:2mm;display:flex;justify-content:space-between;align-items:center}
+.finance-handout h3,.finance-log h3 {border-left:3px solid #bc945d;padding-left:2mm}
+.resident-handout-end {margin-top:auto;break-inside:avoid;padding-top:2mm}
+.resident-handout-sign {width:105mm;max-width:100%;margin-left:auto;text-align:center;font-size:9pt}
+.resident-handout-sign div {height:15mm;border-bottom:1px solid #19382e;display:flex;align-items:end;justify-content:center}
+.resident-handout-sign img {width:32mm;height:14mm;object-fit:contain}
+.resident-handout-sign .resident-seal {width:12mm;height:12mm;margin:0 3mm 1mm 0}
+.resident-handout-sign span {width:32mm}
+.resident-handout-sign .resident-seal-text {width:auto;flex:1;text-align:left;align-self:center;color:#103f32;font-size:7pt;line-height:1.2}
+.resident-handout-sign .resident-seal-text small {font-size:6.5pt}
+.resident-handout-sign small {display:block}
+.resident-handout-portal {display:flex;gap:4mm;align-items:center;margin-top:3mm;padding-top:2mm;border-top:2px solid #164535;font-size:8.5pt}
+.resident-handout-portal a {color:#164535;text-decoration:underline}
+.resident-handout-portal svg {display:block;width:21mm;height:21mm}
