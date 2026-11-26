@@ -1,6 +1,6 @@
 import { CommitteeGuide, guideTitles, printCommitteeGuide } from './CommitteeGuides';
 import { ContractDetailsForm } from './ContractDetailsForm';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   FileText, CheckSquare, ShieldCheck, Mail, MessageCircle, Copy, Printer,
   Eye, Download, RefreshCw, Send, ChevronDown, ChevronUp, AlertCircle,
@@ -29,7 +29,9 @@ export const Step5TransitionPanel = ({
   handleShareEmail = () => {},
   sendingEmailStep = null,
   getStepMessages = () => ({}),
-  handleCopyStepMessage = () => {}
+  handleCopyStepMessage = () => {},
+  pendingAction = null,
+  onConsumePendingAction = () => {}
 }) => {
   const [selectedGuide, setSelectedGuide] = useState('comite');
   const [isOpen, setIsOpen] = useState(false);
@@ -132,6 +134,42 @@ export const Step5TransitionPanel = ({
   };
 
   const handlePrintLegalGuides = () => printCommitteeGuide(selectedGuide, proposalConfig);
+
+  const handlePrintClauses = () => {
+    const filename = `ARANPRO_Clausulas_Libro_Actas_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    printDocumentDirectly('printable-assembly-clauses', filename, {
+      pageSize: 'letter portrait',
+      fitPage: false,
+      margin: '14mm 16mm 14mm 16mm',
+      pdfStyle: 'neutral'
+    });
+  };
+
+  useEffect(() => {
+    if (!pendingAction || pendingAction.section !== 'flujo' || pendingAction.step !== 5) return;
+    setIsOpen(true);
+    const k = pendingAction.docKey;
+    if (k === 'carta') setActiveSubTab('carta');
+    else if (k === 'checklist') setActiveSubTab('checklist');
+    else if (k === 'contrato') { setActiveSubTab('acta'); setActaOrContract('contrato'); }
+    else if (k === 'clausulas') { setActiveSubTab('acta'); setActaOrContract('acta'); }
+    else if (k === 'guias') setActiveSubTab('guias');
+
+    if (pendingAction.mode === 'preview' && k) {
+      setPreviewStep5Modal(k);
+    } else if (pendingAction.mode === 'print' && k) {
+      const t = setTimeout(() => {
+        if (k === 'carta') handlePrintTerminationNotice();
+        else if (k === 'checklist') handlePrintTransitionChecklist();
+        else if (k === 'contrato') handlePrintContract();
+        else if (k === 'clausulas') handlePrintClauses();
+        else if (k === 'guias') handlePrintLegalGuides();
+      }, 160);
+      onConsumePendingAction?.();
+      return () => clearTimeout(t);
+    }
+    onConsumePendingAction?.();
+  }, [pendingAction?.nonce]);
 
   const handlePrintTransitionPackage = () => {
     const filename = `ARANPRO_Kit_Oficial_Traspaso_y_Asesoria_${condo.replace(/[^a-zA-Z0-9]/g, '_')}`;
@@ -783,6 +821,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                     {previewStep5Modal === 'carta' && 'Vista Previa: Carta de Notificación de Término (1 Pág)'}
                     {previewStep5Modal === 'checklist' && 'Vista Previa: Checklist & Pauta de Traspaso (3 Págs)'}
                     {previewStep5Modal === 'contrato' && 'Vista Previa: Contrato de Administración'}
+                    {previewStep5Modal === 'clausulas' && 'Vista Previa: Cláusulas Legales para Libro de Actas'}
                     {previewStep5Modal === 'guias' && guideTitles[selectedGuide]}
                   </h4>
                   <p className="text-[10.5px] text-slate-500 font-mono">
@@ -798,6 +837,7 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
                     if (previewStep5Modal === 'carta') handlePrintTerminationNotice();
                     if (previewStep5Modal === 'checklist') handlePrintTransitionChecklist();
                     if (previewStep5Modal === 'contrato') handlePrintContract();
+                    if (previewStep5Modal === 'clausulas') handlePrintClauses();
                     if (previewStep5Modal === 'guias') handlePrintLegalGuides();
                   }}
                   className="px-3.5 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
@@ -887,6 +927,12 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
               )}
 
               {previewStep5Modal === 'guias' && <div className="overflow-auto max-w-full"><CommitteeGuide kind={selectedGuide} proposalConfig={proposalConfig} empresaForm={empresaForm} signature={effectiveSignature} signatureScale={effectiveSignatureScale}/></div>}
+
+              {previewStep5Modal === 'clausulas' && (
+                <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 max-w-[820px] mx-auto shadow-sm">
+                  <pre className="whitespace-pre-wrap font-sans text-xs text-slate-800 leading-relaxed">{assemblyClausesText}</pre>
+                </div>
+              )}
 
             </div>
           </div>
@@ -1271,6 +1317,12 @@ RENDICIÓN Y SEGUIMIENTO: El administrador rendirá cuenta documentada de su ges
               <p className="text-sm text-slate-700 text-center">Esta es la portada de presentación. Los documentos de traspaso se generan por separado.</p>
             </div>
             <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm.companyRut} phone={phone} email={email} website={website} signature={effectiveSignature} signatureScale={signatureScale} adminName={adminName} adminRut={adminRut} /><CanonicalPdfPageFooter website={website} label="Kit de transición" page={1} totalPages={1} city={city} /></div>
+          </div>
+        </div>
+
+        <div id="printable-assembly-clauses">
+          <div className="bg-white p-6 text-slate-900 text-xs leading-relaxed">
+            <pre className="whitespace-pre-wrap font-sans text-xs text-slate-900 leading-relaxed">{assemblyClausesText}</pre>
           </div>
         </div>
 

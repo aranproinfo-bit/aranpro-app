@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Plus, Eye, Download, Trash2, PenTool, Paperclip, X, Upload, FileCheck,
   CheckCircle2, AlertTriangle, Clock, FolderOpen
@@ -93,6 +93,29 @@ export const DocumentLibraryPanel = ({ documents, setDocuments, showAlert, showC
     });
     setShowForm(true);
   };
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('aranpro_pending_boveda_upload');
+      if (!raw) return;
+      sessionStorage.removeItem('aranpro_pending_boveda_upload');
+      const parsed = JSON.parse(raw);
+      if (!parsed || (Date.now() - Number(parsed.ts || 0)) > 15000) return;
+      const reqKey = parsed.reqKey || '';
+      const existing = reqKey
+        ? (documents || []).find((d) => d && (d.requirementKey === reqKey || matchRequirementKey(d) === reqKey))
+        : null;
+      if (existing) {
+        openEdit(existing);
+      } else {
+        openNew(reqKey);
+      }
+      setTimeout(() => {
+        const el = document.getElementById('seccion-boveda-documental');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    } catch {}
+  }, []);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];

@@ -85,8 +85,9 @@ function Body({source,values}) {
     return <div key={i}>{block.split('\n').map((line,j)=><p key={j} style={{marginBottom:4}}>{inline(fill(line.replace(/^- /,'• ')))}</p>)}</div>;
   });
 }
-export default function CommunityPreventionDocument({kind,community,settings={},onSave,onClose}) {
+export default function CommunityPreventionDocument({kind,community,settings={},onSave,onClose,employerKind='community'}) {
   const isReg=kind==='regulation';
+  const isOffice=employerKind==='company';
   const [form,setForm]=useState(()=>({
     nombre_comunidad:community.bankInfo?.holderName || community.name || '',rut_comunidad:community.bankInfo?.rut || '',
     direccion_centro:community.address || '',centros_de_trabajo:community.address || '', comuna:community.city || '',region:community.region || '',
@@ -97,7 +98,7 @@ export default function CommunityPreventionDocument({kind,community,settings={},
   const count=Number(form.dotacion_empleador);
   const known=present(form.dotacion_empleador) && Number.isInteger(count) && count>0;
   const regime=known?(count>=10?'RIOHS':'RIHS'):'';
-  const name=regime==='RIOHS'?'Reglamento interno de orden, higiene y seguridad':regime==='RIHS'?'Reglamento interno de higiene y seguridad':'Reglamento interno de la comunidad';
+  const name=regime==='RIOHS'?'Reglamento interno de orden, higiene y seguridad':regime==='RIHS'?'Reglamento interno de higiene y seguridad':(isOffice?'Reglamento interno de la empresa':'Reglamento interno de la comunidad');
   const title=isReg?name:'Protocolo de prevención e investigación · Ley Karin';
   const values={...form,titulo_reglamento:name,RIOHS_o_RIHS:regime,nombre_y_calidad_aprobante:[form.nombre_representante,form.calidad_representante].filter(Boolean).join(' · ')};
   for(const [i,shift] of (form.extraShifts||[]).entries()) for(const key of shiftKeys) values['shift'+i+'_'+key]=shift[key]||'';
@@ -118,7 +119,7 @@ export default function CommunityPreventionDocument({kind,community,settings={},
   const group2=fields.filter(f=>!group1.includes(f) && /canal|correo|receptor|suplente|resguardo|atencion|organismo|confirmacion|directorio|inspeccion/.test(f[0]));
   const group3=fields.filter(f=>!group1.includes(f)&&!group2.includes(f));
   const paperForm={...form,rep:form.nombre_representante,role:form.calidad_representante};
-  return <LaborDocument title={title} collective community={community} settings={settings} form={paperForm} issues={issues} onClose={onClose} editor={<>
+  return <LaborDocument title={title} collective employerKind={employerKind} community={community} settings={settings} form={paperForm} issues={issues} onClose={onClose} editor={<>
     <p className="text-sm">El reglamento y el protocolo comparten los contactos y antecedentes preventivos de {community.name}. Registra aquí únicamente información institucional.</p>
     {isReg && <p className="text-sm" aria-live="polite">{known
       ? (count>=10 ? 'Se generará un único reglamento de orden, higiene y seguridad (RIOHS). Incluye las normas de orden y de prevención.' : 'Se generará el reglamento interno de higiene y seguridad (RIHS) para esta dotación.')
@@ -131,9 +132,9 @@ export default function CommunityPreventionDocument({kind,community,settings={},
     <label className="block text-sm"><input type="checkbox" checked={!!form.reviewed} onChange={e=>setForm({...form,reviewed:e.target.checked})}/> Revisé dotaciones, turnos, riesgos, responsables, recursos y medios de contacto para esta versión.</label>
     <button className="rounded-lg border px-3 py-2" onClick={()=>{const {editions,...data}=form;delete data.reviewed;const edition={};for(const k of versionKeys){edition[k]=data[k] || '';delete data[k];}onSave({...data,editions:{...editions,[kind]:edition}});setMessage('Configuración guardada para esta comunidad.');}}>Guardar configuración de la comunidad</button><span role="status" className="ml-2 text-sm">{message}</span>
   </>}>
-    <Clause title="Aplicación en este centro"><p>{known?regime+' · '+count+' trabajadores permanentes':'Dotación permanente pendiente de confirmación'}. Versión {form.version||'pendiente'}. Representación de la comunidad según {form.documento_personeria||'antecedente pendiente'}.</p><p style={{whiteSpace:'pre-line'}}>{form.evaluacion_local||'Evaluación de riesgos y programa local pendientes.'}</p><p>Canal alternativo independiente · {form.suplente_denuncias||'Pendiente'} · {form.canal_suplente||'Pendiente'}</p></Clause>
+    <Clause title="Aplicación en este centro"><p>{known?regime+' · '+count+' trabajadores permanentes':'Dotación permanente pendiente de confirmación'}. Versión {form.version||'pendiente'}. {isOffice?'Representación del empleador':'Representación de la comunidad'} según {form.documento_personeria||'antecedente pendiente'}.</p><p style={{whiteSpace:'pre-line'}}>{form.evaluacion_local||'Evaluación de riesgos y programa local pendientes.'}</p><p>Canal alternativo independiente · {form.suplente_denuncias||'Pendiente'} · {form.canal_suplente||'Pendiente'}</p></Clause>
     <Body source={source} values={values}/>
-    <Clause title="Referencias normativas"><p>Código del Trabajo, artículos 153 a 156 y 211-A a 211-E. Ley N.º 16.744 y D.S. N.º 44 sobre gestión preventiva. Ley N.º 21.643 y D.S. N.º 21 de 2024 sobre investigación de acoso y violencia en el trabajo. Ley N.º 21.442 sobre copropiedad inmobiliaria.</p></Clause>
+    <Clause title="Referencias normativas"><p>Código del Trabajo, artículos 153 a 156 y 211-A a 211-E. Ley N.º 16.744 y D.S. N.º 44 sobre gestión preventiva. Ley N.º 21.643 y D.S. N.º 21 de 2024 sobre investigación de acoso y violencia en el trabajo.{!isOffice && ' Ley N.º 21.442 sobre copropiedad inmobiliaria.'}</p></Clause>
   </LaborDocument>;
 }
 

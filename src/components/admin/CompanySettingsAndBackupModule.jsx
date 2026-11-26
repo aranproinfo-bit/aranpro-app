@@ -13,6 +13,7 @@ import { AgacechFeeCalculatorPanel } from './postulaciones/AgacechFeeCalculatorP
 import { PitchMasterPanel } from './postulaciones/PitchMasterPanel';
 import { QuickDocumentsPanel } from './postulaciones/QuickDocumentsPanel';
 import { Step5TransitionPanel } from './postulaciones/Step5TransitionPanel';
+import { Step6CommunityOnboardingPanel } from './postulaciones/Step6CommunityOnboardingPanel';
 import { computeReadiness, hasFile } from '../../utils/postulationReadiness';
 import { stripAndStoreFiles, hydrateFiles, downloadDataUrl, vaultGet, vaultPut } from '../../utils/fileVault';
 import { resendMailService } from '../../services/resendService';
@@ -143,7 +144,9 @@ export const CompanySettingsAndBackupModule = ({
   postulacionSection: externalPostulacionSection,
   setPostulacionSection: externalSetPostulacionSection,
   hidePostulacionSubNav = false,
-  onNavigateToModule
+  onNavigateToModule,
+  onSelectCommunityToManage,
+  funnelStepRequest = null
 }) => {
   const {
     communities = [],
@@ -551,6 +554,22 @@ export const CompanySettingsAndBackupModule = ({
   const setPostulacionSection = externalSetPostulacionSection || setInternalPostulacionSection;
   const [expandedStepMsg, setExpandedStepMsg] = useState(null);
   const [openSteps, setOpenSteps] = useState({ 1: true, 2: false, 3: false, 4: false });
+  const [pendingQuickAction, setPendingQuickAction] = useState(null);
+  useEffect(() => {
+    if (!funnelStepRequest?.step) return;
+    const step = funnelStepRequest.step;
+    setPostulacionSection('flujo');
+    if (step >= 1 && step <= 4) {
+      setOpenSteps({ 1: step === 1, 2: step === 2, 3: step === 3, 4: step === 4 });
+    } else {
+      setPendingQuickAction({ section: 'flujo', step, mode: 'open', nonce: funnelStepRequest.nonce });
+    }
+    const t = setTimeout(() => {
+      const el = document.getElementById('funnel-step-' + step);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 320);
+    return () => clearTimeout(t);
+  }, [funnelStepRequest?.nonce]);
   const toggleStep = (n) => setOpenSteps(prev => ({ ...prev, [n]: !prev[n] }));
   const [activeHerramientaTab, setActiveHerramientaTab] = useState('calculadora');
 
@@ -3184,7 +3203,7 @@ export const CompanySettingsAndBackupModule = ({
               </div>
 
               {/* SECCIÓN A: BIBLIOTECA DOCUMENTAL FORMAL (RNAC, REGISTRO CIVIL, SII, SEGUROS, CONTRATOS) */}
-              <div className="bg-slate-50/70 p-5 rounded-3xl border border-slate-200/90">
+              <div id="seccion-boveda-documental" className="bg-slate-50/70 p-5 rounded-3xl border border-slate-200/90">
                 <DocumentLibraryPanel
                   documents={accreditationDocs}
                   setDocuments={setAccreditationDocs}
@@ -3678,6 +3697,7 @@ export const CompanySettingsAndBackupModule = ({
                   {/* 2. LOS 4 PASOS ESTRATÉGICOS DEL EMBUDO COMERCIAL */}
                   <div className="space-y-4">
                     {/* ========== PASO 1: PRIMER CONTACTO / CARTA DE VALOR ========== */}
+                    <div id="funnel-step-1" className="absolute" />
                     <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-emerald-50/70 border border-emerald-200 hover:border-emerald-300 transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                         <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => toggleStep(1)}>
@@ -3822,6 +3842,7 @@ export const CompanySettingsAndBackupModule = ({
                     )}
 
                     {/* ========== PASO 2: CITA PRESENCIAL & VISITA TÉCNICA (DOSSIER INTEGRAL) ========== */}
+                    <div id="funnel-step-2" className="absolute" />
                     <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-amber-50/70 border border-amber-200 hover:border-amber-300 transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                         <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => toggleStep(2)}>
@@ -4025,6 +4046,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
 
                     {/* ========== PASO 3: PROPUESTA FORMAL A MEDIDA & HONORARIOS ========== */}
+                    <div id="funnel-step-3" className="absolute" />
                     <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-sky-50/70 border border-sky-200 hover:border-sky-300 transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                         <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => toggleStep(3)}>
@@ -4181,6 +4203,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
 
                     {/* ========== PASO 4: CIERRE TECNOLÓGICO & DEMO EN VIVO CON QR ========== */}
+                    <div id="funnel-step-4" className="absolute" />
                     <div className="p-5 md:p-6 rounded-3xl shadow-xs bg-violet-50/70 border border-violet-200 hover:border-violet-300 transition-all space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                         <div className="flex items-start gap-3 cursor-pointer select-none flex-1" onClick={() => toggleStep(4)}>
@@ -4315,6 +4338,7 @@ export const CompanySettingsAndBackupModule = ({
                     </div>
 
                     {/* ========== PASO 5: ADJUDICACIÓN, PREAVISO AL SALIENTE & KIT DE TRASPASO ========== */}
+                    <div id="funnel-step-5" className="absolute" />
                     <Step5TransitionPanel onSaveContract={handleSaveTargetCondoToCrm}
                       proposalConfig={proposalConfig}
                       setProposalConfig={setProposalConfig}
@@ -4327,6 +4351,33 @@ export const CompanySettingsAndBackupModule = ({
                       sendingEmailStep={sendingEmailStep}
                       getStepMessages={getStepMessages}
                       handleCopyStepMessage={handleCopyStepMessage}
+                      pendingAction={pendingQuickAction}
+                      onConsumePendingAction={() => setPendingQuickAction(null)}
+                    />
+
+                    {/* ========== PASO 6: RECEPCIÓN Y CREACIÓN DE LA NUEVA COMUNIDAD (DESDE CERO O TRASPASO) ========== */}
+                    <div id="funnel-step-6" className="absolute" />
+                    <Step6CommunityOnboardingPanel
+                      proposalConfig={proposalConfig}
+                      pendingAction={pendingQuickAction}
+                      onConsumePendingAction={() => setPendingQuickAction(null)}
+                      postulationPipeline={postulationPipeline}
+                      onMarkPipelineAdjudicated={(oppId, condoName) => {
+                        setPostulationPipeline((prev) => {
+                          const updated = prev.map((p) => {
+                            const matchId = oppId && p.id === oppId;
+                            const matchName = !oppId && condoName && (p.condoName || p.condo || '').trim().toLowerCase() === condoName.toLowerCase();
+                            return matchId || matchName ? { ...p, stage: 'adjudicada' } : p;
+                          });
+                          if (setCompanySettings) {
+                            setCompanySettings((cs) => ({ ...cs, postulationPipeline: updated }));
+                          }
+                          return updated;
+                        });
+                      }}
+                      onSelectCommunityToManage={onSelectCommunityToManage}
+                      onNavigateToModule={onNavigateToModule}
+                      showAlert={showAlert}
                     />
                   </div>
                 </div>
@@ -4454,6 +4505,8 @@ export const CompanySettingsAndBackupModule = ({
                     empresaForm={empresaForm}
                     onApplyToDossier={() => setPostulacionSection('flujo')}
                     showAlert={showAlert}
+                    pendingAction={pendingQuickAction}
+                    onConsumePendingAction={() => setPendingQuickAction(null)}
                   />
                 </div>
               )}
@@ -4488,12 +4541,26 @@ export const CompanySettingsAndBackupModule = ({
                   handlePrintComparisonMatrix={handlePrintComparisonMatrix}
                   setPreviewComparisonModal={setPreviewComparisonModal}
                   onNavigateToSection={(sec) => setPostulacionSection(sec)}
+                  onTriggerQuickAction={(act) => {
+                    if (act.step && act.step >= 1 && act.step <= 4) {
+                      setOpenSteps({ 1: act.step === 1, 2: act.step === 2, 3: act.step === 3, 4: act.step === 4 });
+                    }
+                    setPendingQuickAction({ ...act, nonce: Date.now() });
+                    setPostulacionSection(act.section);
+                  }}
                   handleShareWhatsApp={handleShareWhatsApp}
                   onNavigateToBoveda={(reqKey) => {
+                    try {
+                      if (reqKey) {
+                        sessionStorage.setItem('aranpro_pending_boveda_upload', JSON.stringify({ reqKey, ts: Date.now() }));
+                      } else {
+                        sessionStorage.removeItem('aranpro_pending_boveda_upload');
+                      }
+                    } catch {}
                     if (onNavigateToModule) {
-                      onNavigateToModule('empresa', 'documents');
+                      onNavigateToModule('empresa', 'acreditacion', 'seccion-boveda-documental');
                     }
-                    setActiveSubTab('empresa');
+                    setActiveSubTab('acreditacion');
                   }}
                   showAlert={showAlert}
                 />
@@ -5084,6 +5151,8 @@ export const CompanySettingsAndBackupModule = ({
                   companySettings={companySettings}
                   showAlert={showAlert}
                   renderToolboxNavbar={renderToolboxNavbar}
+                  pendingAction={pendingQuickAction}
+                  onConsumePendingAction={() => setPendingQuickAction(null)}
                 />
               )}
 

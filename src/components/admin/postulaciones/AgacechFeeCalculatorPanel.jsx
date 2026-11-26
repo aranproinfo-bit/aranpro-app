@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   Calculator, Building2, HardHat, Users, Clock, AlertTriangle,
   CheckCircle2, ArrowRight, Printer, Sparkles, DollarSign, Info, RefreshCw,
-  Store, Home, ShieldCheck, Flame, Droplets, Zap, Truck, Layers, HelpCircle
+  Store, Home, ShieldCheck, Flame, Droplets, Zap, Truck, Layers, HelpCircle, Eye, X
 } from 'lucide-react';
 import { formatCLP } from '../../../utils/formatters';
 import { printDocumentDirectly } from '../../../utils/printDocument';
@@ -127,11 +127,14 @@ export const AgacechFeeCalculatorPanel = ({
   setProposalConfig,
   empresaForm,
   onApplyToDossier,
-  showAlert
+  showAlert,
+  pendingAction = null,
+  onConsumePendingAction = () => {}
 }) => {
   const { companySettings } = useCommunity();
   const indicators = useEconomicIndicators();
   const [pdfStyle, setPdfStyle] = useAranproPdfStyle('alt4');
+  const [previewFeeModal, setPreviewFeeModal] = useState(false);
   const signatureImage = empresaForm?.signatureDataUrl || companySettings?.signatureDataUrl || '';
   const signatureScale = Number(companySettings?.signatureScale) || 1.65;
 
@@ -463,6 +466,18 @@ export const AgacechFeeCalculatorPanel = ({
         .transition-final-footer .transition-footer-signature { flex: 0 0 210px; min-width: 0 !important; }`
     });
   };
+
+  useEffect(() => {
+    if (!pendingAction || pendingAction.section !== 'calculadora') return;
+    if (pendingAction.mode === 'preview') {
+      setPreviewFeeModal(true);
+    } else if (pendingAction.mode === 'print') {
+      const t = setTimeout(() => handlePrintFeeSheet(), 140);
+      onConsumePendingAction?.();
+      return () => clearTimeout(t);
+    }
+    onConsumePendingAction?.();
+  }, [pendingAction?.nonce]);
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -1275,7 +1290,35 @@ export const AgacechFeeCalculatorPanel = ({
       </div>
 
       {/* PLANTILLA IMPRIMIBLE LISTA EN DOM (1 PÁGINA CARTA OFICIAL ARANPRO) */}
-      <div className="hidden">
+      <div className={previewFeeModal ? 'fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 overflow-y-auto' : 'hidden'}>
+        <div className={previewFeeModal ? 'bg-white rounded-3xl max-w-4xl w-full p-4 md:p-6 shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] space-y-4' : ''}>
+          {previewFeeModal && (
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+              <div>
+                <h4 className="text-base font-black text-slate-900">Vista Previa: Memoria Pericial de Honorarios ARANPRO</h4>
+                <p className="text-xs text-slate-500">Documento técnico listo para descargar o imprimir en formato Carta.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePrintFeeSheet}
+                  className="px-4 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
+                  <span>Descargar PDF</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewFeeModal(false)}
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer"
+                  aria-label="Cerrar vista previa"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+          <div className={previewFeeModal ? 'overflow-y-auto flex-1 bg-slate-100/70 p-2 md:p-4 rounded-2xl' : ''}>
         <div
           id="printable-aranpro-fee-sheet"
           data-pdf-style={pdfStyle}
@@ -1365,6 +1408,8 @@ export const AgacechFeeCalculatorPanel = ({
           </div>
 
           <div className="mt-auto pt-1.5 space-y-1"><CanonicalPdfFinalSignature companyRut={empresaForm?.companyRut} phone={empresaForm?.phone || '+56 9 5811 8504'} email={empresaForm?.email || 'contacto@aranpro.cl'} website={empresaForm?.website || 'https://aranpro.cl'} signature={signatureImage || companySettings?.signatureDataUrl} signatureScale={signatureScale} adminName={empresaForm?.adminName || 'John Andrés Arancibia Maureira'} adminRut={(empresaForm?.adminRut && empresaForm.adminRut !== '14.882.140-K') ? empresaForm.adminRut : '16.012.871-2'} /><CanonicalPdfPageFooter website={empresaForm?.website || 'https://aranpro.cl'} label="Estudio de honorarios" page={1} totalPages={1} city={empresaForm?.city || 'La Serena, Chile'} /></div>
+        </div>
+          </div>
         </div>
       </div>
     </div>

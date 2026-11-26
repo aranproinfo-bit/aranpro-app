@@ -9,7 +9,7 @@ import {useLaborMinimumIndicator} from '../../hooks/useLaborMinimumIndicator';
 const origin=[['contract','Fecha de firma del contrato de origen','date'],['signed','Fecha de suscripción del anexo','date']];
 const timeFields=[['timeClause','Cláusula de jornada que se modifica'],['timeFrom','Fecha de efecto de la jornada','date'],['regime','Régimen de jornada','select',[['general','Semanal ordinaria'],['special','Ciclo o régimen especial']]],['rest','Descansos, relevo y cobertura de domingos y festivos']];
 const payFields=[['payClause','Cláusula de remuneración que se modifica'],['payFrom','Fecha de efecto de la remuneración','date'],['concept','Conceptos que cambian'],['detail','Nuevo monto o fórmula, periodicidad y condiciones de devengo','textarea']];
-export default function CommunityLaborAnnex({community,worker,settings,onClose}) {
+export default function CommunityLaborAnnex({community,worker,settings,onClose,employerKind='community'}) {
   const previous=worker.laborContractData?.form||{};
   const [form,setForm]=useState(()=>({...partyData(community,worker,settings),rows:previous.scheduleRows||[],regime:'general',pay:false,time:false,
     salary:worker.baseSalary||'',birth:previous.fecha_nacimiento||'',weekly:worker.weeklyHours||'',contract:previous.fecha_real_firma||''}));
@@ -53,7 +53,7 @@ export default function CommunityLaborAnnex({community,worker,settings,onClose})
   if(!form.review) issues.push('Confirma la comparación con el contrato vigente y el acuerdo de ambas partes.');
   const val=key=>readableDate(form[key])||'〔Pendiente〕';
   const times=form.regime==='general'?weekly.details.join('\n'):form.special;
-  return <LaborDocument title="Anexo de jornada y remuneraciones" settings={settings} community={community} form={form} issues={issues} onClose={onClose} editor={<>
+  return <LaborDocument title="Anexo de jornada y remuneraciones" employerKind={employerKind} settings={settings} community={community} form={form} issues={issues} onClose={onClose} editor={<>
     <FieldGroup title="Partes y representación" fields={partyFields} form={form} patch={patch}/>
     <FieldGroup title="Contrato de origen y suscripción" fields={origin} form={form} patch={patch} open/>
     <fieldset className="flex gap-4"><legend className="font-bold">¿Qué acuerdan modificar?</legend>{[['time','Jornada'],['pay','Remuneración']].map(([k,l])=><label key={k}><input type="checkbox" checked={form[k]} onChange={e=>patch(k,e.target.checked)}/> {l}</label>)}</fieldset>
@@ -66,7 +66,7 @@ export default function CommunityLaborAnnex({community,worker,settings,onClose})
     <p>En {val('city')}, el {val('signed')}, {val('employer')}, RUT {val('employerRut')}, con domicilio en {val('address')}, representada por {val('rep')}, RUT {val('repRut')}, en calidad de {val('role')}, según {val('authority')}, y {val('worker')}, RUT {val('workerRut')}, con domicilio en {val('home')}, acuerdan modificar el contrato suscrito el {val('contract')}. Se reconoce la fecha original de ingreso del {val('entry')} y el cargo de {val('job')}.</p>
     {form.time&&<Clause title="Primero. Jornada actualizada"><p>Desde el {val('timeFrom')}, la cláusula {val('timeClause')} establece una jornada de {hours||'〔Pendiente〕'} horas {form.regime==='general'?'semanales':'promedio según el ciclo pactado'}.</p><p style={{whiteSpace:'pre-line'}}>{times||'Distribución pendiente.'}</p><p>Descansos y cobertura · {val('rest')}. {form.scheduleBasis}</p><p>La reducción de jornada por aplicación de la ley se hará efectiva sin disminución de remuneraciones.</p></Clause>}
     {form.pay&&<Clause title={(form.time?'Segundo':'Primero')+'. Remuneración actualizada'}><p>A partir del {val('payFrom')}, la cláusula {val('payClause')} se modifica en los siguientes conceptos · {val('concept')}.</p>{form.salaryChange&&<p>Nuevo sueldo base mensual · {Number(form.salary).toLocaleString('es-CL')} pesos.</p>}<p style={{whiteSpace:'pre-line'}}>{val('detail')}</p><p>Las diferencias de períodos anteriores, si corresponden, se calcularán y documentarán en sus respectivas liquidaciones o reliquidaciones.</p></Clause>}
-    <Clause title="Continuidad y alcance"><p>Se conservan la antigüedad y las estipulaciones que este anexo no modifica expresamente. Las partes suscriben ejemplares de igual tenor y cada una conservará uno. La comunidad gestionará el registro que corresponda.</p></Clause>
+    <Clause title="Continuidad y alcance"><p>Se conservan la antigüedad y las estipulaciones que este anexo no modifica expresamente. Las partes suscriben ejemplares de igual tenor y cada una conservará uno. {employerKind==='company'?'El empleador':'La comunidad'} gestionará el registro que corresponda.</p></Clause>
   </LaborDocument>;
 }
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule';
+import { LegalLibraryModule } from './LegalLibraryModule';
+import { OfficePayrollAndStaffModule } from './OfficePayrollAndStaffModule';
 import { PwaInstallButton } from '../layout/PwaPrompt';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import { formatCLP } from '../../utils/formatters';
@@ -13,7 +15,8 @@ import {
   CheckCircle2, Phone, Mail, ExternalLink, LogOut, Sparkles, Printer,
   Trash2, Check, Key, PenTool, HardHat, Scale, Landmark, DollarSign,
   Menu, X, ChevronLeft, ChevronRight, ChevronDown, Globe, Shield, Database, Calculator,
-  FolderOpen, Eye, ClipboardCheck, Presentation, QrCode, Send
+  FolderOpen, Eye, ClipboardCheck, Presentation, QrCode, Send,
+  FileSpreadsheet, Palmtree, Clock, UserMinus, ShieldAlert
 } from 'lucide-react';
 
 const DEFAULT_OFFICE_WORKERS = [
@@ -144,11 +147,25 @@ export const CompanyEnterpriseHub = ({
   // Navegación modular limpia sin duplicados:
   // 'comunidades' | 'postulaciones' | 'rrhh_oficina' | 'firma' | 'empresa' | 'alianzas' | 'respaldos'
   const [activeHubTab, setActiveHubTab] = useState('comunidades');
+  const [collapsedHubTabs, setCollapsedHubTabs] = useState({});
+  useEffect(() => { setCollapsedHubTabs((prev) => (prev[activeHubTab] ? { ...prev, [activeHubTab]: false } : prev)); }, [activeHubTab]);
   const [empresaSubSection, setEmpresaSubSection] = useState('empresa'); // 'empresa' | 'acreditacion'
   const [postulacionSection, setPostulacionSection] = useState('flujo'); // 'flujo' | 'antecedentes' | 'material' | 'pipeline' | 'herramientas'
+  const [officeSubTab, setOfficeSubTab] = useState('nomina');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [toolboxExpanded, setToolboxExpanded] = useState(true);
+  const [funnelExpanded, setFunnelExpanded] = useState(true);
+  const [activeFunnelStep, setActiveFunnelStep] = useState(null);
+  const [funnelStepRequest, setFunnelStepRequest] = useState(null);
+  const FUNNEL_STEPS = [
+    { n: 1, label: 'Paso 1 · Primer Contacto' },
+    { n: 2, label: 'Paso 2 · Cita & Dossier' },
+    { n: 3, label: 'Paso 3 · Propuesta Formal' },
+    { n: 4, label: 'Paso 4 · Cierre & Demo QR' },
+    { n: 5, label: 'Paso 5 · Adjudicación & Traspaso' },
+    { n: 6, label: 'Paso 6 · Recepción de Comunidad' }
+  ];
 
   // Meta referencial
   const ufValue = Number(companySettings?.ufReferenceValue) || 38650;
@@ -246,10 +263,12 @@ export const CompanyEnterpriseHub = ({
     reserveFundPercentage: 5
   });
 
-  // Cálculos ejecutivos de cartera
-  const totalCommunities = communities.length;
-  const totalManagedUnits = communities.reduce((acc, c) => acc + (Number(c.totalUnits) || c.units?.length || 0), 0);
-  const currentMonthlyFeeCLP = communities.reduce((acc, c) => {
+  // Cálculos ejecutivos de cartera (descontando comunidades ya entregadas en archivo histórico)
+  const activePortfolioCommunities = communities.filter((c) => c.handoverStatus !== 'ENTREGADA');
+  const archivedHandoverCount = communities.length - activePortfolioCommunities.length;
+  const totalCommunities = activePortfolioCommunities.length;
+  const totalManagedUnits = activePortfolioCommunities.reduce((acc, c) => acc + (Number(c.totalUnits) || c.units?.length || 0), 0);
+  const currentMonthlyFeeCLP = activePortfolioCommunities.reduce((acc, c) => {
     if (c.monthlyAdminFeeCLP && Number(c.monthlyAdminFeeCLP) > 0) {
       return acc + Number(c.monthlyAdminFeeCLP);
     }
@@ -398,8 +417,15 @@ export const CompanyEnterpriseHub = ({
       badge: `${trustedProviders.length}`
     },
     {
+      id: 'biblioteca_legal',
+      label: '6. Biblioteca Legal',
+      shortLabel: 'Biblioteca Legal',
+      icon: Scale,
+      badge: 'Leyes'
+    },
+    {
       id: 'respaldos',
-      label: '6. Respaldos & Seguridad',
+      label: '7. Respaldos & Seguridad',
       shortLabel: 'Respaldos',
       icon: Database,
       badge: 'Backup'
@@ -427,6 +453,17 @@ export const CompanyEnterpriseHub = ({
       isGroup: true,
       subItems: TOOLBOX_ITEMS
     }
+  ];
+
+  const OFFICE_SUB_ITEMS = [
+    { id: 'nomina', label: '1. Nómina Personal', badge: 'Equipo', icon: Users },
+    { id: 'liquidaciones', label: '2. Liquidaciones DT', badge: 'Mes', icon: FileSpreadsheet },
+    { id: 'previred', label: '3. Planilla Previred', badge: 'Día 13', icon: Landmark },
+    { id: 'vacaciones', label: '4. Feriado Legal DT', badge: 'Saldos', icon: Palmtree },
+    { id: 'contratos', label: '5. Contratos DT', badge: 'Leyes', icon: FileText },
+    { id: 'horas_extras', label: '6. Pactos H. Extras', badge: 'Art. 32', icon: Clock },
+    { id: 'finiquitos', label: '7. Finiquitos & Término', badge: 'Cálculo', icon: UserMinus },
+    { id: 'riohs', label: '8. Reglamento y Ley Karin', badge: 'Norma', icon: ShieldAlert },
   ];
 
   const EMPRESA_SUB_ITEMS = [
@@ -532,6 +569,7 @@ export const CompanyEnterpriseHub = ({
               <button
                 type="button"
                 onClick={() => {
+                  if (isActive) { setCollapsedHubTabs((prev) => ({ ...prev, [tab.id]: !prev[tab.id] })); return; }
                   setActiveHubTab(tab.id);
                   if (tab.id === 'empresa' && !empresaSubSection) {
                     setEmpresaSubSection('empresa');
@@ -575,7 +613,7 @@ export const CompanyEnterpriseHub = ({
               </button>
 
               {/* Sub-menú para Postulaciones & CRM (Organizado con Acordeón Anidado para Herramientas) */}
-              {isActive && tab.id === 'postulaciones' && (!sidebarCollapsed || isMobile) && (
+              {isActive && !collapsedHubTabs[tab.id] && tab.id === 'postulaciones' && (!sidebarCollapsed || isMobile) && (
                 <div className="ml-3 pl-2.5 py-1 space-y-0.5 border-l-2 border-[#D4B895]/40 animate-in fade-in duration-150">
                   {POSTULACION_SUB_ITEMS.map((sub) => {
                     const SubIcon = sub.icon;
@@ -659,11 +697,16 @@ export const CompanyEnterpriseHub = ({
 
                     const isSubActive = postulacionSection === sub.id;
                     return (
+                      <div key={sub.id} className="space-y-0.5">
                       <button
-                        key={sub.id}
                         type="button"
                         onClick={() => {
+                          if (sub.id === 'flujo' && postulacionSection === 'flujo') {
+                            setFunnelExpanded((v) => !v);
+                            return;
+                          }
                           setPostulacionSection(sub.id);
+                          if (sub.id === 'flujo') setFunnelExpanded(true);
                           if (isMobile) setMobileSidebarOpen(false);
                         }}
                         className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-bold text-left transition-all cursor-pointer ${
@@ -679,13 +722,80 @@ export const CompanyEnterpriseHub = ({
                         />
                         <span className="truncate">{sub.label}</span>
                       </button>
+                      {sub.id === 'flujo' && postulacionSection === 'flujo' && funnelExpanded && (
+                        <div className="ml-3 pl-2 space-y-0.5 border-l border-[#D4B895]/30">
+                          {FUNNEL_STEPS.map((st) => (
+                            <button
+                              key={st.n}
+                              type="button"
+                              onClick={() => {
+                                setActiveFunnelStep(st.n);
+                                setFunnelStepRequest({ step: st.n, nonce: Date.now() });
+                                if (isMobile) setMobileSidebarOpen(false);
+                              }}
+                              className={`w-full flex items-center gap-2 px-2 py-1 rounded-md text-[10.5px] font-semibold text-left transition-all cursor-pointer ${
+                                activeFunnelStep === st.n
+                                  ? 'bg-[#D4B895]/20 text-[#D4B895] font-black'
+                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                              }`}
+                            >
+                              <span className={`w-4 h-4 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 ${activeFunnelStep === st.n ? 'bg-[#D4B895] text-[#0F3D2E]' : 'bg-white/15 text-white/80'}`}>{st.n}</span>
+                              <span className="truncate">{st.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      </div>
                     );
                   })}
                 </div>
               )}
 
-              {/* Sub-menú para Datos Empresa & RNAC */}
-              {isActive && tab.id === 'empresa' && (!sidebarCollapsed || isMobile) && (
+                              {/* Sub-menú para Mi Oficina (RR.HH.) */}
+                {isActive && !collapsedHubTabs[tab.id] && tab.id === 'rrhh_oficina' && (!sidebarCollapsed || isMobile) && (
+                  <div className="ml-3 pl-2.5 py-1 space-y-0.5 border-l-2 border-[#D4B895]/40 animate-in fade-in duration-150">
+                    {OFFICE_SUB_ITEMS.map((sub) => {
+                      const SubIcon = sub.icon;
+                      const isSubActive = officeSubTab === sub.id;
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => {
+                            setOfficeSubTab(sub.id);
+                            if (isMobile) setMobileSidebarOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold text-left transition-all cursor-pointer ${
+                            isSubActive
+                              ? 'bg-[#0A291F] text-[#D4B895] font-black shadow-2xs border border-[#D4B895]/40'
+                              : 'text-white/75 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <SubIcon
+                              className={`w-3.5 h-3.5 shrink-0 ${
+                                isSubActive ? 'text-[#D4B895]' : 'text-[#D4B895]/70'
+                              }`}
+                            />
+                            <span className="truncate">{sub.label}</span>
+                          </div>
+                          {sub.badge && (
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold shrink-0 ${
+                              isSubActive
+                                ? 'bg-[#D4B895] text-[#0F3D2E]'
+                                : 'bg-white/10 text-white/70'
+                            }`}>
+                              {sub.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Sub-menú para Datos Empresa & RNAC */}
+              {isActive && !collapsedHubTabs[tab.id] && tab.id === 'empresa' && (!sidebarCollapsed || isMobile) && (
                 <div className="ml-3 pl-2.5 py-1 space-y-0.5 border-l-2 border-[#D4B895]/40 animate-in fade-in duration-150">
                   {EMPRESA_SUB_ITEMS.map((sub) => {
                     const SubIcon = sub.icon;
@@ -887,7 +997,9 @@ export const CompanyEnterpriseHub = ({
                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Comunidades Activas</span>
                   <strong className="text-xl font-black text-[#0F3D2E] mt-0.5 block">{totalCommunities} Condominios</strong>
-                  <span className="text-[11px] text-slate-500">Bajo tu administración</span>
+                  <span className="text-[11px] text-slate-500">
+                    {archivedHandoverCount > 0 ? `Activos (${archivedHandoverCount} en archivo histórico)` : 'Bajo tu administración'}
+                  </span>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Unidades Gestionadas</span>
@@ -944,19 +1056,31 @@ export const CompanyEnterpriseHub = ({
                   {communities.map((c) => {
                     const paidUnits = c.units?.filter((u) => u.paid).length || 0;
                     const totalUnits = c.totalUnits || c.units?.length || 0;
+                    const isHandedOver = c.handoverStatus === 'ENTREGADA';
                     return (
                       <div
                         key={c.id}
-                        className="group bg-[#FDFBF7] hover:bg-white p-6 rounded-3xl border-2 border-slate-200 hover:border-[#0F3D2E] shadow-xs hover:shadow-xl transition-all space-y-4 flex flex-col justify-between"
+                        className={`group p-6 rounded-3xl border-2 shadow-xs hover:shadow-xl transition-all space-y-4 flex flex-col justify-between ${
+                          isHandedOver
+                            ? 'bg-slate-50 border-amber-300/80 opacity-90 hover:opacity-100'
+                            : 'bg-[#FDFBF7] hover:bg-white border-slate-200 hover:border-[#0F3D2E]'
+                        }`}
                       >
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-3">
                             <div className="w-12 h-12 rounded-2xl bg-[#0F3D2E]/10 group-hover:bg-[#0F3D2E] text-[#0F3D2E] group-hover:text-[#D4B895] flex items-center justify-center transition-all shrink-0">
                               <Building2 className="w-6 h-6" />
                             </div>
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                              {c.type} • {totalUnits} Unidades
-                            </span>
+                            <div className="flex flex-col items-end gap-1">
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                {c.type} • {totalUnits} Unidades
+                              </span>
+                              {isHandedOver && (
+                                <span className="px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                                  Archivo Histórico • Entregada
+                                </span>
+                              )}
+                            </div>
                           </div>
 
                           <div>
@@ -982,25 +1106,35 @@ export const CompanyEnterpriseHub = ({
                           </div>
                         </div>
 
-                        <div className="pt-3 border-t border-slate-200/80 flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => onSelectCommunityToManage(c.id)}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-                          >
-                            <span>Ingresar a Administrar</span>
-                            <ArrowRight className="w-3.5 h-3.5 text-[#D4B895]" />
-                          </button>
-                          {onSelectResidentPreview && (
+                        <div className="pt-3 border-t border-slate-200/80 flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => onSelectResidentPreview(c.slug)}
-                              className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-[#0F3D2E] transition-colors cursor-pointer"
-                              title="Ver portal como vecino"
+                              onClick={() => onSelectCommunityToManage(c.id, 'resumen')}
+                              className="flex-1 py-2.5 px-3 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
                             >
-                              <Eye className="w-4 h-4" />
+                              <span>Ingresar a Administrar</span>
+                              <ArrowRight className="w-3.5 h-3.5 text-[#D4B895]" />
                             </button>
-                          )}
+                            {onSelectResidentPreview && (
+                              <button
+                                type="button"
+                                onClick={() => onSelectResidentPreview(c.slug)}
+                                className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-[#0F3D2E] transition-colors cursor-pointer"
+                                title="Ver portal como vecino"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => onSelectCommunityToManage(c.id, 'traspaso')}
+                            className="w-full py-1.5 px-3 rounded-xl border border-[#D4B895]/60 bg-[#D4B895]/15 hover:bg-[#D4B895]/30 text-[#0F3D2E] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <Briefcase className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                            <span>Rendición & Traspaso (Ley 21.442)</span>
+                          </button>
                         </div>
                       </div>
                     );
@@ -1057,11 +1191,13 @@ export const CompanyEnterpriseHub = ({
               <CompanySettingsAndBackupModule
                 currentCommunity={communities[0]}
                 activeSubTab="postulaciones"
+                funnelStepRequest={funnelStepRequest}
                 postulacionSection={postulacionSection}
                 setPostulacionSection={setPostulacionSection}
                 hideHeader={true}
                 hideNavBar={true}
                 hidePostulacionSubNav={true}
+                onSelectCommunityToManage={onSelectCommunityToManage}
                 onNavigateToModule={(hubTab, subSection, targetElementId) => {
                   if (hubTab) setActiveHubTab(hubTab);
                   if (subSection) setEmpresaSubSection(subSection);
@@ -1077,270 +1213,10 @@ export const CompanyEnterpriseHub = ({
           )}
 
           {/* ==================== MÓDULO 4: MI OFICINA (RR.HH., CONTRATOS & PREVIRED) ==================== */}
+          {/* ==================== MÓDULO 4: MI OFICINA (RR.HH., CONTRATOS, LIQUIDACIONES & PREVIRED) ==================== */}
           {activeHubTab === 'rrhh_oficina' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-5">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#0F3D2E]/10 text-[#0F3D2E]">
-                      Gestión Interna de la Administradora
-                    </span>
-                    <h2 className="text-lg font-black text-slate-900">
-                      RR.HH. de Mi Oficina: Trabajadores Propios, Contratos e Imposiciones (Previred / SII)
-                    </h2>
-                    <p className="text-xs text-slate-500 max-w-3xl">
-                      Centraliza aquí los contratos laborales, liquidaciones de sueldo, boletas de honorarios e imposiciones previsionales de tus propios asistentes y colaboradores de oficina.
-                    </p>
-                    <p className="text-xs text-amber-800">La planilla de oficina usa montos brutos registrados por separado. Revisa esos montos y cotizaciones al modificar un contrato; no se actualizan automáticamente.</p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        printCommunityLabor('printable-office-payroll-sheet', 'ARANPRO_Nomina_Imposiciones_Oficina', {pdfStyle,orientation:'landscape'})
-                      }
-                      className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Printer className="w-4 h-4 text-[#0F3D2E]" />
-                      <span>Imprimir Planilla RR.HH. Oficina (PDF)</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddWorkerModal(true)}
-                      className="px-4 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-black text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4 text-[#D4B895]" />
-                      <span>+ Registrar Trabajador</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* KPIs de Nómina de la Oficina */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold uppercase text-slate-500 block">Dotación de Mi Oficina</span>
-                    <strong className="text-xl font-black text-slate-900 mt-0.5 block">{officeWorkers.length} Colaboradores</strong>
-                    <span className="text-[11px] text-slate-500">Contrato directo y honorarios</span>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold uppercase text-slate-500 block">Total Haberes / Bruto Mes</span>
-                    <strong className="text-xl font-black text-slate-900 mt-0.5 block">{formatCLP(officePayrollMetrics.totalGross)}</strong>
-                    <span className="text-[11px] text-slate-500">Base imponible mensual</span>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200">
-                    <span className="text-[10px] font-bold uppercase text-amber-900 block">Imposiciones Previred & SII</span>
-                    <strong className="text-xl font-black text-amber-950 mt-0.5 block">{formatCLP(officePayrollMetrics.totalPreviredAndTax)}</strong>
-                    <span className="text-[11px] text-amber-800">AFP + Fonasa/Isapre + AFC + Retención</span>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
-                    <span className="text-[10px] font-bold uppercase text-emerald-800 block">Líquido a Pagar Equipo</span>
-                    <strong className="text-xl font-black text-[#0F3D2E] mt-0.5 block">{formatCLP(officePayrollMetrics.totalNet)}</strong>
-                    <span className="text-[11px] text-emerald-800">Costo empresa: {formatCLP(officePayrollMetrics.totalEmployerCost)}</span>
-                  </div>
-                </div>
-
-                {/* Tabla de Nómina e Imposiciones de la Empresa Administradora */}
-                <div
-                  id="office-payroll-screen"
-                  data-pdf-style={pdfStyle}
-                  className="p-6 bg-white rounded-2xl border border-slate-200 space-y-5"
-                >
-                  <div className="flex items-center justify-between border-b-2 border-[#0F3D2E] pb-3">
-                    <div className="flex items-center space-x-3.5">
-                      <AranproLogo variant="principal" className="h-12 w-auto" />
-                      <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
-                        <div className="text-xs font-black text-[#0F3D2E] uppercase">
-                          {companySettings?.provisionalName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
-                        </div>
-                        <div className="text-[10px] font-mono text-slate-600 font-bold">
-                          {companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
-                        </div>
-                        <div className="text-[9.5px] text-slate-500">
-                          Departamento de Recursos Humanos Internos & Cumplimiento Previsional de Oficina
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="inline-block px-2.5 py-0.5 rounded bg-[#F5F4EF] border border-[#D4B895] text-[#0F3D2E] text-[10px] font-mono font-bold">
-                        NÓMINA INTERNA OFICINA
-                      </span>
-                      <p className="text-xs font-bold text-slate-800 mt-0.5">
-                        Control de Contratos e Imposiciones
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="bg-[#0F3D2E] text-white">
-                          <th className="p-2.5 rounded-tl-lg">Colaborador / RUT</th>
-                          <th className="p-2.5">Cargo & Función</th>
-                          <th className="p-2.5">Vínculo / Previsión</th>
-                          <th className="p-2.5 text-right">Sueldo Bruto</th>
-                          <th className="p-2.5 text-right">Imposiciones / Ret.</th>
-                          <th className="p-2.5 text-right">Líquido a Pago</th>
-                          <th className="p-2.5 text-center">Estado Previred</th>
-                          <th className="p-2.5 rounded-tr-lg text-center no-print">Acción</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200">
-                        {officeWorkers.map((w) => {
-                          const gross = Number(w.grossSalary) || 0;
-                          const isHonorarios = w.contractType === 'Boleta de Honorarios';
-                          const imp = isHonorarios
-                            ? Math.round(gross * ((Number(w.afpRate) || 13.75) / 100))
-                            : Math.round(gross * (((Number(w.afpRate) || 11) + (Number(w.healthRate) || 7) + 0.6) / 100));
-                          const net = gross - imp;
-                          return (
-                            <tr key={w.id} className="hover:bg-slate-50">
-                              <td className="p-2.5">
-                                <strong className="text-slate-900 block">{w.name}</strong>
-                                <span className="font-mono text-[10px] text-slate-500">RUT: {w.rut}</span>
-                              </td>
-                              <td className="p-2.5">
-                                <span className="font-semibold text-slate-800 block">{w.role}</span>
-                                <span className="text-[10px] text-slate-500">{w.assignedCommunities}</span>
-                              </td>
-                              <td className="p-2.5">
-                                <span className="font-bold text-[#0F3D2E] block text-[11px]">{w.contractType}</span>
-                                <span className="text-[10px] text-slate-500">{w.afpName} • {w.healthSystem}</span>
-                              </td>
-                              <td className="p-2.5 text-right font-mono font-bold text-slate-800">{formatCLP(gross)}</td>
-                              <td className="p-2.5 text-right font-mono text-amber-800 font-semibold">{formatCLP(imp)}</td>
-                              <td className="p-2.5 text-right font-mono font-black text-[#0F3D2E]">{formatCLP(net)}</td>
-                              <td className="p-2.5 text-center">
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                  ✓ {w.previredStatus}
-                                </span>
-                              </td>
-                              <td className="p-2.5 text-center no-print">
-                                {w.contractType !== 'Boleta de Honorarios' && <button type="button" onClick={()=>openOfficeContract(w)} className="mr-2 text-emerald-800 underline" title="Preparar contrato laboral de oficina">Contrato</button>}
-                                <button
-                                  type="button"
-                                  onClick={() => setOfficeWorkers((prev) => prev.filter((item) => item.id !== w.id))}
-                                  className="text-rose-600 hover:text-rose-800 p-1 cursor-pointer"
-                                  title="Eliminar registro"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-200 flex items-end justify-between">
-                    <AranproOfficialSeal size="sm" />
-                    <div className="text-center min-w-[230px]">
-                      {companySettings?.signatureDataUrl && (
-                        <img
-                          src={companySettings.signatureDataUrl}
-                          alt="Firma Administrador"
-                          className="h-14 max-h-16 w-auto object-contain mx-auto mb-1"
-                        />
-                      )}
-                      <div className="border-t border-slate-800 pt-1 text-[10px]">
-                        <strong className="text-slate-900 block">{companySettings?.adminName || 'John Andrés Arancibia Maureira'}</strong>
-                        <span className="text-slate-500 font-mono">Representante Legal ARANPRO • RNAC N° {companySettings?.rnacNumber || '48.912'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="hidden"><OfficePayrollPrint workers={officeWorkers} settings={companySettings || {}} pdfStyle={pdfStyle} /></div>
-              </div>
-
-              {/* Modal para agregar colaborador */}
-              {showAddWorkerModal && (
-                <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4">
-                  <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <h3 className="text-sm font-black text-slate-900 uppercase">
-                        Registrar Trabajador / Colaborador de Mi Empresa
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={() => setShowAddWorkerModal(false)}
-                        className="text-slate-400 hover:text-slate-700 font-bold"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <form onSubmit={handleCreateWorker} className="space-y-3 text-xs">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="sm:col-span-2">
-                          <label className="block font-bold text-slate-700 mb-1">Nombre Completo *</label>
-                          <input
-                            type="text"
-                            required
-                            value={workerForm.name}
-                            onChange={(e) => setWorkerForm({ ...workerForm, name: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">RUT *</label>
-                          <input
-                            type="text"
-                            required
-                            value={workerForm.rut}
-                            onChange={(e) => setWorkerForm({ ...workerForm, rut: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Modalidad Contractual</label>
-                          <select
-                            value={workerForm.contractType}
-                            onChange={(e) => setWorkerForm({ ...workerForm, contractType: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold"
-                          >
-                            <option value="Contrato Indefinido">Contrato Indefinido</option>
-                            <option value="Contrato Plazo Fijo">Contrato Plazo Fijo</option>
-                            <option value="Boleta de Honorarios">Boleta de Honorarios (SII)</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Cargo en tu Administradora</label>
-                          <input
-                            type="text"
-                            value={workerForm.role}
-                            onChange={(e) => setWorkerForm({ ...workerForm, role: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl"
-                          />
-                        </div>
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">Sueldo Bruto / Honorario (CLP)</label>
-                          <input
-                            type="number"
-                            value={workerForm.grossSalary}
-                            onChange={(e) => setWorkerForm({ ...workerForm, grossSalary: e.target.value })}
-                            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold"
-                          />
-                        </div>
-                      </div>
-                      <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setShowAddWorkerModal(false)}
-                          className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          type="submit"
-                          className="px-5 py-2 rounded-xl bg-[#0F3D2E] text-white font-bold"
-                        >
-                          Guardar en Mi Oficina
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              )}
+              <OfficePayrollAndStaffModule activeSubTab={officeSubTab} onSubTabChange={setOfficeSubTab} />
             </div>
           )}
 
@@ -1493,7 +1369,14 @@ export const CompanyEnterpriseHub = ({
             </div>
           )}
 
-          {/* ==================== MÓDULO 6: RESPALDOS & SEGURIDAD ==================== */}
+          {/* ==================== MÓDULO 6: BIBLIOTECA LEGAL (ayuda del administrador) ==================== */}
+          {activeHubTab === 'biblioteca_legal' && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <LegalLibraryModule />
+            </div>
+          )}
+
+          {/* ==================== MÓDULO 7: RESPALDOS & SEGURIDAD ==================== */}
           {activeHubTab === 'respaldos' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               <CompanySettingsAndBackupModule

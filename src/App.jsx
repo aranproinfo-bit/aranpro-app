@@ -39,6 +39,7 @@ function MainApp() {
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [adminLoginError, setAdminLoginError] = useState('');
   const [selectedAdminCommunityId, setSelectedAdminCommunityId] = useState(null);
+  const [selectedAdminActiveTab, setSelectedAdminActiveTab] = useState('resumen');
   const [residentRutInput, setResidentRutInput] = useState('');
   const [residentPasswordInput, setResidentPasswordInput] = useState('');
   const [residentLoginError, setResidentLoginError] = useState('');
@@ -449,8 +450,9 @@ function MainApp() {
         {currentView === 'admin-select-community' && (
           <CompanyEnterpriseHub
             onBackToWeb={handleGoToCommercialWeb}
-            onSelectCommunityToManage={(communityId) => {
+            onSelectCommunityToManage={(communityId, targetTab) => {
               setSelectedAdminCommunityId(communityId);
+              setSelectedAdminActiveTab(targetTab || 'resumen');
               setCurrentView('admin');
             }}
             onSelectResidentPreview={(slug) => {
@@ -507,6 +509,7 @@ function MainApp() {
           <AdminDashboard
             onBackToWeb={handleGoToCommercialWeb}
             initialCommunityId={selectedAdminCommunityId}
+            initialActiveTab={selectedAdminActiveTab}
             onSwitchCommunityWorkspace={() => setCurrentView('admin-select-community')}
             onSelectCommunityView={(slug) => {
               setSelectedCommunitySlug(slug);

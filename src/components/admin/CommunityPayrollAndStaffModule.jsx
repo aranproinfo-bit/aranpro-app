@@ -3,6 +3,7 @@ import { CommunityLaborHeader, CommunityLaborFooter } from './CommunityLaborStat
 import CommunityLaborAnnex from './CommunityLaborAnnex';
 import CommunityPreventionDocument from './CommunityPreventionDocument';
 import CommunitySettlementDocument from './CommunitySettlementDocument';
+import { PreviredStepByStepGuide, TerminationStepByStepGuide } from './LaborProcedureGuides';
 import LaborRoleSelect from './LaborRoleSelect';
 import LaborContractDraft from './LaborContractDraft';
 import OvertimeAgreementDraft from './OvertimeAgreementDraft';
@@ -139,6 +140,7 @@ const CommunityStaffPanel = ({
   // Estado y Modales para Finiquito Laboral & Carta de Despido (Art. 159, 160, 161)
   const [selectedWorkerForSeverance, setSelectedWorkerForSeverance] = useState(null);
   const [showSeveranceModal, setShowSeveranceModal] = useState(false);
+  const [severanceInitialMode, setSeveranceInitialMode] = useState('settlement');
   // Estado y Modal para Pacto Bilateral de Horas Extras (Art. 32 Código del Trabajo)
   const [selectedWorkerForOvertimePact, setSelectedWorkerForOvertimePact] = useState(null);
   const [showOvertimePactModal, setShowOvertimePactModal] = useState(false);
@@ -1011,6 +1013,9 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
             </div>
 
+            {/* Guía paso a paso Previred */}
+            <PreviredStepByStepGuide employerKind="community" />
+
             {/* Desglose de Leyes Sociales */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               {/* Columna Izquierda: Retenciones Trabajador */}
@@ -1478,6 +1483,9 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
               </div>
             </div>
 
+            {/* Guía paso a paso Carta de Aviso y Finiquito */}
+            <TerminationStepByStepGuide employerKind="community" />
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {staff.map((worker) => (
                 <div
@@ -1500,17 +1508,32 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedWorkerForSeverance(worker);
-                      setShowSeveranceModal(true);
-                    }}
-                    className="w-full py-2 px-3 rounded-xl bg-slate-900 text-amber-200 hover:bg-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                  >
-                    <Scale className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Simular Finiquito & Cartas DT</span>
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedWorkerForSeverance(worker);
+                        setSeveranceInitialMode('letter');
+                        setShowSeveranceModal(true);
+                      }}
+                      className="py-2 px-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Carta de Aviso</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedWorkerForSeverance(worker);
+                        setSeveranceInitialMode('settlement');
+                        setShowSeveranceModal(true);
+                      }}
+                      className="py-2 px-2.5 rounded-xl bg-slate-900 text-amber-200 hover:bg-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                    >
+                      <Scale className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Finiquito DT</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -2625,7 +2648,7 @@ COSTO TOTAL COMUNIDAD: ${formatCLP(payrollConsolidated.totalCommunityCost)}`;
         );
       })()}
 
-      {showSeveranceModal && selectedWorkerForSeverance && <CommunitySettlementDocument key={currentCommunity.id+':'+selectedWorkerForSeverance.id} community={currentCommunity} worker={selectedWorkerForSeverance} settings={companySettings||{}} onClose={()=>setShowSeveranceModal(false)}/>}
+      {showSeveranceModal && selectedWorkerForSeverance && <CommunitySettlementDocument initialMode={severanceInitialMode} key={currentCommunity.id+':'+selectedWorkerForSeverance.id+':'+severanceInitialMode} community={currentCommunity} worker={selectedWorkerForSeverance} settings={companySettings||{}} onClose={()=>setShowSeveranceModal(false)}/>}
       {showOvertimePactModal && selectedWorkerForOvertimePact && <OvertimeAgreementDraft key={selectedWorkerForOvertimePact.id} worker={selectedWorkerForOvertimePact} community={currentCommunity} settings={companySettings || {}} onClose={() => setShowOvertimePactModal(false)} />}
 
     </div>

@@ -43,6 +43,7 @@ export const QuickDocumentsPanel = ({
   handlePrintComparisonMatrix = () => {},
   setPreviewComparisonModal = () => {},
   onNavigateToSection = () => {},
+  onTriggerQuickAction = () => {},
   handleShareWhatsApp = () => {},
   onNavigateToBoveda = () => {},
   showAlert = () => {}
@@ -133,6 +134,8 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'generados',
       ready: true,
+      onOpen: () => onTriggerQuickAction?.({ section: 'flujo', step: 1, mode: 'open' }),
+      openHint: 'Ir al Paso 1 del Embudo',
       onPreview: () => setPreviewColdLetterModal?.(true),
       onPrint: handlePrintColdLetter,
       onWhatsApp: () => handleShareWhatsApp?.(1),
@@ -149,6 +152,8 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'generados',
       ready: true,
+      onOpen: () => onTriggerQuickAction?.({ section: 'flujo', step: 2, mode: 'open' }),
+      openHint: 'Ir al Paso 2 del Embudo',
       onPreview: () => setPreviewDossierModal?.(true),
       onPrint: handlePrintDossier,
       onWhatsApp: () => handleShareWhatsApp?.(2),
@@ -166,6 +171,8 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'generados',
       ready: true,
+      onOpen: () => onTriggerQuickAction?.({ section: 'flujo', step: 3, mode: 'open' }),
+      openHint: 'Ir al Paso 3 del Embudo',
       onPreview: () => setPreviewProposalModal?.(true),
       onPrint: handlePrintProposal,
       onWhatsApp: () => handleShareWhatsApp?.(3),
@@ -182,6 +189,8 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'fichas',
       ready: true,
+      onOpen: () => onNavigateToSection?.('inspeccion'),
+      openHint: 'Ir a Pauta de Inspección Inicial',
       onPreview: () => setPreviewInspectionModal?.(true),
       onPrint: handlePrintInspectionReport,
       stepNumber: null,
@@ -197,6 +206,8 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'generados',
       ready: true,
+      onOpen: () => onNavigateToSection?.('demo'),
+      openHint: 'Ir a Demo en Vivo & QR',
       onPreview: () => setPreviewBrochureModal?.(true),
       onPrint: handlePrintBrochure,
       onWhatsApp: () => handleShareWhatsApp?.(4),
@@ -213,6 +224,8 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'fichas',
       ready: true,
+      onOpen: () => onNavigateToSection?.('comparativa'),
+      openHint: 'Ir al Cuadro Comparativo',
       onPreview: () => setPreviewComparisonModal?.(true),
       onPrint: handlePrintComparisonMatrix,
       stepNumber: null,
@@ -224,12 +237,14 @@ export const QuickDocumentsPanel = ({
       subtitle: 'Guion maestro estructurado con 10 respuestas a preguntas difíciles de comités y fundamentación de honorarios.',
       badge: 'Herramienta Comercial',
       badgeColor: 'purple',
-      format: 'Herramienta Interactiva',
+      format: 'PDF Oficial Carta (2 Págs)',
       type: 'generado',
       category: 'fichas',
       ready: true,
       onOpen: () => onNavigateToSection?.('pitch'),
-      openLabel: 'Abrir Libreto Pitch',
+      openHint: 'Ir al Libreto Pitch',
+      onPreview: () => onTriggerQuickAction?.({ section: 'pitch', mode: 'preview' }),
+      onPrint: () => onTriggerQuickAction?.({ section: 'pitch', mode: 'print' }),
       stepNumber: null,
       icon: Presentation
     },
@@ -239,12 +254,14 @@ export const QuickDocumentsPanel = ({
       subtitle: 'Estudio técnico pericial que fundamenta el piso tarifario según tipología, subsectores contables y equipamiento crítico.',
       badge: 'Herramienta Pericial',
       badgeColor: 'emerald',
-      format: 'Calculadora & Memoria',
+      format: 'PDF Oficial Carta (1 Pág)',
       type: 'generado',
       category: 'fichas',
       ready: true,
       onOpen: () => onNavigateToSection?.('calculadora'),
-      openLabel: 'Abrir Calculadora & Memoria',
+      openHint: 'Ir a Calculadora de Honorarios',
+      onPreview: () => onTriggerQuickAction?.({ section: 'calculadora', mode: 'preview' }),
+      onPrint: () => onTriggerQuickAction?.({ section: 'calculadora', mode: 'print' }),
       stepNumber: null,
       icon: Calculator
     },
@@ -258,8 +275,10 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'generados',
       ready: true,
-      onPrint: handlePrintTerminationNotice,
-      onOpen: () => onNavigateToSection?.('flujo'),
+      onOpen: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'carta', mode: 'open' }),
+      openHint: 'Ir al Paso 5: Carta de Término',
+      onPreview: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'carta', mode: 'preview' }),
+      onPrint: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'carta', mode: 'print' }),
       onWhatsApp: () => handleShareWhatsApp?.(5),
       stepNumber: 5,
       icon: Scale
@@ -274,8 +293,10 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'generados',
       ready: true,
-      onPrint: handlePrintTransitionChecklist,
-      onOpen: () => onNavigateToSection?.('flujo'),
+      onOpen: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'checklist', mode: 'open' }),
+      openHint: 'Ir al Paso 5: Checklist de Traspaso',
+      onPreview: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'checklist', mode: 'preview' }),
+      onPrint: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'checklist', mode: 'print' }),
       stepNumber: 5,
       icon: CheckSquare
     },
@@ -289,8 +310,10 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'generados',
       ready: true,
-      onPrint: handlePrintContract,
-      onOpen: () => onNavigateToSection?.('flujo'),
+      onOpen: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'contrato', mode: 'open' }),
+      openHint: 'Ir al Paso 5: Contrato de Administración',
+      onPreview: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'contrato', mode: 'preview' }),
+      onPrint: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'contrato', mode: 'print' }),
       stepNumber: 5,
       icon: PenTool
     },
@@ -304,8 +327,10 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'fichas',
       ready: true,
-      onOpen: () => onNavigateToSection?.('flujo'),
-      openLabel: 'Ver y Copiar Cláusulas',
+      onOpen: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'clausulas', mode: 'open' }),
+      openHint: 'Ir al Paso 5: Cláusulas de Acta',
+      onPreview: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'clausulas', mode: 'preview' }),
+      onPrint: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'clausulas', mode: 'print' }),
       stepNumber: 5,
       icon: BookOpen
     },
@@ -319,8 +344,10 @@ export const QuickDocumentsPanel = ({
       type: 'generado',
       category: 'fichas',
       ready: true,
-      onPrint: () => printCommitteeGuide('comite', proposalConfig),
-      onOpen: () => onNavigateToSection?.('flujo'),
+      onOpen: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'guias', mode: 'open' }),
+      openHint: 'Ir al Paso 5: Guías para Comité',
+      onPreview: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'guias', mode: 'preview' }),
+      onPrint: () => onTriggerQuickAction?.({ section: 'flujo', step: 5, docKey: 'guias', mode: 'print' }),
       stepNumber: null,
       icon: ShieldCheck
     },
@@ -332,7 +359,7 @@ export const QuickDocumentsPanel = ({
     setPreviewInspectionModal, handlePrintInspectionReport,
     setPreviewBrochureModal, handlePrintBrochure,
     setPreviewComparisonModal, handlePrintComparisonMatrix,
-    onNavigateToSection, proposalConfig.targetCondo
+    onNavigateToSection, onTriggerQuickAction, proposalConfig.targetCondo
   ]);
 
   // 2. DOCUMENTOS Y ACREDITACIONES DE LA BÓVEDA DIGITAL
@@ -807,48 +834,38 @@ export const QuickDocumentsPanel = ({
 
                   {/* COLUMNA 2: BOTONES DE ACCIÓN RÁPIDA (1 CLIC) */}
                   <div className="flex flex-wrap items-center gap-2 shrink-0 md:self-center">
-                    {/* ACCIÓN PARA DOCUMENTOS GENERADOS POR PLATAFORMA */}
+                    {/* ACCIÓN PARA DOCUMENTOS GENERADOS POR PLATAFORMA (3 BOTONES UNIFORMES: IR + VER PREVIA + DESCARGAR PDF) */}
                     {doc.type === 'generado' && (
                       <>
-                        {doc.onOpen && (
-                          <button
-                            type="button"
-                            onClick={doc.onOpen}
-                            className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
-                            title={doc.openLabel || 'Abrir herramienta'}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5 text-[#D4B895]" />
-                            <span>{doc.openLabel || 'Abrir'}</span>
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={doc.onOpen}
+                          className="px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                          title={doc.openHint || 'Ir al área de trabajo del documento'}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          <span>Ir</span>
+                        </button>
 
-                        {doc.onPreview && (
-                          <button
-                            type="button"
-                            onClick={doc.onPreview}
-                            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                            title="Previsualizar documento antes de imprimir"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                            <span>Ver Previa</span>
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={doc.onPreview}
+                          className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                          title="Previsualizar documento antes de descargar"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          <span>Ver Previa</span>
+                        </button>
 
-                        {doc.onPrint && (
-                          <button
-                            type="button"
-                            onClick={doc.onPrint}
-                            className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
-                              doc.isPrimary
-                                ? 'bg-[#0F3D2E] hover:bg-[#0A291F] text-white'
-                                : 'bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E] border border-emerald-300'
-                            }`}
-                            title={['carta-valor', 'dossier-maestro', 'propuesta-formal', 'brochure-app'].includes(doc.id) ? 'Descargar PDF oficial con los datos actuales' : 'Descargar o imprimir PDF oficial con los datos actuales'}
-                          >
-                            <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
-                            <span>{['carta-valor', 'dossier-maestro', 'propuesta-formal', 'brochure-app'].includes(doc.id) ? 'Descargar PDF' : 'Imprimir / PDF'}</span>
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={doc.onPrint}
+                          className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                          title="Descargar PDF oficial con los datos actuales"
+                        >
+                          <Download className="w-3.5 h-3.5 text-[#D4B895]" />
+                          <span>Descargar PDF</span>
+                        </button>
 
                         {doc.onWhatsApp && (
                           <button
@@ -863,46 +880,48 @@ export const QuickDocumentsPanel = ({
                       </>
                     )}
 
-                    {/* ACCIÓN PARA DOCUMENTOS DE BÓVEDA DIGITAL */}
+                    {/* ACCIÓN PARA DOCUMENTOS DE BÓVEDA DIGITAL (3 BOTONES UNIFORMES: IR + VER PREVIA + DESCARGAR PDF) */}
                     {doc.type === 'boveda' && (
                       <>
-                        {doc.ready ? (
-                          <>
-                            {doc.onPreview && (
-                              <button
-                                type="button"
-                                onClick={doc.onPreview}
-                                className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                                title="Abrir archivo digital en una nueva pestaña"
-                              >
-                                <Eye className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                                <span>Ver Archivo</span>
-                              </button>
-                            )}
+                        <button
+                          type="button"
+                          onClick={doc.onUpload}
+                          className="px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                          title={doc.ready ? 'Ir al formulario en Bóveda para editar o actualizar este documento' : 'Ir al formulario en Bóveda para subir este documento'}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          <span>Ir</span>
+                        </button>
 
-                            {doc.onDownload && (
-                              <button
-                                type="button"
-                                onClick={doc.onDownload}
-                                className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
-                                title="Descargar archivo original de la bóveda"
-                              >
-                                <Download className="w-3.5 h-3.5 text-[#D4B895]" />
-                                <span>Descargar</span>
-                              </button>
-                            )}
-                          </>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={doc.onUpload}
-                            className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                            title="Ir a la Bóveda Legal para cargar el archivo digital"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
-                            <span>Cargar en Bóveda</span>
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          disabled={!doc.ready || !doc.onPreview}
+                          onClick={() => doc.onPreview?.()}
+                          className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all ${
+                            doc.ready && doc.onPreview
+                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer'
+                              : 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60'
+                          }`}
+                          title={doc.ready ? 'Previsualizar archivo digital en una nueva pestaña' : 'Aún no cargado: usa "Ir" para subir el documento'}
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                          <span>Ver Previa</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={!doc.ready || !doc.onDownload}
+                          onClick={() => doc.onDownload?.()}
+                          className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs ${
+                            doc.ready && doc.onDownload
+                              ? 'bg-[#0F3D2E] hover:bg-[#0A291F] text-white cursor-pointer'
+                              : 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60 shadow-none'
+                          }`}
+                          title={doc.ready ? 'Descargar archivo original de la bóveda' : 'Aún no cargado: usa "Ir" para subir el documento'}
+                        >
+                          <Download className="w-3.5 h-3.5 text-[#D4B895]" />
+                          <span>Descargar PDF</span>
+                        </button>
                       </>
                     )}
 

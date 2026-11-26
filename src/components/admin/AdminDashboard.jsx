@@ -22,6 +22,7 @@ import { OfficialCertificatesModule } from './OfficialCertificatesModule';
 import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule';
 import { CommunitySettingsAndLegalTab } from './CommunitySettingsAndLegalTab';
 import { CommunityPayrollAndStaffModule } from './CommunityPayrollAndStaffModule';
+import CommunityHandoverAndAccountabilityModule from './CommunityHandoverAndAccountabilityModule';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { UnitAccountStatementView } from './UnitAccountStatementView';
 import { EmailDispatchTrackingModule } from './EmailDispatchTrackingModule';
@@ -125,7 +126,7 @@ const groupExpensesByCategory = (expensesList) => {
   });
 };
 
-export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialCommunityId, onSwitchCommunityWorkspace }) => {
+export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialCommunityId, initialActiveTab, onSwitchCommunityWorkspace }) => {
   const { 
     communities, addCommunity, updateCommunity, deleteCommunity, 
     getUnitFinancials, addUnit, updateUnit, deleteUnit, toggleUnitPaid,
@@ -154,7 +155,14 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
       setSelectedCommunityId(initialCommunityId);
     }
   }, [initialCommunityId]);
-  const [activeTab, setActiveTab] = useState('resumen'); // 'resumen' | 'unidades' | 'gastos' | 'emision' | 'comite' | 'asambleas' | 'comunicados' | 'certificados' | 'ajustes'
+  const [activeTab, setActiveTab] = useState(initialActiveTab || 'resumen'); // 'resumen' | 'unidades' | 'gastos' | 'emision' | 'comite' | 'asambleas' | 'comunicados' | 'certificados' | 'traspaso' | 'ajustes'
+  useEffect(() => {
+    if (initialActiveTab) {
+      setActiveTab(initialActiveTab);
+    }
+  }, [initialActiveTab]);
+  const [collapsedTabs, setCollapsedTabs] = useState({}); // módulos del menú lateral contraídos manualmente
+  useEffect(() => { setCollapsedTabs((prev) => (prev[activeTab] ? { ...prev, [activeTab]: false } : prev)); }, [activeTab]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
@@ -184,6 +192,7 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
 
   // --- Sub-pestaña para Unidades y Registro Rápido de Pagos de Cartola ---
   const [unitsSubTab, setUnitsSubTab] = useState('nomina'); // 'nomina' | 'validar_pagos' | 'registro_pagos'
+  const [traspasoSubTab, setTraspasoSubTab] = useState('traspaso_pauta'); // 'traspaso_pauta' | 'anual_pauta'
   const [showQuickBankPaymentModal, setShowQuickBankPaymentModal] = useState(false);
   const [quickPaySearchQuery, setQuickPaySearchQuery] = useState('');
   const [quickPaySelectedUnit, setQuickPaySelectedUnit] = useState(null);
@@ -2582,6 +2591,7 @@ _Administración ARANPRO_`;
     { id: 'asambleas', label: 'Asambleas & Quórum', shortLabel: 'Asambleas', icon: Users, badge: 'Ley 21.442' },
     { id: 'comunicados', label: 'Mural & Reclamos', shortLabel: 'Mural & Reclamos', icon: Megaphone, badge: totalDocsAndAnnCount, alertBadge: pendingTicketsCount > 0 },
     { id: 'certificados', label: 'Certificados', shortLabel: 'Certificados', icon: ShieldCheck, badge: pendingCertificatesCount > 0 ? `${pendingCertificatesCount} pend.` : certificates.length, alertBadge: pendingCertificatesCount > 0 },
+    { id: 'traspaso', label: 'Rendición & Traspaso', shortLabel: 'Traspaso', icon: Briefcase, badge: 'Ley 21.442' },
     { id: 'ajustes', label: 'Ajustes Comunidad & App', shortLabel: 'Ajustes', icon: Settings, badge: null }
   ];
 
@@ -2680,6 +2690,7 @@ _Administración ARANPRO_`;
             <div key={tab.id} className="space-y-0.5">
               <button
                 onClick={() => {
+                  if (activeTab === tab.id) { setCollapsedTabs((prev) => ({ ...prev, [tab.id]: !prev[tab.id] })); return; }
                   setActiveTab(tab.id);
                   if (tab.id === 'gastos' && !expensesSubTab) {
                     setExpensesSubTab('gastos');
@@ -2744,7 +2755,7 @@ _Administración ARANPRO_`;
 
               {/* SUB-ÍNDICES DE UNIDADES EN LA BARRA LATERAL */}
               {tab.id === 'unidades' && (!sidebarCollapsed || isMobile) && (
-                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'unidades' ? 'block' : 'hidden'}`}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'unidades' && !collapsedTabs['unidades'] ? 'block' : 'hidden'}`}>
                   {/* Sub-índice 1: Nómina de Unidades y Saldos */}
                   <button
                     type="button"
@@ -2867,7 +2878,7 @@ _Administración ARANPRO_`;
 
               {/* SUB-ÍNDICES DE GASTOS EN LA BARRA LATERAL */}
               {tab.id === 'gastos' && (!sidebarCollapsed || isMobile) && (
-                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'gastos' ? 'block' : 'hidden'}`}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'gastos' && !collapsedTabs['gastos'] ? 'block' : 'hidden'}`}>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3007,7 +3018,7 @@ _Administración ARANPRO_`;
 
               {/* SUB-ÍNDICES DE RR.HH. & REMUNERACIONES EN LA BARRA LATERAL */}
               {tab.id === 'remuneraciones' && (!sidebarCollapsed || isMobile) && (
-                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'remuneraciones' ? 'block' : 'hidden'}`}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'remuneraciones' && !collapsedTabs['remuneraciones'] ? 'block' : 'hidden'}`}>
                   {/* 1. Nómina Personal */}
                   <button
                     type="button"
@@ -3264,7 +3275,7 @@ _Administración ARANPRO_`;
 
               {/* SUB-ÍNDICES DE CIERRE Y COBRO DEL MES EN LA BARRA LATERAL */}
               {tab.id === 'emision' && (!sidebarCollapsed || isMobile) && (
-                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'emision' ? 'block' : 'hidden'}`}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'emision' && !collapsedTabs['emision'] ? 'block' : 'hidden'}`}>
                   {/* Sub-índice 0: Flujo Completo */}
                   <button
                     type="button"
@@ -3409,7 +3420,7 @@ _Administración ARANPRO_`;
 
               {/* SUB-ÍNDICES DE COMITÉ DE ADMINISTRACIÓN EN LA BARRA LATERAL */}
               {tab.id === 'comite' && (!sidebarCollapsed || isMobile) && (
-                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'comite' ? 'block' : 'hidden'}`}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'comite' && !collapsedTabs['comite'] ? 'block' : 'hidden'}`}>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3522,7 +3533,7 @@ _Administración ARANPRO_`;
 
               {/* SUB-ÍNDICES DE ASAMBLEAS & QUÓRUM EN LA BARRA LATERAL */}
               {tab.id === 'asambleas' && (!sidebarCollapsed || isMobile) && (
-                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'asambleas' ? 'block' : 'hidden'}`}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'asambleas' && !collapsedTabs['asambleas'] ? 'block' : 'hidden'}`}>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3635,7 +3646,7 @@ _Administración ARANPRO_`;
 
               {/* SUB-ÍNDICES DE MURAL & RECLAMOS EN LA BARRA LATERAL */}
               {tab.id === 'comunicados' && (!sidebarCollapsed || isMobile) && (
-                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'comunicados' ? 'block' : 'hidden'}`}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'comunicados' && !collapsedTabs['comunicados'] ? 'block' : 'hidden'}`}>
                   {/* 1. Diario Mural & Avisos */}
                   <button
                     type="button"
@@ -3763,9 +3774,122 @@ _Administración ARANPRO_`;
                   </button>
                 </div>
               )}
+              {/* SUB-ÍNDICES DE RENDICIÓN Y TRASPASO EN LA BARRA LATERAL */}
+              {tab.id === 'traspaso' && (!sidebarCollapsed || isMobile) && (
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'traspaso' && !collapsedTabs['traspaso'] ? 'block' : 'hidden'}`}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('traspaso');
+                      setTraspasoSubTab('traspaso_pauta');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'traspaso' && traspasoSubTab === 'traspaso_pauta'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Briefcase className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'traspaso' && traspasoSubTab === 'traspaso_pauta' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">1. Pauta Entrega (A–G)</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'traspaso' && traspasoSubTab === 'traspaso_pauta'
+                        ? 'bg-[#0F3D2E] text-[#D4B895]'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      3 Págs
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('traspaso');
+                      setTraspasoSubTab('documentos_traspaso');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'traspaso' && traspasoSubTab === 'documentos_traspaso'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <FileText className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'traspaso' && traspasoSubTab === 'documentos_traspaso' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">2. Bandeja Documentos</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'traspaso' && traspasoSubTab === 'documentos_traspaso'
+                        ? 'bg-[#0F3D2E] text-[#D4B895]'
+                        : 'bg-emerald-100 text-[#0F3D2E]'
+                    }`}>
+                      PDFs
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('traspaso');
+                      setTraspasoSubTab('cierre_traspaso');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'traspaso' && traspasoSubTab === 'cierre_traspaso'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <ShieldCheck className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'traspaso' && traspasoSubTab === 'cierre_traspaso' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">3. Mandatos & Cierre</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'traspaso' && traspasoSubTab === 'cierre_traspaso'
+                        ? 'bg-[#0F3D2E] text-[#D4B895]'
+                        : 'bg-amber-100 text-amber-900'
+                    }`}>
+                      Blindaje
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('traspaso');
+                      setTraspasoSubTab('anual_pauta');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'traspaso' && traspasoSubTab === 'anual_pauta'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Calendar className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'traspaso' && traspasoSubTab === 'anual_pauta' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">4. Rendición Anual</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'traspaso' && traspasoSubTab === 'anual_pauta'
+                        ? 'bg-[#0F3D2E] text-[#D4B895]'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      Art. 21
+                    </span>
+                  </button>
+                </div>
+              )}
+
               {/* SUB-ÍNDICES DE AJUSTES DE LA COMUNIDAD & ASPECTOS LEGALES EN LA BARRA LATERAL */}
               {tab.id === 'ajustes' && (!sidebarCollapsed || isMobile) && (
-                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'ajustes' ? 'block' : 'hidden'}`}>
+                <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'ajustes' && !collapsedTabs['ajustes'] ? 'block' : 'hidden'}`}>
                   {/* 1. Ajustes del Condominio */}
                   <button
                     type="button"
@@ -10984,6 +11108,28 @@ _Administración ARANPRO_`;
           <OfficialCertificatesModule currentCommunity={currentCommunity} />
         )}
 
+        {/* TAB 8: RENDICIÓN DE CUENTAS & TRASPASO DE COMUNIDAD (LEY 21.442) */}
+        {activeTab === 'traspaso' && (
+          <CommunityHandoverAndAccountabilityModule
+            currentCommunity={currentCommunity}
+            activeSubSection={traspasoSubTab}
+            onChangeSubSection={setTraspasoSubTab}
+            onNavigateToTab={(tab, subTab) => {
+              setActiveTab(tab);
+              if (subTab) {
+                if (tab === 'gastos') setExpensesSubTab(subTab);
+                else if (tab === 'unidades') setUnitsSubTab(subTab);
+                else if (tab === 'remuneraciones') setRemuneracionesSubTab(subTab);
+                else if (tab === 'asambleas') setAsambleasSubTab(subTab);
+                else if (tab === 'comunicados') setComunicadosSubTab(subTab);
+                else if (tab === 'comite') setComiteSubTab(subTab);
+                else if (tab === 'emision') setEmisionSubTab(subTab);
+                else if (tab === 'ajustes') setCompanySubTab(subTab);
+              }
+            }}
+          />
+        )}
+
         {/* TAB 7: AJUSTES DE LA COMUNIDAD & ASPECTOS LEGALES DE LA APLICACIÓN */}
         {activeTab === 'ajustes' && (
           <CommunitySettingsAndLegalTab
@@ -15127,6 +15273,17 @@ _Administración ARANPRO_`;
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (editingUnit.repactacion?.active) {
+                  const agreement = editingUnit.repactacion;
+                  const total = Number(agreement.totalHistoricalDebt);
+                  const installment = Number(agreement.installmentAmount);
+                  const count = Number(agreement.totalInstallments);
+                  const paid = Number(agreement.paidInstallments);
+                  if (!Number.isInteger(total) || total <= 0 || !Number.isInteger(installment) || installment <= 0 || !Number.isInteger(count) || count <= 0 || !Number.isInteger(paid) || paid < 0 || paid > count || (count - 1) * installment >= total || count * installment < total) {
+                    alert('Revise la deuda, el número de cuotas, su valor y las cuotas pagadas. La última cuota debe ser positiva y no superar la cuota mensual.');
+                    return;
+                  }
+                }
                 const updatedRepactacion = editingUnit.repactacion?.active
                   ? {
                       active: true,
@@ -15570,11 +15727,11 @@ _Administración ARANPRO_`;
                           repactacion: {
                             ...(editingUnit.repactacion || {}),
                             active: e.target.checked,
-                            totalHistoricalDebt: editingUnit.repactacion?.totalHistoricalDebt || 240000,
-                            installmentAmount: editingUnit.repactacion?.installmentAmount || 30000,
-                            totalInstallments: editingUnit.repactacion?.totalInstallments || 8,
+                            totalHistoricalDebt: editingUnit.repactacion?.totalHistoricalDebt || 0,
+                            installmentAmount: editingUnit.repactacion?.installmentAmount || 0,
+                            totalInstallments: editingUnit.repactacion?.totalInstallments || 0,
                             paidInstallments: editingUnit.repactacion?.paidInstallments || 0,
-                            notes: editingUnit.repactacion?.notes || 'Convenio de pago deuda histórica'
+                            notes: editingUnit.repactacion?.notes || ''
                           }
                         })
                       }
@@ -15597,7 +15754,7 @@ _Administración ARANPRO_`;
                   return (
                     <div className="space-y-3 pt-1">
                       <p className="text-[11px] text-amber-900">
-                        Al activar esta opción, en la colilla del vecino <strong>no se sumará toda la deuda histórica de golpe</strong>: solo se le cobrará la cuota mensual pactada y verá mes a mes cómo disminuye su deuda histórica total.
+                        Ingrese los montos acordados y revise el saldo anterior de la unidad. El saldo anterior y la cuota del convenio se suman por separado en la colilla. Si una parte del saldo anterior quedó incluida en el convenio, actualice el saldo anterior para evitar cobrarla dos veces.
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                         <div>

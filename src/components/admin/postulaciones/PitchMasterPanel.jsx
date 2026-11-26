@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Presentation, Copy, Check, Printer, Eye, X, Building2, HardHat,
   Scale, ShieldCheck, AlertTriangle, HelpCircle, ChevronDown, ChevronUp,
@@ -33,7 +33,9 @@ export const PitchMasterPanel = ({
   signatureScale = 1,
   companySettings = {},
   showAlert = () => {},
-  renderToolboxNavbar = null
+  renderToolboxNavbar = null,
+  pendingAction = null,
+  onConsumePendingAction = () => {}
 }) => {
   // Estado de personalización dinámica
   const [targetCondo, setTargetCondo] = useState(proposalConfig.targetCondo || currentCommunity?.name || '');
@@ -54,6 +56,18 @@ export const PitchMasterPanel = ({
 
   // Estado del modal de previsualización e impresión
   const [previewPitchPdfModal, setPreviewPitchPdfModal] = useState(false);
+
+  useEffect(() => {
+    if (!pendingAction || pendingAction.section !== 'pitch') return;
+    if (pendingAction.mode === 'preview') {
+      setPreviewPitchPdfModal(true);
+    } else if (pendingAction.mode === 'print') {
+      const t = setTimeout(() => handlePrintPitchDoc(), 140);
+      onConsumePendingAction?.();
+      return () => clearTimeout(t);
+    }
+    onConsumePendingAction?.();
+  }, [pendingAction?.nonce]);
 
   // Nombre y datos del expositor
   const adminName = empresaForm.adminName || 'John Andrés Arancibia Maureira';
