@@ -11,6 +11,7 @@ import { OfficePayrollPrint } from './OfficePayrollPrint';
 import LaborContractDraft from './LaborContractDraft';
 import { HelpHeaderButtons, ContextualHelpAssistant } from '../common/ContextualHelpAssistant';
 import { PlatformOnboardingTour, ONBOARDING_STORAGE_KEY } from '../common/PlatformOnboardingTour';
+import { CloudSyncButton } from '../common/CloudSyncButton';
 import {
   Building2, Briefcase, Users, Award, ShieldCheck, ArrowRight, Plus,
   TrendingUp, Target, GraduationCap, Handshake, Wrench, FileText,
@@ -968,6 +969,7 @@ export const CompanyEnterpriseHub = ({
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
+            <CloudSyncButton theme="dark" />
             <HelpHeaderButtons
               isOpen={helpOpen}
               onToggleHelp={() => setHelpOpen((v) => !v)}

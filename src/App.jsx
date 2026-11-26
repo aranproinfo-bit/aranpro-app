@@ -8,6 +8,7 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { CompanyEnterpriseHub } from './components/admin/CompanyEnterpriseHub';
 import { ReceiptViewerModal } from './components/common/ReceiptViewerModal';
 import { CertificateModal } from './components/public/CertificateModal';
+import { PublicCertificateVerificationView } from './components/public/PublicCertificateVerificationView';
 import { 
   Building2, User, ShieldCheck, Home, Key, Lock, ArrowRight, 
   ExternalLink, Sparkles, Smartphone, CheckCircle2, ChevronRight
@@ -20,10 +21,28 @@ const COMMERCIAL_WEB_URL = 'https://aranpro.cl';
 function MainApp() {
   const { currentUser, communities, loginAdmin, logout, loginResidentByRut, companySettings, simulateResidentView, exitSimulation } = useCommunity();
   
-  // Navigation states: 'portal-choice' | 'admin-select-community' | 'resident-login' | 'resident' | 'admin-login' | 'admin'
+  // Navigation states: 'portal-choice' | 'admin-select-community' | 'resident-login' | 'resident' | 'admin-login' | 'admin' | 'public-verify'
+  const [verifyFolio, setVerifyFolio] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('verify') || urlParams.get('verificar') || urlParams.get('folio') || '';
+    }
+    return '';
+  });
+  const [verifyHash, setVerifyHash] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('hash') || '';
+    }
+    return '';
+  });
+
   const [currentView, setCurrentView] = useState(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('verify') || urlParams.has('verificar') || urlParams.has('folio')) {
+        return 'public-verify';
+      }
       if (urlParams.has('demo')) {
         return currentUser?.role === 'resident' ? 'resident' : 'resident-login';
       }
@@ -72,12 +91,20 @@ function MainApp() {
     }
   };
 
-  // Leer parámetro ?c=slug o ?demo=... de la URL (para accesos directos desde QR o WhatsApp)
+  // Leer parámetro ?c=slug o ?demo=... o ?verify=... de la URL (para accesos directos desde QR o WhatsApp)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const commSlug = urlParams.get('c');
     const roleParam = urlParams.get('role');
     const demoParam = urlParams.get('demo');
+    const verifyParam = urlParams.get('verify') || urlParams.get('verificar') || urlParams.get('folio');
+
+    if (verifyParam) {
+      setVerifyFolio(verifyParam);
+      setVerifyHash(urlParams.get('hash') || '');
+      setCurrentView('public-verify');
+      return;
+    }
 
     if (demoParam !== null && demoParam !== undefined) {
       setShowDemoAccordion(true);
@@ -515,6 +542,23 @@ function MainApp() {
               setSelectedCommunitySlug(slug);
               simulateResidentView(slug);
               setCurrentView('resident');
+            }}
+          />
+        )}
+
+        {/* PANTALLA 6: VERIFICACIÓN PÚBLICA DE CERTIFICADOS POR QR Y HASH NOTARIAL */}
+        {currentView === 'public-verify' && (
+          <PublicCertificateVerificationView
+            folio={verifyFolio}
+            hash={verifyHash}
+            onBackToPortal={() => {
+              try {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+              } catch (e) {}
+              setVerifyFolio('');
+              setVerifyHash('');
+              setCurrentView(currentUser?.role === 'admin' ? 'admin-select-community' : 'portal-choice');
             }}
           />
         )}

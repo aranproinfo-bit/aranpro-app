@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
+import { certificateVerificationService } from '../../services/supabase';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import {
@@ -379,6 +380,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
 
     if (newCert) {
       setPreviewCert(newCert);
+      certificateVerificationService.registerCertificateToCloud(newCert);
     }
   };
 
@@ -1591,7 +1593,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                       </svg>
                     </button>
                     <div>
-                      <div>Verificación Notarial: portalnet.cl/verificar</div>
+                      <div>Verificación Notarial: {typeof window !== 'undefined' ? `${window.location.host}/?verify=${previewCert.folio || previewCert.id}` : 'portaladministracion.aranpro.cl'}</div>
                       <div className="text-[#0F3D2E] font-bold">Cód. Hash: {previewCert.verificationCode || 'VRF-OK'}</div>
                     </div>
                   </div>
@@ -1670,7 +1672,8 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
               <button
                 onClick={() => {
-                  const url = `https://portalnet.cl/verificar?folio=${verifyingCert.folio || verifyingCert.id}&hash=${verifyingCert.verificationCode || 'VRF-OK'}`;
+                  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://portaladministracion.aranpro.cl';
+                  const url = `${baseUrl}/?verify=${verifyingCert.folio || verifyingCert.id}&hash=${verifyingCert.verificationCode || 'VRF-OK'}`;
                   if (navigator?.clipboard) navigator.clipboard.writeText(url);
                   setCopiedLinkFolio(verifyingCert.folio || verifyingCert.id);
                   setTimeout(() => setCopiedLinkFolio(null), 2500);

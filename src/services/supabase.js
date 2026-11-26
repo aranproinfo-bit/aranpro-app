@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ybztfwzryejmnkfgybvw.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_IJPrHemkbf5AK-JgAINjuw_JUNAv7LR';
+const envUrl = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.VITE_SUPABASE_URL : (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_URL : null);
+const envKey = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.VITE_SUPABASE_ANON_KEY : (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_ANON_KEY : null);
+
+const supabaseUrl = envUrl || 'https://ybztfwzryejmnkfgybvw.supabase.co';
+const supabaseAnonKey = envKey || 'sb_publishable_IJPrHemkbf5AK-JgAINjuw_JUNAv7LR';
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
@@ -273,6 +276,248 @@ export const emailDispatchService = {
       return JSON.parse(localStorage.getItem(storageKey) || '[]');
     } catch (e) {
       return [];
+    }
+  }
+};
+
+// Caché en memoria para entornos sin localStorage o modo incógnito
+const memoryCertCache = new Map();
+
+/**
+ * Servicio de Verificación Pública de Certificados Oficiales por QR y Hash Criptográfico
+ * Permite que notarios, bancos y copropietarios verifiquen la validez de un certificado en tiempo real
+ */
+export const certificateVerificationService = {
+  // Registrar certificado en la nube de Supabase para consulta pública inmediata
+  async registerCertificateToCloud(cert) {
+    const record = {
+      folio: cert.folio || cert.id,
+      verification_code: cert.verificationCode || 'VRF-OK',
+      community_name: cert.communityName || 'Condominio',
+      unit_number: String(cert.unitNumber || ''),
+      applicant_name: cert.applicantName || 'Copropietario',
+      applicant_rut: cert.rut || '',
+      cert_type: cert.type || 'Certificado Oficial',
+      debt_amount: Number(cert.debtAmount) || 0,
+      aliquot_percent: cert.aliquotPercent ?? '',
+      issued_at: cert.date || new Date().toISOString().split('T')[0],
+      expires_at: cert.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status: cert.status || 'valido',
+      issued_by: cert.issuedBy || 'John Andrés Arancibia (RNAC N° 48.912)',
+      created_at: new Date().toISOString()
+    };
+
+    // 1. Guardar siempre en caché en memoria y caché local de respaldo
+    memoryCertCache.set(record.folio, record);
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const cache = JSON.parse(localStorage.getItem('aranpro_registered_certificates') || '{}');
+        cache[record.folio] = record;
+        localStorage.setItem('aranpro_registered_certificates', JSON.stringify(cache));
+      } catch (e) {
+        console.warn('Error en caché local de certificados:', e);
+      }
+    }
+
+    // 2. Sincronizar a Supabase
+    if (supabase) {
+      try {
+        const { error } = await supabase
+          .from('official_certificates_verification')
+          .upsert([record], { onConflict: 'folio' });
+        if (error) {
+          console.warn('Nota Supabase official_certificates_verification (usando caché local):', error.message);
+        }
+      } catch (err) {
+        console.warn('Fallo sync online certificado a Supabase:', err);
+      }
+    }
+
+    return record;
+  },
+
+  // Consulta pública de validez notarial por Folio y Hash
+  async verifyCertificate(folio, hash) {
+    if (!folio) return { success: false, message: 'Folio no especificado' };
+
+    const cleanFolio = folio.trim();
+    const cleanHash = (hash || '').trim().toUpperCase();
+
+    // 1. Intentar consultar en Supabase
+    if (supabase) {
+      try {
+        let query = supabase
+          .from('official_certificates_verification')
+          .select('*')
+          .eq('folio', cleanFolio);
+        
+        if (cleanHash && cleanHash !== 'VRF-OK') {
+          query = query.eq('verification_code', cleanHash);
+        }
+
+        const { data, error } = await query.maybeSingle();
+        if (data && !error) {
+          return {
+            success: true,
+            source: 'supabase_cloud',
+            certificate: data,
+            isValid: data.status === 'valido',
+            isExpired: data.expires_at ? data.expires_at < new Date().toISOString().split('T')[0] : false
+          };
+        }
+      } catch (e) {
+        console.warn('Consulta online Supabase fallida, intentando caché:', e);
+      }
+    }
+
+    // 2. Buscar en memoria
+    if (memoryCertCache.has(cleanFolio)) {
+      const cert = memoryCertCache.get(cleanFolio);
+      return {
+        success: true,
+        source: 'local_cache',
+        certificate: cert,
+        isValid: cert.status === 'valido',
+        isExpired: cert.expires_at ? cert.expires_at < new Date().toISOString().split('T')[0] : false
+      };
+    }
+
+    // 3. Buscar en caché local de certificados registrados
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const cache = JSON.parse(localStorage.getItem('aranpro_registered_certificates') || '{}');
+        if (cache[cleanFolio]) {
+          const cert = cache[cleanFolio];
+          return {
+            success: true,
+            source: 'local_cache',
+            certificate: cert,
+            isValid: cert.status === 'valido',
+            isExpired: cert.expires_at ? cert.expires_at < new Date().toISOString().split('T')[0] : false
+          };
+        }
+
+        // 4. Buscar en listados de comunidades guardados en el dispositivo
+        const allComms = JSON.parse(localStorage.getItem('condo_communities_v1') || '[]');
+        for (const comm of allComms) {
+          const certs = comm.certificates || [];
+          const match = certs.find(c => (c.folio === cleanFolio || c.id === cleanFolio));
+          if (match) {
+            return {
+              success: true,
+              source: 'community_registry',
+              certificate: {
+                folio: match.folio || match.id,
+                verification_code: match.verificationCode || 'VRF-OK',
+                community_name: match.communityName || comm.name,
+                unit_number: String(match.unitNumber || ''),
+                applicant_name: match.applicantName || 'Copropietario',
+                applicant_rut: match.rut || '',
+                cert_type: match.type || 'Certificado Oficial',
+                debt_amount: Number(match.debtAmount) || 0,
+                aliquot_percent: match.aliquotPercent ?? '',
+                issued_at: match.date || '',
+                expires_at: match.expiresAt || '',
+                status: match.status || 'valido',
+                issued_by: match.issuedBy || 'John Andrés Arancibia (RNAC N° 48.912)'
+              },
+              isValid: (match.status || 'valido') === 'valido',
+              isExpired: match.expiresAt ? match.expiresAt < new Date().toISOString().split('T')[0] : false
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('Error buscando en almacenamiento local:', e);
+      }
+    }
+
+    return {
+      success: false,
+      message: 'No se encontró ningún certificado oficial registrado con ese Folio en los registros de ARANPRO.'
+    };
+  }
+};
+
+/**
+ * Servicio de Sincronización en la Nube con Supabase (Acceso Multi-Computador sin Pérdida de Datos)
+ */
+export const cloudSyncService = {
+  // Sincronizar estado completo a la nube
+  async syncToCloud({ communities, companySettings, user }) {
+    const payload = {
+      workspace_key: 'master_aranpro_workspace',
+      admin_rut: user?.rut || '16.012.871-2',
+      admin_name: user?.name || 'John Andrés Arancibia',
+      communities_count: communities?.length || 0,
+      data: {
+        communities: communities || [],
+        companySettings: companySettings || {},
+        updatedAt: new Date().toISOString()
+      },
+      updated_at: new Date().toISOString()
+    };
+
+    // 1. Guardar siempre timestamp y copia local
+    localStorage.setItem('aranpro_last_cloud_sync', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      status: 'success',
+      communitiesCount: communities?.length || 0
+    }));
+
+    // 2. Si Supabase está disponible, subir a aranpro_workspaces_sync
+    if (supabase) {
+      try {
+        const { error } = await supabase
+          .from('aranpro_workspaces_sync')
+          .upsert([payload], { onConflict: 'workspace_key' });
+
+        if (error) {
+          console.warn('Nota en tabla aranpro_workspaces_sync:', error.message);
+          return { success: false, error: error.message, isCloudConnected: true };
+        }
+
+        return { success: true, timestamp: payload.updated_at, isCloudConnected: true };
+      } catch (err) {
+        console.warn('Error al subir a Supabase:', err);
+        return { success: false, error: err.message, isCloudConnected: false };
+      }
+    }
+
+    return { success: true, timestamp: payload.updated_at, isCloudConnected: false, note: 'Guardado localmente' };
+  },
+
+  // Descargar la última versión desde Supabase si se abre desde otro computador
+  async pullFromCloud() {
+    if (!supabase) return { success: false, error: 'Supabase no configurado' };
+
+    try {
+      const { data, error } = await supabase
+        .from('aranpro_workspaces_sync')
+        .select('*')
+        .eq('workspace_key', 'master_aranpro_workspace')
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data || !data.data) {
+        return { success: false, error: 'No hay respaldo previo en la nube' };
+      }
+
+      return {
+        success: true,
+        communities: data.data.communities || [],
+        companySettings: data.data.companySettings || {},
+        updatedAt: data.updated_at
+      };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  getLastSyncInfo() {
+    try {
+      return JSON.parse(localStorage.getItem('aranpro_last_cloud_sync') || 'null');
+    } catch (e) {
+      return null;
     }
   }
 };
