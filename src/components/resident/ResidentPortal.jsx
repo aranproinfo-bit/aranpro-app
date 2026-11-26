@@ -1,4 +1,4 @@
-import { CommunityCertificate } from '../common/CommunityCertificate';
+import { CommunityCertificate, printCommunityCertificate } from '../common/CommunityCertificate';
 import { verificationUrl } from '../../services/documentRegistry';
 import { NotificationCenterBell } from '../common/NotificationCenterBell';
 import { PaymentReceipt } from '../common/AccountingPage';
@@ -6,8 +6,7 @@ import IndividualExpenseBill from '../common/IndividualExpenseBill';
 import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatCLP, formatDate, getMonthName, cleanRut } from '../../utils/formatters';
-import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo, AranproOfficialSeal } from '../common/MauranLogo';
+import { AranproLogo } from '../common/MauranLogo';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { 
   Building2, Home, User, CheckCircle2, AlertCircle, Eye, 
@@ -1838,11 +1837,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                   onClick={() => {
                     const commName = (displayCommunityName || 'Condominio').replace(/\s+/g, '_');
                     const folioClean = (activeResidentCert.folio || 'CERT').replace(/[^a-zA-Z0-9_-]/g, '_');
-                    printDocumentDirectly(
-                      'resident-certificate-printable-doc',
-                      `Certificado_${folioClean}_Casa_${activeResidentCert.unitNumber}_${commName}`,
-                      { fitPage: true, pdfStyle: 'neutral', pageSize: 'letter portrait', margin: '8mm 10mm' }
-                    );
+                    printCommunityCertificate('resident-certificate-printable-doc', `Certificado_${folioClean}_Casa_${activeResidentCert.unitNumber}_${commName}`);
                   }}
                   className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
                 >
