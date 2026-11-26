@@ -21,7 +21,7 @@ export function PortalCode({ url, label = 'Abrir portal de residentes' }) {
     }
     return { size: grid.size + 8, path: dots.join('') };
   }, [url]);
-  return <a href={url} target="_blank" rel="noreferrer" aria-label={label}><svg viewBox={`0 0 ${size} ${size}`} width="87" height="87" shapeRendering="crispEdges"><rect width={size} height={size} fill="white"/><path d={path}/></svg></a>;
+  return <a href={url} target="_blank" rel="noreferrer" aria-label={label}><svg viewBox={`0 0 ${size} ${size}`} width="76" height="76" style={{display:'block'}} shapeRendering="crispEdges"><rect width={size} height={size} fill="#ffffff"/><path d={path} fill="#0f172a"/></svg></a>;
 }
 
 function Amount({ label, value, style = '' }) {
