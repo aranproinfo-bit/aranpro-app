@@ -1,141 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { Cloud, CloudCheck, RefreshCw, CheckCircle2, AlertCircle, ArrowDownCircle } from 'lucide-react';
-import { cloudSyncService, isSupabaseConfigured } from '../../services/supabase';
+import React, { useEffect, useState } from 'react';
+import { Cloud } from 'lucide-react';
+import { certificateRegistry, supabase } from '../../services/supabase';
 import { useCommunity } from '../../context/CommunityContext';
 
-export const CloudSyncButton = ({ theme = 'dark', compact = false }) => {
-  const { communities, companySettings, currentUser, setCommunities, setCompanySettings } = useCommunity();
-  const [syncing, setSyncing] = useState(false);
-  const [lastSync, setLastSync] = useState(() => cloudSyncService.getLastSyncInfo());
-  const [statusMessage, setStatusMessage] = useState('');
-  const [showMenu, setShowMenu] = useState(false);
-
+export function CloudSyncButton({theme = 'dark', compact = false}) {
+  const { communities, companySettings, certificates, restoreCloudSnapshot } = useCommunity();
+  const [open,setOpen] = useState(false);
+  const [user,setUser] = useState(null);
+  const [email,setEmail] = useState('');
+  const [notice,setNotice] = useState('');
+  const [busy,setBusy] = useState(false);
+  const [revision,setRevision] = useState(0);
   useEffect(() => {
-    setLastSync(cloudSyncService.getLastSyncInfo());
+    const {data} = supabase.auth.onAuthStateChange((_event,session) => setUser(session?.user || null));
+    return () => data.subscription.unsubscribe();
   }, []);
-
-  const handleSyncToCloud = async () => {
-    setSyncing(true);
-    setStatusMessage('Sincronizando...');
-    const result = await cloudSyncService.syncToCloud({
-      communities,
-      companySettings,
-      user: currentUser
-    });
-    setSyncing(false);
-
-    if (result.success) {
-      setLastSync(cloudSyncService.getLastSyncInfo());
-      setStatusMessage('¡Sincronizado!');
-      setTimeout(() => setStatusMessage(''), 3000);
-    } else {
-      setStatusMessage('Error');
-      setTimeout(() => setStatusMessage(''), 3000);
-    }
-  };
-
-  const handlePullFromCloud = async () => {
-    if (!window.confirm('¿Desea descargar y restaurar los datos más recientes guardados en Supabase? Esto actualizará las comunidades y configuraciones en este computador.')) {
-      return;
-    }
-    setSyncing(true);
-    setStatusMessage('Descargando...');
-    const result = await cloudSyncService.pullFromCloud();
-    setSyncing(false);
-
-    if (result.success) {
-      if (result.communities && result.communities.length > 0) {
-        setCommunities(result.communities);
-      }
-      if (result.companySettings) {
-        setCompanySettings(result.companySettings);
-      }
-      setShowMenu(false);
-      alert('✅ ¡Datos descargados exitosamente desde Supabase! La plataforma está ahora 100% actualizada.');
-    } else {
-      alert(`No se pudo descargar de la nube: ${result.error || 'Sin respaldo previo'}`);
-      setShowMenu(false);
-    }
-  };
-
-  const isDark = theme === 'dark';
-
-  return (
-    <div className="relative inline-block text-left">
-      <div className="inline-flex items-center rounded-xl overflow-hidden border border-emerald-900/40 shadow-xs">
-        <button
-          type="button"
-          onClick={handleSyncToCloud}
-          disabled={syncing}
-          title={lastSync ? `Última sincronización: ${new Date(lastSync.timestamp).toLocaleString('es-CL')}` : 'Sincronizar plataforma con Supabase'}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-            isDark
-              ? 'bg-emerald-900/60 hover:bg-emerald-800 text-emerald-100 hover:text-white'
-              : 'bg-emerald-50 hover:bg-emerald-100 text-[#0F3D2E]'
-          }`}
-        >
-          {syncing ? (
-            <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#D4B895]" />
-          ) : (
-            <Cloud className="w-3.5 h-3.5 text-[#D4B895]" />
-          )}
-          {!compact && (
-            <span>
-              {statusMessage || (lastSync ? 'Nube Sincronizada' : 'Sincronizar Nube')}
-            </span>
-          )}
-          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setShowMenu(v => !v)}
-          className={`px-1.5 py-1.5 border-l border-emerald-900/40 text-xs transition-colors cursor-pointer ${
-            isDark ? 'bg-emerald-950/70 text-emerald-200 hover:bg-emerald-900' : 'bg-emerald-100 text-[#0F3D2E]'
-          }`}
-          title="Opciones de Nube Supabase"
-        >
-          ▾
-        </button>
-      </div>
-
-      {showMenu && (
-        <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white text-slate-800 shadow-2xl border border-slate-200 p-3 z-50 animate-in fade-in space-y-2">
-          <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-            Sincronización Cloud (Supabase)
-          </div>
-          <div className="text-xs text-slate-600">
-            {lastSync ? (
-              <div>
-                Última sincronización:<br />
-                <strong className="text-slate-800">{new Date(lastSync.timestamp).toLocaleString('es-CL')}</strong>
-              </div>
-            ) : (
-              'Aún no se ha realizado sincronización en la nube desde este equipo.'
-            )}
-          </div>
-
-          <div className="pt-2 border-t border-slate-100 space-y-1">
-            <button
-              onClick={() => {
-                setShowMenu(false);
-                handleSyncToCloud();
-              }}
-              className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#0F3D2E] hover:bg-[#F5F4EF] flex items-center gap-2"
-            >
-              <Cloud className="w-4 h-4 text-[#D4B895]" />
-              Subir cambios a Supabase
-            </button>
-            <button
-              onClick={handlePullFromCloud}
-              className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-            >
-              <ArrowDownCircle className="w-4 h-4 text-emerald-600" />
-              Descargar última versión de la nube
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+  const revisionKey = 'aranpro-backup-version-' + user?.id;
+  useEffect(() => {setRevision(Number(localStorage.getItem(revisionKey) || 0));},[revisionKey]);
+  function remember(value) {
+    setRevision(value);
+    localStorage.setItem(revisionKey, String(value));
+  }
+  async function run(action) {
+    if (busy) return;
+    setBusy(true);
+    setNotice('');
+    try { await action(); } catch (e) { setNotice(e.message || 'No se pudo contactar con Supabase.'); }
+    finally { setBusy(false); }
+  }
+  async function connect() {
+    const {error} = await supabase.auth.signInWithOtp({email:email.trim(), options:{emailRedirectTo:window.location.origin}});
+    if (error) throw error;
+    setNotice('Abra el enlace que recibió en su correo en este navegador y vuelva a la aplicación.');
+  }
+  async function upload() {
+    const result = await certificateRegistry.saveBackup(revision,{communities,companySettings,certificates});
+    remember(result.revision);
+    setNotice('Respaldo confirmado en la nube. Versión ' + result.revision + '.');
+  }
+  async function restore() {
+    const result = await certificateRegistry.loadBackup();
+    if (!result) throw new Error('Esta cuenta aún no tiene un respaldo.');
+    const snapshot = result.snapshot;
+    if (!Array.isArray(snapshot?.communities) || !Array.isArray(snapshot.certificates) || !snapshot.companySettings ||
+      typeof snapshot.companySettings !== 'object' || Array.isArray(snapshot.companySettings)) throw new Error('El respaldo está incompleto.');
+    if (!window.confirm('¿Restaurar la versión ' + result.revision + ', con ' + snapshot.communities.length + ' comunidades y ' + snapshot.certificates.length + ' certificados? Reemplazará los datos locales.')) return;
+    // Preserve the state being replaced, including unsynced edits.
+    localStorage.setItem('aranpro-before-restore-' + user.id,JSON.stringify({communities,companySettings,certificates}));
+    restoreCloudSnapshot(snapshot);
+    remember(result.revision);
+    setNotice('Respaldo restaurado en este equipo.');
+  }
+  return <div className="relative inline-block">
+    <button type="button" onClick={()=>setOpen(!open)} aria-expanded={open} className={'rounded-xl p-2 text-xs font-bold flex gap-2 items-center '+(theme==='dark'?'bg-emerald-950 text-white':'bg-emerald-50 text-emerald-950')}><Cloud size={17}/>{compact?'Nube':'Nube ARANPRO'}</button>
+    {open && <section className="absolute right-0 z-50 mt-2 w-72 max-w-[85vw] bg-white border border-slate-200 text-slate-800 rounded-xl shadow-lg p-4 space-y-3 text-sm">
+      {user ? <><p className="break-all">{user.email}</p>
+        <button disabled={busy} onClick={()=>run(upload)} className="block font-bold">Respaldar en la nube</button>
+        <button disabled={busy} onClick={()=>run(restore)} className="block">Restaurar desde la nube</button>
+        <button disabled={busy} onClick={()=>run(async()=>{const {error}=await supabase.auth.signOut({scope:'local'});if(error) throw error;})} className="block">Desconectar cuenta</button>
+      </> : <form onSubmit={e=>{e.preventDefault();run(connect);}} className="space-y-2">
+        <label>Correo de administración<input type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="border rounded w-full p-2"/></label>
+        <button disabled={busy} className="font-bold">Recibir enlace de acceso</button>
+      </form>}
+      <p role="status">{busy?'Conectando…':notice}</p>
+    </section>}
+  </div>;
+}

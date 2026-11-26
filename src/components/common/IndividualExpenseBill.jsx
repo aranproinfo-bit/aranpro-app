@@ -10,7 +10,7 @@ import styles from './communityAccounting.css?raw';
 
 const frameDocument = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Colilla de gasto común</title><style>${styles}</style></head><body></body></html>`;
 
-export function PortalCode({ url }) {
+export function PortalCode({ url, label = 'Abrir portal de residentes' }) {
   const { size, path } = useMemo(() => {
     const grid = QRCode.create(url, { errorCorrectionLevel: 'M' }).modules;
     const dots = [];
@@ -21,7 +21,7 @@ export function PortalCode({ url }) {
     }
     return { size: grid.size + 8, path: dots.join('') };
   }, [url]);
-  return <a href={url} target="_blank" rel="noreferrer" aria-label="Abrir portal de residentes"><svg viewBox={`0 0 ${size} ${size}`} width="87" height="87" shapeRendering="crispEdges"><rect width={size} height={size} fill="white"/><path d={path}/></svg></a>;
+  return <a href={url} target="_blank" rel="noreferrer" aria-label={label}><svg viewBox={`0 0 ${size} ${size}`} width="87" height="87" shapeRendering="crispEdges"><rect width={size} height={size} fill="white"/><path d={path}/></svg></a>;
 }
 
 function Amount({ label, value, style = '' }) {
