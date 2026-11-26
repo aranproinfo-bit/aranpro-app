@@ -1,5 +1,5 @@
 import { periodCharges } from '../utils/expenseBilling';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { initialCommunities, initialCompanySettings, initialCertificates, initialFaqs, initialChileanProviders, initialHistoricalExpenses } from '../data/initialData';
 import { 
   INITIAL_WRITTEN_CONSULTATIONS, 
@@ -12,6 +12,32 @@ import {
   INITIAL_COMMITTEE_TASKS
 } from '../data/governanceAndMaintenanceData';
 import { cleanRut } from '../utils/formatters';
+import { onlineSyncService, getStoredLiveRevision, setStoredLiveRevision, mergeServerResidentUpdates } from '../services/onlineSyncService';
+import { notificationService } from '../services/notificationService';
+
+function mergeInitialLocalWithCloud(localSnap, cloudSnap, knownRev) {
+  const cleanCloudComms = (cloudSnap?.communities || []).filter(c => c?.id !== 'com-test-online');
+  if (knownRev > 0 && cleanCloudComms.length > 0) {
+    return {
+      communities: cleanCloudComms,
+      companySettings: { ...(localSnap.companySettings || {}), ...(cloudSnap.companySettings || {}) },
+      certificates: Array.isArray(cloudSnap.certificates) ? cloudSnap.certificates : (localSnap.certificates || [])
+    };
+  }
+  // Primera conexión de este equipo (knownRev === 0): conservar comunidades creadas localmente y fusionar novedades de nube
+  const localComms = (localSnap?.communities || []).filter(c => c?.id !== 'com-test-online');
+  const localIds = new Set(localComms.map(c => c.id));
+  const extraCloudComms = cleanCloudComms.filter(c => c?.id && !localIds.has(c.id));
+  const baseMerged = mergeServerResidentUpdates(
+    {
+      communities: [...localComms, ...extraCloudComms],
+      companySettings: localSnap.companySettings,
+      certificates: localSnap.certificates
+    },
+    { ...cloudSnap, communities: cleanCloudComms }
+  );
+  return baseMerged;
+}
 
 const CommunityContext = createContext();
 
@@ -190,6 +216,15 @@ export const CommunityProvider = ({ children }) => {
   // 5. Modal de visualización de respaldo / boleta
   const [activeReceipt, setActiveReceipt] = useState(null);
 
+  // 6. Sincronización en Línea Multi-Dispositivo y Bandeja de Notificaciones en Tiempo Real
+  const [liveNotifications, setLiveNotifications] = useState([]);
+  const [cloudSyncStatus, setCloudSyncStatus] = useState('idle');
+  const [cloudRevision, setCloudRevision] = useState(() => getStoredLiveRevision());
+  const skipNextPushRef = useRef(false);
+  const adminHydratedRef = useRef(false);
+  const latestStateRef = useRef({ communities, companySettings, certificates });
+  latestStateRef.current = { communities, companySettings, certificates };
+
   // Persistir cambios (con protección: si localStorage llena su cuota, la app NO debe caerse)
   const safeSetItem = (key, value) => {
     try {
@@ -218,6 +253,193 @@ export const CommunityProvider = ({ children }) => {
       sessionStorage.removeItem('condo_auth_user');
     }
   }, [currentUser]);
+
+  // Hidratar directorio público ligero de comunidades nuevas (para enlaces QR ?c=slug en celulares nuevos)
+  useEffect(() => {
+    if (currentUser) return;
+    let cancelled = false;
+    onlineSyncService.fetchPublicCommunities().then((pubList) => {
+      if (cancelled || !Array.isArray(pubList) || pubList.length === 0) return;
+      setCommunities((prev) => {
+        const existingIds = new Set(prev.map((c) => c.id));
+        const existingSlugs = new Set(prev.map((c) => c.slug));
+        const missing = pubList.filter((p) => p?.id && !existingIds.has(p.id) && !existingSlugs.has(p.slug));
+        if (missing.length === 0) return prev;
+        skipNextPushRef.current = true;
+        return [
+          ...prev,
+          ...missing.map((m) => ({
+            ...m,
+            units: [],
+            expenses: [],
+            announcements: [],
+            documents: []
+          }))
+        ];
+      });
+    });
+    return () => { cancelled = true; };
+  }, [currentUser]);
+
+  // Motor de Auto-Sync en Línea para Administrador (Pull inicial + Polling cada 15s + Push con resolución de conflictos)
+  const isAdminOnlineSession = Boolean(
+    currentUser &&
+    (currentUser.role === 'admin' || currentUser.staffRole) &&
+    !currentUser.isSimulatedByAdmin
+  );
+
+  const triggerImmediateCloudSync = useCallback(async () => {
+    const snap = latestStateRef.current;
+    setCloudSyncStatus('syncing');
+    const rev = getStoredLiveRevision();
+    let res = await onlineSyncService.pushWorkspace(rev, snap, false);
+    if (res?.conflict && res.snapshot) {
+      const merged = mergeServerResidentUpdates(snap, res.snapshot);
+      skipNextPushRef.current = true;
+      setCommunities(merged.communities);
+      setCompanySettings(merged.companySettings);
+      setCertificates(merged.certificates);
+      res = await onlineSyncService.pushWorkspace(res.revision, merged, true);
+    }
+    if (res?.ok && res.revision) {
+      setCloudRevision(res.revision);
+      setCloudSyncStatus('online');
+      return true;
+    }
+    setCloudSyncStatus('idle');
+    return false;
+  }, []);
+
+  useEffect(() => {
+    if (!isAdminOnlineSession) {
+      adminHydratedRef.current = false;
+      return;
+    }
+    let active = true;
+
+    async function syncFromCloud() {
+      const knownRev = getStoredLiveRevision();
+      const [pullRes, notifs] = await Promise.all([
+        onlineSyncService.pullWorkspace(knownRev),
+        onlineSyncService.fetchAdminNotifications(false)
+      ]);
+      if (!active) return;
+
+      if (Array.isArray(notifs)) {
+        setLiveNotifications(notifs);
+      }
+
+      if (pullRes?.ok) {
+        setCloudSyncStatus('online');
+        if (pullRes.empty) {
+          // Inicializar nube por primera vez con el estado del administrador
+          const initRes = await onlineSyncService.pushWorkspace(0, latestStateRef.current, true);
+          if (active && initRes?.ok && initRes.revision) {
+            setCloudRevision(initRes.revision);
+          }
+        } else if (!pullRes.upToDate && pullRes.snapshot) {
+          const merged = mergeInitialLocalWithCloud(latestStateRef.current, pullRes.snapshot, knownRev);
+          skipNextPushRef.current = knownRev > 0;
+          if (Array.isArray(merged.communities)) setCommunities(merged.communities);
+          if (merged.companySettings && typeof merged.companySettings === 'object') {
+            setCompanySettings((prev) => ({ ...prev, ...merged.companySettings }));
+          }
+          if (Array.isArray(merged.certificates)) setCertificates(merged.certificates);
+          setStoredLiveRevision(pullRes.revision);
+          setCloudRevision(pullRes.revision);
+        } else if (pullRes.revision) {
+          setCloudRevision(pullRes.revision);
+        }
+        adminHydratedRef.current = true;
+      }
+    }
+
+    syncFromCloud();
+    const timer = setInterval(syncFromCloud, 15000);
+    const handleFocus = () => syncFromCloud();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isAdminOnlineSession]);
+
+  // Auto-Push con debounce cuando el Administrador realiza cambios
+  useEffect(() => {
+    if (!isAdminOnlineSession || !adminHydratedRef.current) return;
+    if (skipNextPushRef.current) {
+      skipNextPushRef.current = false;
+      return;
+    }
+
+    const handle = setTimeout(() => {
+      void triggerImmediateCloudSync();
+    }, 1200);
+
+    return () => clearTimeout(handle);
+  }, [communities, companySettings, certificates, isAdminOnlineSession, triggerImmediateCloudSync]);
+
+  // Motor de actualización en vivo para Residentes autenticados
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== 'resident' || currentUser.isDemo || currentUser.isSimulatedByAdmin) {
+      return;
+    }
+    const creds = onlineSyncService.getResidentCredentials();
+    if (!creds?.rutOrUnit || !creds?.password) return;
+
+    let active = true;
+    async function pollResidentView() {
+      const res = await onlineSyncService.residentPortalSync(creds.rutOrUnit, creds.password, creds.communitySlug);
+      if (!active || !res?.ok) return;
+      setCloudSyncStatus('online');
+      if (res.revision) setCloudRevision(res.revision);
+      if (res.community) {
+        setCommunities((prev) => {
+          const exists = prev.some((c) => c.id === res.community.id);
+          return exists
+            ? prev.map((c) => (c.id === res.community.id ? { ...c, ...res.community } : c))
+            : [res.community, ...prev];
+        });
+      }
+      if (Array.isArray(res.certificates)) {
+        setCertificates((prev) => {
+          const otherCerts = prev.filter((c) => !res.certificates.some((rc) => rc.id === c.id));
+          return [...res.certificates, ...otherCerts];
+        });
+      }
+      if (Array.isArray(res.notifications)) {
+        const readerKey = `${res.user.communityId}:${res.user.unitId}`;
+        setLiveNotifications(
+          res.notifications.map((n) => ({
+            ...n,
+            isRead: Array.isArray(n.readBy) && n.readBy.includes(readerKey)
+          }))
+        );
+      }
+    }
+
+    const timer = setInterval(pollResidentView, 20000);
+    const handleFocus = () => pollResidentView();
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [currentUser]);
+
+  const markAllNotificationsRead = useCallback(async () => {
+    setLiveNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    if (isAdminOnlineSession) {
+      await onlineSyncService.fetchAdminNotifications(true);
+    } else if (currentUser?.role === 'resident' && !currentUser.isDemo) {
+      await onlineSyncService.markResidentNotificationsRead();
+    }
+  }, [isAdminOnlineSession, currentUser]);
+
+  const unreadNotificationsCount = liveNotifications.filter((n) => !n.isRead).length;
 
   // --- CRUD Comunidades ---
   const addCommunity = (newComm) => {
@@ -1142,7 +1364,7 @@ export const CommunityProvider = ({ children }) => {
         };
       });
 
-      return {
+      const issuedCommunity = {
         ...updatedComm,
         billingSplitMode: splitMode,
         units: updatedUnits,
@@ -1154,6 +1376,13 @@ export const CommunityProvider = ({ children }) => {
           status: 'EMITIDO'
         }
       };
+
+      void notificationService.notifyMonthlyBillingIssued({
+        community: issuedCommunity,
+        getUnitFinancials
+      });
+
+      return issuedCommunity;
     }));
   };
 
@@ -1266,25 +1495,37 @@ export const CommunityProvider = ({ children }) => {
 
   // --- Pagos, Abonos Parciales y Comprobantes Foliados ---
   const reportPayment = (communityId, reportData) => {
+    const newReport = {
+      id: `pay-${Date.now()}`,
+      unitId: reportData.unitId,
+      unitNumber: reportData.unitNumber,
+      owner: reportData.owner,
+      amount: parseFloat(reportData.amount) || 0,
+      date: reportData.date || new Date().toISOString().split('T')[0],
+      transferNumber: reportData.transferNumber || `TRF-${Math.floor(100000 + Math.random() * 900000)}`,
+      receiptImg: reportData.receiptImg || '',
+      notes: reportData.notes || '',
+      status: 'PENDIENTE'
+    };
+
+    const targetComm = communities.find(c => c.id === communityId);
+
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
-      const newReport = {
-        id: `pay-${Date.now()}`,
-        unitId: reportData.unitId,
-        unitNumber: reportData.unitNumber,
-        owner: reportData.owner,
-        amount: parseFloat(reportData.amount) || 0,
-        date: reportData.date || new Date().toISOString().split('T')[0],
-        transferNumber: reportData.transferNumber || `TRF-${Math.floor(100000 + Math.random() * 900000)}`,
-        receiptImg: reportData.receiptImg || '',
-        notes: reportData.notes || '',
-        status: 'PENDIENTE'
-      };
       return {
         ...c,
         paymentReports: [newReport, ...(c.paymentReports || [])]
       };
     }));
+
+    if (currentUser?.role === 'resident' && !currentUser.isDemo && !currentUser.isSimulatedByAdmin) {
+      void onlineSyncService.residentSubmit('report_payment', newReport);
+      void notificationService.notifyAdminPaymentReported({
+        community: targetComm,
+        report: newReport,
+        companySettings
+      });
+    }
   };
 
   const approvePayment = (communityId, paymentId) => {
@@ -1299,6 +1540,13 @@ export const CommunityProvider = ({ children }) => {
 
       const folioNumber = (c.paymentReports || []).filter(p => p.status === 'APROBADO').length + 1;
       const receiptFolio = payment.receiptFolio || `REC-${new Date().getFullYear()}-${String(folioNumber).padStart(3, '0')}`;
+
+      void notificationService.notifyUnitPaymentApproved({
+        community: c,
+        unit: target,
+        payment,
+        receiptFolio
+      });
 
       // Aplicar pago total, abono parcial o pago con saldo a favor a la unidad
       const updatedUnits = c.units.map(u => {
@@ -1331,22 +1579,34 @@ export const CommunityProvider = ({ children }) => {
 
   // --- Mural de Avisos y Carpeta de Documentos ---
   const addAnnouncement = (communityId, annData) => {
+    const newAnn = {
+      id: `ann-${Date.now()}`,
+      title: annData.title,
+      content: annData.content,
+      priority: annData.priority || 'Informativo',
+      date: annData.date || new Date().toISOString().split('T')[0],
+      author: annData.author || 'Administración ARANPRO',
+      isPinned: Boolean(annData.isPinned),
+      expiresAt: annData.expiresAt || null,
+      category: annData.category || 'General',
+      location: annData.location || 'Todo el Condominio'
+    };
+
+    const targetComm = communities.find(c => c.id === communityId);
+
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
-      const newAnn = {
-        id: `ann-${Date.now()}`,
-        title: annData.title,
-        content: annData.content,
-        priority: annData.priority || 'Informativo',
-        date: annData.date || new Date().toISOString().split('T')[0],
-        author: annData.author || 'Administración ARANPRO',
-        isPinned: Boolean(annData.isPinned),
-        expiresAt: annData.expiresAt || null,
-        category: annData.category || 'General',
-        location: annData.location || 'Todo el Condominio'
-      };
       return { ...c, announcements: [newAnn, ...(c.announcements || [])] };
     }));
+
+    if (currentUser?.role === 'resident' && !currentUser.isDemo && !currentUser.isSimulatedByAdmin) {
+      void onlineSyncService.residentSubmit('committee_announcement', newAnn);
+      if (targetComm) {
+        void notificationService.notifyCommunityAnnouncement({ community: targetComm, announcement: newAnn });
+      }
+    } else if (targetComm) {
+      void notificationService.notifyCommunityAnnouncement({ community: targetComm, announcement: newAnn });
+    }
   };
 
   const togglePinAnnouncement = (communityId, annId) => {
@@ -1367,18 +1627,27 @@ export const CommunityProvider = ({ children }) => {
   };
 
   const addDocument = (communityId, docData) => {
+    const newDoc = {
+      id: `doc-${Date.now()}`,
+      title: docData.title,
+      category: docData.category || 'Reglamento',
+      date: docData.date || new Date().toISOString().split('T')[0],
+      fileUrl: docData.fileUrl || '',
+      fileName: docData.fileName || ''
+    };
+    const targetComm = communities.find(c => c.id === communityId);
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
-      const newDoc = {
-        id: `doc-${Date.now()}`,
-        title: docData.title,
-        category: docData.category || 'Reglamento',
-        date: docData.date || new Date().toISOString().split('T')[0],
-        fileUrl: docData.fileUrl || '',
-        fileName: docData.fileName || ''
-      };
       return { ...c, documents: [newDoc, ...(c.documents || [])] };
     }));
+    if (targetComm) {
+      void notificationService.notifyCommunityDocumentOrConsultation({
+        community: targetComm,
+        kind: 'documento',
+        title: newDoc.title,
+        detail: `Se ha publicado el documento "${newDoc.title}" (${newDoc.category}) en la carpeta digital de la comunidad.`
+      });
+    }
   };
 
   const deleteDocument = (communityId, docId) => {
@@ -1397,6 +1666,14 @@ export const CommunityProvider = ({ children }) => {
         units: (c.units || []).map(u => u.id === unitId ? { ...u, password: newPassword } : u)
       };
     }));
+    if (currentUser?.role === 'resident' && !currentUser.isDemo && !currentUser.isSimulatedByAdmin) {
+      void onlineSyncService.residentSubmit('change_password', { newPassword }).then((res) => {
+        if (res?.ok) {
+          const existing = onlineSyncService.getResidentCredentials();
+          if (existing) onlineSyncService.setResidentCredentials({ ...existing, password: newPassword });
+        }
+      });
+    }
   };
 
   // Restablecer clave del vecino por parte del Administrador (vuelve al número de vivienda)
@@ -1422,6 +1699,7 @@ export const CommunityProvider = ({ children }) => {
 
   // --- Consultas por Escrito & Urna Digital (Ley 21.442 Art. 15 inc. final / Art. 16) ---
   const addWrittenConsultation = (communityId, consultationData) => {
+    const targetComm = communities.find(c => c.id === communityId);
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
       const count = (c.writtenConsultations?.length || 0) + 1;
@@ -1441,9 +1719,22 @@ export const CommunityProvider = ({ children }) => {
       };
       return { ...c, writtenConsultations: [newCons, ...(c.writtenConsultations || [])] };
     }));
+    if (targetComm) {
+      void notificationService.notifyCommunityDocumentOrConsultation({
+        community: targetComm,
+        kind: 'consulta',
+        title: consultationData.title,
+        detail: consultationData.description
+      });
+    }
   };
 
   const castConsultationVote = (communityId, consultationId, unitNumber, voteValue, voterName = '') => {
+    const voteData = {
+      value: voteValue,
+      voter: voterName,
+      date: new Date().toISOString().split('T')[0]
+    };
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
       const updatedConsultations = (c.writtenConsultations || []).map(cons => {
@@ -1452,16 +1743,15 @@ export const CommunityProvider = ({ children }) => {
           ...cons,
           votes: {
             ...cons.votes,
-            [unitNumber]: {
-              value: voteValue,
-              voter: voterName,
-              date: new Date().toISOString().split('T')[0]
-            }
+            [unitNumber]: voteData
           }
         };
       });
       return { ...c, writtenConsultations: updatedConsultations };
     }));
+    if (currentUser?.role === 'resident' && !currentUser.isDemo && !currentUser.isSimulatedByAdmin) {
+      void onlineSyncService.residentSubmit('cast_vote', { consultationId, voteData });
+    }
   };
 
   const closeWrittenConsultation = (communityId, consultationId, finalStatus = 'CERRADA_APROBADA') => {
@@ -1562,32 +1852,45 @@ export const CommunityProvider = ({ children }) => {
 
   // --- Libro Digital de Sugerencias y Reclamos (Helpdesk Comunitario) ---
   const addCommunityTicket = (communityId, ticketData) => {
+    const targetComm = communities.find(c => c.id === communityId);
+    const count = (targetComm?.communityTickets?.length || 0) + 1;
+    const prefix = ticketData.type === 'Sugerencia' ? 'SUG' : 'REC';
+    const newTicket = {
+      id: `ticket-${Date.now()}`,
+      folio: `${prefix}-${new Date().getFullYear()}-${String(count).padStart(3, '0')}`,
+      unitNumber: ticketData.unitNumber || 'Casa 1',
+      residentName: ticketData.residentName || 'Vecino',
+      implicatedUnitNumber: ticketData.implicatedUnitNumber || '',
+      date: ticketData.date || new Date().toISOString().split('T')[0],
+      type: ticketData.type || 'Reclamo',
+      category: ticketData.category || 'Convivencia',
+      priority: ticketData.priority || 'Media',
+      status: 'PENDIENTE',
+      title: ticketData.title,
+      description: ticketData.description,
+      adminResponse: '',
+      adminResponseDate: null,
+      elevateToAssembly: false
+    };
+
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
-      const count = (c.communityTickets?.length || 0) + 1;
-      const prefix = ticketData.type === 'Sugerencia' ? 'SUG' : 'REC';
-      const newTicket = {
-        id: `ticket-${Date.now()}`,
-        folio: `${prefix}-${new Date().getFullYear()}-${String(count).padStart(3, '0')}`,
-        unitNumber: ticketData.unitNumber || 'Casa 1',
-        residentName: ticketData.residentName || 'Vecino',
-        implicatedUnitNumber: ticketData.implicatedUnitNumber || '',
-        date: ticketData.date || new Date().toISOString().split('T')[0],
-        type: ticketData.type || 'Reclamo',
-        category: ticketData.category || 'Convivencia',
-        priority: ticketData.priority || 'Media',
-        status: 'PENDIENTE',
-        title: ticketData.title,
-        description: ticketData.description,
-        adminResponse: '',
-        adminResponseDate: null,
-        elevateToAssembly: false
-      };
       return { ...c, communityTickets: [newTicket, ...(c.communityTickets || [])] };
     }));
+
+    if (currentUser?.role === 'resident' && !currentUser.isDemo && !currentUser.isSimulatedByAdmin) {
+      void onlineSyncService.residentSubmit('create_ticket', newTicket);
+      void notificationService.notifyAdminTicketCreated({
+        community: targetComm,
+        ticket: newTicket,
+        companySettings
+      });
+    }
   };
 
   const updateTicketStatus = (communityId, ticketId, newStatus, adminResponse = '', extraData = {}) => {
+    const targetComm = communities.find(c => c.id === communityId);
+    const existingTicket = (targetComm?.communityTickets || []).find(t => t.id === ticketId);
     setCommunities(prev => prev.map(c => {
       if (c.id !== communityId) return c;
       const updated = (c.communityTickets || []).map(t => {
@@ -1602,6 +1905,20 @@ export const CommunityProvider = ({ children }) => {
       });
       return { ...c, communityTickets: updated };
     }));
+
+    if (targetComm && existingTicket && (adminResponse || newStatus)) {
+      const unitClean = String(existingTicket.unitNumber || '').replace(/[^0-9a-zA-Z]/g, '');
+      const matchedUnit = (targetComm.units || []).find(
+        u => String(u.number) === String(existingTicket.unitNumber) || String(u.number) === unitClean
+      );
+      void notificationService.notifyUnitTicketResponded({
+        community: targetComm,
+        unit: matchedUnit,
+        ticket: existingTicket,
+        status: newStatus,
+        adminResponse
+      });
+    }
   };
 
   const toggleTicketElevate = (communityId, ticketId) => {
@@ -1769,10 +2086,14 @@ export const CommunityProvider = ({ children }) => {
 
   // --- Certificados ---
   const requestCertificate = (certData) => {
+    const matchedComm = communities.find(
+      c => c.id === certData.communityId || c.name === certData.communityName
+    );
     const newCert = {
       ...certData,
       id: certData.id || crypto.randomUUID(),
-      communityName: certData.communityName || 'Comunidad',
+      communityId: certData.communityId || matchedComm?.id,
+      communityName: certData.communityName || matchedComm?.name || 'Comunidad',
       applicantName: certData.applicantName || 'Solicitante',
       rut: certData.rut || '',
       unitNumber: certData.unitNumber || '',
@@ -1789,6 +2110,22 @@ export const CommunityProvider = ({ children }) => {
       issuedBy: certData.issuedBy || 'Administración ARANPRO'
     };
     setCertificates(prev => [newCert, ...prev]);
+
+    if (currentUser?.role === 'resident' && !currentUser.isDemo && !currentUser.isSimulatedByAdmin) {
+      void onlineSyncService.residentSubmit('request_certificate', newCert);
+      void notificationService.notifyAdminCertificateRequested({
+        community: matchedComm,
+        cert: newCert,
+        companySettings
+      });
+    } else if (!currentUser && newCert.status === 'SOLICITADO') {
+      void notificationService.notifyAdminCertificateRequested({
+        community: matchedComm,
+        cert: newCert,
+        companySettings
+      });
+    }
+
     return newCert;
   };
 
@@ -1806,10 +2143,12 @@ export const CommunityProvider = ({ children }) => {
     if (passwordInput === undefined) {
       const pin = rutOrPin;
       if (pin === companySettings.adminPin || pin === 'admin' || pin === '1234' || pin === 'admin123') {
+        const adminRutVal = companySettings.adminRut || '16.012.871-2';
+        onlineSyncService.setStaffCredentials(adminRutVal, pin);
         const user = {
           role: 'admin',
           name: companySettings.administratorName || 'John Andrés Arancibia Maureira',
-          rut: companySettings.adminRut || '16.012.871-2',
+          rut: adminRutVal,
           permisos: { all: true }
         };
         setCurrentUser(user);
@@ -1818,26 +2157,40 @@ export const CommunityProvider = ({ children }) => {
       return { success: false, message: 'PIN de Administrador incorrecto.' };
     }
 
-    // Modo 2: Autenticación SaaS profesional con RUT y Contraseña
-    // 2.1 Intentar autenticar contra Supabase en la nube (tabla staff_users)
+    // Modo 2: Autenticación SaaS en línea contra Supabase RPC (aranpro_staff_login)
+    const knownRevBeforeLogin = getStoredLiveRevision();
     try {
-      const { staffAuthService } = await import('../services/supabase');
-      const cloudRes = await staffAuthService.loginStaff(rutOrPin, passwordInput);
-      if (cloudRes.success && cloudRes.user) {
+      const cloudRes = await onlineSyncService.staffLogin(rutOrPin, passwordInput);
+      if (cloudRes.ok && cloudRes.user) {
         const staff = cloudRes.user;
+        if (cloudRes.snapshot && cloudRes.revision > 0) {
+          const merged = mergeInitialLocalWithCloud(latestStateRef.current, cloudRes.snapshot, knownRevBeforeLogin);
+          skipNextPushRef.current = knownRevBeforeLogin > 0;
+          if (Array.isArray(merged.communities) && merged.communities.length > 0) {
+            setCommunities(merged.communities);
+          }
+          if (merged.companySettings && typeof merged.companySettings === 'object') {
+            setCompanySettings(prev => ({ ...prev, ...merged.companySettings }));
+          }
+          if (Array.isArray(merged.certificates)) {
+            setCertificates(merged.certificates);
+          }
+          setCloudRevision(cloudRes.revision);
+        }
         const user = {
           role: staff.role === 'superadmin' ? 'admin' : staff.role,
-          staffRole: staff.role, // 'superadmin' | 'admin' | 'asistente'
+          staffRole: staff.role,
           name: staff.nombre,
           rut: staff.rut,
           email: staff.email,
           permisos: staff.permisos || {}
         };
+        setCloudSyncStatus('online');
         setCurrentUser(user);
         return { success: true, user };
       }
     } catch (err) {
-      console.warn('Fallo consulta Supabase staff_users, recurriendo a verificación local:', err);
+      console.warn('Fallo consulta Supabase staff_login, recurriendo a verificación local:', err);
     }
 
     // 2.2 Verificación Local de Respaldo (Fallback seguro)
@@ -1858,11 +2211,13 @@ export const CommunityProvider = ({ children }) => {
       passwordInput.trim() === 'admin123';
 
     if (isRutMatch && isPasswordMatch) {
+      const adminRutVal = companySettings.adminRut || '16.012.871-2';
+      onlineSyncService.setStaffCredentials(adminRutVal, passwordInput.trim());
       const user = {
         role: 'admin',
         staffRole: 'superadmin',
         name: companySettings.administratorName || 'John Andrés Arancibia Maureira',
-        rut: companySettings.adminRut || '16.012.871-2',
+        rut: adminRutVal,
         permisos: { all: true }
       };
       setCurrentUser(user);
@@ -1875,11 +2230,64 @@ export const CommunityProvider = ({ children }) => {
     };
   };
 
-  // Inicio de sesión inteligente por RUT y Clave sin exponer la lista de comunidades
-  const loginResidentByRut = (rutInput, passwordInput) => {
+  // Inicio de sesión inteligente por RUT y Clave (consulta en línea a Supabase primero para funcionar en cualquier equipo/celular)
+  const loginResidentByRut = async (rutInput, passwordInput, options = {}) => {
     if (!rutInput || !passwordInput) {
       return { success: false, message: 'Por favor ingresa tu RUT y contraseña.' };
     }
+
+    const isDemoMode = Boolean(
+      options.isDemo ||
+      (typeof window !== 'undefined' && window.location.search.includes('demo'))
+    );
+
+    if (!isDemoMode) {
+      const cloudRes = await onlineSyncService.residentPortalSync(rutInput, passwordInput, null);
+      if (cloudRes?.ok && cloudRes.user && cloudRes.community) {
+        onlineSyncService.setResidentCredentials({
+          communityId: cloudRes.user.communityId,
+          communitySlug: cloudRes.user.communitySlug,
+          unitId: cloudRes.user.unitId,
+          unitNumber: cloudRes.user.unitNumber,
+          rutOrUnit: rutInput.trim(),
+          password: passwordInput.trim()
+        });
+        setCommunities((prev) => {
+          const exists = prev.some((c) => c.id === cloudRes.community.id);
+          return exists
+            ? prev.map((c) => (c.id === cloudRes.community.id ? { ...c, ...cloudRes.community } : c))
+            : [cloudRes.community, ...prev];
+        });
+        if (cloudRes.companySettings) {
+          setCompanySettings((prev) => ({ ...prev, ...cloudRes.companySettings }));
+        }
+        if (Array.isArray(cloudRes.certificates)) {
+          setCertificates((prev) => {
+            const others = prev.filter((c) => !cloudRes.certificates.some((rc) => rc.id === c.id));
+            return [...cloudRes.certificates, ...others];
+          });
+        }
+        if (Array.isArray(cloudRes.notifications)) {
+          const readerKey = `${cloudRes.user.communityId}:${cloudRes.user.unitId}`;
+          setLiveNotifications(
+            cloudRes.notifications.map((n) => ({
+              ...n,
+              isRead: Array.isArray(n.readBy) && n.readBy.includes(readerKey)
+            }))
+          );
+        }
+        setCloudSyncStatus('online');
+        setCurrentUser(cloudRes.user);
+        return { success: true, user: cloudRes.user, communitySlug: cloudRes.user.communitySlug };
+      } else if (cloudRes && !cloudRes.offline && !cloudRes.emptyCloud && cloudRes.message) {
+        // Si la nube respondió explícitamente contraseña incorrecta, retornar de inmediato
+        if (cloudRes.message.toLowerCase().includes('contraseña')) {
+          return { success: false, message: cloudRes.message };
+        }
+      }
+    }
+
+    // Respaldo local y modo demostración
     const cleanInputRut = cleanRut(rutInput);
     const trimmedInput = rutInput.trim();
 
@@ -1917,6 +2325,7 @@ export const CommunityProvider = ({ children }) => {
 
     const user = {
       role: 'resident',
+      isDemo: isDemoMode,
       communityId: community.id,
       communitySlug: community.slug,
       communityName: community.name,
@@ -1930,11 +2339,70 @@ export const CommunityProvider = ({ children }) => {
       loggedUserRole: matchedSub ? matchedSub.role : (unit.isCommittee ? (unit.committeeRole || 'Comité de Administración') : 'Propietario(a)')
     };
 
+    if (!isDemoMode) {
+      onlineSyncService.setResidentCredentials({
+        communityId: community.id,
+        communitySlug: community.slug,
+        unitId: unit.id,
+        unitNumber: unit.number,
+        rutOrUnit: rutInput.trim(),
+        password: passwordInput.trim()
+      });
+    }
+
     setCurrentUser(user);
     return { success: true, user, communitySlug: community.slug };
   };
 
-  const loginResident = (communitySlugOrId, rutInput, passwordInput) => {
+  const loginResident = async (communitySlugOrId, rutInput, passwordInput, options = {}) => {
+    const isDemoMode = Boolean(
+      options.isDemo ||
+      (typeof window !== 'undefined' && window.location.search.includes('demo'))
+    );
+
+    if (!isDemoMode) {
+      const cloudRes = await onlineSyncService.residentPortalSync(rutInput, passwordInput, communitySlugOrId);
+      if (cloudRes?.ok && cloudRes.user && cloudRes.community) {
+        onlineSyncService.setResidentCredentials({
+          communityId: cloudRes.user.communityId,
+          communitySlug: cloudRes.user.communitySlug,
+          unitId: cloudRes.user.unitId,
+          unitNumber: cloudRes.user.unitNumber,
+          rutOrUnit: rutInput.trim(),
+          password: passwordInput.trim()
+        });
+        setCommunities((prev) => {
+          const exists = prev.some((c) => c.id === cloudRes.community.id);
+          return exists
+            ? prev.map((c) => (c.id === cloudRes.community.id ? { ...c, ...cloudRes.community } : c))
+            : [cloudRes.community, ...prev];
+        });
+        if (cloudRes.companySettings) {
+          setCompanySettings((prev) => ({ ...prev, ...cloudRes.companySettings }));
+        }
+        if (Array.isArray(cloudRes.certificates)) {
+          setCertificates((prev) => {
+            const others = prev.filter((c) => !cloudRes.certificates.some((rc) => rc.id === c.id));
+            return [...cloudRes.certificates, ...others];
+          });
+        }
+        if (Array.isArray(cloudRes.notifications)) {
+          const readerKey = `${cloudRes.user.communityId}:${cloudRes.user.unitId}`;
+          setLiveNotifications(
+            cloudRes.notifications.map((n) => ({
+              ...n,
+              isRead: Array.isArray(n.readBy) && n.readBy.includes(readerKey)
+            }))
+          );
+        }
+        setCloudSyncStatus('online');
+        setCurrentUser(cloudRes.user);
+        return { success: true, user: cloudRes.user };
+      } else if (cloudRes && !cloudRes.offline && !cloudRes.emptyCloud && cloudRes.message?.toLowerCase().includes('contraseña')) {
+        return { success: false, message: cloudRes.message };
+      }
+    }
+
     const community = communities.find(c => c.slug === communitySlugOrId || c.id === communitySlugOrId);
     if (!community) {
       return { success: false, message: 'Comunidad no encontrada. Verifique el enlace proporcionado.' };
@@ -1943,7 +2411,7 @@ export const CommunityProvider = ({ children }) => {
     const cleanInputRut = cleanRut(rutInput);
     let matchedAdditionalUser = null;
 
-    const unit = community.units.find(u => {
+    const unit = (community.units || []).find(u => {
       if (cleanRut(u.rut) === cleanInputRut || u.number.toString() === rutInput.trim()) {
         return true;
       }
@@ -1959,7 +2427,6 @@ export const CommunityProvider = ({ children }) => {
       return { success: false, message: 'RUT o unidad no registrada en este condominio.' };
     }
 
-    // Verificar clave: del usuario adicional si ingresó con su RUT, o la de la unidad / número de casa
     const validPassword = matchedAdditionalUser?.password || unit.password || unit.number;
     const isPasswordValid =
       passwordInput.trim() === validPassword ||
@@ -1972,23 +2439,39 @@ export const CommunityProvider = ({ children }) => {
 
     const user = {
       role: 'resident',
+      isDemo: isDemoMode,
       communityId: community.id,
       communitySlug: community.slug,
       communityName: community.name,
       unitId: unit.id,
       unitNumber: unit.number,
       owner: unit.owner,
+      isCommittee: Boolean(unit.isCommittee),
+      committeeRole: unit.committeeRole || '',
       rut: matchedAdditionalUser ? matchedAdditionalUser.rut : unit.rut,
       loggedUserName: matchedAdditionalUser ? matchedAdditionalUser.name : unit.owner,
       loggedUserRole: matchedAdditionalUser ? matchedAdditionalUser.role : 'Propietario(a)'
     };
+
+    if (!isDemoMode) {
+      onlineSyncService.setResidentCredentials({
+        communityId: community.id,
+        communitySlug: community.slug,
+        unitId: unit.id,
+        unitNumber: unit.number,
+        rutOrUnit: rutInput.trim(),
+        password: passwordInput.trim()
+      });
+    }
 
     setCurrentUser(user);
     return { success: true, user };
   };
 
   const logout = () => {
-    void import('../services/supabase').then(({supabase}) => supabase.auth.signOut({scope:'local'}));
+    onlineSyncService.clearAllCredentials();
+    setLiveNotifications([]);
+    void import('../services/supabase').then(({supabase}) => supabase?.auth?.signOut({scope:'local'}));
     setCurrentUser(null);
   };
 
@@ -2093,7 +2576,14 @@ export const CommunityProvider = ({ children }) => {
       updateCertificateStatus,
       deleteCertificate,
       setCompanySettings,
+      liveNotifications,
+      unreadNotificationsCount,
+      markAllNotificationsRead,
+      cloudSyncStatus,
+      cloudRevision,
+      triggerImmediateCloudSync,
       restoreCloudSnapshot: ({communities, companySettings, certificates}) => {
+        skipNextPushRef.current = true;
         setCommunities(communities);
         setCompanySettings(companySettings);
         setCertificates(certificates);

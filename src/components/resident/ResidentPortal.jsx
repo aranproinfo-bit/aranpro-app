@@ -1,3 +1,6 @@
+import { CommunityCertificate } from '../common/CommunityCertificate';
+import { verificationUrl } from '../../services/documentRegistry';
+import { NotificationCenterBell } from '../common/NotificationCenterBell';
 import { PaymentReceipt } from '../common/AccountingPage';
 import IndividualExpenseBill from '../common/IndividualExpenseBill';
 import React, { useState, useMemo } from 'react';
@@ -53,74 +56,31 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
   });
   const [paymentSubmitted, setPaymentSubmitted] = useState(false);
 
-  if (!currentUser || currentUser.role !== 'resident') {
-    return (
-      <div className="p-8 text-center text-slate-500">
-        No has iniciado sesión como residente.
-      </div>
-    );
-  }
+  const community = useMemo(() => {
+    if (!currentUser || currentUser.role !== 'resident') return null;
+    return (communities || []).find(c => c.id === currentUser.communityId || c.slug === currentUser.communitySlug) || null;
+  }, [communities, currentUser]);
 
-  const community = communities.find(c => c.id === currentUser.communityId);
-  if (!community) return null;
-
-  const unit = community.units.find(u => u.id === currentUser.unitId || u.number === currentUser.unitNumber);
-  if (!unit) return null;
+  const unit = useMemo(() => {
+    if (!community || !currentUser) return null;
+    return (community.units || []).find(u => u.id === currentUser.unitId || String(u.number) === String(currentUser.unitNumber)) || null;
+  }, [community, currentUser]);
 
   const isDemoActive = Boolean(
     isDemo || 
     currentUser?.isDemo || 
     (typeof window !== 'undefined' && window.location.search.includes('demo'))
   );
-  const displayCommunityName = isDemoActive ? 'Comunidad Demostración ARANPRO' : community.name;
-  const displayCommunityAddress = isDemoActive ? 'Condominio Piloto Interactivo • Ley N° 21.442' : `${community.address}, ${community.city}`;
+  const displayCommunityName = isDemoActive ? 'Comunidad Demostración ARANPRO' : (community?.name || 'Comunidad');
+  const displayCommunityAddress = isDemoActive ? 'Condominio Piloto Interactivo • Ley N° 21.442' : `${community?.address || ''}, ${community?.city || ''}`;
 
-  // Cálculos de la comunidad
-  const commTotals = calculateCommunityTotals(community);
-  const totalExpenses = commTotals.totalExpenses;
-  const reserveFundAmount = commTotals.reserveFundAmount;
-  const grandTotal = commTotals.grandTotal;
-  const totalCollected = commTotals.totalCollected;
-  const communityCashBalance = commTotals.financialBalance;
-
-  // Cálculos integrales de la unidad (incluyendo saldo a favor, saldo en contra y convenio de deuda histórica repactada)
-  const fin = getUnitFinancials(unit);
-  const previousDebt = fin.previousDebt;
-  const currentCharge = fin.currentCharge;
-  const extraCharge = fin.extraCharge;
-  const paidSoFar = fin.paidAmount;
-  const totalToPay = fin.pendingDebt;
-  const favorBalance = fin.favorBalance;
-  const isUpToDate = fin.isFullyPaid;
-
-  // Historial de pagos de esta casa
-  const unitPayments = (community.paymentReports || []).filter(p => (p.unitId ? p.unitId === unit.id : p.unitNumber === unit.number));
-
-  // Configuración de datos bancarios con aislamiento total para la Demostración
-  const demoBankInfo = {
-    bank: 'Banco Estado',
-    accountType: 'Cuenta Corriente',
-    accountNumber: '21000984210',
-    holderName: 'Comunidad Demostración ARANPRO',
-    rut: '65.201.340-9',
-    email: 'demo.pagos@aranpro.cl'
-  };
-  const displayBankInfo = isDemoActive ? demoBankInfo : (community.bankInfo || demoBankInfo);
-
-  const handleCopyBankInfo = () => {
-    const text = `Datos de Transferencia - ${displayCommunityName}:\nBanco: ${displayBankInfo.bank}\nTipo: ${displayBankInfo.accountType}\nN° Cuenta: ${displayBankInfo.accountNumber}\nTitular: ${displayBankInfo.holderName}\nRUT: ${displayBankInfo.rut}\nCorreo Comprobantes: ${displayBankInfo.email}`;
-    navigator.clipboard.writeText(text);
-    setCopiedBank(true);
-    setTimeout(() => setCopiedBank(false), 2500);
-  };
-
-  // Certificados oficiales de esta unidad (con datos oficiales y soporte demostración)
+  // Certificados oficiales de esta unidad (todos los hooks se declaran antes de retornos tempranos)
   const myCertificates = useMemo(() => {
-    let list = (certificates || []).filter(c => 
-      String(c.unitNumber) === String(unit.number) || 
-      (c.rut && unit.rut && cleanRut(c.rut) === cleanRut(unit.rut))
+    if (!community || !unit) return [];
+    let list = (certificates || []).filter(c =>
+      (c.communityId ? c.communityId === community.id : c.communityName === community.name) &&
+      (String(c.unitNumber) === String(unit.number) || (c.rut && unit.rut && cleanRut(c.rut) === cleanRut(unit.rut)))
     );
-    // Si estamos en demo y la unidad no tiene certificados aún, proveemos certificados listos para probar
     if (list.length === 0 && isDemoActive) {
       list = [
         {
@@ -162,7 +122,56 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
       ];
     }
     return list;
-  }, [certificates, unit, isDemoActive, displayCommunityName]);
+  }, [certificates, unit, community, isDemoActive, displayCommunityName]);
+
+  if (!currentUser || currentUser.role !== 'resident') {
+    return (
+      <div className="p-8 text-center text-slate-500">
+        No has iniciado sesión como residente.
+      </div>
+    );
+  }
+
+  if (!community || !unit) return null;
+
+  // Cálculos de la comunidad
+  const commTotals = calculateCommunityTotals(community);
+  const totalExpenses = commTotals.totalExpenses;
+  const reserveFundAmount = commTotals.reserveFundAmount;
+  const grandTotal = commTotals.grandTotal;
+  const totalCollected = commTotals.totalCollected;
+  const communityCashBalance = commTotals.financialBalance;
+
+  // Cálculos integrales de la unidad (incluyendo saldo a favor, saldo en contra y convenio de deuda histórica repactada)
+  const fin = getUnitFinancials(unit);
+  const previousDebt = fin.previousDebt;
+  const currentCharge = fin.currentCharge;
+  const extraCharge = fin.extraCharge;
+  const paidSoFar = fin.paidAmount;
+  const totalToPay = fin.pendingDebt;
+  const favorBalance = fin.favorBalance;
+  const isUpToDate = fin.isFullyPaid;
+
+  // Historial de pagos de esta casa
+  const unitPayments = (community.paymentReports || []).filter(p => (p.unitId ? p.unitId === unit.id : p.unitNumber === unit.number));
+
+  // Configuración de datos bancarios con aislamiento total para la Demostración
+  const demoBankInfo = {
+    bank: 'Banco Estado',
+    accountType: 'Cuenta Corriente',
+    accountNumber: '21000984210',
+    holderName: 'Comunidad Demostración ARANPRO',
+    rut: '65.201.340-9',
+    email: 'demo.pagos@aranpro.cl'
+  };
+  const displayBankInfo = isDemoActive ? demoBankInfo : (community.bankInfo || demoBankInfo);
+
+  const handleCopyBankInfo = () => {
+    const text = `Datos de Transferencia - ${displayCommunityName}:\nBanco: ${displayBankInfo.bank}\nTipo: ${displayBankInfo.accountType}\nN° Cuenta: ${displayBankInfo.accountNumber}\nTitular: ${displayBankInfo.holderName}\nRUT: ${displayBankInfo.rut}\nCorreo Comprobantes: ${displayBankInfo.email}`;
+    navigator.clipboard.writeText(text);
+    setCopiedBank(true);
+    setTimeout(() => setCopiedBank(false), 2500);
+  };
 
   // Compartir Colilla Oficial por WhatsApp o Web Share API
   const handleShareBill = () => {
@@ -205,9 +214,9 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
       `🔢 *Folio Oficial:* ${cert.folio}\n` +
       `🔐 *Código de Verificación:* ${cert.verificationCode || 'VRF-OK'}\n` +
       `📅 *Fecha de Emisión:* ${certDateStr}\n` +
-      `✅ *Estado:* VIGENTE (Válido por 30 días corridos)\n` +
+      `Vigencia: consulte el registro digital\n` +
       `🏛️ *Finalidad:* ${cert.purpose || 'Trámites oficiales y legales'}\n\n` +
-      `🌐 *Verificación Digital en Línea:* https://aranpro.cl`;
+      `${verificationUrl(cert) || 'Sin verificación pública'}`;
 
     if (navigator.share) {
       navigator.share({
@@ -475,13 +484,16 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
           </div>
         </div>
 
-        <button
-          onClick={() => { setPasswordSaved(false); setNewPasswordInput(''); setShowPasswordModal(true); }}
-          className="px-2.5 py-1.5 bg-white/10 text-[#D4B895] rounded-lg text-[11px] font-bold flex items-center shrink-0"
-        >
-          <KeyRound className="w-3.5 h-3.5 mr-1" />
-          Clave
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <NotificationCenterBell theme="dark" compact />
+          <button
+            onClick={() => { setPasswordSaved(false); setNewPasswordInput(''); setShowPasswordModal(true); }}
+            className="px-2.5 py-1.5 bg-white/10 text-[#D4B895] rounded-lg text-[11px] font-bold flex items-center shrink-0"
+          >
+            <KeyRound className="w-3.5 h-3.5 mr-1" />
+            Clave
+          </button>
+        </div>
       </div>
 
       {/* Drawer Lateral en Celular (< lg) */}
@@ -524,6 +536,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
+            <NotificationCenterBell theme="light" />
             <button
               onClick={onBack}
               className="px-3 py-1.5 text-xs font-bold text-[#4A4F4F] hover:text-[#0F3D2E] hover:bg-[#F5F4EF] rounded-xl transition-colors flex items-center"
@@ -1810,115 +1823,12 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
       {activeResidentCert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
           <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#D4B895] p-5 sm:p-8 space-y-6">
-            
-            <div 
+            <CommunityCertificate
               id="resident-certificate-printable-doc"
-              className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6 relative"
-            >
-              {/* Membrete oficial */}
-              <div className="flex items-center justify-between pb-4 border-b-2 border-[#0F3D2E] gap-4">
-                <div className="flex items-center space-x-3.5">
-                  <AranproLogo className="h-10 w-auto" />
-                  <div>
-                    <h3 className="text-base font-black text-slate-900">{displayCommunityName}</h3>
-                    <p className="text-[11px] text-slate-600 font-semibold">
-                      Administración Profesional • {companySettings?.administratorName || 'ARANPRO Gestión Integral'}
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      Especialista Constructor Civil • Ley N° 21.442 de Copropiedad
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-right shrink-0">
-                  <div className="px-3 py-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
-                    <span className="text-[9px] font-bold text-slate-500 uppercase block">Folio Oficial</span>
-                    <span className="text-xs font-black font-mono text-[#0F3D2E]">{activeResidentCert.folio}</span>
-                  </div>
-                  <span className="text-[9px] font-mono text-slate-400 block mt-1">
-                    Verif: <strong>{activeResidentCert.verificationCode || 'VRF-OK'}</strong>
-                  </span>
-                </div>
-              </div>
-
-              {/* Título del Certificado */}
-              <div className="text-center py-2 space-y-1">
-                <span className="text-[10px] font-black tracking-widest text-[#D4B895] uppercase">
-                  REPÚBLICA DE CHILE • LEY DE COPROPIEDAD INMOBILIARIA N° 21.442
-                </span>
-                <h2 className="text-lg sm:text-xl font-black text-[#0F3D2E] uppercase tracking-wide">
-                  {activeResidentCert.type}
-                </h2>
-                <div className="h-0.5 w-24 bg-[#D4B895] mx-auto rounded-full mt-1" />
-              </div>
-
-              {/* Cuerpo del Certificado */}
-              <div className="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-3.5 text-justify">
-                <p>
-                  El Administrador Titular de la copropiedad inmobiliaria <strong>{displayCommunityName}</strong>, 
-                  en virtud de las facultades legales conferidas por la Ley N° 21.442 y su Reglamento, 
-                  <strong> CERTIFICA:</strong>
-                </p>
-
-                <p>
-                  Que la unidad habitacional individualizada como <strong>Casa N° {activeResidentCert.unitNumber}</strong>, 
-                  cuyo propietario registrado en el Libro de Copropietarios es don(ña) <strong>{activeResidentCert.applicantName}</strong>, 
-                  RUT <strong>{activeResidentCert.rut || 'No informado'}</strong>,
-                  {activeResidentCert.type.includes('No Deuda') || activeResidentCert.type.includes('al Día') ? (
-                    <> se encuentra <strong>COMPLETAMENTE AL DÍA</strong> en el pago íntegro de los gastos comunes ordinarios, gastos comunes extraordinarios y fondos de reserva devengados hasta la fecha del presente instrumento, no registrando saldos adeudados pendientes de cobro.</>
-                  ) : activeResidentCert.type.includes('Residencia') ? (
-                    <> registra su domicilio y residencia efectiva comprobada en dicha unidad habitacional dentro del conjunto residencial <strong>{displayCommunityName}</strong>, conforme al registro de residentes establecido en el Art. 17° de la Ley N° 21.442.</>
-                  ) : (
-                    <> cuenta con registro regular y validado ante la administración del condominio con respecto a la finalidad requerida: <em>"{activeResidentCert.purpose || 'Trámites oficiales'}"</em>.</>
-                  )}
-                </p>
-
-                {activeResidentCert.notes && (
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 italic">
-                    Observaciones: {activeResidentCert.notes}
-                  </div>
-                )}
-
-                <p className="text-[11px] text-slate-500">
-                  Se extiende el presente certificado a petición de la parte interesada para los fines de: 
-                  <strong className="text-slate-700"> {activeResidentCert.purpose || 'Presentación oficial y trámites pertinentes'}</strong>.
-                </p>
-              </div>
-
-              {/* Cláusula de Vigencia y Fecha */}
-              <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200 flex flex-col sm:flex-row justify-between items-center text-xs text-emerald-950 gap-2">
-                <span>
-                  📅 <strong>Fecha de Emisión:</strong> {formatDate(activeResidentCert.date)}
-                </span>
-                <span className="font-bold">
-                  🛡️ <strong>Vigencia Legal:</strong> 30 días corridos a contar de su emisión
-                </span>
-              </div>
-
-              {/* Sello, Firma y Verificación Digital */}
-              <div className="pt-4 border-t border-slate-200 grid grid-cols-2 gap-4 items-center">
-                <div className="flex items-center space-x-3">
-                  <AranproOfficialSeal size="sm" variant="ap" />
-                  <div className="text-[10px] space-y-0.5">
-                    <span className="font-bold text-[#0F3D2E] block">Certificación Oficial ARANPRO</span>
-                    <span className="text-slate-500 block">Firma Electrónica Avanzada</span>
-                    <span className="text-emerald-700 font-mono font-bold block">✓ Documento Verificado</span>
-                  </div>
-                </div>
-
-                <div className="text-right space-y-0.5">
-                  <span className="text-xs font-bold text-slate-900 block">
-                    {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia M.'}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block">
-                    Especialista Constructor Civil • Administrador de Condominios
-                  </span>
-                  <span className="text-[9px] text-[#0F3D2E] font-semibold block">
-                    {displayCommunityName}
-                  </span>
-                </div>
-              </div>
-            </div>
+              cert={activeResidentCert}
+              community={community}
+              company={companySettings}
+            />
 
             {/* Botones de acción del Modal (no impresos) */}
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 no-print">
@@ -1928,7 +1838,11 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                   onClick={() => {
                     const commName = (displayCommunityName || 'Condominio').replace(/\s+/g, '_');
                     const folioClean = (activeResidentCert.folio || 'CERT').replace(/[^a-zA-Z0-9_-]/g, '_');
-                    printDocumentDirectly('resident-certificate-printable-doc', `Certificado_${folioClean}_Casa_${activeResidentCert.unitNumber}_${commName}`, { fitPage: true });
+                    printDocumentDirectly(
+                      'resident-certificate-printable-doc',
+                      `Certificado_${folioClean}_Casa_${activeResidentCert.unitNumber}_${commName}`,
+                      { fitPage: true, pdfStyle: 'neutral', pageSize: 'letter portrait', margin: '8mm 10mm' }
+                    );
                   }}
                   className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
                 >

@@ -3,6 +3,7 @@ import { vaultGet } from '../../utils/fileVault';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
+import { notificationService } from '../../services/notificationService';
 import { SuggestionsAndComplaintsModule } from './SuggestionsAndComplaintsModule';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { useEconomicIndicators } from '../../hooks/useEconomicIndicators';
@@ -454,7 +455,13 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       extraChargeDescription: newDescription
     });
 
-    setFineSuccessMessage(`¡Multa de ${formatCLP(fineForm.amountClp)} (${fineForm.ufEquivalent}) imputada con éxito a Casa ${targetUnit.number}! Aparecerá en la colilla de cobro del mes.`);
+    void notificationService.notifyUnitFineApplied({
+      community: currentCommunity,
+      unit: targetUnit,
+      fine: fineForm
+    });
+
+    setFineSuccessMessage(`¡Multa de ${formatCLP(fineForm.amountClp)} (${fineForm.ufEquivalent}) imputada y notificada en línea a Casa ${targetUnit.number}! Aparecerá en la colilla de cobro del mes.`);
     setTimeout(() => setFineSuccessMessage(''), 5000);
 
     // Opcional: Imprimir Notificación de Multa

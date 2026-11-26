@@ -27,6 +27,7 @@ import CommunityHandoverAndAccountabilityModule from './CommunityHandoverAndAcco
 import { HelpHeaderButtons, ContextualHelpAssistant } from '../common/ContextualHelpAssistant';
 import { PlatformOnboardingTour, ONBOARDING_STORAGE_KEY } from '../common/PlatformOnboardingTour';
 import { CloudSyncButton } from '../common/CloudSyncButton';
+import { NotificationCenterBell } from '../common/NotificationCenterBell';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { UnitAccountStatementView } from './UnitAccountStatementView';
 import { EmailDispatchTrackingModule } from './EmailDispatchTrackingModule';
@@ -4234,6 +4235,7 @@ _Administración ARANPRO_`;
 
           {/* Derecha: Botón Panel Administrador / Sitio Web / Salir */}
           <div className="flex items-center space-x-2 shrink-0">
+            <NotificationCenterBell theme="light" />
             <CloudSyncButton theme="light" />
             <HelpHeaderButtons
               isOpen={helpOpen}

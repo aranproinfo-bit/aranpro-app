@@ -18,6 +18,7 @@ export const ResidentLogin = ({ communitySlug, onBack, onSuccess, isDemo = false
   const [rutInput, setRutInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   if (!community) {
     return (
@@ -40,10 +41,10 @@ export const ResidentLogin = ({ communitySlug, onBack, onSuccess, isDemo = false
   }
 
   // Inicio de sesión directo en 1 clic (SIN FORMULARIOS NI ERRORES DE VALIDACIÓN)
-  const handleInstantDemoLogin = (unitNumber, rut) => {
+  const handleInstantDemoLogin = async (unitNumber, rut) => {
     setError('');
     const targetSlug = community?.slug || communities[0]?.slug || 'los-cerezos';
-    const res = loginResident(targetSlug, rut || unitNumber, unitNumber);
+    const res = await loginResident(targetSlug, rut || unitNumber, unitNumber, { isDemo: true });
     if (res?.success) {
       if (onSuccess) onSuccess();
     } else {
@@ -51,14 +52,20 @@ export const ResidentLogin = ({ communitySlug, onBack, onSuccess, isDemo = false
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (busy) return;
     setError('');
-    const res = loginResident(community.slug, rutInput, passwordInput);
-    if (res.success) {
-      if (onSuccess) onSuccess();
-    } else {
-      setError(res.message);
+    setBusy(true);
+    try {
+      const res = await loginResident(community.slug, rutInput, passwordInput);
+      if (res.success) {
+        if (onSuccess) onSuccess();
+      } else {
+        setError(res.message);
+      }
+    } finally {
+      setBusy(false);
     }
   };
 

@@ -9,6 +9,7 @@ import { CompanyEnterpriseHub } from './components/admin/CompanyEnterpriseHub';
 import { ReceiptViewerModal } from './components/common/ReceiptViewerModal';
 import { CertificateModal } from './components/public/CertificateModal';
 import { PublicCertificateVerificationView } from './components/public/PublicCertificateVerificationView';
+import { DOMAIN_CONFIG, getSubdomainMode } from './config/domains';
 import { 
   Building2, User, ShieldCheck, Home, Key, Lock, ArrowRight, 
   ExternalLink, Sparkles, Smartphone, CheckCircle2, ChevronRight
@@ -16,10 +17,13 @@ import {
 import './App.css';
 
 // URL del sitio web comercial corporativo
-const COMMERCIAL_WEB_URL = 'https://aranpro.cl';
+const COMMERCIAL_WEB_URL = DOMAIN_CONFIG.COMMERCIAL_WEB_URL;
 
 function MainApp() {
   const { currentUser, communities, loginAdmin, logout, loginResidentByRut, companySettings, simulateResidentView, exitSimulation } = useCommunity();
+  const subdomainMode = getSubdomainMode();
+  const isDedicatedResidentHost = subdomainMode === 'resident';
+  const isDedicatedAdminHost = subdomainMode === 'admin';
   
   // Navigation states: 'portal-choice' | 'admin-select-community' | 'resident-login' | 'resident' | 'admin-login' | 'admin' | 'public-verify'
   const [verifyFolio, setVerifyFolio] = useState(() => {
@@ -46,6 +50,9 @@ function MainApp() {
       if (urlParams.has('demo')) {
         return currentUser?.role === 'resident' ? 'resident' : 'resident-login';
       }
+      if (urlParams.get('role') === 'admin' || isDedicatedAdminHost) {
+        return currentUser?.role === 'admin' ? 'admin-select-community' : 'admin-login';
+      }
     }
     if (currentUser?.role === 'admin') return 'admin-select-community';
     if (currentUser?.role === 'resident') return 'resident';
@@ -62,26 +69,33 @@ function MainApp() {
   const [residentRutInput, setResidentRutInput] = useState('');
   const [residentPasswordInput, setResidentPasswordInput] = useState('');
   const [residentLoginError, setResidentLoginError] = useState('');
+  const [residentLoginBusy, setResidentLoginBusy] = useState(false);
   const [showDemoAccordion, setShowDemoAccordion] = useState(false);
 
-  const handleResidentSubmit = (e) => {
+  const handleResidentSubmit = async (e) => {
     e.preventDefault();
+    if (residentLoginBusy) return;
     setResidentLoginError('');
-    const res = loginResidentByRut(residentRutInput, residentPasswordInput);
-    if (res.success) {
-      setCurrentView('resident');
-      setResidentRutInput('');
-      setResidentPasswordInput('');
-    } else {
-      setResidentLoginError(res.message);
+    setResidentLoginBusy(true);
+    try {
+      const res = await loginResidentByRut(residentRutInput, residentPasswordInput);
+      if (res.success) {
+        setCurrentView('resident');
+        setResidentRutInput('');
+        setResidentPasswordInput('');
+      } else {
+        setResidentLoginError(res.message);
+      }
+    } finally {
+      setResidentLoginBusy(false);
     }
   };
 
-  const handleQuickDemoFill = (rut, pass) => {
+  const handleQuickDemoFill = async (rut, pass) => {
     setResidentRutInput(rut);
     setResidentPasswordInput(pass);
     setResidentLoginError('');
-    const res = loginResidentByRut(rut, pass);
+    const res = await loginResidentByRut(rut, pass, { isDemo: true });
     if (res?.success) {
       setCurrentView('resident');
       setResidentRutInput('');
@@ -117,16 +131,19 @@ function MainApp() {
       return;
     }
 
-    if (roleParam === 'admin') {
+    if (roleParam === 'admin' || isDedicatedAdminHost) {
       if (currentUser?.role === 'admin') {
-        // Ya autenticado: limpiar el parámetro ?role=admin de la URL para evitar parpadeos
-        try {
-          const cleanUrl = window.location.pathname + (window.location.hash || '');
-          window.history.replaceState({}, document.title, cleanUrl);
-        } catch (e) { console.error(e); }
+        if (roleParam === 'admin') {
+          try {
+            const cleanUrl = window.location.pathname + (window.location.hash || '');
+            window.history.replaceState({}, document.title, cleanUrl);
+          } catch (e) { console.error(e); }
+        }
         return;
       }
-      setCurrentView('admin-login');
+      if (!currentUser) {
+        setCurrentView('admin-login');
+      }
       return;
     }
 
@@ -138,7 +155,7 @@ function MainApp() {
         setCurrentView('resident-login');
       }
     }
-  }, [currentUser]);
+  }, [currentUser, isDedicatedAdminHost]);
 
   // Manejar login de residente
   const handleResidentLoginSuccess = () => {
@@ -187,14 +204,16 @@ function MainApp() {
 
           <div className="flex items-center gap-2">
             <PwaInstallButton variant="compact" />
-            <button
-              onClick={() => setCurrentView('admin-login')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] shadow-2xs transition-all cursor-pointer"
-              title="Acceso exclusivo Administrador General ARANPRO"
-            >
-              <Key className="w-3.5 h-3.5" />
-              <span>Acceso Admin</span>
-            </button>
+            {!isDedicatedResidentHost && (
+              <button
+                onClick={() => setCurrentView('admin-login')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] shadow-2xs transition-all cursor-pointer"
+                title="Acceso exclusivo Administrador General ARANPRO"
+              >
+                <Key className="w-3.5 h-3.5" />
+                <span>Acceso Admin</span>
+              </button>
+            )}
             <button
               onClick={handleGoToCommercialWeb}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-[#0F3D2E] hover:bg-slate-100 transition-all cursor-pointer"
@@ -314,9 +333,10 @@ function MainApp() {
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  disabled={residentLoginBusy}
+                  className="w-full py-3.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:opacity-60"
                 >
-                  <span>Ingresar a mi Comunidad</span>
+                  <span>{residentLoginBusy ? 'Verificando en línea…' : 'Ingresar a mi Comunidad'}</span>
                   <ArrowRight className="w-4 h-4 text-[#D4B895]" />
                 </button>
               </form>
@@ -327,16 +347,18 @@ function MainApp() {
                   ¿Olvidaste tu contraseña? Tu clave por defecto es el número de tu departamento o casa. Si la cambiaste y no la recuerdas, el Administrador puede restablecerla en segundos desde su panel de control.
                 </p>
 
-                <div className="pt-2 flex items-center justify-center">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView('admin-login')}
-                    className="text-xs font-black text-[#0F3D2E] hover:underline flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Key className="w-3.5 h-3.5 text-[#D4B895]" />
-                    <span>¿Eres Administrador General de ARANPRO? Inicia sesión aquí</span>
-                  </button>
-                </div>
+                {!isDedicatedResidentHost && (
+                  <div className="pt-2 flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentView('admin-login')}
+                      className="text-xs font-black text-[#0F3D2E] hover:underline flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Key className="w-3.5 h-3.5 text-[#D4B895]" />
+                      <span>¿Eres Administrador General de ARANPRO? Inicia sesión aquí</span>
+                    </button>
+                  </div>
+                )}
 
                 {/* Acceso rápido para pruebas / evaluación */}
                 <div className="pt-3 border-t border-slate-100">
@@ -489,7 +511,7 @@ function MainApp() {
             }}
             onLogout={() => {
               if (logout) logout();
-              setCurrentView('portal-choice');
+              setCurrentView(isDedicatedAdminHost ? 'admin-login' : 'portal-choice');
             }}
           />
         )}
@@ -504,10 +526,11 @@ function MainApp() {
                   const cleanUrl = window.location.pathname + (window.location.hash || '');
                   window.history.replaceState({}, document.title, cleanUrl);
                 } catch (e) {}
+                setSelectedCommunitySlug(null);
                 setCurrentView('portal-choice');
               }}
               onSuccess={handleResidentLoginSuccess}
-              isDemo={true}
+              isDemo={!selectedCommunitySlug || (typeof window !== 'undefined' && window.location.search.includes('demo'))}
             />
           </div>
         )}

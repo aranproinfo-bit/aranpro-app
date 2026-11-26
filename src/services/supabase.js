@@ -14,50 +14,61 @@ export const supabase = isSupabaseConfigured
   : null;
 
 /**
- * Servicio de Autenticación de Administradores y Asistentes
+ * Servicio de Autenticación de Administradores y Asistentes (Esquema Privado RPC)
  */
 export const staffAuthService = {
+  _getAdminCreds() {
+    if (typeof sessionStorage === 'undefined') return {};
+    try {
+      return JSON.parse(sessionStorage.getItem('aranpro_staff_session_creds') || '{}');
+    } catch {
+      return {};
+    }
+  },
+
   async getStaffUsers() {
     if (!supabase) return { success: false, data: [] };
+    const creds = this._getAdminCreds();
     try {
-      const { data, error } = await supabase
-        .from('staff_users')
-        .select('*')
-        .order('created_at', { ascending: true });
+      const { data, error } = await supabase.rpc('aranpro_staff_manage', {
+        p_admin_rut: creds.rut || null,
+        p_admin_password: creds.password || null,
+        p_op: 'list',
+        p_payload: {}
+      });
       if (error) throw error;
-      return { success: true, data: data || [] };
+      return { success: true, data: data?.data || [] };
     } catch (err) {
-      console.warn('Error fetching staff_users:', err);
+      console.warn('Error fetching staff_accounts via RPC:', err);
       return { success: false, error: err.message, data: [] };
     }
   },
 
   async createStaffUser({ rut, nombre, email, telefono, password, role = 'asistente', permisos }) {
     if (!supabase) return { success: false, error: 'Supabase no inicializado' };
+    const creds = this._getAdminCreds();
     try {
-      const { data, error } = await supabase
-        .from('staff_users')
-        .insert([
-          {
-            rut: rut.trim(),
-            nombre: nombre.trim(),
-            email: email ? email.trim() : null,
-            telefono: telefono ? telefono.trim() : null,
-            password_hash: password,
-            role: role,
-            permisos: permisos || {
-              editar_gastos: true,
-              aprobar_pagos: false,
-              responder_tickets: true,
-              emitir_colillas: false
-            },
-            activo: true
+      const { data, error } = await supabase.rpc('aranpro_staff_manage', {
+        p_admin_rut: creds.rut || null,
+        p_admin_password: creds.password || null,
+        p_op: 'create',
+        p_payload: {
+          rut: rut.trim(),
+          nombre: nombre.trim(),
+          email: email ? email.trim() : null,
+          telefono: telefono ? telefono.trim() : null,
+          password,
+          role,
+          permisos: permisos || {
+            editar_gastos: true,
+            aprobar_pagos: false,
+            responder_tickets: true,
+            emitir_colillas: false
           }
-        ])
-        .select()
-        .single();
+        }
+      });
       if (error) throw error;
-      return { success: true, data };
+      return { success: true, data: data?.data };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -65,11 +76,14 @@ export const staffAuthService = {
 
   async deleteStaffUser(id) {
     if (!supabase) return { success: false, error: 'Supabase no disponible' };
+    const creds = this._getAdminCreds();
     try {
-      const { error } = await supabase
-        .from('staff_users')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.rpc('aranpro_staff_manage', {
+        p_admin_rut: creds.rut || null,
+        p_admin_password: creds.password || null,
+        p_op: 'delete',
+        p_payload: { id }
+      });
       if (error) throw error;
       return { success: true };
     } catch (err) {
@@ -81,37 +95,21 @@ export const staffAuthService = {
     if (!supabase) {
       return { success: false, error: 'Supabase no inicializado' };
     }
-    const cleanRut = (rut || '').trim().replace(/\./g, '');
     try {
-      const { data, error } = await supabase
-        .from('staff_users')
-        .select('*')
-        .ilike('rut', cleanRut)
-        .eq('activo', true)
-        .single();
-
-      if (error || !data) {
-        // Si no se encuentra con RUT limpio, probar directo
-        const { data: d2, error: e2 } = await supabase
-          .from('staff_users')
-          .select('*')
-          .eq('rut', rut.trim())
-          .eq('activo', true)
-          .single();
-        if (e2 || !d2) {
-          return { success: false, error: 'Usuario no encontrado o inactivo' };
-        }
-        if (d2.password_hash !== password) {
-          return { success: false, error: 'Contraseña incorrecta' };
-        }
-        return { success: true, user: d2 };
+      const { data, error } = await supabase.rpc('aranpro_staff_login', {
+        p_rut: (rut || '').trim(),
+        p_password: password
+      });
+      if (error) throw error;
+      if (!data?.ok || !data?.user) {
+        return { success: false, error: data?.error || 'Credenciales inválidas' };
       }
-
-      if (data.password_hash !== password) {
-        return { success: false, error: 'Contraseña incorrecta' };
-      }
-
-      return { success: true, user: data };
+      return {
+        success: true,
+        user: data.user,
+        revision: data.revision || 0,
+        snapshot: data.snapshot || null
+      };
     } catch (err) {
       return { success: false, error: err.message };
     }
@@ -119,12 +117,19 @@ export const staffAuthService = {
 
   async updatePassword(rut, newPassword) {
     if (!supabase) return { success: false, error: 'Supabase no disponible' };
-    const { data, error } = await supabase
-      .from('staff_users')
-      .update({ password_hash: newPassword, updated_at: new Date().toISOString() })
-      .or(`rut.eq.${rut},rut.ilike.${rut.replace(/\./g, '')}`);
-    if (error) return { success: false, error: error.message };
-    return { success: true, data };
+    const creds = this._getAdminCreds();
+    try {
+      const { data, error } = await supabase.rpc('aranpro_staff_manage', {
+        p_admin_rut: creds.rut || rut,
+        p_admin_password: creds.password || null,
+        p_op: 'update_password',
+        p_payload: { rut, newPassword }
+      });
+      if (error) return { success: false, error: error.message };
+      return { success: true, data };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   }
 };
 

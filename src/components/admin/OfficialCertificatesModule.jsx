@@ -4,6 +4,7 @@ import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
 import { certificateRegistry } from '../../services/supabase';
 import { newDocumentIdentity, verificationUrl, clause } from '../../services/documentRegistry';
+import { notificationService } from '../../services/notificationService';
 import { CommunityCertificate } from '../common/CommunityCertificate';
 import { CloudSyncButton } from '../common/CloudSyncButton';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
@@ -413,8 +414,16 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
     updateCertificateStatus(cert.id,'SOLICITADO',{...pending,status:'SOLICITADO'});
     try {
       const result=await certificateRegistry.issue(pending);
-      updateCertificateStatus(cert.id,result.status,{...pending,...result});
-      setPreviewCert({...pending,...result});
+      const issuedCert = {...pending,...result};
+      updateCertificateStatus(cert.id,result.status,issuedCert);
+      setPreviewCert(issuedCert);
+      const matchedUnit = (currentCommunity?.units || []).find(u => String(u.number) === String(issuedCert.unitNumber));
+      void notificationService.notifyUnitCertificateIssued({
+        community: currentCommunity,
+        unit: matchedUnit,
+        cert: issuedCert,
+        verifyUrl: verificationUrl(issuedCert)
+      });
     } catch(e) {
       if (e.code === '42501' || e.message === 'Emisor sin autorización') {
         showConfirm({
