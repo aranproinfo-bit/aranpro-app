@@ -1770,7 +1770,8 @@ export const CommunityProvider = ({ children }) => {
   // --- Certificados ---
   const requestCertificate = (certData) => {
     const newCert = {
-      id: certData.id || `cert-${Date.now()}`,
+      ...certData,
+      id: certData.id || crypto.randomUUID(),
       communityName: certData.communityName || 'Comunidad',
       applicantName: certData.applicantName || 'Solicitante',
       rut: certData.rut || '',
@@ -1987,6 +1988,7 @@ export const CommunityProvider = ({ children }) => {
   };
 
   const logout = () => {
+    void import('../services/supabase').then(({supabase}) => supabase.auth.signOut({scope:'local'}));
     setCurrentUser(null);
   };
 
@@ -2091,6 +2093,11 @@ export const CommunityProvider = ({ children }) => {
       updateCertificateStatus,
       deleteCertificate,
       setCompanySettings,
+      restoreCloudSnapshot: ({communities, companySettings, certificates}) => {
+        setCommunities(communities);
+        setCompanySettings(companySettings);
+        setCertificates(certificates);
+      },
       loginAdmin,
       loginResident,
       logout,
