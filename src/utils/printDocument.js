@@ -456,7 +456,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
       // Ignorar restricciones de origen cruzado si ocurrieran
     }
 
-    if (options.prepareDocument) {
+    if (options.prepareDocument || options.waitForAssets) {
       const job = iDoc.querySelector('.print-wrapper');
       const prepareAndPrint = async () => {
         try {
@@ -464,7 +464,7 @@ export const printDocumentDirectly = (elementOrId, documentTitle = 'Documento_Of
           await Promise.all(Array.from(iDoc.images, img => img.decode().catch(() => {})));
           await iDoc.fonts.ready;
           if (job !== iDoc.querySelector('.print-wrapper')) return;
-          options.prepareDocument(iDoc);
+          options.prepareDocument?.(iDoc);
           doc.focus();
           doc.print();
         } catch (error) {

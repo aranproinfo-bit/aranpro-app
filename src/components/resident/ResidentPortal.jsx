@@ -1,10 +1,10 @@
 import { PaymentReceipt } from '../common/AccountingPage';
 import IndividualExpenseBill from '../common/IndividualExpenseBill';
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatCLP, formatDate, getMonthName, cleanRut } from '../../utils/formatters';
-import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo, AranproOfficialSeal } from '../common/MauranLogo';
+import { CommunityCertificate, printCommunityCertificate } from '../common/CommunityCertificate';
+import { AranproLogo } from '../common/MauranLogo';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { 
   Building2, Home, User, CheckCircle2, AlertCircle, Eye, 
@@ -115,10 +115,11 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
   };
 
   // Certificados oficiales de esta unidad (con datos oficiales y soporte demostración)
-  const myCertificates = useMemo(() => {
-    let list = (certificates || []).filter(c => 
-      String(c.unitNumber) === String(unit.number) || 
-      (c.rut && unit.rut && cleanRut(c.rut) === cleanRut(unit.rut))
+  function getUnitCertificates() {
+    let list = (certificates || []).filter(c =>
+      (c.communityId ? c.communityId === community.id : c.communityName === community.name) &&
+      (String(c.unitNumber) === String(unit.number) ||
+        (c.rut && unit.rut && cleanRut(c.rut) === cleanRut(unit.rut)))
     );
     // Si estamos en demo y la unidad no tiene certificados aún, proveemos certificados listos para probar
     if (list.length === 0 && isDemoActive) {
@@ -162,7 +163,8 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
       ];
     }
     return list;
-  }, [certificates, unit, isDemoActive, displayCommunityName]);
+  }
+  const myCertificates = getUnitCertificates();
 
   // Compartir Colilla Oficial por WhatsApp o Web Share API
   const handleShareBill = () => {
@@ -1811,114 +1813,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
           <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#D4B895] p-5 sm:p-8 space-y-6">
             
-            <div 
-              id="resident-certificate-printable-doc"
-              className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 space-y-6 relative"
-            >
-              {/* Membrete oficial */}
-              <div className="flex items-center justify-between pb-4 border-b-2 border-[#0F3D2E] gap-4">
-                <div className="flex items-center space-x-3.5">
-                  <AranproLogo className="h-10 w-auto" />
-                  <div>
-                    <h3 className="text-base font-black text-slate-900">{displayCommunityName}</h3>
-                    <p className="text-[11px] text-slate-600 font-semibold">
-                      Administración Profesional • {companySettings?.administratorName || 'ARANPRO Gestión Integral'}
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      Especialista Constructor Civil • Ley N° 21.442 de Copropiedad
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-right shrink-0">
-                  <div className="px-3 py-1.5 bg-[#F5F4EF] rounded-xl border border-[#D4B895]/60">
-                    <span className="text-[9px] font-bold text-slate-500 uppercase block">Folio Oficial</span>
-                    <span className="text-xs font-black font-mono text-[#0F3D2E]">{activeResidentCert.folio}</span>
-                  </div>
-                  <span className="text-[9px] font-mono text-slate-400 block mt-1">
-                    Verif: <strong>{activeResidentCert.verificationCode || 'VRF-OK'}</strong>
-                  </span>
-                </div>
-              </div>
-
-              {/* Título del Certificado */}
-              <div className="text-center py-2 space-y-1">
-                <span className="text-[10px] font-black tracking-widest text-[#D4B895] uppercase">
-                  REPÚBLICA DE CHILE • LEY DE COPROPIEDAD INMOBILIARIA N° 21.442
-                </span>
-                <h2 className="text-lg sm:text-xl font-black text-[#0F3D2E] uppercase tracking-wide">
-                  {activeResidentCert.type}
-                </h2>
-                <div className="h-0.5 w-24 bg-[#D4B895] mx-auto rounded-full mt-1" />
-              </div>
-
-              {/* Cuerpo del Certificado */}
-              <div className="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-3.5 text-justify">
-                <p>
-                  El Administrador Titular de la copropiedad inmobiliaria <strong>{displayCommunityName}</strong>, 
-                  en virtud de las facultades legales conferidas por la Ley N° 21.442 y su Reglamento, 
-                  <strong> CERTIFICA:</strong>
-                </p>
-
-                <p>
-                  Que la unidad habitacional individualizada como <strong>Casa N° {activeResidentCert.unitNumber}</strong>, 
-                  cuyo propietario registrado en el Libro de Copropietarios es don(ña) <strong>{activeResidentCert.applicantName}</strong>, 
-                  RUT <strong>{activeResidentCert.rut || 'No informado'}</strong>,
-                  {activeResidentCert.type.includes('No Deuda') || activeResidentCert.type.includes('al Día') ? (
-                    <> se encuentra <strong>COMPLETAMENTE AL DÍA</strong> en el pago íntegro de los gastos comunes ordinarios, gastos comunes extraordinarios y fondos de reserva devengados hasta la fecha del presente instrumento, no registrando saldos adeudados pendientes de cobro.</>
-                  ) : activeResidentCert.type.includes('Residencia') ? (
-                    <> registra su domicilio y residencia efectiva comprobada en dicha unidad habitacional dentro del conjunto residencial <strong>{displayCommunityName}</strong>, conforme al registro de residentes establecido en el Art. 17° de la Ley N° 21.442.</>
-                  ) : (
-                    <> cuenta con registro regular y validado ante la administración del condominio con respecto a la finalidad requerida: <em>"{activeResidentCert.purpose || 'Trámites oficiales'}"</em>.</>
-                  )}
-                </p>
-
-                {activeResidentCert.notes && (
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 italic">
-                    Observaciones: {activeResidentCert.notes}
-                  </div>
-                )}
-
-                <p className="text-[11px] text-slate-500">
-                  Se extiende el presente certificado a petición de la parte interesada para los fines de: 
-                  <strong className="text-slate-700"> {activeResidentCert.purpose || 'Presentación oficial y trámites pertinentes'}</strong>.
-                </p>
-              </div>
-
-              {/* Cláusula de Vigencia y Fecha */}
-              <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200 flex flex-col sm:flex-row justify-between items-center text-xs text-emerald-950 gap-2">
-                <span>
-                  📅 <strong>Fecha de Emisión:</strong> {formatDate(activeResidentCert.date)}
-                </span>
-                <span className="font-bold">
-                  🛡️ <strong>Vigencia Legal:</strong> 30 días corridos a contar de su emisión
-                </span>
-              </div>
-
-              {/* Sello, Firma y Verificación Digital */}
-              <div className="pt-4 border-t border-slate-200 grid grid-cols-2 gap-4 items-center">
-                <div className="flex items-center space-x-3">
-                  <AranproOfficialSeal size="sm" variant="ap" />
-                  <div className="text-[10px] space-y-0.5">
-                    <span className="font-bold text-[#0F3D2E] block">Certificación Oficial ARANPRO</span>
-                    <span className="text-slate-500 block">Firma Electrónica Avanzada</span>
-                    <span className="text-emerald-700 font-mono font-bold block">✓ Documento Verificado</span>
-                  </div>
-                </div>
-
-                <div className="text-right space-y-0.5">
-                  <span className="text-xs font-bold text-slate-900 block">
-                    {companySettings?.adminName || companySettings?.administratorName || 'John Andrés Arancibia M.'}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block">
-                    Especialista Constructor Civil • Administrador de Condominios
-                  </span>
-                  <span className="text-[9px] text-[#0F3D2E] font-semibold block">
-                    {displayCommunityName}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <CommunityCertificate id="resident-certificate-printable-doc" cert={activeResidentCert} community={community} company={companySettings}/>
 
             {/* Botones de acción del Modal (no impresos) */}
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 no-print">
@@ -1928,7 +1823,7 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                   onClick={() => {
                     const commName = (displayCommunityName || 'Condominio').replace(/\s+/g, '_');
                     const folioClean = (activeResidentCert.folio || 'CERT').replace(/[^a-zA-Z0-9_-]/g, '_');
-                    printDocumentDirectly('resident-certificate-printable-doc', `Certificado_${folioClean}_Casa_${activeResidentCert.unitNumber}_${commName}`, { fitPage: true });
+                    printCommunityCertificate('resident-certificate-printable-doc', `Certificado_${folioClean}_Casa_${activeResidentCert.unitNumber}_${commName}`);
                   }}
                   className="px-4 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
                 >

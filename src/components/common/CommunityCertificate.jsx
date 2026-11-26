@@ -4,11 +4,30 @@ import { PortalCode } from './IndividualExpenseBill';
 import { formatCLP, formatDate } from '../../utils/formatters';
 import { verificationUrl } from '../../services/documentRegistry';
 import { CertificateBody } from './CertificateBody';
+import { printDocumentDirectly } from '../../utils/printDocument';
+
+export function printCommunityCertificate(id, filename) {
+  printDocumentDirectly(id, filename, {
+    pageSize: 'letter portrait',
+    margin: '8mm 10mm',
+    pdfStyle: 'neutral',
+    useBundledStyles: true,
+    waitForAssets: true,
+    extraStyles: `
+      @media print {
+        .community-certificate > div > header { display: grid !important; }
+        .community-certificate header, .community-certificate footer { break-inside: avoid; }
+        .community-certificate { max-width: none; }
+        .community-certificate > div { min-height: 262mm !important; }
+      }
+    `
+  });
+}
 
 export function CommunityCertificate({id, cert, community, company}) {
   const url = verificationUrl(cert);
   const noDebt = cert.type.includes('No Deuda');
-  return <article id={id} data-pdf-style="neutral" className="bg-white mx-auto max-w-3xl text-slate-900"
+  return <div id={id} data-pdf-style="neutral"><article className="community-certificate bg-white mx-auto max-w-3xl text-slate-900"
     style={{borderLeft:'5px solid #103f32',paddingLeft:3,fontFamily:'Arial, sans-serif',overflowWrap:'anywhere'}}>
     <div style={{borderLeft:'2px solid #bc965e',padding:'16px 20px',minHeight:'235mm',display:'flex',flexDirection:'column',gap:16}}>
       <header style={{display:'grid',gridTemplateColumns:'68px 1fr 68px',gap:8,alignItems:'center',background:'#103f32',color:'white',padding:'16px 12px',borderRadius:8,borderBottom:'3px solid #c5a272'}}>
@@ -37,5 +56,5 @@ export function CommunityCertificate({id, cert, community, company}) {
         <div style={{borderTop:'1px solid #b48e60',marginTop:13,paddingTop:8,display:'flex',justifyContent:'space-between'}}><span>Conoce ARANPRO · Gestión integral de comunidades</span><a href="https://aranpro.cl">Visita aranpro.cl</a></div>
       </footer>
     </div>
-  </article>;
+  </article></div>;
 }

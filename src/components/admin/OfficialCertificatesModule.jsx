@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
-import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
+import { downloadHtmlDocument } from '../../utils/printDocument';
 import { certificateRegistry } from '../../services/supabase';
 import { newDocumentIdentity, verificationUrl, clause } from '../../services/documentRegistry';
-import { CommunityCertificate } from '../common/CommunityCertificate';
+import { CommunityCertificate, printCommunityCertificate } from '../common/CommunityCertificate';
 import { CloudSyncButton } from '../common/CloudSyncButton';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
@@ -461,12 +461,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
     const commClean = (cert.communityName || currentCommunity?.name || 'Condominio').replace(/[^a-zA-Z0-9]/g, '_');
     const dateClean = (cert.date || new Date().toISOString().slice(0, 10)).replace(/[^0-9]/g, '');
     const filename = `ARANPRO_${typeClean}_Folio_${folioClean}_Casa_${unitClean}_${commClean}_${dateClean}`;
-    printDocumentDirectly('printable-official-certificate', filename, {
-      pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '8mm 10mm 8mm 10mm',
-      pdfStyle: 'neutral'
-    });
+    printCommunityCertificate('printable-official-certificate', filename);
   };
 
   // Exportar el registro a CSV para cuenta documentada

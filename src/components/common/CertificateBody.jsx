@@ -2,7 +2,7 @@ import React from 'react';
 import {formatRut,formatDate,formatCLP} from '../../utils/formatters';
 export function CertificateBody({previewCert,currentCommunity,companySettings}) {
  return (
-                <div className="text-justify text-xs md:text-sm text-slate-800 leading-relaxed space-y-4">
+                <div className="text-justify text-sm text-slate-800 leading-relaxed space-y-4">
                   <p>
                     La Administración de la Comunidad <strong>"{previewCert.communityName || currentCommunity?.name}"</strong>,
                     en uso de las atribuciones legales que le confieren los <strong>Artículos 17°, 20° y 36° de la Ley N° 21.442</strong> sobre
