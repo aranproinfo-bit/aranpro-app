@@ -968,7 +968,21 @@ export const CompanyEnterpriseHub = ({
           {/* Derecha: Estado en línea + Alertas + Iconos rápidos con pestaña flotante */}
           <div className="flex-1 flex items-center justify-end gap-2 shrink-0">
             <CloudSyncButton theme="dark" />
-            <NotificationCenterBell theme="dark" />
+            <NotificationCenterBell
+              theme="dark"
+              onNavigateNotification={(item) => {
+                if (!item?.communityId) return;
+                const target =
+                  item.category === 'pago'
+                    ? 'validar_pagos'
+                    : item.category === 'certificado'
+                    ? 'certificados'
+                    : item.category === 'reclamo'
+                    ? 'comunicados'
+                    : 'resumen';
+                onSelectCommunityToManage(item.communityId, target);
+              }}
+            />
 
             <div className="h-5 w-px bg-white/15 mx-0.5" />
 

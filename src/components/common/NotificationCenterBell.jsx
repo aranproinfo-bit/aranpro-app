@@ -22,7 +22,7 @@ function formatRelativeTime(iso) {
   return new Date(iso).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
 }
 
-export function NotificationCenterBell({ theme = 'dark', compact = false }) {
+export function NotificationCenterBell({ theme = 'dark', compact = false, onNavigateNotification }) {
   const {
     liveNotifications = [],
     unreadNotificationsCount = 0,
@@ -134,7 +134,15 @@ export function NotificationCenterBell({ theme = 'dark', compact = false }) {
                 return (
                   <div
                     key={item.id}
+                    onClick={() => {
+                      if (onNavigateNotification) {
+                        onNavigateNotification(item);
+                        setOpen(false);
+                      }
+                    }}
                     className={`p-3.5 flex items-start gap-3 transition-colors ${
+                      onNavigateNotification ? 'cursor-pointer hover:bg-slate-50' : ''
+                    } ${
                       item.isRead ? 'bg-white' : 'bg-emerald-50/40'
                     }`}
                   >

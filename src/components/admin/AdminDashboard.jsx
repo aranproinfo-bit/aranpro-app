@@ -160,9 +160,14 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
       setSelectedCommunityId(initialCommunityId);
     }
   }, [initialCommunityId]);
-  const [activeTab, setActiveTab] = useState(initialActiveTab || 'resumen'); // 'resumen' | 'unidades' | 'gastos' | 'emision' | 'comite' | 'asambleas' | 'comunicados' | 'certificados' | 'traspaso' | 'ajustes'
+  const [activeTab, setActiveTab] = useState(
+    initialActiveTab === 'validar_pagos' ? 'unidades' : (initialActiveTab || 'resumen')
+  );
   useEffect(() => {
-    if (initialActiveTab) {
+    if (initialActiveTab === 'validar_pagos') {
+      setActiveTab('unidades');
+      setUnitsSubTab('validar_pagos');
+    } else if (initialActiveTab) {
       setActiveTab(initialActiveTab);
     }
   }, [initialActiveTab]);
@@ -204,7 +209,9 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
   });
 
   // --- Sub-pestaña para Unidades y Registro Rápido de Pagos de Cartola ---
-  const [unitsSubTab, setUnitsSubTab] = useState('nomina'); // 'nomina' | 'validar_pagos' | 'registro_pagos'
+  const [unitsSubTab, setUnitsSubTab] = useState(
+    initialActiveTab === 'validar_pagos' ? 'validar_pagos' : 'nomina'
+  ); // 'nomina' | 'validar_pagos' | 'registro_pagos'
   const [traspasoSubTab, setTraspasoSubTab] = useState('traspaso_pauta'); // 'traspaso_pauta' | 'anual_pauta'
   const [showQuickBankPaymentModal, setShowQuickBankPaymentModal] = useState(false);
   const [quickPaySearchQuery, setQuickPaySearchQuery] = useState('');
@@ -4236,7 +4243,22 @@ _Administración ARANPRO_`;
           {/* Derecha: Estado en línea, Alertas, Iconos con pestaña flotante y Volver a Empresa */}
           <div className="flex-1 flex items-center justify-end gap-2 shrink-0">
             <CloudSyncButton theme="light" />
-            <NotificationCenterBell theme="light" />
+            <NotificationCenterBell
+              theme="light"
+              onNavigateNotification={(item) => {
+                if (item?.communityId && item.communityId !== selectedCommunityId) {
+                  setSelectedCommunityId(item.communityId);
+                }
+                if (item?.category === 'pago') {
+                  setActiveTab('unidades');
+                  setUnitsSubTab('validar_pagos');
+                } else if (item?.category === 'certificado') {
+                  setActiveTab('certificados');
+                } else if (item?.category === 'reclamo') {
+                  setActiveTab('comunicados');
+                }
+              }}
+            />
 
             <div className="h-5 w-px bg-slate-200 mx-0.5" />
 

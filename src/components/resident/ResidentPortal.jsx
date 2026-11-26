@@ -1739,11 +1739,43 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            setPaymentForm(prev => ({ ...prev, receiptImg: ev.target.result, fileName: file.name }));
-                          };
-                          reader.readAsDataURL(file);
+                          if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              const img = new Image();
+                              img.onload = () => {
+                                const maxSide = 1200;
+                                let { width, height } = img;
+                                if (width > maxSide || height > maxSide) {
+                                  if (width >= height) {
+                                    height = Math.round((height * maxSide) / width);
+                                    width = maxSide;
+                                  } else {
+                                    width = Math.round((width * maxSide) / height);
+                                    height = maxSide;
+                                  }
+                                }
+                                const canvas = document.createElement('canvas');
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, width, height);
+                                const compressed = canvas.toDataURL('image/jpeg', 0.76);
+                                setPaymentForm(prev => ({ ...prev, receiptImg: compressed, fileName: file.name }));
+                              };
+                              img.onerror = () => {
+                                setPaymentForm(prev => ({ ...prev, receiptImg: ev.target.result, fileName: file.name }));
+                              };
+                              img.src = ev.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                          } else {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setPaymentForm(prev => ({ ...prev, receiptImg: ev.target.result, fileName: file.name }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
                         }}
                       />
                     </label>
