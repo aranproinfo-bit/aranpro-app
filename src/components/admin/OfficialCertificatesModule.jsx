@@ -31,6 +31,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const issuing = React.useRef(false);
+  const cloudDialog = React.useRef(null);
 
   // Estados de modales
   const [showNewModal, setShowNewModal] = useState(false);
@@ -415,7 +416,17 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
       updateCertificateStatus(cert.id,result.status,{...pending,...result});
       setPreviewCert({...pending,...result});
     } catch(e) {
-      showAlert('Emisión pendiente', 'La solicitud está guardada en este equipo. Conecte su cuenta desde Nube ARANPRO y use Validar para reintentar. '+e.message);
+      if (e.code === '42501' || e.message === 'Emisor sin autorización') {
+        showConfirm({
+          title: 'Emisión pendiente',
+          message: 'La solicitud está guardada en este equipo. Conecte su cuenta autorizada y después pulse Validar en la solicitud.',
+          confirmText: 'Abrir Nube ARANPRO',
+          cancelText: 'Ahora no',
+          onConfirm: () => cloudDialog.current?.showModal()
+        });
+      } else {
+        showAlert('Emisión pendiente', 'La solicitud está guardada en este equipo. Puede reintentar con Validar. '+e.message);
+      }
     } finally { issuing.current=false; }
   }
 
@@ -518,7 +529,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <CloudSyncButton/>
+            <CloudSyncButton dialogRef={cloudDialog}/>
             <button
               onClick={handleExportCSV}
               className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 active:scale-95 transition-all"

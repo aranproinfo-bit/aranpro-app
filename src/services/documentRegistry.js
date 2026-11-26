@@ -32,7 +32,11 @@ export function clause(details, folio, date) {
 export function documentRegistry(client) {
   async function call(name, args) {
     const { data, error } = await client.rpc(name, args);
-    if (error) throw new Error(error.code === '42501' ? 'Conecte la cuenta autorizada desde Nube.' : error.message);
+    if (error) {
+      const failure = new Error(error.code === '42501' ? 'Conecte la cuenta autorizada desde Nube.' : error.message);
+      failure.code = error.code;
+      throw failure;
+    }
     return data;
   }
   return {
