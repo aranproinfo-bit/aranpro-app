@@ -137,6 +137,14 @@
   background-image: none !important;
 }
 
+/* Estilo neutral: documentos que ya dibujan su propio filete institucional interno (ej. CommunityCertificate) */
+[data-pdf-style="neutral"],
+[data-pdf-style="neutral"]#printable-official-certificate,
+[data-pdf-style="neutral"]#resident-certificate-printable-doc {
+  border-left: none !important;
+  background-image: none !important;
+}
+
 /* Reglas de Impresión y Exportación a PDF (Ley 21.442, Cartas, Colillas y Bitácoras) */
 @media print {
   @page {
