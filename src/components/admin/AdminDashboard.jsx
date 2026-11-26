@@ -4199,84 +4199,109 @@ _Administración ARANPRO_`;
       {/* COLUMNA DERECHA: BARRA SUPERIOR DEL SOFTWARE + ÁREA DE TRABAJO */}
       <div className="flex-1 min-w-0 flex flex-col">
         
-        {/* BARRA SUPERIOR EXCLUSIVA DEL SOFTWARE DE ADMINISTRACIÓN (Sin menú de la web pública) */}
-        <header className="hidden lg:flex sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E9EBE8] px-6 h-16 items-center justify-between gap-4 shadow-2xs">
+        {/* BARRA SUPERIOR EXCLUSIVA DEL SOFTWARE DE ADMINISTRACIÓN (Limpia y sin superposiciones) */}
+        <header className="hidden lg:flex sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#E9EBE8] px-6 h-16 items-center justify-between gap-6 shadow-2xs">
           
-          {/* Izquierda: Chip Distintivo de la Comunidad Activa (Sin texto redundante de pestaña) */}
-          <div className="flex items-center min-w-0">
+          {/* Izquierda: Chip Distintivo de la Comunidad Activa */}
+          <div className="flex-1 flex items-center min-w-0">
             {currentCommunity && (
-              <div className="flex items-center gap-2.5 px-3.5 py-1.5 bg-gradient-to-r from-[#0F3D2E] to-[#144736] text-white rounded-xl shadow-xs border border-[#D4B895]/40 transition-all shrink-0">
+              <div className="flex items-center gap-2.5 px-3.5 py-1.5 bg-gradient-to-r from-[#0F3D2E] to-[#144736] text-white rounded-xl shadow-xs border border-[#D4B895]/40 transition-all max-w-full min-w-0">
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                 </span>
                 <Building2 className="w-3.5 h-3.5 text-[#D4B895] shrink-0" />
-                <span className="text-xs font-black text-[#F5F4EF] tracking-wide whitespace-nowrap" title={currentCommunity.name}>
+                <span className="text-xs font-black text-[#F5F4EF] tracking-wide truncate" title={currentCommunity.name}>
                   {currentCommunity.name}
                 </span>
-                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#D4B895] text-[#0F3D2E] shrink-0 whitespace-nowrap">
+                <span className="hidden xl:inline-block text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#D4B895] text-[#0F3D2E] shrink-0 whitespace-nowrap">
                   {currentCommunity.totalUnits} {currentCommunity.type || 'Casas'}
                 </span>
-                <span className="text-[10px] font-bold text-[#D4B895] border-l border-white/20 pl-2 shrink-0 whitespace-nowrap">
+                <span className="hidden 2xl:inline-block text-[10px] font-bold text-[#D4B895] border-l border-white/20 pl-2 shrink-0 whitespace-nowrap">
                   Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Centro: Logo Oficial ARANPRO */}
+          {/* Centro: Logo Oficial ARANPRO libre de colisiones */}
           <div
             onClick={onBackToWeb}
-            className="cursor-pointer shrink-0 hover:opacity-90 transition-opacity"
+            className="cursor-pointer shrink-0 px-3 flex items-center justify-center hover:opacity-90 transition-opacity"
             title="Ir a la página principal de ARANPRO"
           >
             <AranproLogo variant="horizontal" size="sm" />
           </div>
 
-          {/* Derecha: Botón Panel Administrador / Sitio Web / Salir */}
-          <div className="flex items-center space-x-2 shrink-0">
-            <NotificationCenterBell theme="light" />
+          {/* Derecha: Estado en línea, Alertas, Iconos con pestaña flotante y Volver a Empresa */}
+          <div className="flex-1 flex items-center justify-end gap-2 shrink-0">
             <CloudSyncButton theme="light" />
+            <NotificationCenterBell theme="light" />
+
+            <div className="h-5 w-px bg-slate-200 mx-0.5" />
+
             <HelpHeaderButtons
               isOpen={helpOpen}
               onToggleHelp={() => setHelpOpen((v) => !v)}
               onOpenOnboardingTour={() => setOnboardingTourOpen(true)}
               theme="light"
+              iconOnly
             />
-            <PwaInstallButton variant="compact" label="Instalar App" />
+
             {onBackToWeb && (
-              <button
-                onClick={onBackToWeb}
-                className="px-3 py-1.5 text-xs font-bold text-[#4A4F4F] hover:text-[#0F3D2E] hover:bg-[#F5F4EF] rounded-xl transition-colors flex items-center"
-                title="Volver a la página web corporativa"
-              >
-                <Globe className="w-3.5 h-3.5 mr-1.5 text-[#0F3D2E]" />
-                Ver Web Pública
-              </button>
+              <div className="relative group inline-flex">
+                <button
+                  type="button"
+                  onClick={onBackToWeb}
+                  aria-label="Ir a Web aranpro.cl"
+                  className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[#0F3D2E] transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  <Globe className="w-4 h-4" />
+                </button>
+                <div className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 absolute right-0 top-full mt-2 w-48 rounded-xl bg-[#0A291F] text-white p-2.5 shadow-xl border border-[#D4B895]/50 z-50 text-left">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#D4B895] block">
+                    Web aranpro.cl
+                  </span>
+                  <p className="text-[11px] text-white/85 leading-snug font-normal mt-0.5">
+                    Abrir el sitio web comercial público de ARANPRO.
+                  </p>
+                </div>
+              </div>
             )}
 
             {onSwitchCommunityWorkspace && (
               <button
                 type="button"
                 onClick={onSwitchCommunityWorkspace}
-                className="px-3.5 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                className="h-9 px-3 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] text-xs font-black rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                 title="Volver al Panel Central de Mi Empresa Administradora"
               >
                 <Briefcase className="w-3.5 h-3.5 text-[#D4B895]" />
-                <span>Panel Mi Empresa</span>
+                <span>Mi Empresa</span>
               </button>
             )}
 
-            <button
-              onClick={() => {
-                logout();
-                if (onBackToWeb) onBackToWeb();
-              }}
-              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-              title="Cerrar sesión de Administrador"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="relative group inline-flex">
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  if (onBackToWeb) onBackToWeb();
+                }}
+                aria-label="Cerrar sesión de Administrador"
+                className="w-9 h-9 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-transparent hover:border-rose-200 transition-colors flex items-center justify-center cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+              <div className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 absolute right-0 top-full mt-2 w-44 rounded-xl bg-[#0A291F] text-white p-2.5 shadow-xl border border-rose-400/40 z-50 text-left">
+                <span className="text-[10px] font-black uppercase tracking-wider text-rose-300 block">
+                  Cerrar Sesión
+                </span>
+                <p className="text-[11px] text-white/85 leading-snug font-normal mt-0.5">
+                  Salir de tu cuenta de administrador.
+                </p>
+              </div>
+            </div>
           </div>
         </header>
 

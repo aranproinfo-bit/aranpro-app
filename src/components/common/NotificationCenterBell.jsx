@@ -54,26 +54,36 @@ export function NotificationCenterBell({ theme = 'dark', compact = false }) {
   const isDark = theme === 'dark';
 
   return (
-    <div className="relative inline-block" ref={panelRef}>
+    <div className="relative inline-flex group" ref={panelRef}>
       <button
         type="button"
         onClick={handleToggle}
         aria-label="Centro de Notificaciones en Línea"
-        title="Notificaciones y alertas en tiempo real"
-        className={`relative rounded-xl px-2.5 py-2 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+        className={`relative h-9 rounded-xl px-2.5 text-xs font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
           isDark
             ? 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
             : 'bg-[#F5F4EF] hover:bg-slate-200/70 text-[#0F3D2E] border border-[#D4B895]/60'
         }`}
       >
         <Bell className={`w-4 h-4 ${unreadNotificationsCount > 0 ? 'text-[#D4B895] animate-bounce' : ''}`} />
-        {!compact && <span className="hidden xl:inline">Alertas</span>}
+        {!compact && <span>Alertas</span>}
         {unreadNotificationsCount > 0 && (
           <span className="px-1.5 py-0.2 min-w-[18px] h-[18px] rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs">
             {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
           </span>
         )}
       </button>
+
+      {!open && (
+        <div className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 absolute right-0 top-full mt-2 w-56 rounded-xl bg-[#0A291F] text-white p-2.5 shadow-xl border border-[#D4B895]/50 z-50 text-left">
+          <span className="text-[10px] font-black uppercase tracking-wider text-[#D4B895] block">
+            Centro de Alertas
+          </span>
+          <p className="text-[11px] text-white/85 leading-snug font-normal mt-0.5">
+            Avisos instantáneos de pagos informados, reclamos y gestiones.
+          </p>
+        </div>
+      )}
 
       {open && (
         <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[92vw] bg-white rounded-2xl shadow-2xl border border-[#D4B895] z-50 overflow-hidden text-left">

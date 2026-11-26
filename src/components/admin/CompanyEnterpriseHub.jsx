@@ -3,7 +3,6 @@ import { useCommunity } from '../../context/CommunityContext';
 import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule';
 import { LegalLibraryModule } from './LegalLibraryModule';
 import { OfficePayrollAndStaffModule } from './OfficePayrollAndStaffModule';
-import { PwaInstallButton } from '../layout/PwaPrompt';
 import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPdfStyle } from '../common/MauranLogo';
 import { formatCLP } from '../../utils/formatters';
 import { printCommunityLabor } from '../../utils/communityLaborPrint';
@@ -945,14 +944,10 @@ export const CompanyEnterpriseHub = ({
 
       {/* COLUMNA DERECHA: BARRA SUPERIOR EJECUTIVA + ÁREA DE CONTENIDO */}
       <div className="flex-1 min-w-0 flex flex-col">
-        {/* BARRA SUPERIOR EJECUTIVA OSCURA CON ACENTOS DORADOS */}
-        <header className="hidden lg:flex sticky top-0 z-30 bg-[#0A291F] text-white border-b border-[#D4B895]/35 px-6 h-16 items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-center space-x-3 min-w-0">
-            <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-[#D4B895] text-[#0F3D2E] rounded-lg shrink-0 flex items-center gap-1.5 shadow-2xs">
-              <Briefcase className="w-3.5 h-3.5" />
-              Panel Mi Empresa
-            </span>
-            <span className="text-white/30">•</span>
+        {/* BARRA SUPERIOR EJECUTIVA OSCURA CON ACENTOS DORADOS (LIMPIA Y DESPEJADA) */}
+        <header className="hidden lg:flex sticky top-0 z-30 bg-[#0A291F] text-white border-b border-[#D4B895]/35 px-6 h-16 items-center justify-between gap-6 shadow-sm">
+          {/* Izquierda: Módulo activo e insignia RNAC (sin duplicar etiqueta de Panel Mi Empresa) */}
+          <div className="flex-1 flex items-center gap-3 min-w-0">
             <span className="text-sm font-black text-white truncate">
               {activeHubTabObj.label}
             </span>
@@ -961,54 +956,70 @@ export const CompanyEnterpriseHub = ({
             </span>
           </div>
 
+          {/* Centro: Logo ARANPRO centrado y libre de superposiciones */}
           <div
             onClick={onBackToWeb}
-            className="cursor-pointer shrink-0 hover:opacity-90 transition-opacity"
+            className="cursor-pointer shrink-0 px-3 flex items-center justify-center hover:opacity-90 transition-opacity"
             title="Ir al sitio web oficial aranpro.cl"
           >
-            <AranproLogo variant="horizontal" size="sm" theme="dark" />
+            <AranproLogo variant="horizontal" size="sm" theme="dark" style={{ height: '34px' }} />
           </div>
 
-          <div className="flex items-center space-x-2 shrink-0">
-            <NotificationCenterBell theme="dark" />
+          {/* Derecha: Estado en línea + Alertas + Iconos rápidos con pestaña flotante */}
+          <div className="flex-1 flex items-center justify-end gap-2 shrink-0">
             <CloudSyncButton theme="dark" />
+            <NotificationCenterBell theme="dark" />
+
+            <div className="h-5 w-px bg-white/15 mx-0.5" />
+
             <HelpHeaderButtons
               isOpen={helpOpen}
               onToggleHelp={() => setHelpOpen((v) => !v)}
               onOpenOnboardingTour={() => setOnboardingTourOpen(true)}
               theme="dark"
+              iconOnly
             />
-            <PwaInstallButton variant="compact" label="Instalar App" />
+
             {onBackToWeb && (
-              <button
-                type="button"
-                onClick={onBackToWeb}
-                className="px-3 py-1.5 text-xs font-bold text-white/85 hover:text-[#D4B895] hover:bg-white/10 rounded-xl transition-colors flex items-center cursor-pointer"
-                title="Volver a la página web corporativa aranpro.cl"
-              >
-                <Globe className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
-                Web aranpro.cl
-              </button>
+              <div className="relative group inline-flex">
+                <button
+                  type="button"
+                  onClick={onBackToWeb}
+                  aria-label="Ir a Web aranpro.cl"
+                  className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-[#D4B895] transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  <Globe className="w-4 h-4" />
+                </button>
+                <div className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 absolute right-0 top-full mt-2 w-48 rounded-xl bg-[#0A291F] text-white p-2.5 shadow-xl border border-[#D4B895]/50 z-50 text-left">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#D4B895] block">
+                    Web aranpro.cl
+                  </span>
+                  <p className="text-[11px] text-white/85 leading-snug font-normal mt-0.5">
+                    Abrir el sitio web comercial público de ARANPRO.
+                  </p>
+                </div>
+              </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => setShowNewCommunityModal(true)}
-              className="px-3.5 py-1.5 bg-[#D4B895] hover:bg-[#c8a982] text-[#0F3D2E] text-xs font-black rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Nueva Comunidad</span>
-            </button>
-
             {onLogout && (
-              <button
-                type="button"
-                onClick={onLogout}
-                className="p-2 text-white/70 hover:text-rose-300 hover:bg-rose-500/20 rounded-xl transition-colors cursor-pointer"
-                title="Cerrar sesión de Administrador"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <div className="relative group inline-flex">
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  aria-label="Cerrar sesión de Administrador"
+                  className="w-9 h-9 text-white/75 hover:text-rose-300 hover:bg-rose-500/20 rounded-xl border border-transparent hover:border-rose-400/30 transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+                <div className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 absolute right-0 top-full mt-2 w-44 rounded-xl bg-[#0A291F] text-white p-2.5 shadow-xl border border-rose-400/40 z-50 text-left">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-rose-300 block">
+                    Cerrar Sesión
+                  </span>
+                  <p className="text-[11px] text-white/85 leading-snug font-normal mt-0.5">
+                    Salir de tu cuenta de administrador.
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         </header>

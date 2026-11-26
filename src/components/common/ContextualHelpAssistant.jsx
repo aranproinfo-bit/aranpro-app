@@ -26,44 +26,72 @@ export function HelpHeaderButtons({
   onToggleHelp,
   onOpenOnboardingTour,
   theme = 'light', // 'dark' (cabecera verde oscura) | 'light' (cabecera blanca)
-  compact = false
+  compact = false,
+  iconOnly = false
 }) {
   const isDark = theme === 'dark';
+  const showOnlyIcons = iconOnly || compact;
 
   return (
     <div className="flex items-center gap-1.5 shrink-0">
-      <button
-        type="button"
-        onClick={onToggleHelp}
-        className={`relative rounded-xl font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
-          compact ? 'px-2.5 py-1.5' : 'px-3 py-1.5'
-        } ${
-          isOpen
-            ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-300/70'
-            : isDark
-            ? 'bg-amber-400/20 hover:bg-amber-400/35 text-amber-200 border border-amber-300/40'
-            : 'bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300'
-        }`}
-        title="Abrir guía contextual de este módulo (se actualiza sola al cambiar de pestaña)"
-      >
-        <Lightbulb className={`w-4 h-4 shrink-0 ${isOpen ? 'text-slate-950 fill-slate-950/15' : isDark ? 'text-amber-300' : 'text-amber-600'}`} />
-        {!compact && <span>Guía Módulo</span>}
-      </button>
-
-      {onOpenOnboardingTour && !compact && (
+      {/* Botón Guía del Módulo con pestaña flotante */}
+      <div className="relative group inline-flex">
         <button
           type="button"
-          onClick={onOpenOnboardingTour}
-          className={`px-2.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
-            isDark
-              ? 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
-              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+          onClick={onToggleHelp}
+          aria-label="Guía del módulo actual"
+          className={`relative rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+            showOnlyIcons ? 'w-9 h-9 p-0' : 'px-3 py-1.5'
+          } ${
+            isOpen
+              ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-300/70'
+              : isDark
+              ? 'bg-amber-400/15 hover:bg-amber-400/30 text-amber-200 border border-amber-300/35'
+              : 'bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300'
           }`}
-          title="Ver el Tutorial Interactivo de Inicio de ARANPRO"
         >
-          <GraduationCap className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-[#D4B895]' : 'text-[#0F3D2E]'}`} />
-          <span className="hidden xl:inline">Tour Inicio</span>
+          <Lightbulb className={`w-4 h-4 shrink-0 ${isOpen ? 'text-slate-950 fill-slate-950/15' : isDark ? 'text-amber-300' : 'text-amber-600'}`} />
+          {!showOnlyIcons && <span>Guía Módulo</span>}
         </button>
+
+        <div className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 absolute right-0 top-full mt-2 w-52 rounded-xl bg-[#0A291F] text-white p-2.5 shadow-xl border border-[#D4B895]/50 z-50 text-left">
+          <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 block">
+            Guía del Módulo
+          </span>
+          <p className="text-[11px] text-white/85 leading-snug font-normal mt-0.5">
+            Explicación paso a paso de la sección que estás viendo.
+          </p>
+        </div>
+      </div>
+
+      {/* Botón Tour de Inicio con pestaña flotante */}
+      {onOpenOnboardingTour && !compact && (
+        <div className="relative group inline-flex">
+          <button
+            type="button"
+            onClick={onOpenOnboardingTour}
+            aria-label="Tour interactivo de inicio"
+            className={`rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              showOnlyIcons ? 'w-9 h-9 p-0' : 'px-2.5 py-1.5'
+            } ${
+              isDark
+                ? 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+            }`}
+          >
+            <GraduationCap className={`w-4 h-4 shrink-0 ${isDark ? 'text-[#D4B895]' : 'text-[#0F3D2E]'}`} />
+            {!showOnlyIcons && <span className="hidden xl:inline">Tour Inicio</span>}
+          </button>
+
+          <div className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 absolute right-0 top-full mt-2 w-52 rounded-xl bg-[#0A291F] text-white p-2.5 shadow-xl border border-[#D4B895]/50 z-50 text-left">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#D4B895] block">
+              Tour de Inicio
+            </span>
+            <p className="text-[11px] text-white/85 leading-snug font-normal mt-0.5">
+              Recorrido guiado interactivo por las funciones principales.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

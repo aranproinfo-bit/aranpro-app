@@ -1,16 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Cloud, RefreshCw, ShieldCheck, Globe } from 'lucide-react';
-import { certificateRegistry, supabase } from '../../services/supabase';
+import { Cloud, RefreshCw, ShieldCheck } from 'lucide-react';
+import { supabase } from '../../services/supabase';
 import { useCommunity } from '../../context/CommunityContext';
-import { getStoredLiveRevision, setStoredLiveRevision } from '../../services/onlineSyncService';
+import { getStoredLiveRevision } from '../../services/onlineSyncService';
 
-export function CloudSyncButton({ theme = 'dark', compact = false, dialogRef }) {
+export function CloudSyncButton({ theme = 'dark', compact = false, dialogRef, hiddenIndicator = false }) {
   const {
-    communities,
-    companySettings,
-    certificates,
-    restoreCloudSnapshot,
     cloudSyncStatus = 'online',
     cloudRevision = 0,
     triggerImmediateCloudSync
@@ -24,9 +20,6 @@ export function CloudSyncButton({ theme = 'dark', compact = false, dialogRef }) 
   const [otpSent, setOtpSent] = useState(false);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
-  const [dedicatedDomains, setDedicatedDomains] = useState(() => {
-    try { return localStorage.getItem('aranpro_dedicated_subdomains') === 'true'; } catch { return false; }
-  });
 
   useEffect(() => {
     if (!supabase) return;
@@ -58,7 +51,7 @@ export function CloudSyncButton({ theme = 'dark', compact = false, dialogRef }) 
     });
     if (error) throw error;
     setOtpSent(true);
-    setNotice(`Enviamos un enlace y código de acceso a ${cleanEmail}. Puede abrir el enlace en este navegador o ingresar abajo el código numérico del correo.`);
+    setNotice(`Enviamos un código de verificación a ${cleanEmail}.`);
   }
 
   async function verifyCode(e) {
@@ -73,241 +66,162 @@ export function CloudSyncButton({ theme = 'dark', compact = false, dialogRef }) 
       if (error) throw error;
       setOtpCode('');
       setOtpSent(false);
-      setNotice('Cuenta verificada y autorizada para firma de certificados y nube.');
+      setNotice('Cuenta verificada para firma oficial.');
     });
   }
 
-  async function upload() {
-    if (triggerImmediateCloudSync) {
-      const ok = await triggerImmediateCloudSync();
-      if (ok) {
-        setNotice(`Sincronización en línea completada (Versión ${getStoredLiveRevision()}).`);
-        return;
-      }
-    }
-    const result = await certificateRegistry.saveBackup(0, { communities, companySettings, certificates });
-    setStoredLiveRevision(result.revision);
-    setNotice('Respaldo confirmado en la nube. Versión ' + result.revision + '.');
-  }
-
-  async function restore() {
-    const result = await certificateRegistry.loadBackup();
-    if (!result) throw new Error('Esta cuenta aún no tiene un respaldo.');
-    const snapshot = result.snapshot;
-    if (
-      !Array.isArray(snapshot?.communities) ||
-      !Array.isArray(snapshot.certificates) ||
-      !snapshot.companySettings ||
-      typeof snapshot.companySettings !== 'object' ||
-      Array.isArray(snapshot.companySettings)
-    ) {
-      throw new Error('El respaldo está incompleto.');
-    }
-    if (
-      !window.confirm(
-        '¿Restaurar la versión ' +
-          result.revision +
-          ', con ' +
-          snapshot.communities.length +
-          ' comunidades y ' +
-          snapshot.certificates.length +
-          ' certificados? Reemplazará los datos locales.'
-      )
-    ) {
-      return;
-    }
-    localStorage.setItem(
-      'aranpro-before-restore-' + (user?.id || 'admin'),
-      JSON.stringify({ communities, companySettings, certificates })
-    );
-    restoreCloudSnapshot(snapshot);
-    setStoredLiveRevision(result.revision);
-    setNotice('Respaldo restaurado en este equipo.');
-  }
-
-  const toggleSubdomains = (checked) => {
-    setDedicatedDomains(checked);
-    try {
-      localStorage.setItem('aranpro_dedicated_subdomains', checked ? 'true' : 'false');
-    } catch {
-      // ignore
-    }
-  };
-
   const isSyncing = cloudSyncStatus === 'syncing' || busy;
+  const isOffline = cloudSyncStatus === 'offline' || cloudSyncStatus === 'error';
+  const activeRevision = cloudRevision || getStoredLiveRevision() || 1;
+  const isDark = theme === 'dark';
 
   return (
-    <div className="relative inline-block">
-      <button
-        type="button"
-        onClick={() => dialog.current?.showModal()}
-        aria-haspopup="dialog"
-        className={
-          'rounded-xl px-2.5 py-2 text-xs font-bold flex gap-2 items-center cursor-pointer transition-colors ' +
-          (theme === 'dark'
-            ? 'bg-emerald-950 hover:bg-emerald-900 text-white border border-white/15'
-            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-200')
-        }
-        title="Estado de Sincronización en Línea y Firma Digital Supabase"
-      >
-        {isSyncing ? <RefreshCw size={15} className="animate-spin text-[#D4B895]" /> : <Cloud size={16} className="text-[#D4B895]" />}
-        <span>{compact ? 'Nube' : `Nube En Línea${cloudRevision ? ` · v${cloudRevision}` : ''}`}</span>
-        <span className={`w-2 h-2 rounded-full ${user ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-      </button>
-
-      {createPortal(
-        <dialog
-          ref={dialog}
-          aria-label="Nube ARANPRO"
-          className="m-auto w-[min(28rem,calc(100%-2rem))] max-w-[94vw] max-h-[90dvh] overflow-y-auto bg-white border border-slate-200 text-slate-800 rounded-2xl shadow-xl p-5 space-y-4 text-sm backdrop:bg-slate-900/50"
-        >
-          <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 block">
-                Supabase Cloud • Auto-Sync Activo
+    <div className={hiddenIndicator ? 'hidden' : 'relative inline-flex items-center group'}>
+      {!hiddenIndicator && (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              if (triggerImmediateCloudSync) void triggerImmediateCloudSync();
+            }}
+            aria-label="Estado de conexión en la nube"
+            className={`h-9 rounded-xl px-2.5 text-[11px] font-bold inline-flex items-center gap-2 transition-all cursor-default select-none ${
+              isDark
+                ? 'bg-emerald-950/80 text-emerald-100 border border-emerald-400/25 hover:border-emerald-400/45'
+                : 'bg-emerald-50/90 text-[#0F3D2E] border border-emerald-200 hover:border-emerald-300'
+            }`}
+          >
+            <span className="relative flex h-2 w-2 shrink-0">
+              {!isOffline && (
+                <span
+                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    isSyncing ? 'bg-amber-400' : 'bg-emerald-400'
+                  }`}
+                />
+              )}
+              <span
+                className={`relative inline-flex rounded-full h-2 w-2 ${
+                  isOffline ? 'bg-rose-500' : isSyncing ? 'bg-amber-400' : 'bg-emerald-400'
+                }`}
+              />
+            </span>
+            {isSyncing ? (
+              <RefreshCw className={`w-3.5 h-3.5 animate-spin ${isDark ? 'text-[#D4B895]' : 'text-[#0F3D2E]'}`} />
+            ) : (
+              <Cloud className={`w-3.5 h-3.5 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`} />
+            )}
+            {!compact && (
+              <span className="whitespace-nowrap">
+                {isOffline ? 'Sin Red' : isSyncing ? 'Sincronizando' : 'En Línea'}
               </span>
-              <h2 className="text-lg font-bold text-emerald-950">Nube y Firma ARANPRO</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => dialog.current?.close()}
-              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold hover:bg-slate-50 cursor-pointer"
-            >
-              Cerrar
-            </button>
-          </div>
+            )}
+          </button>
 
-          <div className="rounded-xl bg-emerald-50/70 border border-emerald-200 p-3 text-xs space-y-1">
-            <div className="font-bold text-emerald-950 flex items-center justify-between">
-              <span>Sincronización Multi-Dispositivo Automática</span>
-              <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-emerald-200">
-                Rev #{cloudRevision || getStoredLiveRevision() || 1}
+          {/* Pestaña flotante informativa al pasar el cursor */}
+          <div className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 absolute right-0 top-full mt-2 w-60 rounded-xl bg-[#0A291F] text-white p-2.5 shadow-xl border border-[#D4B895]/50 z-50 text-left">
+            <div className="flex items-center justify-between gap-2 mb-0.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300">
+                ● Nube ARANPRO Activa
+              </span>
+              <span className="text-[9.5px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-[#D4B895]">
+                Rev #{activeRevision}
               </span>
             </div>
-            <p className="text-slate-600 leading-relaxed">
-              Los gastos, avisos, pagos informados por residentes, multas y reclamos se sincronizan en línea automáticamente entre su computador y los celulares de la comunidad.
+            <p className="text-[11px] text-white/85 leading-snug font-normal">
+              Sincronización automática en tiempo real entre computadores y celulares de la comunidad.
             </p>
           </div>
+        </>
+      )}
 
-          {user ? (
-            <div className="space-y-2.5">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+      {/* Diálogo reservado únicamente cuando un módulo externo requiere invocar firma explícita */}
+      {dialogRef &&
+        createPortal(
+          <dialog
+            ref={dialog}
+            aria-label="Autorización de Firma Digital"
+            className="m-auto w-[min(26rem,calc(100%-2rem))] max-w-[94vw] bg-white border border-slate-200 text-slate-800 rounded-2xl shadow-xl p-5 space-y-4 text-sm backdrop:bg-slate-900/50"
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 block">
+                  Registro Oficial Supabase
+                </span>
+                <h2 className="text-base font-bold text-emerald-950">Autorización de Firma QR</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => dialog.current?.close()}
+                className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            {user ? (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5">
                 <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div className="min-w-0">
-                  <span className="text-[10px] font-bold uppercase text-emerald-700 block">Emisor Oficial Conectado</span>
+                  <span className="text-[10px] font-bold uppercase text-emerald-700 block">Emisor Conectado</span>
                   <p className="font-bold text-slate-900 truncate text-xs">{user.email}</p>
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <button
-                  disabled={busy}
-                  onClick={() => run(upload)}
-                  className="px-3 py-2.5 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-white text-xs font-bold cursor-pointer"
+            ) : (
+              <div className="space-y-3">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    run(connect);
+                  }}
+                  className="space-y-2.5"
                 >
-                  Forzar Respaldo Ahora
-                </button>
-                <button
-                  disabled={busy}
-                  onClick={() => run(restore)}
-                  className="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold cursor-pointer"
-                >
-                  Restaurar desde Nube
-                </button>
-              </div>
-
-              <button
-                disabled={busy}
-                onClick={() =>
-                  run(async () => {
-                    const { error } = await supabase.auth.signOut({ scope: 'local' });
-                    if (error) throw error;
-                  })
-                }
-                className="w-full text-center text-xs text-rose-600 hover:underline pt-1 cursor-pointer"
-              >
-                Desconectar sesión de firma ({user.email})
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  run(connect);
-                }}
-                className="space-y-3"
-              >
-                <label className="block text-xs font-bold text-slate-700">
-                  Correo autorizado para Firma de Certificados Oficiales QR
-                  <input
-                    type="email"
-                    autoComplete="email"
-                    required
-                    disabled={busy}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block mt-1 border border-slate-300 rounded-xl w-full p-2.5 text-sm font-normal"
-                  />
-                </label>
-                <button
-                  type="submit"
-                  disabled={busy}
-                  className="block w-full bg-[#0F3D2E] hover:bg-[#0A291F] text-white py-2.5 rounded-xl text-xs font-bold disabled:opacity-60 cursor-pointer"
-                >
-                  {busy ? 'Enviando acceso…' : 'Enviar Enlace / Código a mi Correo'}
-                </button>
-              </form>
-
-              {otpSent && (
-                <form onSubmit={verifyCode} className="pt-2 border-t border-slate-100 space-y-2">
                   <label className="block text-xs font-bold text-slate-700">
-                    ¿Recibió código numérico en su correo? Ingréselo aquí:
+                    Correo de firma autorizada
                     <input
-                      type="text"
-                      placeholder="Código de 6 u 8 dígitos"
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value)}
-                      className="block mt-1 border border-slate-300 rounded-xl w-full p-2 text-sm font-mono tracking-widest text-center"
+                      type="email"
+                      required
+                      disabled={busy}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="block mt-1 border border-slate-300 rounded-xl w-full p-2 text-sm font-normal"
                     />
                   </label>
                   <button
                     type="submit"
-                    disabled={busy || !otpCode.trim()}
-                    className="w-full py-2 bg-amber-100 hover:bg-amber-200 text-[#0F3D2E] font-bold text-xs rounded-xl cursor-pointer"
+                    disabled={busy}
+                    className="block w-full bg-[#0F3D2E] hover:bg-[#0A291F] text-white py-2 rounded-xl text-xs font-bold cursor-pointer"
                   >
-                    Verificar Código Directamente
+                    {busy ? 'Enviando…' : 'Enviar código de firma'}
                   </button>
                 </form>
-              )}
-            </div>
-          )}
 
-          {/* Configuración estratégica de subdominios separados */}
-          <div className="pt-3 border-t border-slate-200 space-y-2">
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={dedicatedDomains}
-                onChange={(e) => toggleSubdomains(e.target.checked)}
-                className="mt-0.5 rounded border-slate-300 text-[#0F3D2E]"
-              />
-              <span className="text-xs text-slate-700 leading-snug">
-                <strong className="text-slate-900 flex items-center gap-1">
-                  <Globe className="w-3.5 h-3.5 text-[#0F3D2E]" />
-                  Usar subdominios separados en colillas y QR nuevos
-                </strong>
-                Actívelo una vez agregados <code className="bg-slate-100 px-1 rounded">residentes.aranpro.cl</code> y <code className="bg-slate-100 px-1 rounded">admin.aranpro.cl</code> en Cloudflare Pages.
-              </span>
-            </label>
-          </div>
+                {otpSent && (
+                  <form onSubmit={verifyCode} className="pt-2 border-t border-slate-100 space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Código numérico recibido"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value)}
+                      className="block border border-slate-300 rounded-xl w-full p-2 text-sm font-mono text-center"
+                    />
+                    <button
+                      type="submit"
+                      disabled={busy || !otpCode.trim()}
+                      className="w-full py-2 bg-amber-100 hover:bg-amber-200 text-[#0F3D2E] font-bold text-xs rounded-xl cursor-pointer"
+                    >
+                      Confirmar Código
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
 
-          <p role="status" className="empty:hidden rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">
-            {busy ? 'Conectando con Supabase…' : notice}
-          </p>
-        </dialog>,
-        document.body
-      )}
+            <p role="status" className="empty:hidden rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">
+              {busy ? 'Conectando…' : notice}
+            </p>
+          </dialog>,
+          document.body
+        )}
     </div>
   );
 }

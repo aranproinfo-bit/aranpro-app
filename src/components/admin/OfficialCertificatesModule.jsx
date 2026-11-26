@@ -533,7 +533,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <CloudSyncButton dialogRef={cloudDialog}/>
+            <CloudSyncButton dialogRef={cloudDialog} hiddenIndicator />
             <button
               onClick={handleExportCSV}
               className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 active:scale-95 transition-all"
