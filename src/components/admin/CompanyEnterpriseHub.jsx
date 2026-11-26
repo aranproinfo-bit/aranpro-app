@@ -9,6 +9,8 @@ import { formatCLP } from '../../utils/formatters';
 import { printCommunityLabor } from '../../utils/communityLaborPrint';
 import { OfficePayrollPrint } from './OfficePayrollPrint';
 import LaborContractDraft from './LaborContractDraft';
+import { HelpHeaderButtons, ContextualHelpAssistant } from '../common/ContextualHelpAssistant';
+import { PlatformOnboardingTour, ONBOARDING_STORAGE_KEY } from '../common/PlatformOnboardingTour';
 import {
   Building2, Briefcase, Users, Award, ShieldCheck, ArrowRight, Plus,
   TrendingUp, Target, GraduationCap, Handshake, Wrench, FileText,
@@ -152,6 +154,14 @@ export const CompanyEnterpriseHub = ({
   const [empresaSubSection, setEmpresaSubSection] = useState('empresa'); // 'empresa' | 'acreditacion'
   const [postulacionSection, setPostulacionSection] = useState('flujo'); // 'flujo' | 'antecedentes' | 'material' | 'pipeline' | 'herramientas'
   const [officeSubTab, setOfficeSubTab] = useState('nomina');
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [onboardingTourOpen, setOnboardingTourOpen] = useState(() => {
+    try {
+      return !localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    } catch {
+      return false;
+    }
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [toolboxExpanded, setToolboxExpanded] = useState(true);
@@ -890,6 +900,12 @@ export const CompanyEnterpriseHub = ({
         </div>
 
         <div className="flex items-center space-x-1.5 shrink-0">
+          <HelpHeaderButtons
+            isOpen={helpOpen}
+            onToggleHelp={() => setHelpOpen((v) => !v)}
+            theme="dark"
+            compact
+          />
           <button
             type="button"
             onClick={() => setShowNewCommunityModal(true)}
@@ -952,6 +968,12 @@ export const CompanyEnterpriseHub = ({
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
+            <HelpHeaderButtons
+              isOpen={helpOpen}
+              onToggleHelp={() => setHelpOpen((v) => !v)}
+              onOpenOnboardingTour={() => setOnboardingTourOpen(true)}
+              theme="dark"
+            />
             <PwaInstallButton variant="compact" label="Instalar App" />
             {onBackToWeb && (
               <button
@@ -1507,6 +1529,34 @@ export const CompanyEnterpriseHub = ({
         onSaveWorker={saveOfficeContract}
         onClose={()=>setOfficeContractWorker(null)}
       />}
+
+      <ContextualHelpAssistant
+        isOpen={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        workspace="empresa"
+        activeTab={activeHubTab}
+        activeSubTab={
+          activeHubTab === 'empresa'
+            ? empresaSubSection
+            : activeHubTab === 'postulaciones'
+            ? postulacionSection
+            : activeHubTab === 'rrhh_oficina'
+            ? officeSubTab
+            : ''
+        }
+        onOpenOnboardingTour={() => setOnboardingTourOpen(true)}
+        onNavigateToModule={(tabKey) => setActiveHubTab(tabKey)}
+      />
+
+      <PlatformOnboardingTour
+        isOpen={onboardingTourOpen}
+        onClose={() => setOnboardingTourOpen(false)}
+        onOpenContextualHelp={() => setHelpOpen(true)}
+        onQuickAction={() => {
+          setActiveHubTab('empresa');
+          setEmpresaSubSection('empresa');
+        }}
+      />
     </div>
   );
 };

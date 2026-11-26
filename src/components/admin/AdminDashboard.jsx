@@ -15,6 +15,7 @@ import { AranproLogo, AranproOfficialSeal, AranproPdfStyleSelector, useAranproPd
 import { printDocumentDirectly as printFormalDocument } from '../../utils/printDocument';
 import { AssemblyQuorumModule } from './AssemblyQuorumModule';
 import { PreventiveMaintenanceModule } from './PreventiveMaintenanceModule';
+import { MajorWorksAndFundRecoveryModule } from './MajorWorksAndFundRecoveryModule';
 import { SuggestionsAndComplaintsModule } from './SuggestionsAndComplaintsModule';
 import { MuralAndComplaintsModule } from './MuralAndComplaintsModule';
 import { CommitteeMeetingsAndLogModule } from './CommitteeMeetingsAndLogModule';
@@ -23,6 +24,8 @@ import { CompanySettingsAndBackupModule } from './CompanySettingsAndBackupModule
 import { CommunitySettingsAndLegalTab } from './CommunitySettingsAndLegalTab';
 import { CommunityPayrollAndStaffModule } from './CommunityPayrollAndStaffModule';
 import CommunityHandoverAndAccountabilityModule from './CommunityHandoverAndAccountabilityModule';
+import { HelpHeaderButtons, ContextualHelpAssistant } from '../common/ContextualHelpAssistant';
+import { PlatformOnboardingTour, ONBOARDING_STORAGE_KEY } from '../common/PlatformOnboardingTour';
 import { ExpenseReportModal } from '../common/ExpenseReportModal';
 import { UnitAccountStatementView } from './UnitAccountStatementView';
 import { EmailDispatchTrackingModule } from './EmailDispatchTrackingModule';
@@ -35,7 +38,7 @@ import {
   Menu, ChevronLeft, ChevronRight, Home, BarChart3, LogOut, Globe, Upload, Store,
   Mail, Send, MoreVertical, Car, Package, BookOpen, ClipboardList, Filter, Dog, FileCheck,
   Search, Clock, FileSpreadsheet, ShieldAlert, Receipt, ShieldCheck, CheckSquare,
-  Briefcase, Phone, CreditCard, Landmark, Wrench, BadgeCheck, Sparkles,
+  Briefcase, Phone, CreditCard, Landmark, Wrench, BadgeCheck, Sparkles, Hammer,
   History, Calendar, FilePlus, ArrowUpDown, Palmtree, UserMinus,
   AlertTriangle, Zap, Droplets, Lock, Unlock, CalendarClock,
   TrendingUp, Calculator, CalendarRange, PieChart, Scale, RotateCcw,
@@ -165,6 +168,14 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
   useEffect(() => { setCollapsedTabs((prev) => (prev[activeTab] ? { ...prev, [activeTab]: false } : prev)); }, [activeTab]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [onboardingTourOpen, setOnboardingTourOpen] = useState(() => {
+    try {
+      return !localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    } catch {
+      return false;
+    }
+  });
   
   // Modales
   const [showNewCommModal, setShowNewCommModal] = useState(false);
@@ -3013,6 +3024,33 @@ _Administración ARANPRO_`;
                       {currentCommunity?.preventiveMaintenances?.length || 5}
                     </span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('gastos');
+                      setExpensesSubTab('cuotas_recuperacion');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'gastos' && expensesSubTab === 'cuotas_recuperacion'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Hammer className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'gastos' && expensesSubTab === 'cuotas_recuperacion' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">Obras & Cuotas Fondos</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'gastos' && expensesSubTab === 'cuotas_recuperacion'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      Cuotas
+                    </span>
+                  </button>
                 </div>
               )}
 
@@ -4106,6 +4144,12 @@ _Administración ARANPRO_`;
         </div>
 
         <div className="flex items-center space-x-1.5 shrink-0">
+          <HelpHeaderButtons
+            isOpen={helpOpen}
+            onToggleHelp={() => setHelpOpen((v) => !v)}
+            theme="dark"
+            compact
+          />
           <PwaInstallButton variant="compact" label="Instalar" />
           <button
             onClick={() => setShowCommitteeReportModal(true)}
@@ -4189,6 +4233,12 @@ _Administración ARANPRO_`;
 
           {/* Derecha: Botón Panel Administrador / Sitio Web / Salir */}
           <div className="flex items-center space-x-2 shrink-0">
+            <HelpHeaderButtons
+              isOpen={helpOpen}
+              onToggleHelp={() => setHelpOpen((v) => !v)}
+              onOpenOnboardingTour={() => setOnboardingTourOpen(true)}
+              theme="light"
+            />
             <PwaInstallButton variant="compact" label="Instalar App" />
             {onBackToWeb && (
               <button
@@ -6398,6 +6448,27 @@ _Administración ARANPRO_`;
                       </div>
                     </div>
                   )}
+
+                  {expensesSubTab === 'cuotas_recuperacion' && (
+                    <div className="flex items-center space-x-2.5">
+                      <div className="p-2 bg-[#0F3D2E]/10 text-[#0F3D2E] rounded-xl border border-[#0F3D2E]/20 shrink-0">
+                        <Hammer className="w-5 h-5 text-[#0F3D2E]" />
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h3 className="text-base font-black text-slate-900 tracking-tight">
+                            Trabajos Mayores & Recuperación de Fondos en Cuotas
+                          </h3>
+                          <span className="text-[9.5px] bg-[#0F3D2E]/10 text-[#0F3D2E] font-black px-2 py-0.5 rounded-full border border-[#0F3D2E]/20 uppercase">
+                            Ley N° 21.442 • Arts. 6° y 14°
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500">
+                          Obras financiadas desde fondos del condominio y recuperadas en cuotas mensuales prorrateadas
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Acciones contextuales de trabajo a la derecha */}
@@ -8001,6 +8072,8 @@ _Administración ARANPRO_`;
             </div>
           ) : expensesSubTab === 'mantenciones' ? (
             <PreventiveMaintenanceModule currentCommunity={currentCommunity} />
+          ) : expensesSubTab === 'cuotas_recuperacion' ? (
+            <MajorWorksAndFundRecoveryModule currentCommunity={currentCommunity} />
           ) : (
             /* VISTA SUB-PESTAÑA 4: PRESUPUESTO ANUAL & PLANIFICACIÓN CUOTA FIJA (LEY 21.442) */
             <div className="space-y-5 animate-fade-in">
@@ -12220,9 +12293,45 @@ _Administración ARANPRO_`;
                 </div>
               </div>
 
-              {newExpenseForm.fundSource !== 'fondo_reserva' && <label className="block text-sm font-semibold">Cuotas mensuales de cobro a las unidades
-                <input className="ml-2 w-20 rounded border p-1" type="number" required min="1" max={Math.max(1,Number(newExpenseForm.amount)||1)} step="1" value={newExpenseForm.billingInstallments ?? 1} onChange={e=>setNewExpenseForm({...newExpenseForm,billingInstallments:e.target.value})}/>
-                <small className="block text-slate-600">La primera cuota corresponde al período activo. Las siguientes se incluyen al emitir los próximos meses.</small></label>}
+              {newExpenseForm.fundSource !== 'fondo_reserva' ? (
+                <label className="block text-sm font-semibold">Cuotas mensuales de cobro a las unidades
+                  <input className="ml-2 w-20 rounded border p-1" type="number" required min="1" max={Math.max(1,Number(newExpenseForm.amount)||1)} step="1" value={newExpenseForm.billingInstallments ?? 1} onChange={e=>setNewExpenseForm({...newExpenseForm,billingInstallments:e.target.value})}/>
+                  <small className="block text-slate-600">La primera cuota corresponde al período activo. Las siguientes se incluyen al emitir los próximos meses.</small>
+                </label>
+              ) : (
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs space-y-2">
+                  <label className="flex items-center space-x-2 font-bold text-amber-900 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(newExpenseForm.isFundRecovery)}
+                      onChange={e => setNewExpenseForm({ ...newExpenseForm, isFundRecovery: e.target.checked, billingInstallments: e.target.checked ? (newExpenseForm.billingInstallments > 1 ? newExpenseForm.billingInstallments : 6) : 1, recoveryFund: 'fondo_reserva' })}
+                      className="rounded text-[#0F3D2E] focus:ring-[#0F3D2E]"
+                    />
+                    <span>Recuperar este gasto del Fondo de Reserva en cuotas mensuales a la comunidad</span>
+                  </label>
+                  {newExpenseForm.isFundRecovery && (
+                    <div className="pt-2 border-t border-amber-200/60 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-slate-700">Cantidad de cuotas de reposición:</span>
+                        <input
+                          className="w-20 rounded border p-1 bg-white text-xs font-bold"
+                          type="number"
+                          min="2"
+                          max="36"
+                          value={newExpenseForm.billingInstallments || 6}
+                          onChange={e => setNewExpenseForm({ ...newExpenseForm, billingInstallments: e.target.value })}
+                        />
+                        <span className="text-[11px] text-emerald-800 font-bold">
+                          {Number(newExpenseForm.amount) > 0 ? `${formatCLP(Math.round(Number(newExpenseForm.amount) / Math.max(1, Number(newExpenseForm.billingInstallments || 6))))} / mes` : ''}
+                        </span>
+                      </div>
+                      <small className="block text-slate-600">
+                        El contratista queda pagado desde el Fondo de Reserva y se creará una cuota mensual prorrateada en los gastos comunes para reponer el fondo.
+                      </small>
+                    </div>
+                  )}
+                </div>
+              )}
               {/previred|cotizaciones previsionales/i.test([newExpenseForm.provider,newExpenseForm.documentType].join(' ')) && newExpenseForm.receiptUrl && newExpenseForm.status === 'pagado' && <label className="block text-sm"><input type="checkbox" checked={!!newExpenseForm.pensionProofVerified} onChange={e=>setNewExpenseForm({...newExpenseForm,pensionProofVerified:e.target.checked})}/> Verifiqué que el comprobante adjunto acredita el pago previsional de este período.</label>}              {/* Estado de Pago y Detalles Bancarios */}
               <div className="p-3.5 bg-[#F5F4EF]/70 rounded-2xl border border-[#D4B895]/60 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -18164,6 +18273,43 @@ La administración de {currentCommunity.name} solicita revisar y regularizar el 
           </button>
         </div>
       )}
+
+      <ContextualHelpAssistant
+        isOpen={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        workspace="comunidad"
+        activeTab={activeTab}
+        activeSubTab={
+          activeTab === 'unidades'
+            ? unitsSubTab
+            : activeTab === 'gastos'
+            ? expensesSubTab
+            : activeTab === 'remuneraciones'
+            ? remuneracionesSubTab
+            : activeTab === 'emision'
+            ? emisionSubTab
+            : activeTab === 'comite'
+            ? comiteSubTab
+            : activeTab === 'asambleas'
+            ? asambleasSubTab
+            : activeTab === 'comunicados'
+            ? comunicadosSubTab
+            : activeTab === 'traspaso'
+            ? traspasoSubTab
+            : activeTab === 'ajustes'
+            ? companySubTab
+            : ''
+        }
+        communityName={currentCommunity?.name}
+        onOpenOnboardingTour={() => setOnboardingTourOpen(true)}
+        onNavigateToModule={(tabKey) => setActiveTab(tabKey)}
+      />
+
+      <PlatformOnboardingTour
+        isOpen={onboardingTourOpen}
+        onClose={() => setOnboardingTourOpen(false)}
+        onOpenContextualHelp={() => setHelpOpen(true)}
+      />
     </div>
   );
 };

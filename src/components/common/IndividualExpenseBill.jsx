@@ -40,9 +40,15 @@ export default function IndividualExpenseBill({ community, unit, fin, totals, co
   const rate = Number(unit.sharePercentage) || 0;
   const portion = amount => Math.round(amount * rate / 100);
   const groups = new Map();
-  for (const { expense, amount } of periodCharges(community)) {
-    if (expense.fundSource === 'fondo_reserva') continue;
-    const category = expense.category?.trim() || 'Gastos operacionales generales';
+  const majorWorksList = [];
+  for (const item of periodCharges(community)) {
+    const { expense, amount, index, count, isFundRecovery } = item;
+    if (expense.fundSource === 'fondo_reserva' && !isFundRecovery) continue;
+    let category = expense.category?.trim() || 'Gastos operacionales generales';
+    if (isFundRecovery) {
+      category = `Reposición Fondo Reserva: ${expense.recoveryProjectName || expense.description || 'Obra Mayor'} (Cuota ${index}/${count})`;
+      majorWorksList.push(item);
+    }
     groups.set(category, (groups.get(category) || 0) + amount);
   }
   const billingBase = totals.grandTotal - totals.reserveFundAmount;
@@ -79,6 +85,7 @@ export default function IndividualExpenseBill({ community, unit, fin, totals, co
       {!!fin.paidAmount && <Amount label="Abono registrado" value={-fin.paidAmount}/>}<Amount label={balanceLabel} value={balance} style="net"/></div>
       <div className="bank"><h2>Datos para transferir</h2><b>{bank.holderName || community.name}</b><p>{bank.bank || 'Banco sin informar'}<br/>{bank.accountType} · N.º {bank.accountNumber || 'Sin informar'}<br/>RUT · {bank.rut || community.rut || 'Sin informar'}</p><p className="small">Referencia de pago</p><b>{unitLabel} · {periodLabel}</b><p>{bank.email}</p></div></section>
       {fin.repactacionActive && <aside className="agreement"><b>Detalle del convenio</b><p>Deuda repactada: {formatCLP(fin.repactacionTotal)} · Cuotas pagadas: {fin.repactacionPaidInstallments} de {fin.repactacionTotalInstallments} ({formatCLP(fin.repactacionAlreadyPaidAmount)}).</p><p>Cuota de este período: {formatCLP(fin.repactedInstallment)} · Cuotas futuras: {formatCLP(Math.max(0,fin.repactacionRemainingBeforeThisMonth-fin.repactedInstallment))}.</p></aside>}
+      {majorWorksList.length > 0 && <aside className="agreement" style={{marginTop:'6px',borderColor:'#0F3D2E'}}><b>Reposición de Fondos por Trabajos Mayores</b>{majorWorksList.map(({expense,index,count,amount})=><p key={expense.id}>• <strong>{expense.recoveryProjectName || expense.description}</strong>: Inversión de {formatCLP(expense.amount)} cancelada inicialmente al proveedor con cargo a fondos y prorrateada en {count} cuotas mensuales. En este mes corresponde la <strong>Cuota {index} de {count}</strong> ({formatCLP(amount)} para la comunidad).</p>)}</aside>}
       <AccountingSignature company={company}/>
       <aside className="payment-guide"><div><h2>¿Ya transferiste? Informa tu pago</h2><ol><li>Escanea el QR o entra a <a href={url} target="_blank" rel="noreferrer">portaladministracion.aranpro.cl</a>. Inicia sesión y elige <b>Informar Pago</b>.</li><li>Indica el monto y la fecha de la transferencia. Puedes agregar el folio y un comentario.</li><li>Adjunta una foto, captura o PDF del comprobante y pulsa <b>Registrar Notificación de Pago</b>.</li></ol><p>La administración revisará la transferencia antes de emitir tu recibo.</p><ResidentInstallHint/></div><PortalCode url={url}/></aside>
       <footer className="foot"><span>{community.name}</span><span>Colilla de gasto común · {periodLabel}</span></footer></main>,body)}
