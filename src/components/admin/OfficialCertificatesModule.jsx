@@ -193,7 +193,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
         rut: u.rut,
         email: u.email,
         phone: u.phone,
-        aliquot: u.aliquot ?? '',
+        aliquot: u.aliquot ?? u.sharePercentage ?? '',
         currentCharge: fin.currentCharge || 0,
         previousDebt: fin.previousDebt || 0,
         extraCharge: fin.extraCharge || 0,
@@ -807,9 +807,21 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                         {formatDate(cert.date)}
                       </td>
 
-                      {/* Estado Financiero */}
+                      {/* Estado / Dato Certificado */}
                       <td className="px-5 py-4 text-center">
-                        {isDebtCert || (cert.debtAmount && cert.debtAmount > 0) ? (
+                        {cert.status === 'ANULADO' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                            Anulado
+                          </span>
+                        ) : cert.type.includes('Alícuota') ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200">
+                            Alícuota: {cert.aliquotPercent ? `${cert.aliquotPercent}%` : '—'}
+                          </span>
+                        ) : cert.type.includes('Residencia') || cert.type.includes('Comité') || cert.type.includes('Convivencia') ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                            Constancia Registral
+                          </span>
+                        ) : isDebtCert || (cert.debtAmount && cert.debtAmount > 0) ? (
                           <div className="space-y-0.5">
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                               <AlertTriangle className="w-3 h-3 text-rose-600" />
@@ -831,20 +843,22 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Propuesta 4: Copiar Cláusula Notarial */}
-                          <button
-                            onClick={() => handleCopyNotaryClause(cert)}
-                            className="p-1.5 bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-800 rounded-xl transition-all"
-                            title="Copiar Cláusula Notarial para la Escritura Pública"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
+                          {(cert.type.includes('No Deuda') || cert.type.includes('Estado de Deuda')) && cert.status === 'EMITIDO' && (
+                            <button
+                              onClick={() => handleCopyNotaryClause(cert)}
+                              className="p-1.5 bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-800 rounded-xl transition-all"
+                              title="Copiar Cláusula Notarial para la Escritura Pública"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                          )}
 
                           {/* Validar y emitir si está solicitado */}
-                          {cert.status !== 'EMITIDO' && (
+                          {cert.status === 'SOLICITADO' && (
                             <button
                               onClick={()=>register(cert)}
                               className="px-2.5 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1"
-                              title="Aprobar y Emitir Certificado"
+                              title="Aprobar y Emitir Certificado en Línea"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
                               Validar
@@ -855,34 +869,67 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                           <button
                             onClick={() => setPreviewCert(cert)}
                             className="p-1.5 bg-slate-100 hover:bg-[#0F3D2E] hover:text-white text-slate-700 rounded-xl transition-all"
-                            title="Vista Previa e Impresión Notarial PDF (Carta)"
+                            title="Vista Previa e Impresión Oficial PDF (Carta)"
                           >
                             <Printer className="w-4 h-4" />
                           </button>
 
                           {/* Enviar WhatsApp */}
-                          <button
-                            onClick={() => handleSendWhatsApp(cert)}
-                            className="p-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 rounded-xl transition-all"
-                            title="Enviar por WhatsApp al Solicitante"
-                          >
-                            <Send className="w-4 h-4" />
-                          </button>
+                          {cert.status !== 'ANULADO' && (
+                            <button
+                              onClick={() => handleSendWhatsApp(cert)}
+                              className="p-1.5 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 rounded-xl transition-all"
+                              title="Enviar por WhatsApp al Solicitante"
+                            >
+                              <Send className="w-4 h-4" />
+                            </button>
+                          )}
+
+                          {/* Anular certificado conservando trazabilidad en el historial */}
+                          {cert.status === 'EMITIDO' && cert.registered && (
+                            <button
+                              onClick={() => {
+                                showConfirm({
+                                  title: '¿Anular Certificado Emitido?',
+                                  message: `El certificado folio ${cert.folio} de ${cert.applicantName} quedará marcado como ANULADO y cualquier escaneo futuro de su código QR mostrará "Documento anulado".`,
+                                  type: 'danger',
+                                  confirmText: 'Sí, Anular Certificado',
+                                  cancelText: 'Cancelar',
+                                  onConfirm: async () => {
+                                    try {
+                                      await certificateRegistry.revoke(cert);
+                                      updateCertificateStatus(cert.id, 'ANULADO', { ...cert, status: 'ANULADO', revoked: true });
+                                    } catch (e) {
+                                      showAlert('No se pudo anular', e.message);
+                                    }
+                                  }
+                                });
+                              }}
+                              className="px-2 py-1 text-[10px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-600 hover:text-white rounded-xl border border-rose-200 transition-all"
+                              title="Anular validez del QR conservando registro histórico"
+                            >
+                              Anular
+                            </button>
+                          )}
 
                           {/* Eliminar (con modal corporativo ARANPRO) */}
                           <button
                             onClick={() => {
                               showConfirm({
-                                title: '¿Eliminar Certificado Oficial?',
-                                message: `¿Está seguro de eliminar del registro el certificado folio ${cert.folio || cert.id} emitido a don(a) ${cert.applicantName}?\n\nEsta acción es irreversible y quedará registrada en la bitácora de administración.`,
+                                title: '¿Eliminar Certificado del Listado?',
+                                message: `¿Está seguro de quitar del listado el certificado folio ${cert.folio || cert.id} de don(a) ${cert.applicantName}? Si estaba registrado en línea, también se revocará su QR.`,
                                 type: 'danger',
-                                confirmText: 'Sí, Eliminar Certificado',
+                                confirmText: 'Sí, Eliminar',
                                 cancelText: 'Conservar',
                                 onConfirm: async () => {
                                   try {
-                                    if(cert.registered || cert.registrationAttempted) await certificateRegistry.revoke(cert);
+                                    if ((cert.registered || cert.registrationAttempted) && cert.status !== 'ANULADO') {
+                                      await certificateRegistry.revoke(cert);
+                                    }
                                     deleteCertificate(cert.id);
-                                  } catch(e) {showAlert('No se pudo anular',e.message);}
+                                  } catch (e) {
+                                    showAlert('No se pudo eliminar', e.message);
+                                  }
                                 }
                               });
                             }}

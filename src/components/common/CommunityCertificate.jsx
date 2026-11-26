@@ -1,60 +1,983 @@
 import React from 'react';
-import { AranproLogo, AranproOfficialSeal } from './MauranLogo';
 import { PortalCode } from './IndividualExpenseBill';
-import { formatCLP, formatDate } from '../../utils/formatters';
+import { formatCLP, formatRut } from '../../utils/formatters';
 import { verificationUrl } from '../../services/documentRegistry';
-import { CertificateBody } from './CertificateBody';
 import { printDocumentDirectly } from '../../utils/printDocument';
+
+const MONTHS_LONG = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+];
+
+const MONTHS_SHORT = [
+  'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+  'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+];
+
+function parseIsoParts(dateStr) {
+  if (!dateStr) return null;
+  const clean = String(dateStr).slice(0, 10);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(clean);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const monthIdx = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  if (monthIdx < 0 || monthIdx > 11) return null;
+  return { year, monthIdx, day, dayPadded: match[3] };
+}
+
+function formatLongEsDate(dateStr) {
+  const parts = parseIsoParts(dateStr);
+  if (!parts) return dateStr || 'Sin fecha';
+  return `${parts.day} de ${MONTHS_LONG[parts.monthIdx]} de ${parts.year}`;
+}
+
+function formatShortEsDate(dateStr) {
+  const parts = parseIsoParts(dateStr);
+  if (!parts) return dateStr || 'Sin fecha';
+  return `${parts.dayPadded} ${MONTHS_SHORT[parts.monthIdx]} ${parts.year}`;
+}
+
+function formatAliquotDisplay(val) {
+  if (val === null || val === undefined || String(val).trim() === '') return 'Sin informar';
+  const num = Number(String(val).replace(',', '.'));
+  if (!Number.isFinite(num)) return `${val} %`;
+  return `${num.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} %`;
+}
+
+function getUnitPrefix(communityType) {
+  if (communityType === 'Edificio') return 'Depto.';
+  if (communityType === 'Locales Comerciales') return 'Local';
+  if (communityType === 'Mixto') return 'Unidad';
+  return 'Casa';
+}
+
+function resolveCertificateKind(typeStr = '') {
+  if (/Residencia/i.test(typeStr)) return 'residencia';
+  if (/No Deuda|al Día/i.test(typeStr)) return 'no_deuda';
+  if (/Estado de Deuda|Morosa/i.test(typeStr)) return 'deuda';
+  if (/Alícuota|Alicuota|Prorrateo/i.test(typeStr)) return 'alicuota';
+  if (/Mudanza|Salvoconducto/i.test(typeStr)) return 'mudanza';
+  if (/Comité|Comite/i.test(typeStr)) return 'comite';
+  if (/Convivencia|Infraccion/i.test(typeStr)) return 'convivencia';
+  return 'general';
+}
+
+function resolveHeaderTitle(kind, rawType) {
+  switch (kind) {
+    case 'residencia':
+      return 'CERTIFICADO DE RESIDENCIA';
+    case 'no_deuda':
+      return 'GASTOS COMUNES AL DÍA';
+    case 'deuda':
+      return 'CERTIFICADO DE ESTADO DE DEUDA';
+    case 'alicuota':
+      return 'CONSTANCIA DE ALÍCUOTA';
+    case 'mudanza':
+      return 'CONSTANCIA DE MUDANZA';
+    case 'comite':
+      return 'INTEGRANTE DEL COMITÉ';
+    case 'convivencia':
+      return 'BUENA CONVIVENCIA Y REGISTROS';
+    default:
+      return String(rawType || 'CERTIFICADO OFICIAL').toUpperCase();
+  }
+}
+
+function InfoBox({ title, rows }) {
+  return (
+    <div
+      style={{
+        background: '#eef5f0',
+        border: '1px solid #cce0d3',
+        borderRadius: 12,
+        padding: '14px 18px',
+        marginTop: 4,
+        marginBottom: 4
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          paddingBottom: 10,
+          borderBottom: '1px solid #d4e4da'
+        }}
+      >
+        <span
+          style={{
+            display: 'inline-block',
+            width: 4,
+            height: 15,
+            borderRadius: 3,
+            background: '#c59f6d',
+            flexShrink: 0
+          }}
+        />
+        <strong style={{ fontSize: 14.5, color: '#103f32', fontWeight: 800 }}>
+          {title}
+        </strong>
+      </div>
+
+      {rows.map((pair, rowIdx) => (
+        <div
+          key={rowIdx}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1.35fr 1fr',
+            gap: 16,
+            paddingTop: 10,
+            paddingBottom: rowIdx < rows.length - 1 ? 10 : 2,
+            borderBottom: rowIdx < rows.length - 1 ? '1px solid #d4e4da' : 'none'
+          }}
+        >
+          {pair.map(([label, value], colIdx) => (
+            <div key={colIdx}>
+              <div
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: '#526b5e',
+                  marginBottom: 3
+                }}
+              >
+                {label}
+              </div>
+              <div style={{ fontSize: 14.5, fontWeight: 800, color: '#103f32', lineHeight: 1.25 }}>
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function printCommunityCertificate(id, filename) {
   printDocumentDirectly(id, filename, {
     pageSize: 'letter portrait',
-    margin: '8mm 10mm',
+    margin: '7mm 9mm',
     pdfStyle: 'neutral',
     useBundledStyles: true,
     waitForAssets: true,
     extraStyles: `
       @media print {
-        .community-certificate > div > header { display: grid !important; }
-        .community-certificate header, .community-certificate footer { break-inside: avoid; }
-        .community-certificate { max-width: none; }
-        .community-certificate > div { min-height: 262mm !important; }
+        html, body { background: #ffffff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .community-certificate { max-width: none !important; width: 100% !important; box-shadow: none !important; }
+        .community-certificate-inner { min-height: 258mm !important; }
+        .community-certificate header, .community-certificate footer { break-inside: avoid !important; }
       }
     `
   });
 }
 
-export function CommunityCertificate({id, cert, community, company}) {
-  const url = verificationUrl(cert);
-  const noDebt = cert.type.includes('No Deuda');
-  return <div id={id} data-pdf-style="neutral"><article className="community-certificate bg-white mx-auto max-w-3xl text-slate-900"
-    style={{borderLeft:'5px solid #103f32',paddingLeft:3,fontFamily:'Arial, sans-serif',overflowWrap:'anywhere'}}>
-    <div style={{borderLeft:'2px solid #bc965e',padding:'16px 20px',minHeight:'235mm',display:'flex',flexDirection:'column',gap:16}}>
-      <header style={{display:'grid',gridTemplateColumns:'68px 1fr 68px',gap:8,alignItems:'center',background:'#103f32',color:'white',padding:'16px 12px',borderRadius:8,borderBottom:'3px solid #c5a272'}}>
-        <AranproLogo theme="dark" className="w-full h-auto"/>
-        <div className="text-center"><h1 style={{fontSize:20,fontWeight:800,lineHeight:1.15}}>{noDebt?'Certificado de gastos comunes al día':cert.type}</h1><p style={{color:'#ead7bd',fontSize:12,marginTop:5}}>{cert.communityName}</p></div>
-        {community?.documentLogo && <img src={community.documentLogo} alt="Logo de la comunidad" className="max-h-12 object-contain bg-white rounded p-1"/>}
-      </header>
-      <div style={{display:'grid',gridTemplateColumns:'1.5fr 1fr 1fr',gap:10,background:'#eef4ef',padding:12,fontSize:12}}>
-        <div>Folio<br/><b>{cert.folio}</b></div><div>Emisión<br/><b>{formatDate(cert.date)}</b></div><div>Válido hasta<br/><b>{cert.expiresAt?formatDate(cert.expiresAt):'Sin registro digital'}</b></div>
-      </div>
-      <div style={{background:'#f3f7f4',border:'1px solid #c6d8cc',padding:12,fontSize:14,lineHeight:1.6}}>
-        <b>Identificación de la unidad</b><p>{cert.applicantName} {cert.rut && '· RUT '+cert.rut}</p>
-        <p>Unidad {cert.unitNumber}{community?.address && ' · '+community.address}{community?.commune && ' · '+community.commune}</p>
-      </div>
-      {noDebt ? <section className="space-y-3 text-sm leading-relaxed"><h2 className="font-bold text-lg text-[#103f32]">La administración certifica</h2>
-        <p>De acuerdo con los registros de {cert.communityName}, la unidad {cert.unitNumber} presenta un saldo pendiente de <strong>{formatCLP(cert.debtAmount)}</strong> al {formatDate(cert.date)}.</p>
-        <h3 className="font-bold">Antecedentes revisados</h3><p>La revisión comprende los cargos, pagos y ajustes incorporados al estado de cuenta hasta la fecha de corte y el saldo pendiente de convenios registrados para la unidad.</p>
-        <h3 className="font-bold">Alcance del certificado</h3><p>Los cobros o pagos posteriores pueden modificar el saldo. El detalle de movimientos puede solicitarse a la administración.</p>
-        {cert.purpose && <p><b>Finalidad.</b> {cert.purpose}</p>}{cert.notes && <p>{cert.notes}</p>}
-      </section> : <CertificateBody previewCert={cert} currentCommunity={community} companySettings={company}/>}
-      <footer style={{marginTop:'auto',paddingTop:18,fontSize:11}}>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,alignItems:'end'}}>
-          {url ? <div className="flex items-center gap-2 bg-[#f1f6f2] p-2"><PortalCode url={url} label="Verificar este certificado"/><span><b>Verificación digital</b><br/>Escanee para comparar los datos y consultar la vigencia.</span></div> : <p>Sin verificación pública. Solicite una emisión registrada a la administración.</p>}
-          <div className="text-center"><div className="flex justify-center items-center gap-2"><AranproOfficialSeal showText size="sm"/>{company?.signatureDataUrl && <img src={company.signatureDataUrl} alt="Firma" className="w-16 max-h-12 object-contain"/>}</div><hr className="mt-2"/><b>{cert.issuedBy}</b><p>Administración de la comunidad</p></div>
+export function CommunityCertificate({ id, cert = {}, community = {}, company = {} }) {
+  const kind = resolveCertificateKind(cert.type);
+  const headerTitle = resolveHeaderTitle(kind, cert.type);
+  const isRevoked = cert.status === 'ANULADO' || cert.revoked === true;
+  const isRegistered = Boolean(cert.registered && !isRevoked);
+  const url = isRegistered ? verificationUrl(cert) : '';
+
+  const communityName = cert.communityName || community?.name || 'Comunidad';
+  const unitPrefix = getUnitPrefix(community?.type);
+  const rawUnit = String(cert.unitNumber || '').trim();
+  const matchedUnit = (community?.units || []).find((u) => String(u.number) === rawUnit);
+  const unitLabel = rawUnit
+    ? /^(casa|depto|departamento|unidad|local)/i.test(rawUnit)
+      ? rawUnit
+      : `${unitPrefix} ${rawUnit}${matchedUnit?.tower ? ` · ${matchedUnit.tower}` : ''}`
+    : 'Unidad sin informar';
+
+  const applicantName = cert.applicantName || matchedUnit?.owner || 'Titular no informado';
+  const formattedRut = cert.rut ? formatRut(cert.rut) : matchedUnit?.rut ? formatRut(matchedUnit.rut) : 'Sin informar';
+  const rawAddress = community?.address || '';
+  const communeName =
+    community?.commune ||
+    (community?.city ? String(community.city).split('/')[0].trim() : '') ||
+    'Sin informar';
+  const fullDomicile = [rawAddress, unitLabel].filter(Boolean).join(', ');
+
+  const issueDateLong = formatLongEsDate(cert.date);
+  const issueDateShort = formatShortEsDate(cert.date);
+  const expiresLabel = isRevoked
+    ? 'Documento anulado'
+    : isRegistered && cert.expiresAt
+    ? formatLongEsDate(cert.expiresAt)
+    : cert.status === 'SOLICITADO'
+    ? 'Solicitud pendiente'
+    : 'Sin registro digital';
+
+  const issuerName =
+    cert.issuedBy ||
+    company?.administratorName ||
+    company?.adminName ||
+    'Administración ARANPRO';
+  const signatureImg = company?.signatureDataUrl || company?.signature || company?.digitalSignature || '';
+
+  const debtAmount = Number(cert.debtAmount || 0);
+  const breakdown = cert.debtBreakdown || {};
+  const hasBreakdown =
+    Number(breakdown.currentCharge || 0) > 0 ||
+    Number(breakdown.previousDebt || 0) > 0 ||
+    Number(breakdown.extraCharge || 0) > 0 ||
+    Number(breakdown.repactedInstallment || 0) > 0;
+
+  const aliquotValue =
+    cert.aliquotPercent !== undefined && cert.aliquotPercent !== ''
+      ? cert.aliquotPercent
+      : matchedUnit?.aliquot ?? matchedUnit?.sharePercentage ?? '';
+
+  const hasConvenio = Boolean(matchedUnit?.repactacion?.active);
+  const committeeRole = matchedUnit?.committeeRole || 'Integrante';
+
+  return (
+    <div id={id} data-pdf-style="neutral">
+      <article
+        className="community-certificate bg-white mx-auto max-w-3xl text-slate-900"
+        style={{
+          borderLeft: '4.5px solid #103f32',
+          paddingLeft: 3,
+          fontFamily: "'Segoe UI', Arial, Helvetica, sans-serif",
+          overflowWrap: 'anywhere'
+        }}
+      >
+        <div
+          className="community-certificate-inner"
+          style={{
+            borderLeft: '1.5px solid #c59f6d',
+            padding: '14px 22px 12px 22px',
+            minHeight: '246mm',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            background: '#ffffff'
+          }}
+        >
+          {/* CABECERA VERDE OSCURA APROBADA: Logo Comunidad (Izq) · Título Centrado · Logo ARANPRO (Der) */}
+          <div>
+            <header
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '64px 1fr 126px',
+                gap: 12,
+                alignItems: 'center',
+                background: '#103f32',
+                color: '#ffffff',
+                padding: '14px 18px',
+                borderRadius: 10
+              }}
+            >
+              {/* Espacio para el Logo de la Comunidad a la izquierda */}
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 10,
+                  background: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 4,
+                  overflow: 'hidden',
+                  boxSizing: 'border-box'
+                }}
+              >
+                {community?.documentLogo ? (
+                  <img
+                    src={community.documentLogo}
+                    alt={`Logo ${communityName}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      color: '#476256',
+                      fontSize: 7.5,
+                      fontWeight: 700,
+                      lineHeight: 1.2,
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    Logo
+                    <br />
+                    Comunidad
+                  </div>
+                )}
+              </div>
+
+              {/* Título centrado y nombre de comunidad */}
+              <div style={{ textAlign: 'center', padding: '0 4px' }}>
+                <h1
+                  style={{
+                    margin: 0,
+                    fontSize: 19,
+                    fontWeight: 800,
+                    letterSpacing: '0.02em',
+                    lineHeight: 1.18,
+                    color: '#ffffff'
+                  }}
+                >
+                  {headerTitle}
+                </h1>
+                <p
+                  style={{
+                    margin: '5px 0 0 0',
+                    color: '#dfc39d',
+                    fontSize: 12,
+                    fontWeight: 600
+                  }}
+                >
+                  {communityName}
+                </p>
+              </div>
+
+              {/* Logo oficial ARANPRO sobre fondo oscuro a la derecha */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <img
+                  src="/brand/ARANPRO_logo_para_fondo_oscuro_trimmed.png"
+                  alt="ARANPRO Gestión Integral"
+                  style={{ height: 50, maxWidth: 124, width: 'auto', objectFit: 'contain' }}
+                />
+              </div>
+            </header>
+
+            {/* Línea dorada fina separada bajo la cabecera */}
+            <div style={{ borderBottom: '1.5px solid #c59f6d', marginTop: 6 }} />
+          </div>
+
+          {/* FRANJA DE METADATOS: Folio · Fecha de emisión · Vigencia */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.35fr 1fr 1fr',
+              gap: 12,
+              padding: '4px 2px 6px 2px'
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: '#5c7065', letterSpacing: '0.04em' }}>
+                Folio
+              </div>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#103f32', marginTop: 2 }}>
+                {cert.folio || 'SIN FOLIO'}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: '#5c7065', letterSpacing: '0.04em' }}>
+                Fecha de emisión
+              </div>
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: '#103f32', marginTop: 2 }}>
+                {issueDateLong}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: '#5c7065', letterSpacing: '0.04em' }}>
+                {kind === 'mudanza' ? 'Constancia válida hasta' : 'Válido hasta'}
+              </div>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: 800,
+                  color: isRevoked ? '#b91c1c' : isRegistered ? '#103f32' : '#92400e',
+                  marginTop: 2
+                }}
+              >
+                {expiresLabel}
+              </div>
+            </div>
+          </div>
+
+          {/* AVISO VISIBLE SI ES ANULADO, SOLICITUD PENDIENTE O HISTÓRICO SIN REGISTRO */}
+          {!isRegistered && (
+            <div
+              style={{
+                background: isRevoked ? '#fef2f2' : '#fffbeb',
+                border: `1px solid ${isRevoked ? '#fecaca' : '#fde68a'}`,
+                color: isRevoked ? '#991b1b' : '#92400e',
+                borderRadius: 8,
+                padding: '7px 12px',
+                fontSize: 11,
+                fontWeight: 700
+              }}
+            >
+              {isRevoked
+                ? 'DOCUMENTO ANULADO: Este certificado fue revocado por la administración y carece de validez.'
+                : cert.status === 'SOLICITADO'
+                ? 'SOLICITUD PENDIENTE DE EMISIÓN: Borrador preliminar aún no firmado ni registrado en línea.'
+                : 'DOCUMENTO HISTÓRICO O DE DEMOSTRACIÓN: Copia emitida sin registro público digital en línea.'}
+            </div>
+          )}
+
+          {/* ==================== CUERPO SEGÚN TIPO DE CERTIFICADO ==================== */}
+
+          {/* 1. CERTIFICADO DE RESIDENCIA (Fiel a certificado_residencia_muestra.pdf, sin cláusula financiera) */}
+          {kind === 'residencia' && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, lineHeight: 1.58, color: '#1e293b' }}>
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 800, color: '#103f32', margin: '0 0 6px 0' }}>
+                  La administración certifica
+                </h2>
+                <p style={{ margin: 0 }}>
+                  Según el registro de {communityName}, <strong>{applicantName}</strong> figura como residente de la{' '}
+                  <strong>{unitLabel}</strong> al {issueDateLong}. Se extiende este certificado a solicitud del titular para su
+                  presentación ante{' '}
+                  {cert.purpose && cert.purpose !== 'Trámite Notarial / Bancario'
+                    ? cert.purpose
+                    : 'la entidad que requiere constancia de su domicilio'}
+                  .
+                </p>
+              </div>
+
+              <InfoBox
+                title="Identificación y domicilio registrado"
+                rows={[
+                  [
+                    ['Titular', applicantName],
+                    ['RUT', formattedRut]
+                  ],
+                  [
+                    ['Domicilio registrado', fullDomicile || unitLabel],
+                    ['Comuna', communeName]
+                  ]
+                ]}
+              />
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Fundamento de la constancia
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  La administración mantiene el registro de copropietarios, arrendatarios y demás ocupantes conforme al artículo 9,
+                  inciso quinto, numeral 6, de la Ley N° 21.442. Los artículos 5 y 6 de su reglamento regulan la incorporación de las
+                  personas y los antecedentes que permiten identificarlas y vincularlas con su unidad.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Vigencia y actualización
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  Esta constancia refleja la información registrada al momento de su emisión y tiene una vigencia de 30 días. Si cambia de
+                  domicilio o advierte un error en sus datos, el titular puede solicitar a la administración que actualice el registro y
+                  emita un nuevo certificado.
+                </p>
+              </div>
+            </section>
+          )}
+
+          {/* 2. GASTOS COMUNES AL DÍA (Fiel a certificado_gastos_al_dia_actualizado.png) */}
+          {kind === 'no_deuda' && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, lineHeight: 1.58, color: '#1e293b' }}>
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 800, color: '#103f32', margin: '0 0 6px 0' }}>
+                  La administración certifica
+                </h2>
+                <p style={{ margin: 0 }}>
+                  De acuerdo con los registros de la administración, la unidad <strong>{unitLabel}</strong> de{' '}
+                  <strong>{communityName}</strong>, asociada a <strong>{applicantName}</strong>
+                  {formattedRut !== 'Sin informar' ? ` (RUT ${formattedRut})` : ''}, presenta un saldo pendiente de{' '}
+                  <strong>{formatCLP(debtAmount)}</strong> al {issueDateLong}, considerando los cargos y pagos registrados hasta esa fecha.
+                </p>
+              </div>
+
+              <InfoBox
+                title="Estado de cuenta de la unidad"
+                rows={[
+                  [
+                    ['Unidad y titular', `${unitLabel} · ${applicantName}`],
+                    ['Saldo pendiente', formatCLP(debtAmount)]
+                  ],
+                  [
+                    ['Fecha de corte', issueDateLong],
+                    ['Convenio', hasConvenio ? 'Convenio registrado al día' : 'Sin convenio registrado']
+                  ]
+                ]}
+              />
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Antecedentes revisados
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  La revisión considera los cargos ordinarios, extraordinarios, fondo de reserva, pagos y ajustes incorporados al estado
+                  de cuenta de la unidad hasta la fecha de corte.{' '}
+                  {hasConvenio
+                    ? 'Se verificó el estado de cumplimiento de las cuotas vencidas del convenio registrado.'
+                    : 'No registra convenio de pago pendiente a la fecha de emisión.'}
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Alcance del certificado
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  El certificado refleja la información disponible a la fecha de corte y tiene una vigencia de 30 días. Los cargos y pagos
+                  posteriores pueden modificar el estado de la cuenta.
+                  {cert.purpose ? ` Extendido para ser presentado ante: ${cert.purpose}.` : ''}
+                </p>
+              </div>
+            </section>
+          )}
+
+          {/* 3. CERTIFICADO DE ESTADO DE DEUDA (Fiel a certificado_deuda_detallado.png) */}
+          {kind === 'deuda' && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 11, fontSize: 12.8, lineHeight: 1.52, color: '#1e293b' }}>
+              {rawAddress && (
+                <div style={{ fontSize: 11.5, color: '#4b6358' }}>
+                  Domicilio de la comunidad: {rawAddress}{communeName !== 'Sin informar' ? `, ${communeName}` : ''}
+                </div>
+              )}
+
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 800, color: '#103f32', margin: '0 0 6px 0' }}>
+                  La administración certifica
+                </h2>
+                <p style={{ margin: 0 }}>
+                  De acuerdo con los registros de la administración, la unidad <strong>{unitLabel}</strong>, asociada a{' '}
+                  <strong>{applicantName}</strong>, presenta un saldo pendiente exigible de{' '}
+                  <strong style={{ color: '#991b1b' }}>{formatCLP(debtAmount)}</strong> a la fecha de corte ({issueDateLong}). El detalle
+                  permite identificar los cargos que componen dicho saldo conforme a los artículos 20° y 36° de la Ley N° 21.442.
+                </p>
+              </div>
+
+              <div style={{ fontSize: 11.5, color: '#526b5e', borderBottom: '1px solid #d4e4da', paddingBottom: 6 }}>
+                RUT titular: <strong>{formattedRut}</strong> · Fecha de corte: <strong>{issueDateLong}</strong>
+              </div>
+
+              <div style={{ background: '#f8faf9', border: '1px solid #d4e4da', borderRadius: 10, padding: '12px 16px' }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: '#103f32', marginBottom: 8 }}>
+                  Detalle del saldo registrado
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <tbody>
+                    {hasBreakdown ? (
+                      <>
+                        <tr>
+                          <td style={{ padding: '4px 0', color: '#475569' }}>Cuota del período</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: 700 }}>{formatCLP(breakdown.currentCharge || 0)}</td>
+                        </tr>
+                        {Number(breakdown.extraCharge || 0) > 0 && (
+                          <tr>
+                            <td style={{ padding: '4px 0', color: '#475569' }}>Cargos individuales / multas</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: 700 }}>{formatCLP(breakdown.extraCharge)}</td>
+                          </tr>
+                        )}
+                        {Number(breakdown.previousDebt || 0) > 0 && (
+                          <tr>
+                            <td style={{ padding: '4px 0', color: '#475569' }}>Saldo anterior fuera de convenio</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: 700 }}>{formatCLP(breakdown.previousDebt)}</td>
+                          </tr>
+                        )}
+                        {Number(breakdown.repactedInstallment || 0) > 0 && (
+                          <tr>
+                            <td style={{ padding: '4px 0', color: '#475569' }}>Cuota exigible de convenio</td>
+                            <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: 700 }}>{formatCLP(breakdown.repactedInstallment)}</td>
+                          </tr>
+                        )}
+                      </>
+                    ) : (
+                      <tr>
+                        <td style={{ padding: '4px 0', color: '#475569' }}>Gastos comunes y cargos devengados acumulados</td>
+                        <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: 700 }}>{formatCLP(debtAmount)}</td>
+                      </tr>
+                    )}
+                    <tr style={{ borderTop: '1.5px solid #cbd5e1' }}>
+                      <td style={{ paddingTop: 7, fontWeight: 800, color: '#103f32' }}>TOTAL PENDIENTE</td>
+                      <td style={{ paddingTop: 7, textAlign: 'right', fontWeight: 800, color: '#991b1b', fontSize: 13.5 }}>
+                        {formatCLP(debtAmount)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ fontSize: 11.8, color: '#334155' }}>
+                <strong style={{ color: '#103f32' }}>Alcance legal (Art. 36° Ley N° 21.442):</strong> La obligación del propietario por los
+                gastos comunes sigue siempre al dominio de su unidad. En caso de compraventa o transferencia, corresponde retener o pagar
+                el saldo certificado para liberar de responsabilidad solidaria al adquirente. Vigencia: 30 días.
+              </div>
+            </section>
+          )}
+
+          {/* 4. CONSTANCIA DE ALÍCUOTA (Fiel a certificado_alicuota_muestra.png) */}
+          {kind === 'alicuota' && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, lineHeight: 1.58, color: '#1e293b' }}>
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 800, color: '#103f32', margin: '0 0 6px 0' }}>
+                  La administración certifica
+                </h2>
+                <p style={{ margin: 0 }}>
+                  La administración deja constancia de que, según el reglamento de copropiedad y los registros vigentes de{' '}
+                  <strong>{communityName}</strong>, a la unidad <strong>{unitLabel}</strong> (titular: <strong>{applicantName}</strong>
+                  {formattedRut !== 'Sin informar' ? `, RUT ${formattedRut}` : ''}) le corresponde el porcentaje de prorrateo indicado a
+                  continuación.
+                </p>
+              </div>
+
+              <InfoBox
+                title="Datos de la unidad"
+                rows={[
+                  [
+                    ['Unidad', unitLabel],
+                    ['Gasto ordinario (Alícuota)', formatAliquotDisplay(aliquotValue)]
+                  ],
+                  [
+                    ['Antecedente', 'Reglamento de copropiedad'],
+                    ['Fecha de revisión', issueDateShort]
+                  ]
+                ]}
+              />
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Antecedentes utilizados
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  Porcentaje verificado conforme al cuadro de alícuotas del reglamento de copropiedad aplicable a {communityName} y al
+                  registro administrativo vigente de unidades (Artículos 3° y 13° de la Ley N° 21.442).
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Uso de esta constancia
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  El porcentaje informado rige para el prorrateo de gastos comunes ordinarios y ponderación de voto en asambleas según la
+                  ley y el reglamento. El dominio del inmueble se acredita con las inscripciones del Conservador de Bienes Raíces.
+                </p>
+              </div>
+            </section>
+          )}
+
+          {/* 5. CONSTANCIA DE MUDANZA (Fiel a constancia_mudanza_muestra.png) */}
+          {kind === 'mudanza' && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, lineHeight: 1.58, color: '#1e293b' }}>
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 800, color: '#103f32', margin: '0 0 6px 0' }}>
+                  Coordinación con la comunidad
+                </h2>
+                <p style={{ margin: 0 }}>
+                  A solicitud de <strong>{applicantName}</strong>
+                  {formattedRut !== 'Sin informar' ? ` (RUT ${formattedRut})` : ''}, la administración de{' '}
+                  <strong>{communityName}</strong> deja constancia de la autorización y coordinación para el traslado de bienes muebles
+                  correspondiente a la <strong>{unitLabel}</strong>
+                  {rawAddress ? `, ubicada en ${rawAddress}, ${communeName}` : ''}.
+                </p>
+              </div>
+
+              <InfoBox
+                title="Datos de la mudanza programada"
+                rows={[
+                  [
+                    ['Solicitante', applicantName],
+                    ['Unidad autorizada', unitLabel]
+                  ],
+                  [
+                    ['Fecha de emisión', issueDateLong],
+                    ['Horario reglamentario', 'Lun–Vie 09:00 a 18:00 h · Sáb 09:00 a 14:00 h']
+                  ]
+                ]}
+              />
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  El día de la mudanza
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  Al llegar, presente este documento en portería o conserjería para autorizar el acceso de carga. Mantenga despejadas las
+                  vías de circulación y resguarde ascensores, portones y espacios comunes conforme al reglamento interno.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Declaración para el cambio de domicilio
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  Esta constancia acredita la coordinación interna con la comunidad. Cuando la ley exija declaración jurada de mudanza
+                  (DFL N° 216 de 1931 / Ley N° 20.227), corresponde al interesado tramitarla ante notario o Registro Civil competente.
+                </p>
+              </div>
+            </section>
+          )}
+
+          {/* 6. INTEGRANTE DEL COMITÉ (Fiel a certificado_comite_muestra.png) */}
+          {kind === 'comite' && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, lineHeight: 1.58, color: '#1e293b' }}>
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 800, color: '#103f32', margin: '0 0 6px 0' }}>
+                  La administración certifica
+                </h2>
+                <p style={{ margin: 0 }}>
+                  La administración deja constancia de que <strong>{applicantName}</strong> figura como integrante activo del Comité de
+                  Administración de <strong>{communityName}</strong>, según los acuerdos y antecedentes vigentes a la fecha de emisión.
+                </p>
+              </div>
+
+              <InfoBox
+                title="Datos de la designación"
+                rows={[
+                  [
+                    ['Integrante', applicantName],
+                    ['RUT', formattedRut]
+                  ],
+                  [
+                    ['Unidad asociada', unitLabel],
+                    ['Cargo registrado', committeeRole]
+                  ]
+                ]}
+              />
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Antecedentes de respaldo
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  Designación registrada conforme al artículo 17° de la Ley N° 21.442 y al libro de actas de asamblea de copropietarios de
+                  la comunidad, revisado por la administración al {issueDateLong}.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Presentación del documento
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  Se extiende a solicitud de la persona interesada para los fines de representación e información que correspondan. Las
+                  facultades bancarias o especiales se rigen por las actas reducidas a escritura pública pertinentes.
+                </p>
+              </div>
+            </section>
+          )}
+
+          {/* 7. BUENA CONVIVENCIA / REGISTRO DE INFRACCIONES (Fiel a certificado_convivencia_muestra.png) */}
+          {(kind === 'convivencia' || kind === 'general') && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, lineHeight: 1.58, color: '#1e293b' }}>
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 800, color: '#103f32', margin: '0 0 6px 0' }}>
+                  La administración certifica
+                </h2>
+                <p style={{ margin: 0 }}>
+                  La administración deja constancia de que, revisados los libros y registros internos para la{' '}
+                  <strong>{unitLabel}</strong> de <strong>{communityName}</strong> (asociada a <strong>{applicantName}</strong>), no
+                  figuran infracciones ni sanciones reglamentarias pendientes a la fecha indicada a continuación.
+                </p>
+              </div>
+
+              <InfoBox
+                title="Consulta de registros"
+                rows={[
+                  [
+                    ['Unidad', unitLabel],
+                    ['Resultado', 'Sin infracciones vigentes']
+                  ],
+                  [
+                    ['Titular / Solicitante', `${applicantName}${formattedRut !== 'Sin informar' ? ` · ${formattedRut}` : ''}`],
+                    ['Fecha de revisión', issueDateShort]
+                  ]
+                ]}
+              />
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Alcance de la revisión
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  La consulta comprende el registro de sanciones, reclamos formales y observaciones de convivencia disponibles en la
+                  administración al {issueDateLong}.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Finalidad de la constancia
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.3 }}>
+                  Se extiende a solicitud de la parte interesada para presentar ante{' '}
+                  {cert.purpose || 'quien corresponda'}, con una vigencia de 30 días desde su fecha de emisión.
+                </p>
+              </div>
+            </section>
+          )}
+
+          {cert.notes && (
+            <div
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                padding: '7px 12px',
+                fontSize: 11.5,
+                color: '#334155'
+              }}
+            >
+              <strong>Observación registrada:</strong> {cert.notes}
+            </div>
+          )}
+
+          {/* PIE OFICIAL AL FINAL DE LA PÁGINA: QR DE VERIFICACIÓN + SELLO COMPLETO Y FIRMA + BARRA ARANPRO.CL */}
+          <footer style={{ marginTop: 'auto', paddingTop: 12 }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1.05fr 1fr',
+                gap: 20,
+                alignItems: 'end'
+              }}
+            >
+              {/* Bloque Izquierdo: Verificación Digital con QR */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  background: '#f1f5f2',
+                  border: '1px solid #d7e4db',
+                  borderRadius: 12,
+                  padding: '10px 12px'
+                }}
+              >
+                <div
+                  style={{
+                    width: 82,
+                    height: 82,
+                    borderRadius: 8,
+                    background: '#ffffff',
+                    border: '1px solid #9db7a8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    overflow: 'hidden'
+                  }}
+                >
+                  {url ? (
+                    <PortalCode url={url} label="Verificar autenticidad de este certificado" />
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: 4, color: '#5c7065', fontSize: 9, fontWeight: 800, lineHeight: 1.25 }}>
+                      QR
+                      <br />
+                      <span style={{ fontSize: 7.5, fontWeight: 600 }}>
+                        {isRevoked ? 'ANULADO' : cert.status === 'SOLICITADO' ? 'PENDIENTE' : 'SIN REGISTRO'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ fontSize: 10.5, lineHeight: 1.38, color: '#1e293b' }}>
+                  <div style={{ fontWeight: 800, fontSize: 11, color: '#103f32', textTransform: 'uppercase', marginBottom: 2 }}>
+                    Verificación digital
+                  </div>
+                  {url ? (
+                    <>
+                      <div>Escanee el QR para contrastar los datos impresos y consultar su vigencia.</div>
+                      <div style={{ fontSize: 9.5, color: '#5c7065', marginTop: 4, fontFamily: 'monospace' }}>
+                        Código: {String(cert.verificationCode || '').slice(0, 10)}…
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        {isRevoked
+                          ? 'Certificado revocado. Sin validez ante terceros.'
+                          : cert.status === 'SOLICITADO'
+                          ? 'Solicitud en revisión. Se activará al emitir.'
+                          : 'Copia histórica sin verificación pública activa.'}
+                      </div>
+                      <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 3 }}>
+                        Código: no verificable
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Bloque Derecho: Sello Oficial Completo + Firma Configurada + Línea de Administración */}
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                    paddingBottom: 6
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <img
+                      src="/brand/ARANPRO_sello_circular_integral_transparente.png"
+                      alt="Sello Oficial ARANPRO"
+                      style={{ width: 44, height: 44, objectFit: 'contain', flexShrink: 0 }}
+                    />
+                    <div style={{ lineHeight: 1.25 }}>
+                      <div style={{ fontSize: 9.5, fontWeight: 800, color: '#103f32', textTransform: 'uppercase' }}>
+                        Sello Oficial de Administración
+                      </div>
+                      <div style={{ fontSize: 8.8, color: '#526b5e' }}>
+                        Ley N° 21.442 de Copropiedad Inmobiliaria
+                      </div>
+                    </div>
+                  </div>
+
+                  {signatureImg && (
+                    <img
+                      src={signatureImg}
+                      alt="Firma de la administración"
+                      style={{ maxHeight: 44, maxWidth: 115, width: 'auto', objectFit: 'contain' }}
+                    />
+                  )}
+                </div>
+
+                <div style={{ borderTop: '1.5px solid #1e293b', paddingTop: 5, textAlign: 'center' }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#103f32' }}>{issuerName}</div>
+                  <div style={{ fontSize: 10, color: '#526b5e' }}>Administración de la comunidad</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pie Institucional Conoce ARANPRO */}
+            <div
+              style={{
+                borderTop: '1px solid #c59f6d',
+                marginTop: 12,
+                paddingTop: 7,
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
+                gap: 12
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#103f32', textTransform: 'uppercase' }}>
+                  Conoce ARANPRO
+                </div>
+                <div style={{ fontSize: 9.5, color: '#526b5e' }}>
+                  Gestión integral para comunidades y condominios
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <a
+                  href="https://aranpro.cl"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontSize: 10.5, fontWeight: 800, color: '#103f32', textDecoration: 'none' }}
+                >
+                  Visita aranpro.cl →
+                </a>
+                <div style={{ fontSize: 9, color: '#526b5e' }}>Administración ARANPRO</div>
+              </div>
+            </div>
+          </footer>
         </div>
-        <div style={{borderTop:'1px solid #b48e60',marginTop:13,paddingTop:8,display:'flex',justifyContent:'space-between'}}><span>Conoce ARANPRO · Gestión integral de comunidades</span><a href="https://aranpro.cl">Visita aranpro.cl</a></div>
-      </footer>
+      </article>
     </div>
-  </article></div>;
+  );
 }
