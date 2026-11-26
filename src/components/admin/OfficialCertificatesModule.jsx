@@ -426,13 +426,10 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
       });
     } catch(e) {
       if (e.code === '42501' || e.message === 'Emisor sin autorización') {
-        showConfirm({
-          title: 'Emisión pendiente',
-          message: 'La solicitud está guardada en este equipo. Conecte su cuenta autorizada y después pulse Validar en la solicitud.',
-          confirmText: 'Abrir Nube ARANPRO',
-          cancelText: 'Ahora no',
-          onConfirm: () => cloudDialog.current?.showModal()
-        });
+        showAlert(
+          'Sesión de firma requerida',
+          'La solicitud quedó guardada. Cierre sesión y vuelva a ingresar con su RUT y clave de Administrador para firmar en línea, luego pulse Validar.'
+        );
       } else {
         showAlert('Emisión pendiente', 'La solicitud está guardada en este equipo. Puede reintentar con Validar. '+e.message);
       }
