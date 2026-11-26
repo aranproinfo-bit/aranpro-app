@@ -178,8 +178,6 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
   // Auditoría financiera de unidades de la comunidad actual
   const financialAuditMap = useMemo(() => {
     if (!currentCommunity?.units) return {};
-    const totalUnitsCount = currentCommunity.units.length || 1;
-    const defaultAliquot = (100 / totalUnitsCount).toFixed(3);
     const map = {};
     currentCommunity.units.forEach(u => {
       const fin = getUnitFinancials ? getUnitFinancials(u) : { pendingDebt: 0, isFullyPaid: true };
@@ -191,11 +189,13 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
         rut: u.rut,
         email: u.email,
         phone: u.phone,
-        aliquot: u.aliquot || defaultAliquot,
+        aliquot: u.aliquot ?? '',
         currentCharge: fin.currentCharge || 0,
         previousDebt: fin.previousDebt || 0,
         extraCharge: fin.extraCharge || 0,
-        repactedInstallment: fin.repactedInstallment || 0
+        repactedInstallment: fin.repactedInstallment || 0,
+        repactacionActive: fin.repactacionActive,
+        repactacionRemaining: fin.repactacionRemainingAfterThisMonth
       };
     });
     return map;
@@ -265,7 +265,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
         rut: audit.rut || prev.rut,
         email: audit.email || prev.email,
         phone: audit.phone || prev.phone,
-        aliquotPercent: audit.aliquot || '6.250',
+        aliquotPercent: audit.aliquot,
         type: prev.type === 'Certificado de Gastos Comunes al Día (No Deuda)' && audit.pendingDebt > 0 ? defaultType : prev.type,
         debtAmount: audit.pendingDebt || 0,
         retentionAmount: audit.pendingDebt || 0,
@@ -293,8 +293,21 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
       return;
     }
 
+    if (formData.type.includes('Alícuota') && String(formData.aliquotPercent).trim() === '') {
+      showAlert('Falta la alícuota', 'Ingrese el porcentaje respaldado por los antecedentes de la comunidad antes de emitir el certificado.');
+      return;
+    }
+
     const audit = financialAuditMap[formData.unitNumber];
     const debtAmount = audit ? audit.pendingDebt : formData.debtAmount || 0;
+
+    if (formData.type.includes('No Deuda') && audit?.repactacionActive && audit.repactacionRemaining > 0) {
+      showAlert(
+        'Convenio con saldo pendiente',
+        'La unidad mantiene cuotas futuras en un convenio. Revise el estado del convenio antes de emitir una constancia de ausencia total de deuda.'
+      );
+      return;
+    }
 
     // Validación preventiva si intenta emitir "No Deuda" para una unidad con deuda
     if (formData.type.includes('No Deuda') && debtAmount > 0) {
@@ -354,7 +367,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
       verificationCode,
       debtAmount: certDataToSave.debtAmount || 0,
       retentionAmount: certDataToSave.retentionAmount || certDataToSave.debtAmount || 0,
-      aliquotPercent: certDataToSave.aliquotPercent || '6.250',
+      aliquotPercent: certDataToSave.aliquotPercent ?? '',
       debtBreakdown: certDataToSave.debtBreakdown,
       notes: certDataToSave.notes.trim(),
       issuedBy: `${companySettings?.adminName || 'Administración ARANPRO'} (RNAC N° ${companySettings?.rnacNumber || '48.912'})`
@@ -411,7 +424,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
     }
 
     if (cert.type.includes('Alícuota') || cert.type.includes('Copropiedad')) {
-      const aliquot = cert.aliquotPercent || (100 / (currentCommunity?.units?.length || 16)).toFixed(3);
+      const aliquot = cert.aliquotPercent ?? '';
       return `CONSTANCIA DE COPROPIEDAD Y ALÍCUOTA REGISTRAL (ART. 3° LEY 21.442):\n` +
         `Se inserta en la presente minuta el Certificado Oficial de Copropiedad y Alícuota Folio N° ${folio}, expedido por la Administración de "${communityName}", en que se acredita que la Casa/Departamento N° ${unit} goza de un porcentaje de prorrateo sobre los bienes comunes equivalente al ${aliquot}% y derecho de voto proporcional en asambleas ordinarias y extraordinarias conforme a la Ley N° 21.442.`;
     }
@@ -1457,7 +1470,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                         <div className="bg-white p-3 rounded-lg border border-slate-200 grid grid-cols-2 gap-2 text-xs">
                           <div>
                             <span className="text-[10px] uppercase text-slate-400 block font-bold">Porcentaje de Alícuota / Prorrateo</span>
-                            <span className="text-sm font-black text-[#0F3D2E] font-mono">{previewCert.aliquotPercent || '6.250'}%</span>
+                            <span className="text-sm font-black text-[#0F3D2E] font-mono">{previewCert.aliquotPercent !== '' && previewCert.aliquotPercent != null ? `${previewCert.aliquotPercent}%` : 'No informado'}</span>
                           </div>
                           <div>
                             <span className="text-[10px] uppercase text-slate-400 block font-bold">Destino del Inmueble</span>
@@ -1469,7 +1482,7 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                           </div>
                           <div>
                             <span className="text-[10px] uppercase text-slate-400 block font-bold">Ponderación en Asambleas (Art. 15°)</span>
-                            <span className="font-bold text-slate-800">{previewCert.aliquotPercent || '6.250'}% de derecho a voto</span>
+                            <span className="font-bold text-slate-800">{previewCert.aliquotPercent !== '' && previewCert.aliquotPercent != null ? `${previewCert.aliquotPercent}% de derecho a voto` : 'Porcentaje no informado'}</span>
                           </div>
                         </div>
                       </div>
