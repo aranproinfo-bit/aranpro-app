@@ -3,7 +3,6 @@ import { vaultGet } from '../../utils/fileVault';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { buildFineNotice } from '../../utils/communityNotice';
 import { SuggestionsAndComplaintsModule } from './SuggestionsAndComplaintsModule';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
 import { useEconomicIndicators } from '../../hooks/useEconomicIndicators';
@@ -56,7 +55,6 @@ export const MuralAndComplaintsModule = ({
   const [showNewAnnModal, setShowNewAnnModal] = useState(false);
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [showFineModal, setShowFineModal] = useState(false);
-  const [fineNoticeStyle, setFineNoticeStyle] = useState('b1');
   const indicators = useEconomicIndicators(showFineModal);
   const [activeDocPreview, setActiveDocPreview] = useState(null);
 
@@ -99,15 +97,14 @@ export const MuralAndComplaintsModule = ({
 
   // Formulario Aplicación de Multa (Propuesta 5)
   const [fineForm, setFineForm] = useState({
-    unitId: '',
-    reason: '',
-    reglamentoArticle: '',
+    unitId: 'u-8',
+    reason: 'Ruidos molestos y música a alto volumen fuera del horario reglamentario',
+    reglamentoArticle: 'Art. 18° y 24° del Reglamento de Copropiedad',
     amountClp: '',
     ufEquivalent: 'Monto por definir',
     ufDate: '',
     ufValue: null,
-    resolutionFolio: '',
-    incidentDate: '',
+    resolutionFolio: 'SANC-2026-01',
     notifyWhatsApp: true
   });
   const fineUfOutdated = !!fineForm.ufDate && (!indicators.ufCurrent || fineForm.ufDate !== indicators.today || fineForm.ufValue !== indicators.data?.uf?.value);
@@ -452,47 +449,148 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       ? `${targetUnit.extraChargeDescription} • Multa: ${fineForm.reason} (${detail})`
       : `Multa: ${fineForm.reason} (${detail})`;
 
-    const fineRecord = {
-      id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
-      communityName: currentCommunity.name,
-      unitLabel: targetUnit.tower ? `${targetUnit.tower} - ${targetUnit.number}` : `Casa ${targetUnit.number}`,
-      reason: fineForm.reason,
-      reglamentoArticle: fineForm.reglamentoArticle,
-      amountClp: Number(fineForm.amountClp),
-      resolutionFolio: fineForm.resolutionFolio,
-      incidentDate: fineForm.incidentDate || '',
-      issueDate: new Date().toLocaleDateString('es-CL')
-    };
     updateUnit(currentCommunity.id, targetUnit.id, {
       extraCharge: newCharge,
-      extraChargeDescription: newDescription,
-      fineNotices: [...(targetUnit.fineNotices || []), fineRecord]
+      extraChargeDescription: newDescription
     });
 
     setFineSuccessMessage(`¡Multa de ${formatCLP(fineForm.amountClp)} (${fineForm.ufEquivalent}) imputada con éxito a Casa ${targetUnit.number}! Aparecerá en la colilla de cobro del mes.`);
     setTimeout(() => setFineSuccessMessage(''), 5000);
 
     // Opcional: Imprimir Notificación de Multa
-    handlePrintFineProof(targetUnit, fineRecord);
+    handlePrintFineProof(targetUnit);
 
     setShowFineModal(false);
   };
 
-  // Cada reimpresión utiliza los datos guardados al registrar la multa.
-  const handlePrintFineProof = (targetUnit, record) => {
-    const fine = record || targetUnit.fineNotices?.at(-1);
-    if (!fine) {
-      setModalDialog({
-        isOpen: true, type: 'warning', title: 'Antecedentes no disponibles',
-        message: 'Esta multa anterior no tiene una notificación guardada. Revise sus antecedentes antes de emitir una nueva.',
-        confirmText: 'Entendido', isAlert: true,
-        onConfirm: () => setModalDialog(prev => ({ ...prev, isOpen: false })),
-        onCancel: () => setModalDialog(prev => ({ ...prev, isOpen: false }))
-      });
-      return;
-    }
-    printDocumentDirectly(buildFineNotice({ fine, community: currentCommunity, company: companySettings, variant: fineNoticeStyle }), `Notificacion_Multa_${fine.resolutionFolio || fine.id}`, { pdfStyle: 'neutral' });
+  // Imprimir Notificación Oficial de Multa (PDF)
+  const handlePrintFineProof = (targetUnit) => {
+    if (!currentCommunity || !targetUnit) return;
+    const brandName = companySettings?.brandName || 'ARANPRO';
+    const primaryColor = companySettings?.colors?.primary || '#0F3D2E';
+    const communityName = currentCommunity?.name || 'Condominio';
+
+    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
+    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
+    const sigHtml = companySettings?.signatureDataUrl
+      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 48px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
+      : ``;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="utf-8">
+        <title>Notificacion_Multa_Casa_${targetUnit.number}_${communityName.replace(/\\s+/g, '_')}.pdf</title>
+        <style>
+          @page { size: letter; margin: 14mm 14mm 14mm 14mm; }
+          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0F172A; margin: 0; padding: 10px 10px 10px 22px; font-size: 11px; line-height: 1.5; border-left: 2.5px solid ${primaryColor}; box-shadow: inset 4px 0 0 0 #fff, inset 5.5px 0 0 0 #D4B895; }
+          .header-table { width: 100%; border-bottom: 2.5px solid #991B1B; padding-bottom: 12px; margin-bottom: 16px; }
+          .brand-title { font-size: 16px; font-weight: 900; color: ${primaryColor}; margin: 0; }
+          .doc-badge { background: #FEF2F2; border: 1.5px solid #F87171; border-radius: 8px; padding: 6px 12px; text-align: right; }
+          .title-box { background: #FEF2F2; border-left: 4px solid #DC2626; padding: 10px 14px; margin-bottom: 18px; border-radius: 4px; }
+          .data-table { width: 100%; border-collapse: collapse; margin: 14px 0; }
+          .data-table td { padding: 6px 10px; border: 1px solid #CBD5E1; font-size: 11px; }
+          .data-table td.header { background: #F8FAFC; font-weight: bold; width: 35%; color: #334155; }
+          .legal-box { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 10px 12px; margin: 16px 0; border-radius: 6px; font-size: 10px; text-align: justify; }
+          .sig-table { width: 100%; margin-top: 35px; }
+          .sig-td { width: 50%; text-align: center; vertical-align: bottom; padding: 0 25px; }
+          .sig-line { border-top: 1.5px solid #334155; margin-top: 8px; margin-bottom: 6px; }
+        </style>
+      </head>
+      <body>
+        <table class="header-table">
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
+                <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
+                  <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
+                  <div style="font-size: 9.5px; color: #64748B; font-weight: 600; font-family: monospace;">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
+                  <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 2px;">
+                    Condominio: ${communityName}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td style="text-align: right;">
+              <div class="doc-badge">
+                <div style="font-size: 9px; font-weight: 800; color: #991B1B; text-transform: uppercase;">Infracción y Sanción Reglamentaria</div>
+                <div style="font-size: 13px; font-weight: 900; color: #991B1B;">${fineForm.resolutionFolio}</div>
+                <div style="font-size: 9px; color: #64748B; margin-top: 2px;">Fecha: ${formatDate(new Date().toISOString().slice(0, 10))}</div>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <div class="title-box">
+          <div style="font-size: 10px; font-weight: 800; color: #991B1B; text-transform: uppercase;">
+            NOTIFICACIÓN OFICIAL DE IMPUTACIÓN DE MULTA AL GASTO COMÚN
+          </div>
+          <h2 style="font-size: 14px; font-weight: 900; color: #0F172A; margin: 4px 0 0 0;">
+            Cobro Imputable en Colilla Mensual por Infracción al Reglamento
+          </h2>
+        </div>
+
+        <table class="data-table">
+          <tr>
+            <td class="header">Unidad Sancionada:</td>
+            <td><strong>${targetUnit.tower ? `${targetUnit.tower} - ${targetUnit.number}` : `Casa N° ${targetUnit.number}`}</strong></td>
+          </tr>
+          <tr>
+            <td class="header">Copropietario / Ocupante:</td>
+            <td>${targetUnit.owner} (RUT: ${targetUnit.rut ? formatRut(targetUnit.rut) : '—'})</td>
+          </tr>
+          <tr>
+            <td class="header">Motivo de la Sanción:</td>
+            <td><strong style="color: #991B1B;">${fineForm.reason}</strong></td>
+          </tr>
+          <tr>
+            <td class="header">Fundamento Legal / Reglamentario:</td>
+            <td>${fineForm.reglamentoArticle}</td>
+          </tr>
+          <tr>
+            <td class="header">Monto Aplicado:</td>
+            <td><strong style="font-size: 13px; color: #991B1B;">${formatCLP(fineForm.amountClp)}</strong> (${fineForm.ufEquivalent})</td>
+          </tr>
+          ${fineForm.ufDate ? `<tr><td class="header">UF de referencia:</td><td>$${fineForm.ufValue.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} al ${fineForm.ufDate} · indicadores.cl / SII</td></tr>` : ''}
+          <tr>
+            <td class="header">Modalidad de Cobro:</td>
+            <td>Cargado directamente en la colilla de gastos comunes del período activo para su recaudación conjunta.</td>
+          </tr>
+        </table>
+
+        <div class="legal-box">
+          <strong>FUNDAMENTO LEGAL Y PROCEDIMIENTO DE APELACIÓN (ART. 20° Y 21° LEY N° 21.442):</strong><br/>
+          De conformidad a la Ley N° 21.442 sobre Copropiedad Inmobiliaria y el Reglamento Interno de la Comunidad, el Administrador y el Comité de Administración se encuentran facultados para cursar multas reglamentarias ante faltas graves a la convivencia o seguridad. El copropietario podrá formular sus descargos por escrito ante el Comité de Administración dentro de 5 días hábiles siguientes a esta notificación, o recurrir ante el Juzgado de Policía Local respectivo.
+        </div>
+
+        <table class="sig-table">
+          <tr>
+            <td class="sig-td">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 46px; width: 46px; object-fit: contain;" />
+                <div>${sigHtml}</div>
+              </div>
+              <div class="sig-line"></div>
+              <strong>${companySettings?.adminName || companySettings?.administratorName || `Administración ${brandName}`}</strong><br/>
+              <span style="font-size: 9.5px; color: #64748B;">Administrador Titular (RNAC N° ${companySettings?.rnacNumber || '48.912'})</span>
+            </td>
+            <td class="sig-td">
+              <div class="sig-line"></div>
+              <strong>Comité de Administración</strong><br/>
+              <span style="font-size: 9.5px; color: #64748B;">Visación y Visto Bueno Reglamentario</span>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    printDocumentDirectly(htmlContent, `Notificacion_Multa_Casa_${targetUnit.number}_${communityName.replace(/\\s+/g, '_')}.pdf`);
   };
+
+  // Reversar / Anular Multa de una unidad
   const handleReverseFine = (unitId) => {
     updateUnit(currentCommunity.id, unitId, {
       extraCharge: 0,
@@ -1243,16 +1341,15 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                         </td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center space-x-2">
-                            {(u.fineNotices?.length ? u.fineNotices : [null]).map((fine) => <button
-                              key={fine?.id || 'legacy'}
+                            <button
                               type="button"
-                              onClick={() => handlePrintFineProof(u, fine)}
+                              onClick={() => handlePrintFineProof(u)}
                               className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer"
                               title="Reimprimir Comprobante Oficial de Notificación de Multa"
                             >
                               <Printer className="w-3.5 h-3.5 text-slate-600" />
-                              PDF {fine?.resolutionFolio || ''}
-                            </button>)}
+                              PDF
+                            </button>
 
                             <button
                               type="button"
@@ -1611,19 +1708,6 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                     className="w-full p-2 border border-slate-300 rounded-xl text-xs font-mono"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="text-xs font-bold text-slate-700">Fecha del hecho
-                  <input type="date" value={fineForm.incidentDate} onChange={e => setFineForm({ ...fineForm, incidentDate: e.target.value })} className="block w-full p-2 border border-slate-300 rounded-xl mt-1" />
-                </label>
-                <label className="text-xs font-bold text-slate-700">Diseño del aviso
-                  <select value={fineNoticeStyle} onChange={e => setFineNoticeStyle(e.target.value)} className="block w-full p-2 border border-slate-300 rounded-xl mt-1">
-                    <option value="b1">Editorial corporativo</option>
-                    <option value="b2">Arquitectónico ejecutivo</option>
-                    <option value="b3">Editorial de bajo consumo</option>
-                  </select>
-                </label>
               </div>
 
               {/* Selector de Monto (con atajos en UF) */}
