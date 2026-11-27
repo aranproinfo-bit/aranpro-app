@@ -89,6 +89,7 @@ export function FinanceResidentClosingBand({
       <div className="finance-official-seal-col">
         <div className="finance-seal-row">
           <img
+            className="finance-seal-img"
             src="/brand/ARANPRO_sello_circular_integral_transparente.png"
             alt="Sello Oficial ARANPRO"
           />

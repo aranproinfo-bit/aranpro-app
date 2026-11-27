@@ -1355,7 +1355,7 @@ _Administración ARANPRO_`;
     const p=h || currentCommunity.activePeriod || {};
     const period=p.year+'-'+String(p.month).padStart(2,'0');
     const html=renderToStaticMarkup(<ClosingRecord audit={preClosingAudit} community={currentCommunity} history={h} period={period} totals={metrics} company={companySettings} getFinancials={getUnitFinancials}/>);
-    printFormalDocument(html,'Acta_Cierre_'+currentCommunity.name+'_'+period,{pdfStyle:'neutral',useBundledStyles:true,margin:'9mm 11mm',extraStyles:'.print-wrapper header{display:flex!important}.print-wrapper header img[src*=ARANPRO_logo_horizontal]{width:32mm!important;height:12mm!important;max-height:12mm!important}.print-wrapper .truncate{overflow:visible!important;white-space:normal!important;text-overflow:clip!important;max-width:none!important}'});
+    printFormalDocument(html,'Acta_Cierre_'+currentCommunity.name+'_'+period,{pdfStyle:'neutral',useBundledStyles:true,margin:'7mm 10mm',extraStyles:'.print-wrapper .truncate{overflow:visible!important;white-space:normal!important;text-overflow:clip!important;max-width:none!important}'});
   };
 
   const selectedHistoricalPeriodData = useMemo(() => {
@@ -1473,7 +1473,7 @@ _Administración ARANPRO_`;
 
   // Impresión directa aislada y generación de PDF formal delegada a la utilidad estándar ARANPRO
   const printDocumentDirectly = (elementId, documentTitle = 'Documento Oficial ARANPRO', options = {}) => {
-    const accounting = ['expense-voucher-printable-doc','assembly-budget-printable-doc','resident-brochure-printable-doc','committee-report-printable-doc','unit-bitacora-printable-doc','collection-letter-printable-doc','payment-agreement-printable-doc'].includes(elementId);
+    const accounting = ['expense-voucher-printable-doc','assembly-budget-printable-doc','resident-brochure-printable-doc','committee-report-printable-doc','unit-bitacora-printable-doc','collection-letter-printable-doc','payment-agreement-printable-doc','official-registry-printable-doc'].includes(elementId);
     if (accounting) return printFormalDocument(elementId,documentTitle,{pdfStyle:'neutral',useBundledStyles:true,margin:'7mm 10mm',extraStyles:'.print-wrapper {height:auto!important;max-height:none!important;overflow:visible!important} .print-wrapper table{width:100%} tr{break-inside:avoid} thead{display:table-header-group} .print-wrapper .overflow-y-auto{overflow:visible!important;max-height:none!important} .no-print,button{display:none!important} .print-wrapper .truncate{overflow:visible!important;white-space:normal!important;text-overflow:clip!important;max-width:none!important}'});
     return printFormalDocument(elementId, documentTitle, { pdfStyle, ...options });
   };
@@ -17014,36 +17014,22 @@ _Administración ARANPRO_`;
 
               {/* CUERPO CON SCROLL INDEPENDIENTE (Flex-1) */}
               <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-slate-100/60 print:p-0 print:overflow-visible">
-                <div id="official-registry-printable-doc" className="print-area bg-white p-6 sm:p-10 rounded-2xl shadow-sm border border-slate-200 space-y-6 text-slate-900 print:border-none print:shadow-none print:p-0">
-                
-                {/* Encabezado Institucional ARANPRO y Cita Legal */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between border-b-2 border-[#0F3D2E] pb-4 gap-4">
-                  <div className="flex items-center space-x-3.5">
-                    <AranproLogo variant="principal" className="h-12 w-auto" />
-                    <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
-                      <span className="font-black text-base tracking-wider text-[#0F3D2E] block leading-tight">
-                        {companySettings.brandName} • {companySettings.subtitle}
-                      </span>
-                      <p className="text-[10px] uppercase font-bold tracking-widest text-[#D4B895]">
-                        {companySettings.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria
-                      </p>
-                      <p className="text-[11px] text-slate-600 font-medium">
-                        Administrador: <strong>{companySettings.administratorName}</strong> • {companySettings.email} • {companySettings.phone}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right space-y-0.5">
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 inline-block">
-                      Cumplimiento Ley N° 21.442 (Art. 5° y 20°)
-                    </span>
-                    <h2 className="text-sm font-black text-slate-900 uppercase">
-                      Registro Oficial de Copropietarios y Ocupantes
-                    </h2>
-                    <p className="text-[10px] text-slate-500 font-mono">
-                      Emisión: {new Date().toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
+                <div id="official-registry-printable-doc" className="print-area bg-white p-6 sm:p-8 rounded-2xl shadow-sm text-slate-900 print:p-0">
+                <div className="finance-closing-sheet closing-record space-y-3">
+                  <FinanceHeader
+                    community={currentCommunity}
+                    title="Registro oficial de copropietarios"
+                    reference={`Ley N° 21.442 · ${new Date().toLocaleDateString('es-CL')}`}
+                  />
+
+                  <FinanceHero
+                    items={[
+                      ['Total unidades', String(units.length)],
+                      ['Dueños registrados', String(totalOwners)],
+                      ['Arrendatarios / Pagadores', String(totalTenants)],
+                      ['RUT comunidad', currentCommunity.bankInfo?.rut || currentCommunity.rut || 'En trámite']
+                    ]}
+                  />
 
                 {/* Ficha Legal de la Comunidad */}
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
@@ -17101,7 +17087,7 @@ _Administración ARANPRO_`;
                 {/* TABLA LEGAL COMPLETA DE UNIDADES */}
                 <div className="border border-slate-200 rounded-2xl overflow-hidden print:border-slate-400">
                   <table className="w-full text-left text-[10px] leading-snug">
-                    <thead className="bg-[#0F3D2E] text-white uppercase text-[9px] font-bold tracking-wider print:bg-slate-800">
+                    <thead className="bg-[#0F3D2E] text-white uppercase text-[9px] font-bold tracking-wider">
                       <tr>
                         <th className="px-2 py-2">Unidad</th>
                         <th className="px-2 py-2">Copropietario Titular (RUT)</th>
@@ -17179,63 +17165,17 @@ _Administración ARANPRO_`;
                 </div>
 
                 {/* PIE LEGAL: DECLARACIÓN JURADA Y FIRMAS */}
-                <div className="pt-6 space-y-6 print:pt-4">
-                  <div className="text-[10px] text-slate-600 border-t border-slate-200 pt-3 text-justify leading-relaxed">
+                <div className="pt-2 space-y-3">
+                  <div className="text-[10px] text-slate-600 border-t border-slate-200 pt-2.5 text-justify leading-relaxed">
                     <strong>DECLARACIÓN JURADA DE LA ADMINISTRACIÓN:</strong> El suscrito, en su calidad de Administrador Profesional de la Comunidad {currentCommunity.name}, debidamente acreditado e inscrito en el Registro Nacional de Administradores de Copropiedad Inmobiliaria (MINVU), certifica que la presente nómina corresponde al Registro Oficial de Copropietarios, Arrendatarios y Ocupantes previsto en la Ley N° 21.442, el cual se mantiene custodiado e incorporado en los antecedentes de la administración conforme a la legislación vigente.
                   </div>
 
-                  <div className="grid grid-cols-2 gap-8 pt-6 print:pt-8">
-                    <div className="text-center space-y-1">
-                      <div className="h-20 w-full flex items-center justify-center gap-3 mb-2">
-                        <AranproOfficialSeal size="sm" showText={false} />
-                        {companySettings?.signatureDataUrl ? (
-                          <img
-                            src={companySettings.signatureDataUrl}
-                            alt="Firma Administrador"
-                            className="max-h-20 object-contain mx-auto"
-                            style={{
-                              transform: `scale(${companySettings?.signatureScale || 1.35})`,
-                              transformOrigin: 'bottom center'
-                            }}
-                          />
-                        ) : (
-                          <div className="w-48 h-14 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] text-slate-400 bg-slate-50/50">
-                            <span className="font-bold text-slate-500">Firma y Timbre</span>
-                            <span className="text-[7.5px] text-slate-400">Administrador de Copropiedad</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="w-48 mx-auto border-t-2 border-slate-900 pt-1"></div>
-                      <span className="block text-xs font-black uppercase text-slate-900">
-                        {companySettings.administratorName}
-                      </span>
-                      <span className="block text-[10px] text-slate-500">
-                        {companySettings.title}
-                      </span>
-                      <span className="block text-[9px] font-mono text-slate-400">
-                        RUT Administrador • Firma y Timbre
-                      </span>
-                    </div>
-
-                    <div className="text-center space-y-1">
-                      <div className="h-20 w-full flex items-center justify-center mb-2">
-                        <div className="w-48 h-14 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] text-slate-400 bg-slate-50/50">
-                          <span className="font-bold text-slate-500">Firma y Timbre</span>
-                          <span className="text-[7.5px] text-slate-400">Comité de Administración</span>
-                        </div>
-                      </div>
-                      <div className="w-48 mx-auto border-t-2 border-slate-900 pt-1"></div>
-                      <span className="block text-xs font-black uppercase text-slate-900">
-                        Comité de Administración
-                      </span>
-                      <span className="block text-[10px] text-slate-500">
-                        Presidente / Tesorero • {currentCommunity.name}
-                      </span>
-                      <span className="block text-[9px] font-mono text-slate-400">
-                        Visto Bueno y Recepción Conforme
-                      </span>
-                    </div>
-                  </div>
+                  <FinanceSigningBlock
+                    company={companySettings}
+                    roles={['Comité de Administración']}
+                    label="Registro oficial de copropietarios y ocupantes · Art. 5° y 20° Ley N° 21.442"
+                  />
+                </div>
                 </div>
 
                 </div>

@@ -102,9 +102,9 @@
 }
 
 .finance-ap {
-  height: 10.5mm;
-  width: auto;
-  max-width: 34mm;
+  height: 10.5mm !important;
+  width: auto !important;
+  max-width: 34mm !important;
   object-fit: contain;
 }
 
@@ -275,8 +275,8 @@
 }
 
 .finance-seal-row img {
-  width: 10.5mm;
-  height: 10.5mm;
+  width: 10.5mm !important;
+  height: 10.5mm !important;
   object-fit: contain;
   flex-shrink: 0;
 }

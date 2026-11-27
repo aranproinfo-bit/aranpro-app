@@ -8,7 +8,7 @@ import {
 import { formatCLP, formatDate, formatRut } from '../../utils/formatters';
 import { getMajorWorksRecoveryList, generateInstallmentSchedule } from '../../utils/expenseBilling';
 import { printDocumentDirectly } from '../../utils/printDocument';
-import { AranproLogo, AranproOfficialSeal } from '../common/MauranLogo';
+import { FinanceHeader, FinanceHero, FinanceSigningBlock } from '../common/FinanceStationery';
 
 export const MajorWorksAndFundRecoveryModule = ({ currentCommunity }) => {
   const { addExpense, updateExpense, companySettings } = useCommunity();
@@ -122,9 +122,9 @@ export const MajorWorksAndFundRecoveryModule = ({ currentCommunity }) => {
   const handlePrintWorkSheet = (work) => {
     const filename = `ARANPRO_Plan_Recuperacion_Fondos_${(work.projectName || 'Obra').replace(/[^a-zA-Z0-9]/g, '_')}_${currentCommunity?.slug || 'comunidad'}`;
     printDocumentDirectly('printable-major-work-sheet', filename, {
-      pageSize: 'letter portrait',
-      fitPage: true,
-      margin: '8mm 10mm 8mm 10mm'
+      pdfStyle: 'neutral',
+      useBundledStyles: true,
+      margin: '7mm 10mm'
     });
   };
 
@@ -729,112 +729,98 @@ export const MajorWorksAndFundRecoveryModule = ({ currentCommunity }) => {
         <div className="hidden">
           <div
             id="printable-major-work-sheet"
-            className="p-8 bg-white text-slate-900 space-y-6"
-            style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+            className="p-8 bg-white text-slate-900"
           >
-            {/* Membrete Corporativo */}
-            <div className="flex items-start justify-between border-b-2 border-[#0F3D2E] pb-4">
-              <div className="flex items-center space-x-3.5">
-                <AranproLogo variant="principal" className="h-12 w-auto" />
-                <div className="border-l border-slate-300 pl-3.5 space-y-0.5">
-                  <div className="text-sm font-black tracking-tight text-[#0F3D2E] uppercase">
-                    {companySettings?.companyName || 'ARANPRO • GESTIÓN INTEGRAL INMOBILIARIA'}
-                  </div>
-                  <div className="text-[11px] text-slate-600 font-medium">
-                    Administración Profesional Ley N° 21.442 • RNAC N° {companySettings?.rnacNumber || '48.912'}
-                  </div>
+            <div className="finance-closing-sheet closing-record space-y-3">
+              <FinanceHeader
+                community={currentCommunity}
+                title="Recuperación de fondos y obra mayor"
+                reference={`${selectedWork.documentType || 'Doc.'} N° ${selectedWork.documentNumber || 'S/N'}`}
+              />
+
+              <FinanceHero
+                items={[
+                  ['Monto total inversión', formatCLP(selectedWork.totalAmount)],
+                  ['Cuota mensual comunidad', formatCLP(selectedWork.monthlyInstallmentAmount)],
+                  ['Avance recuperación', `${selectedWork.percentRecovered}% (${selectedWork.currentInstallmentIndex}/${selectedWork.totalInstallments})`],
+                  ['Fondo origen', selectedWork.recoveryFund === 'fondo_reserva' ? 'Reserva Art. 14' : 'Operacional']
+                ]}
+              />
+
+              {/* Datos Principales */}
+              <div className="space-y-1">
+                <h2 className="text-lg font-black text-[#0F3D2E] m-0">
+                  {selectedWork.projectName}
+                </h2>
+                <p className="text-xs text-slate-600 leading-relaxed m-0">
+                  Documento de control y amortización de obra mayor pagada a proveedor desde los fondos de la comunidad y recuperada en cuotas mensuales prorrateadas en los gastos comunes según la Ley N° 21.442.
+                </p>
+              </div>
+
+              {/* Cuadro Resumen */}
+              <div className="grid grid-cols-2 gap-3 border border-slate-300 p-3 rounded-xl text-xs bg-slate-50/50">
+                <div>
+                  <span className="text-slate-500 font-bold block">Contratista / Proveedor:</span>
+                  <span className="font-bold text-slate-900">{selectedWork.provider} (RUT: {selectedWork.providerRut})</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold block">Documento Tributario:</span>
+                  <span className="font-bold text-slate-900">{selectedWork.documentType} N° {selectedWork.documentNumber}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold block">Monto Total Inversión:</span>
+                  <span className="text-sm font-black text-[#0F3D2E]">{formatCLP(selectedWork.totalAmount)}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold block">Fondo de Financiamiento:</span>
+                  <span className="font-bold text-slate-900">{selectedWork.recoveryFund === 'fondo_reserva' ? 'Fondo de Reserva Acumulado (Art. 14)' : 'Fondo Operacional'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold block">Plan de Cuotas:</span>
+                  <span className="font-bold text-slate-900">{selectedWork.totalInstallments} cuotas de {formatCLP(selectedWork.monthlyInstallmentAmount)} mensuales</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-bold block">Estado Actual:</span>
+                  <span className="font-bold text-slate-900">Cuota {selectedWork.currentInstallmentIndex} de {selectedWork.totalInstallments} ({selectedWork.percentRecovered}% recuperado)</span>
                 </div>
               </div>
-              <div className="text-right space-y-0.5">
-                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  FICHA TÉCNICA Y CONTABLE
+
+              {/* Tabla de Amortización */}
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-black uppercase text-[#0F3D2E] tracking-wider m-0">
+                  Planilla de Cuotas y Reposición Período a Período
+                </h3>
+                <div className="border border-slate-300 rounded-xl overflow-hidden">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="bg-[#0F3D2E] text-white font-bold">
+                        <th className="p-2 text-left">N°</th>
+                        <th className="p-2 text-left">Período</th>
+                        <th className="p-2 text-right">Cuota Comunidad</th>
+                        <th className="p-2 text-right">Acumulado</th>
+                        <th className="p-2 text-right">Saldo Pendiente</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {generateInstallmentSchedule(selectedWork).map((item) => (
+                        <tr key={item.installmentNumber}>
+                          <td className="p-2 font-mono">Cuota {item.installmentNumber}</td>
+                          <td className="p-2">{item.periodKey}</td>
+                          <td className="p-2 text-right font-mono">{formatCLP(item.amount)}</td>
+                          <td className="p-2 text-right font-mono">{formatCLP(item.accumulated)}</td>
+                          <td className="p-2 text-right font-mono">{formatCLP(item.remaining)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className="text-base font-black text-[#0F3D2E]">
-                  RECUPERACIÓN DE FONDOS
-                </div>
-                <div className="text-xs text-slate-600 font-medium">
-                  {currentCommunity?.name}
-                </div>
               </div>
-            </div>
 
-            {/* Datos Principales */}
-            <div className="space-y-2">
-              <h2 className="text-xl font-black text-slate-900">
-                {selectedWork.projectName}
-              </h2>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Documento de control y amortización de obra mayor pagada a proveedor desde los fondos de la comunidad y recuperada en cuotas mensuales prorrateadas en los gastos comunes según la Ley N° 21.442.
-              </p>
-            </div>
-
-            {/* Cuadro Resumen */}
-            <div className="grid grid-cols-2 gap-4 border border-slate-300 p-4 rounded-xl text-xs">
-              <div>
-                <span className="text-slate-500 font-bold block">Contratista / Proveedor:</span>
-                <span className="font-bold text-slate-900">{selectedWork.provider} (RUT: {selectedWork.providerRut})</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-bold block">Documento Tributario:</span>
-                <span className="font-bold text-slate-900">{selectedWork.documentType} N° {selectedWork.documentNumber}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-bold block">Monto Total Inversión:</span>
-                <span className="text-sm font-black text-[#0F3D2E]">{formatCLP(selectedWork.totalAmount)}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-bold block">Fondo de Financiamiento:</span>
-                <span className="font-bold text-slate-900">{selectedWork.recoveryFund === 'fondo_reserva' ? 'Fondo de Reserva Acumulado (Art. 14)' : 'Fondo Operacional'}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-bold block">Plan de Cuotas:</span>
-                <span className="font-bold text-slate-900">{selectedWork.totalInstallments} cuotas de {formatCLP(selectedWork.monthlyInstallmentAmount)} mensuales</span>
-              </div>
-              <div>
-                <span className="text-slate-500 font-bold block">Estado Actual:</span>
-                <span className="font-bold text-slate-900">Cuota {selectedWork.currentInstallmentIndex} de {selectedWork.totalInstallments} ({selectedWork.percentRecovered}% recuperado)</span>
-              </div>
-            </div>
-
-            {/* Tabla de Amortización */}
-            <div className="space-y-2">
-              <h3 className="text-xs font-black uppercase text-[#0F3D2E] tracking-wider">
-                Planilla de Cuotas y Reposición Período a Período
-              </h3>
-              <table className="w-full text-[11px] border border-slate-300">
-                <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300">
-                  <tr>
-                    <th className="p-2 text-left">N°</th>
-                    <th className="p-2 text-left">Período</th>
-                    <th className="p-2 text-right">Cuota Comunidad</th>
-                    <th className="p-2 text-right">Acumulado</th>
-                    <th className="p-2 text-right">Saldo Pendiente</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {generateInstallmentSchedule(selectedWork).map((item) => (
-                    <tr key={item.installmentNumber}>
-                      <td className="p-2 font-mono">Cuota {item.installmentNumber}</td>
-                      <td className="p-2">{item.periodKey}</td>
-                      <td className="p-2 text-right font-mono">{formatCLP(item.amount)}</td>
-                      <td className="p-2 text-right font-mono">{formatCLP(item.accumulated)}</td>
-                      <td className="p-2 text-right font-mono">{formatCLP(item.remaining)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Firmas de Respaldo */}
-            <div className="pt-8 grid grid-cols-2 gap-8 text-center text-xs">
-              <div className="border-t border-slate-400 pt-2">
-                <div className="font-black text-slate-900">{companySettings?.adminName || 'ARANPRO Administración'}</div>
-                <div className="text-[10px] text-slate-500">Administrador / Representante Legal</div>
-              </div>
-              <div className="border-t border-slate-400 pt-2">
-                <div className="font-black text-slate-900">Comité de Administración</div>
-                <div className="text-[10px] text-slate-500">{currentCommunity?.name}</div>
-              </div>
+              <FinanceSigningBlock
+                company={companySettings}
+                roles={['Comité de Administración']}
+                label="Ficha técnica y contable de recuperación de fondos · Ley N° 21.442"
+              />
             </div>
           </div>
         </div>
