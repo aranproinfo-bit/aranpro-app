@@ -2609,7 +2609,7 @@ _Administración ARANPRO_`;
     { id: 'emision', label: 'Cierre y Cobro del Mes', shortLabel: 'Cierre Mes', icon: RefreshCw, badge: preClosingAudit?.hasCriticalBlock ? 'Alerta' : currentCommunity?.activePeriod?.status || 'Activo', alertBadge: preClosingAudit?.hasCriticalBlock },
     { id: 'comite', label: 'Comité de Administración', shortLabel: 'Comité', icon: ClipboardList, badge: pendingCommitteeTasksCount > 0 ? `${pendingCommitteeTasksCount} pendientes` : 'Art. 17°', alertBadge: pendingCommitteeTasksCount > 0 },
     { id: 'asambleas', label: 'Asambleas & Quórum', shortLabel: 'Asambleas', icon: Users, badge: 'Ley 21.442' },
-    { id: 'comunicados', label: 'Mural & Reclamos', shortLabel: 'Mural & Reclamos', icon: Megaphone, badge: totalDocsAndAnnCount, alertBadge: pendingTicketsCount > 0 },
+    { id: 'comunicados', label: 'Avisos, Visitas & Multas', shortLabel: 'Avisos & Multas', icon: Megaphone, badge: totalDocsAndAnnCount, alertBadge: pendingTicketsCount > 0 },
     { id: 'certificados', label: 'Certificados', shortLabel: 'Certificados', icon: ShieldCheck, badge: pendingCertificatesCount > 0 ? `${pendingCertificatesCount} pend.` : certificates.length, alertBadge: pendingCertificatesCount > 0 },
     { id: 'traspaso', label: 'Rendición & Traspaso', shortLabel: 'Traspaso', icon: Briefcase, badge: 'Ley 21.442' },
     { id: 'ajustes', label: 'Ajustes Comunidad & App', shortLabel: 'Ajustes', icon: Settings, badge: null }
@@ -3691,10 +3691,10 @@ _Administración ARANPRO_`;
                 </div>
               )}
 
-              {/* SUB-ÍNDICES DE MURAL & RECLAMOS EN LA BARRA LATERAL */}
+              {/* SUB-ÍNDICES DE AVISOS, VISITAS & MULTAS EN LA BARRA LATERAL */}
               {tab.id === 'comunicados' && (!sidebarCollapsed || isMobile) && (
                 <div className={`ml-3.5 pl-2 border-l-2 border-[#D4B895]/50 space-y-0.5 my-1 ${activeTab === 'comunicados' && !collapsedTabs['comunicados'] ? 'block' : 'hidden'}`}>
-                  {/* 1. Diario Mural & Avisos */}
+                  {/* 1. Comunicados & Diario Mural */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3711,7 +3711,7 @@ _Administración ARANPRO_`;
                   >
                     <div className="flex items-center space-x-1.5 min-w-0">
                       <Megaphone className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'comunicados' && comunicadosSubTab === 'mural' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">1. Diario Mural & Avisos</span>
+                      <span className="truncate">1. Comunicados & Mural</span>
                     </div>
                     <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
                       activeTab === 'comunicados' && comunicadosSubTab === 'mural'
@@ -3722,7 +3722,35 @@ _Administración ARANPRO_`;
                     </span>
                   </button>
 
-                  {/* 2. Biblioteca Documental */}
+                  {/* 2. Avisos de Visita en Terreno */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTab('comunicados');
+                      setComunicadosSubTab('visitas');
+                      if (isMobile) setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      activeTab === 'comunicados' && comunicadosSubTab === 'visitas'
+                        ? 'bg-[#0F3D2E]/10 text-[#0F3D2E] font-black border border-[#0F3D2E]/20'
+                        : 'text-slate-600 hover:text-[#0F3D2E] hover:bg-[#F5F4EF]'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-1.5 min-w-0">
+                      <Calendar className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'comunicados' && comunicadosSubTab === 'visitas' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
+                      <span className="truncate">2. Avisos de Visita</span>
+                    </div>
+                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                      activeTab === 'comunicados' && comunicadosSubTab === 'visitas'
+                        ? 'bg-[#0F3D2E] text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      PDF
+                    </span>
+                  </button>
+
+                  {/* 3. Biblioteca Documental */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3739,7 +3767,7 @@ _Administración ARANPRO_`;
                   >
                     <div className="flex items-center space-x-1.5 min-w-0">
                       <FolderOpen className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'comunicados' && comunicadosSubTab === 'documentos' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">2. Biblioteca Docs</span>
+                      <span className="truncate">3. Biblioteca Docs</span>
                     </div>
                     <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
                       activeTab === 'comunicados' && comunicadosSubTab === 'documentos'
@@ -3750,7 +3778,7 @@ _Administración ARANPRO_`;
                     </span>
                   </button>
 
-                  {/* 3. Libro de Reclamos & Sugerencias */}
+                  {/* 4. Libro de Reclamos & Sugerencias */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3767,7 +3795,7 @@ _Administración ARANPRO_`;
                   >
                     <div className="flex items-center space-x-1.5 min-w-0">
                       <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'comunicados' && comunicadosSubTab === 'reclamos' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">3. Reclamos & Sug.</span>
+                      <span className="truncate">4. Reclamos & Sug.</span>
                     </div>
                     {pendingTicketsCount > 0 ? (
                       <span className="text-[9.5px] px-1.5 py-0.2 rounded-full font-black shrink-0 bg-amber-400 text-slate-900 animate-pulse">
@@ -3782,11 +3810,9 @@ _Administración ARANPRO_`;
                         {currentCommunity?.communityTickets?.length || 0}
                       </span>
                     )}
-
-              
                   </button>
 
-                  {/* 4. Registro de Amonestaciones & Multas */}
+                  {/* 5. Registro de Amonestaciones & Multas */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3803,7 +3829,7 @@ _Administración ARANPRO_`;
                   >
                     <div className="flex items-center space-x-1.5 min-w-0">
                       <Scale className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'comunicados' && comunicadosSubTab === 'multas' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">4. Multas & Sanciones</span>
+                      <span className="truncate">5. Multas & Sanciones</span>
                     </div>
                     {((currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0).length > 0) ? (
                       <span className="text-[9.5px] px-1.5 py-0.2 rounded-full font-black shrink-0 bg-rose-100 text-rose-800">

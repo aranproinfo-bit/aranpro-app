@@ -94,6 +94,16 @@ export const MuralAndComplaintsModule = ({
     isPinned: false
   });
 
+  // Formulario directo para Aviso de Visita de Administración (Media Carta 2 copias)
+  const [visitQuickForm, setVisitQuickForm] = useState({
+    title: 'Visita de administración',
+    visitDate: new Date().toISOString().slice(0, 10),
+    visitTime: '10:00 a 12:00 h',
+    location: 'Accesos principales y áreas comunes',
+    content:
+      'Revisión presencial en terreno de accesos, instalaciones críticas, áreas comunes y coordinación operativa junto a conserjería y Comité de Administración.'
+  });
+
   // Formulario Nuevo Documento
   const [docForm, setDocForm] = useState({
     title: '',
@@ -446,7 +456,7 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
           <div className="min-w-0">
             <div className="flex items-center space-x-2 flex-wrap gap-y-1">
               <h3 className="text-base font-black text-slate-900 tracking-tight">
-                Mural de Avisos, Documentos & Reclamos
+                Avisos de Convivencia, Visitas, Reclamos & Multas
               </h3>
               <span className="text-[10px] font-bold bg-[#0F3D2E]/10 text-[#0F3D2E] px-2 py-0.5 rounded-full border border-[#0F3D2E]/20 uppercase shrink-0">
                 Ley N° 21.442 • Arts. 8°, 17° y 20°
@@ -456,7 +466,7 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Diario mural físico y digital, biblioteca legal en custodia, gestión de reclamos y aplicación de multas
+              Afiches de convivencia, avisos de visita en terreno, multas con base legal (media carta 2 copias) y biblioteca
             </p>
           </div>
         </div>
@@ -465,12 +475,35 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setShowNewAnnModal(true)}
+            onClick={() => {
+              setAnnForm((prev) => ({ ...prev, category: 'Convivencia' }));
+              setShowNewAnnModal(true);
+            }}
             className="px-3.5 py-2 bg-gradient-to-r from-[#0F3D2E] to-[#14533d] hover:from-[#0A291F] hover:to-[#0F3D2E] text-[#D4B895] border border-[#D4B895] font-black text-xs rounded-xl flex items-center shadow-xs transition-all cursor-pointer"
-            title="Publicar un nuevo comunicado en el diario mural"
+            title="Crear e imprimir un Afiche de Convivencia o Comunicado para el mural"
           >
             <Plus className="w-4 h-4 mr-1.5 text-[#D4B895]" />
-            Publicar Aviso
+            Afiche Convivencia
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTab('visitas')}
+            className="px-3.5 py-2 bg-[#F5F4EF] hover:bg-[#eae7dc] text-[#0F3D2E] border border-[#D4B895] font-black text-xs rounded-xl flex items-center shadow-xs transition-colors cursor-pointer"
+            title="Emitir e imprimir Aviso de Visita de Administración (2 copias media carta)"
+          >
+            <Calendar className="w-3.5 h-3.5 mr-1.5 text-[#0F3D2E]" />
+            Aviso de Visita
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowFineModal(true)}
+            className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs rounded-xl flex items-center shadow-xs transition-colors cursor-pointer"
+            title="Cursar e imprimir Notificación de Multa reglamentaria (2 copias media carta)"
+          >
+            <Scale className="w-3.5 h-3.5 mr-1.5 text-rose-600" />
+            Cursar Multa
           </button>
 
           <button
@@ -480,17 +513,7 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
             title="Subir documento oficial a la biblioteca comunitaria"
           >
             <Paperclip className="w-3.5 h-3.5 mr-1.5 text-[#0F3D2E]" />
-            Subir Documento
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowFineModal(true)}
-            className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs rounded-xl flex items-center shadow-xs transition-colors cursor-pointer"
-            title="Cursar e imputar una multa reglamentaria en la colilla de gastos comunes"
-          >
-            <Scale className="w-3.5 h-3.5 mr-1.5 text-rose-600" />
-            Cursar Multa
+            Subir Doc
           </button>
         </div>
       </div>
@@ -585,12 +608,25 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
           }`}
         >
           <Megaphone className="w-3.5 h-3.5" />
-          <span>1. Diario Mural Digital & Avisos</span>
+          <span>1. Comunicados & Afiches</span>
           <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
             currentTab === 'mural' ? 'bg-[#D4B895] text-[#0F3D2E]' : 'bg-slate-100 text-slate-600'
           }`}>
             {activeAnnouncementsCount}
           </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setTab('visitas')}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-1.5 shrink-0 ${
+            currentTab === 'visitas'
+              ? 'bg-[#0F3D2E] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          <span>2. Avisos de Visita (PDF)</span>
         </button>
 
         <button
@@ -603,7 +639,7 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
           }`}
         >
           <FolderOpen className="w-3.5 h-3.5" />
-          <span>2. Biblioteca Documental (Ley 21.442)</span>
+          <span>3. Biblioteca Documental</span>
           <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
             currentTab === 'documentos' ? 'bg-[#D4B895] text-[#0F3D2E]' : 'bg-slate-100 text-slate-600'
           }`}>
@@ -621,7 +657,7 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
           }`}
         >
           <MessageSquare className="w-3.5 h-3.5" />
-          <span>3. Libro Oficial de Reclamos & Sugerencias</span>
+          <span>4. Reclamos & Sugerencias</span>
           {pendingTicketsCount > 0 && (
             <span className="text-[9.5px] px-1.5 py-0.2 rounded-full font-black bg-amber-400 text-slate-900 animate-pulse">
               {pendingTicketsCount} pend.
@@ -639,7 +675,7 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
           }`}
         >
           <Scale className="w-3.5 h-3.5" />
-          <span>4. Registro de Amonestaciones & Multas</span>
+          <span>5. Multas & Sanciones</span>
           {unitsWithFines.length > 0 && (
             <span className="text-[10px] px-1.5 py-0.2 rounded-full font-black bg-rose-100 text-rose-800">
               {unitsWithFines.length}
@@ -647,6 +683,185 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
           )}
         </button>
       </div>
+
+      {/* ========================================================================= */}
+      {/* VISTA ESPECIAL: AVISOS DE VISITA DE ADMINISTRACIÓN EN TERRENO (PDF 2 COPIAS) */}
+      {/* ========================================================================= */}
+      {currentTab === 'visitas' && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-[#F5F4EF] border border-[#D4B895] rounded-xl text-[#0F3D2E]">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900">
+                    Generador de Aviso de Visita de Administración / Mantención (Media Carta · 2 Copias)
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Genera en 1 clic la hoja Carta con 2 ejemplares: Ejemplar 1 para Mural / Residentes y Ejemplar 2 con constancia para Conserjería o Libro de Registro.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Título del Aviso</label>
+                <input
+                  type="text"
+                  value={visitQuickForm.title}
+                  onChange={(e) => setVisitQuickForm({ ...visitQuickForm, title: e.target.value })}
+                  placeholder="Ej. Visita de administración"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Fecha Programada</label>
+                <input
+                  type="date"
+                  value={visitQuickForm.visitDate}
+                  onChange={(e) => setVisitQuickForm({ ...visitQuickForm, visitDate: e.target.value })}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Horario Estimado</label>
+                <input
+                  type="text"
+                  value={visitQuickForm.visitTime}
+                  onChange={(e) => setVisitQuickForm({ ...visitQuickForm, visitTime: e.target.value })}
+                  placeholder="Ej. 10:00 a 12:00 h"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Sector / Alcance</label>
+                <input
+                  type="text"
+                  value={visitQuickForm.location}
+                  onChange={(e) => setVisitQuickForm({ ...visitQuickForm, location: e.target.value })}
+                  placeholder="Ej. Accesos principales y áreas comunes"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-medium"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block font-bold text-slate-700 mb-1">Motivo y Detalle de la Visita</label>
+                <textarea
+                  rows={2}
+                  value={visitQuickForm.content}
+                  onChange={(e) => setVisitQuickForm({ ...visitQuickForm, content: e.target.value })}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-medium leading-relaxed"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setNoticePreviewState({
+                    isOpen: true,
+                    allowStyleSwitch: true,
+                    notice: {
+                      variant: 'visit',
+                      title: visitQuickForm.title || 'Visita de administración',
+                      content: visitQuickForm.content,
+                      category: 'Visita de Administración',
+                      priority: 'Importante',
+                      location: visitQuickForm.location || 'Áreas comunes',
+                      visitDate: visitQuickForm.visitDate,
+                      visitTime: visitQuickForm.visitTime,
+                      date: new Date().toISOString().slice(0, 10)
+                    }
+                  })
+                }
+                className="px-4 py-2 bg-white hover:bg-slate-50 text-[#0F3D2E] border border-[#0F3D2E] font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-[#0F3D2E]" />
+                <span>Solo Vista Previa / Imprimir PDF (2 copias)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const payload = {
+                    title: visitQuickForm.title || 'Visita de administración',
+                    content: visitQuickForm.content,
+                    category: 'Visita de Administración',
+                    priority: 'Importante',
+                    location: visitQuickForm.location || 'Áreas comunes',
+                    visitDate: visitQuickForm.visitDate,
+                    visitTime: visitQuickForm.visitTime,
+                    expiresAt: visitQuickForm.visitDate,
+                    isPinned: true,
+                    date: new Date().toISOString().slice(0, 10),
+                    author: 'Administración ARANPRO'
+                  };
+                  addAnnouncement(currentCommunity.id, payload);
+                  setNoticePreviewState({
+                    isOpen: true,
+                    allowStyleSwitch: true,
+                    notice: { ...payload, variant: 'visit' }
+                  });
+                }}
+                className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] border border-[#D4B895] font-black text-xs rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4 text-[#D4B895]" />
+                <span>Publicar en Portal Vecinal + Abrir PDF (2 copias)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Historial de Visitas y Mantenciones publicadas en el Mural */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+            <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+              Visitas y Mantenciones Programadas en esta Comunidad
+            </h5>
+            {(currentCommunity?.announcements || []).filter((a) =>
+              /visita|mantenci|revisi|servicio/i.test(`${a.category || ''} ${a.title || ''}`)
+            ).length === 0 ? (
+              <p className="text-xs text-slate-500">
+                Aún no hay visitas publicadas en el mural. Usa el formulario superior para imprimir un aviso inmediato o publicarlo para los residentes.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {(currentCommunity?.announcements || [])
+                  .filter((a) => /visita|mantenci|revisi|servicio/i.test(`${a.category || ''} ${a.title || ''}`))
+                  .map((ann) => (
+                    <div
+                      key={ann.id}
+                      className="p-3.5 rounded-xl border border-slate-200 bg-[#F5F4EF]/40 flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-xs font-black text-[#0F3D2E] truncate">{ann.title}</div>
+                        <div className="text-[11px] text-slate-600 line-clamp-1 mt-0.5">{ann.content}</div>
+                        <div className="text-[10px] text-slate-500 mt-1">
+                          📅 {formatDate(ann.visitDate || ann.expiresAt || ann.date)} {ann.visitTime ? `• 🕒 ${ann.visitTime}` : ''}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handlePrintMuralPdf({ ...ann, variant: 'visit' })}
+                        className="px-3 py-1.5 bg-[#0F3D2E] text-[#D4B895] font-black text-[11px] rounded-xl flex items-center gap-1 shrink-0 cursor-pointer"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>PDF (2 copias)</span>
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* VISTA 1: DIARIO MURAL DIGITAL & AVISOS (PROPUESTAS 2 Y 3)                 */}

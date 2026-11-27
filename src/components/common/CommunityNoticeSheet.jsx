@@ -127,22 +127,22 @@ function OfficialSealAndSignature({ companySettings, copyIndex, showReceiptLine 
         display: 'flex',
         alignItems: 'flex-end',
         justifyContent: 'space-between',
-        gap: 14,
-        paddingTop: 6,
+        gap: 10,
+        paddingTop: 4,
         marginTop: 'auto'
       }}
     >
       {/* Sello Oficial Completo ARANPRO */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
         <img
           src="/brand/ARANPRO_sello_circular_integral_transparente.png"
           alt="Sello Oficial ARANPRO"
-          style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }}
+          style={{ width: 34, height: 34, objectFit: 'contain', flexShrink: 0 }}
         />
-        <div style={{ lineHeight: 1.22 }}>
+        <div style={{ lineHeight: 1.2 }}>
           <div
             style={{
-              fontSize: 8.8,
+              fontSize: 8.4,
               fontWeight: 800,
               color: '#0F3D2E',
               textTransform: 'uppercase',
@@ -151,55 +151,60 @@ function OfficialSealAndSignature({ companySettings, copyIndex, showReceiptLine 
           >
             Sello Oficial de Administración
           </div>
-          <div style={{ fontSize: 8.2, color: '#526b5e' }}>
+          <div style={{ fontSize: 7.8, color: '#526b5e' }}>
             Ley N° 21.442 de Copropiedad Inmobiliaria
           </div>
         </div>
       </div>
 
-      {/* Espacio de recepción en Ejemplar 2 cuando es multa/advertencia/visita */}
+      {/* Constancia formal de entrega en Ejemplar 2 (Conserjería / Comité / Libro) */}
       {showReceiptLine && copyIndex === 1 && (
         <div
           style={{
-            flex: '0 1 148px',
-            borderTop: '1px dashed #94a3b8',
-            paddingTop: 3,
-            textAlign: 'center'
+            flex: '0 1 182px',
+            background: '#f8fafc',
+            border: '1px dashed #94a3b8',
+            borderRadius: 5,
+            padding: '3.5px 7px',
+            fontSize: 7.4,
+            lineHeight: 1.28,
+            color: '#334155'
           }}
         >
-          <div style={{ fontSize: 8, fontWeight: 700, color: '#475569' }}>
-            Recibido / Constancia Conserjería
+          <div style={{ fontWeight: 800, color: '#0f172a', textTransform: 'uppercase' }}>
+            Constancia Entrega · Conserjería / Libro
           </div>
-          <div style={{ fontSize: 7.5, color: '#64748b' }}>Nombre, fecha o timbre</div>
+          <div>☐ Personal &nbsp; ☐ Bajo puerta / buzón</div>
+          <div>Fecha/Hora: _________ Firma: _________</div>
         </div>
       )}
 
       {/* Firma configurada de Administración */}
-      <div style={{ width: 158, textAlign: 'center', flexShrink: 0 }}>
+      <div style={{ width: 148, textAlign: 'center', flexShrink: 0 }}>
         <div
           style={{
-            height: 30,
+            height: 26,
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',
-            paddingBottom: 2
+            paddingBottom: 1
           }}
         >
           {signatureImg ? (
             <img
               src={signatureImg}
               alt="Firma de administración"
-              style={{ maxHeight: 28, maxWidth: 118, width: 'auto', objectFit: 'contain' }}
+              style={{ maxHeight: 25, maxWidth: 112, width: 'auto', objectFit: 'contain' }}
             />
           ) : null}
         </div>
-        <div style={{ borderTop: '1.5px solid #0F3D2E', paddingTop: 3 }}>
-          <div style={{ fontSize: 8.8, fontWeight: 800, color: '#0F3D2E', lineHeight: 1.15 }}>
+        <div style={{ borderTop: '1.5px solid #0F3D2E', paddingTop: 2.5 }}>
+          <div style={{ fontSize: 8.4, fontWeight: 800, color: '#0F3D2E', lineHeight: 1.15 }}>
             Firma de administración
           </div>
           <div
             style={{
-              fontSize: 7.8,
+              fontSize: 7.5,
               color: '#526b5e',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -345,12 +350,12 @@ function FineOrWarningHalfCard({ notice, community, companySettings, copyIndex, 
         color: '#0f172a'
       }}
     >
-      {/* Panel Izquierdo Verde Corporativo con Filete Dorado */}
+      {/* Panel Izquierdo Verde Corporativo con Filete Dorado y Resumen Operativo */}
       <div
         style={{
           background: '#0F3D2E',
           borderLeft: '5px solid #d4b895',
-          padding: '18px 16px 15px 16px',
+          padding: '15px 15px 13px 15px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -359,11 +364,11 @@ function FineOrWarningHalfCard({ notice, community, companySettings, copyIndex, 
         }}
       >
         <div>
-          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <div style={{ textAlign: 'center', marginBottom: 12 }}>
             <img
               src="/brand/ARANPRO_logo_para_fondo_oscuro_trimmed.png"
               alt="ARANPRO"
-              style={{ height: 50, maxWidth: '90%', width: 'auto', objectFit: 'contain', margin: '0 auto' }}
+              style={{ height: 44, maxWidth: '88%', width: 'auto', objectFit: 'contain', margin: '0 auto' }}
             />
           </div>
 
@@ -372,28 +377,28 @@ function FineOrWarningHalfCard({ notice, community, companySettings, copyIndex, 
             style={{
               background: '#d4b895',
               color: '#0F3D2E',
-              padding: '10px 12px',
-              borderRadius: 4,
-              marginBottom: 16
+              padding: '9px 11px',
+              borderRadius: 5,
+              marginBottom: 12
             }}
           >
             <div
               style={{
-                fontSize: 8.8,
+                fontSize: 8.4,
                 fontWeight: 900,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
                 color: '#0F3D2E',
-                marginBottom: 3
+                marginBottom: 2
               }}
             >
               {isWarning ? 'Medida Aplicada' : 'Monto de la Multa'}
             </div>
             <div
               style={{
-                fontSize: isWarning ? 15.5 : 24,
+                fontSize: isWarning ? 15 : 23,
                 fontWeight: 900,
-                lineHeight: 1.1,
+                lineHeight: 1.08,
                 color: '#0F3D2E',
                 letterSpacing: '-0.02em'
               }}
@@ -402,10 +407,10 @@ function FineOrWarningHalfCard({ notice, community, companySettings, copyIndex, 
             </div>
             <div
               style={{
-                fontSize: 8.5,
+                fontSize: 8.2,
                 fontWeight: 700,
                 color: '#1e3a2f',
-                marginTop: 3
+                marginTop: 2.5
               }}
             >
               {ufSubtitle}
@@ -413,35 +418,61 @@ function FineOrWarningHalfCard({ notice, community, companySettings, copyIndex, 
           </div>
 
           {/* Unidad Notificada */}
-          <div>
+          <div
+            style={{
+              paddingBottom: 10,
+              marginBottom: 10,
+              borderBottom: '1px solid rgba(212, 184, 149, 0.24)'
+            }}
+          >
             <div
               style={{
-                fontSize: 8.8,
+                fontSize: 8.4,
                 fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 color: '#d4b895',
-                marginBottom: 3
+                marginBottom: 2
               }}
             >
-              Unidad Notificada
+              Unidad Sancionada
             </div>
-            <div style={{ fontSize: 19, fontWeight: 900, color: '#ffffff', lineHeight: 1.15 }}>
+            <div style={{ fontSize: 18, fontWeight: 900, color: '#ffffff', lineHeight: 1.12 }}>
               {unitLabel}
             </div>
-            {ownerName ? (
-              <div
-                style={{
-                  fontSize: 9.5,
-                  color: '#dbe7e0',
-                  marginTop: 4,
-                  lineHeight: 1.3
-                }}
-              >
-                {ownerName}
-                {ownerRut ? ` · RUT ${ownerRut}` : ''}
-              </div>
-            ) : null}
+            <div
+              style={{
+                fontSize: 9,
+                color: '#dbe7e0',
+                marginTop: 3,
+                lineHeight: 1.25
+              }}
+            >
+              {ownerName || 'Copropietario / Residente registrado'}
+              {ownerRut ? <div style={{ fontSize: 8.4, color: '#b8cec2' }}>RUT: {ownerRut}</div> : null}
+            </div>
+          </div>
+
+          {/* Ficha Resumen de Cobro y Apelación */}
+          <div style={{ display: 'grid', gap: 6, fontSize: 8.4, lineHeight: 1.28 }}>
+            <div>
+              <span style={{ color: '#d4b895', fontWeight: 800, textTransform: 'uppercase', display: 'block', fontSize: 7.8 }}>
+                Modalidad de Imputación
+              </span>
+              <span style={{ color: '#f1f5f9', fontWeight: 600 }}>
+                {isWarning
+                  ? 'Registro en hoja de vida de la unidad'
+                  : 'Cargo directo en colilla de gasto común'}
+              </span>
+            </div>
+            <div>
+              <span style={{ color: '#d4b895', fontWeight: 800, textTransform: 'uppercase', display: 'block', fontSize: 7.8 }}>
+                Plazo de Descargos
+              </span>
+              <span style={{ color: '#f1f5f9', fontWeight: 600 }}>
+                {isWarning ? '48 horas hábiles desde entrega' : '5 días hábiles ante el Comité'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -451,21 +482,21 @@ function FineOrWarningHalfCard({ notice, community, companySettings, copyIndex, 
             alignItems: 'center',
             justifyContent: 'space-between',
             borderTop: '1px solid rgba(212, 184, 149, 0.28)',
-            paddingTop: 8,
-            fontSize: 10.5,
+            paddingTop: 7,
+            fontSize: 10,
             fontWeight: 800,
             color: '#ffffff'
           }}
         >
           <span>aranpro.cl</span>
-          <span style={{ fontSize: 8.2, fontWeight: 600, color: '#d4b895' }}>Ley N° 21.442</span>
+          <span style={{ fontSize: 8, fontWeight: 700, color: '#d4b895' }}>residentes.aranpro.cl</span>
         </div>
       </div>
 
-      {/* Panel Derecho Blanco con Detalle + Cuadro Legal Rojo + Sello y Firma */}
+      {/* Panel Derecho Blanco con Párrafo Formal + Cuadro Detalle + Cuadro Legal Rojo + Sello y Firma */}
       <div
         style={{
-          padding: '15px 20px 13px 20px',
+          padding: '13px 18px 11px 18px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -480,102 +511,102 @@ function FineOrWarningHalfCard({ notice, community, companySettings, copyIndex, 
             folio={folio}
           />
 
-          <div style={{ marginBottom: 8 }}>
+          <div style={{ marginBottom: 6 }}>
             <div
               style={{
-                fontSize: 21,
+                fontSize: 19,
                 fontWeight: 900,
                 color: '#0F3D2E',
-                lineHeight: 1.12,
+                lineHeight: 1.1,
                 letterSpacing: '-0.015em'
               }}
             >
-              {isWarning ? 'Notificación de advertencia' : 'Notificación de multa'}
+              {isWarning ? 'Notificación formal de advertencia' : 'Notificación de multa reglamentaria'}
             </div>
-            <div style={{ fontSize: 10.5, color: '#475569', marginTop: 2 }}>
-              {isWarning
-                ? 'Apercibimiento formal previo a sanción pecuniaria'
-                : 'Comunicación oficial de infracción e imputación al gasto común'}
-            </div>
-            <div style={{ height: 1.5, background: '#d4b895', marginTop: 7 }} />
+            <div style={{ height: 1.5, background: '#d4b895', marginTop: 5 }} />
           </div>
 
-          {/* Hecho Registrado */}
-          <div style={{ marginBottom: 7 }}>
-            <div
-              style={{
-                fontSize: 8.5,
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                color: '#526b5e',
-                marginBottom: 2
-              }}
-            >
-              Hecho constatado / Motivo
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: '#0F3D2E',
-                lineHeight: 1.3,
-                display: '-webkit-box',
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden'
-              }}
-            >
-              {reason}
-            </div>
-          </div>
-
-          {/* Fila Fecha + Antecedentes */}
-          <div
+          {/* Párrafo solemne de notificación administrativa */}
+          <p
             style={{
-              display: 'grid',
-              gridTemplateColumns: '0.9fr 1.1fr',
-              gap: 12,
-              marginBottom: 8
+              margin: '0 0 7px 0',
+              fontSize: 9.4,
+              lineHeight: 1.35,
+              color: '#334155',
+              textAlign: 'justify'
             }}
           >
-            <div>
+            {isWarning ? (
+              <>
+                Por medio de la presente, la Administración de <strong>{communityName}</strong>, en cumplimiento del mandato del Comité de Administración y la Ley N° 21.442, notifica formalmente <strong>apercibimiento preventivo</strong> al copropietario y/u ocupante de la <strong>{unitLabel}</strong> por los hechos constatados que se detallan:
+              </>
+            ) : (
+              <>
+                Por medio de la presente, la Administración de <strong>{communityName}</strong>, en ejercicio de las facultades conferidas por el Comité de Administración, el Reglamento de Copropiedad y la Ley N° 21.442, notifica formalmente a la <strong>{unitLabel}</strong> la aplicación de <strong>multa reglamentaria</strong> conforme al siguiente detalle:
+              </>
+            )}
+          </p>
+
+          {/* Recuadro Estructurado de Antecedentes de la Infracción */}
+          <div
+            style={{
+              background: '#f8faf9',
+              border: '1px solid #d5e2db',
+              borderLeft: '3.5px solid #0F3D2E',
+              borderRadius: 6,
+              padding: '6.5px 10px',
+              marginBottom: 7
+            }}
+          >
+            <div style={{ marginBottom: 5 }}>
               <div
                 style={{
-                  fontSize: 8.2,
+                  fontSize: 7.8,
                   fontWeight: 800,
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
-                  color: '#526b5e',
-                  marginBottom: 1
+                  color: '#526b5e'
                 }}
               >
-                Fecha de emisión
+                Hecho Constatado y Causal de Sanción
               </div>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: '#1e293b' }}>{issueDateStr}</div>
+              <div
+                style={{
+                  fontSize: 10.6,
+                  fontWeight: 800,
+                  color: '#0F3D2E',
+                  lineHeight: 1.28,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }}
+              >
+                {reason}
+              </div>
             </div>
-            <div>
-              <div
-                style={{
-                  fontSize: 8.2,
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  color: '#526b5e',
-                  marginBottom: 1
-                }}
-              >
-                Norma y antecedente reglamentario
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '0.85fr 1.15fr',
+                gap: 8,
+                paddingTop: 4.5,
+                borderTop: '1px solid #e2ece6',
+                fontSize: 8.8
+              }}
+            >
+              <div>
+                <span style={{ fontSize: 7.5, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block' }}>
+                  Fecha Emisión y Registro
+                </span>
+                <strong style={{ color: '#1e293b' }}>{issueDateStr}</strong>
               </div>
-              <div
-                style={{
-                  fontSize: 10.2,
-                  fontWeight: 700,
-                  color: '#1e293b',
-                  lineHeight: 1.25
-                }}
-              >
-                {article}
+              <div>
+                <span style={{ fontSize: 7.5, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block' }}>
+                  Norma Infringida / Respaldo
+                </span>
+                <strong style={{ color: '#1e293b' }}>{article}</strong>
               </div>
             </div>
           </div>
@@ -587,37 +618,37 @@ function FineOrWarningHalfCard({ notice, community, companySettings, copyIndex, 
               border: '1px solid #fecaca',
               borderLeft: '4px solid #b91c1c',
               borderRadius: 6,
-              padding: '7.5px 10px',
-              marginBottom: 6
+              padding: '6.5px 9.5px',
+              marginBottom: 5
             }}
           >
             <div
               style={{
-                fontSize: 8.6,
+                fontSize: 8.2,
                 fontWeight: 900,
                 textTransform: 'uppercase',
                 letterSpacing: '0.03em',
                 color: '#991b1b',
-                marginBottom: 2.5
+                marginBottom: 2
               }}
             >
-              ⚖️ Base Legal y Derecho a Descargo · Ley N° 21.442 de Copropiedad Inmobiliaria
+              ⚖️ Fundamento Legal, Cobro Solidario y Apelación · Ley N° 21.442
             </div>
             <div
               style={{
-                fontSize: 9.1,
-                lineHeight: 1.34,
+                fontSize: 8.6,
+                lineHeight: 1.32,
                 color: '#450a0a',
                 textAlign: 'justify'
               }}
             >
               {isWarning ? (
                 <>
-                  Notificación emitida en virtud de los <strong>Arts. 17°, 20° y 21° de la Ley N° 21.442</strong> y el Reglamento de Copropiedad. El residente o copropietario dispone de <strong>48 horas hábiles</strong> para presentar descargos en <strong>{contactEmail}</strong>; la reiteración de la falta faculta la imputación de multa en su colilla mensual.
+                  Emitida conforme a los <strong>Arts. 17°, 20° y 21° de la Ley N° 21.442</strong> y al Reglamento de Copropiedad. Todo copropietario, arrendatario u ocupante está obligado a respetar las normas de convivencia y uso de bienes comunes. Dispone de <strong>48 horas hábiles</strong> para formular descargos escritos en <strong>{contactEmail}</strong> o vía portal vecinal; de persistir o repetirse la conducta, se cursará multa imputable en la colilla mensual.
                 </>
               ) : (
                 <>
-                  Multa cursada conforme a los <strong>Arts. 17°, 20°, 21° y 27° de la Ley N° 21.442</strong> y al Reglamento de Copropiedad, imputándose en el estado de cobro de gastos comunes de la unidad. Dispone de <strong>5 días hábiles</strong> desde esta notificación para solicitar reconsideración o formular descargos fundados ante el Comité de Administración o al correo <strong>{contactEmail}</strong>, sin perjuicio de las instancias ante el Juzgado de Policía Local.
+                  Sanción cursada en virtud de los <strong>Arts. 17°, 20°, 21°, 27° y 37° de la Ley N° 21.442</strong> y el Reglamento Interno. El monto se incorpora a la colilla de gastos comunes del período vigente, respondiendo <strong>solidariamente el propietario y el arrendatario u ocupante</strong>. Podrá presentar reconsideración o descargos fundados dentro de <strong>5 días hábiles</strong> ante el Comité de Administración o en <strong>{contactEmail}</strong>, sin perjuicio de recurrir al Juzgado de Policía Local. La <strong>reincidencia</strong> faculta duplicar la multa reglamentaria.
                 </>
               )}
             </div>
