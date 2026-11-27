@@ -1,23 +1,556 @@
+@page {
+  size: letter portrait;
+  margin: 6mm 0;
+}
 
-@page{size:letter;margin:0}*{box-sizing:border-box}body{margin:0;background:#e9edea;color:#1a302a;font:10pt/1.36 "Segoe UI",Arial,sans-serif;font-variant-numeric:tabular-nums;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.sheet{width:215.9mm;height:279.4mm;padding:10mm 13mm 6mm;background:#fff;margin:auto;display:flex;flex-direction:column}
-.mast,.row,.identity,.period,.auth,.foot{display:flex;align-items:center;justify-content:space-between}.mast{border-bottom:2.4px solid #164535;padding-bottom:3mm}.identity{gap:3mm}.symbol{width:13mm;height:13mm}.small{font-size:8pt;color:#50675e}.k{font-weight:700;font-size:7.6pt;letter-spacing:.75px;text-transform:uppercase;color:#466256}.identity b{font-size:13pt}.ap{width:32mm;height:12mm;object-fit:contain}.period{margin:4mm 0 3.5mm}.period h1{font-size:23pt;line-height:1.1;letter-spacing:-.6px;margin:0}.period .right{text-align:right}.right strong{display:block;font-size:11pt}
-.hero{background:#103f32;color:white;padding:3.2mm 5mm;border-left:1.4mm solid #ceaa78;display:grid;grid-template-columns:1.25fr 1fr .75fr;align-items:center;gap:4mm}.hero div+div{border-left:1px solid #538073;padding-left:5mm}.hero .k{color:#e2dfcd}.hero strong{display:block;font-size:14pt}.hero div:first-child strong{font-size:28pt;line-height:1.12}
-.holder{display:grid;grid-template-columns:1.3fr 1fr .73fr;gap:4mm;border-bottom:1px solid #b5c5bc;padding:3mm 0}.holder b{display:block;font-size:10pt}
-h2{font-size:13pt;letter-spacing:-.15px;color:#103f32;margin:0}section{margin-top:4mm}.cap{margin-bottom:1.7mm}table{width:100%;border-collapse:collapse}td,th{padding:1.5mm 2.2mm}th{text-align:left;background:#e8efe9;font-size:8pt;color:#284b3f;font-weight:650}td{font-size:10pt;border-bottom:1px solid #e1e7e3}td:not(:first-child),th:not(:first-child){text-align:right;white-space:nowrap}.sum td{font-weight:700;background:#f6f8f5;color:#183f32;border-top:1px solid #829c8d}
-.twocol{display:grid;grid-template-columns:1.2fr 1fr;gap:8mm}.line{display:flex;justify-content:space-between;gap:2mm;border-bottom:1px solid #e4e8e4;padding:1.1mm 0;font-size:9.1pt}.line span:last-child{white-space:nowrap}.subtotal{font-weight:650}.net{color:#0e402e;font-weight:700;background:#e8efe9;padding:1.6mm 2mm}.bank{background:#f6f4ee;border-top:2px solid #ceb187;padding:3mm 4mm}.bank h2{font-size:12pt;margin:0 0 1.5mm}.bank b{display:block;font-size:10pt}.bank p{margin:1.5mm 0 0;font-size:9pt}.bank .small{font-size:8pt}
-.auth{justify-content:flex-end;gap:3mm;margin-top:auto;padding:3mm 0}.auth img{width:11mm;height:11mm;object-fit:contain}.signature{width:43mm;text-align:center;border-top:1px solid #64786c;margin-left:5mm;padding-top:1mm}.auth b{display:block;font-size:8.4pt}.coupon{padding-top:2.6mm;border-top:1px dashed #8ca294}.coupon h2{font-size:11pt}.coupon .row{margin-bottom:1.7mm}.couponfields{display:grid;grid-template-columns:.9fr 1.1fr 1fr 1fr;gap:4mm}.couponfields b{display:block;font-size:9pt}.write{border-bottom:1px solid #627b70;height:4.6mm}.foot{border-top:1px solid #cad4ce;margin-top:3mm;padding-top:1.8mm;font-size:7.3pt;color:#53675d}
-.agreement{margin-top:2.2mm;padding:1.5mm 2.5mm;border-left:2px solid #b79669;background:#f7f8f5;font-size:8.5pt}.agreement b{color:#164535}.agreement p{margin:.6mm 0 0}.bank{align-self:start}.line{padding:.9mm 0}
+* {
+  box-sizing: border-box;
+}
 
-.sheet{padding-top:7mm;padding-bottom:4mm}.sheet section{margin-top:3mm}.sheet td,.sheet th{padding-top:1.05mm;padding-bottom:1.05mm}.auth{padding:1.5mm 0}.payment-guide {display:flex;align-items:center;justify-content:space-between;gap:4mm;border-top:1px solid #88a499;padding-top:2mm;margin-top:2mm;color:#19382e}
-.payment-guide h2 {margin:0 0 1mm;font-size:12pt;color:#103f32}
-.payment-guide ol {margin:0;padding-left:5mm;font-size:9pt;line-height:1.42}
-.payment-guide li::marker {font-weight:700;color:#10553f}
-.payment-guide p {margin:1mm 0 0;font-size:8.5pt}
-.payment-guide a {color:#104c3d}
-.payment-guide img {width:23mm;height:23mm;display:block}
-.sheet{height:auto;min-height:279.3mm}.symbol{object-fit:contain}.sign{text-align:center}.sign img{width:27mm;height:8mm;object-fit:contain}.signature{margin-left:0}.payment-guide,.auth,.agreement,.bank,tr{break-inside:avoid}.payment-guide svg{display:block}.sheet{overflow-wrap:anywhere}
-@media screen and (max-width:816px){.sheet{width:100%;min-height:100vh;padding:3vw}.twocol{gap:3vw}.mast .ap{max-width:27%}}
-@media screen and (max-width:540px){.twocol{grid-template-columns:1fr}.hero{gap:2mm}.hero strong{font-size:12pt}.hero div:first-child strong{font-size:18pt}.payment-guide{align-items:flex-start}.payment-guide svg{width:62px;height:62px}.period h1{font-size:16pt}}/* Parallel rules occupy the existing header padding, including in print. */
-.mast {position:relative}
-.mast::after {content:"";position:absolute;bottom:1px;left:0;right:0;border-top:1.5px solid #bc945d;pointer-events:none}
+body {
+  margin: 0;
+  background: #e9edea;
+  color: #1a302a;
+  font: 10pt/1.34 "Segoe UI", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.sheet {
+  width: 215.9mm;
+  min-height: 276mm;
+  height: auto;
+  padding: 6.5mm 11mm 5mm;
+  background: #ffffff;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  overflow-wrap: anywhere;
+}
+
+/* Encabezado integrado de 3 columnas (título sube al encabezado) */
+.mast-header {
+  display: grid;
+  grid-template-columns: 0.92fr 1.55fr 0.65fr;
+  align-items: center;
+  gap: 3mm;
+  padding-bottom: 2.2mm;
+  border-bottom: 2.4px solid #164535;
+  position: relative;
+}
+
+.mast-header::after {
+  content: "";
+  position: absolute;
+  bottom: 1.5px;
+  left: 0;
+  right: 0;
+  border-top: 1.4px solid #bc945d;
+  pointer-events: none;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 2.5mm;
+  min-width: 0;
+}
+
+.symbol {
+  width: 11mm;
+  height: 11mm;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.symbol-badge {
+  width: 11mm;
+  height: 11mm;
+  border-radius: 2mm;
+  background: #f1f5f2;
+  border: 1px solid #c9d8cf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 9.5pt;
+  color: #103f32;
+  flex-shrink: 0;
+}
+
+.small {
+  font-size: 8pt;
+  color: #50675e;
+}
+
+.k {
+  font-weight: 700;
+  font-size: 7.4pt;
+  letter-spacing: 0.65px;
+  text-transform: uppercase;
+  color: #466256;
+  display: block;
+}
+
+.identity b {
+  font-size: 11pt;
+  color: #103f32;
+  display: block;
+  line-height: 1.15;
+}
+
+.header-title {
+  text-align: center;
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 17.2pt;
+  line-height: 1.08;
+  font-weight: 900;
+  letter-spacing: -0.35px;
+  color: #103f32;
+}
+
+.header-title .period-pill {
+  margin-top: 1mm;
+  display: inline-block;
+  font-size: 8.5pt;
+  font-weight: 700;
+  color: #7c5b2f;
+  background: #f7f4ec;
+  border: 1px solid #d7c099;
+  padding: 0.4mm 2.8mm;
+  border-radius: 999px;
+}
+
+.ap-wrap {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.ap {
+  height: 10.5mm;
+  width: auto;
+  max-width: 34mm;
+  object-fit: contain;
+}
+
+/* Bloque hero verde compacto (sin inflado vertical ni pérdida de lectura) */
+.hero {
+  margin-top: 2.5mm;
+  background: #103f32;
+  color: #ffffff;
+  padding: 2.2mm 4.2mm;
+  border-left: 1.4mm solid #ceaa78;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 0.75fr;
+  align-items: center;
+  gap: 3mm;
+}
+
+.hero.hero-4 {
+  grid-template-columns: 1.2fr 0.95fr 0.75fr 0.72fr;
+}
+
+.hero div + div {
+  border-left: 1px solid #497568;
+  padding-left: 3.5mm;
+}
+
+.hero .k {
+  color: #e2dfcd;
+  font-size: 7.1pt;
+}
+
+.hero strong {
+  display: block;
+  font-size: 12.2pt;
+  line-height: 1.15;
+  margin-top: 0.3mm;
+  overflow-wrap: anywhere;
+}
+
+.hero div:first-child strong {
+  font-size: 20pt;
+  line-height: 1.05;
+}
+
+/* Barra titular compacta */
+.holder {
+  display: grid;
+  grid-template-columns: 1.25fr 0.85fr 1fr;
+  gap: 3.5mm;
+  border-bottom: 1px solid #b5c5bc;
+  padding: 1.6mm 0;
+}
+
+.holder b {
+  display: block;
+  font-size: 9.6pt;
+  color: #103f32;
+}
+
+/* Secciones y tablas (tamaño de fuente de lectura preservado) */
+h2 {
+  font-size: 12pt;
+  letter-spacing: -0.15px;
+  color: #103f32;
+  margin: 0;
+}
+
+section {
+  margin-top: 2.6mm;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cap {
+  margin-bottom: 1.2mm;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td, th {
+  padding: 0.9mm 2mm;
+}
+
+th {
+  text-align: left;
+  background: #e8efe9;
+  font-size: 8pt;
+  color: #284b3f;
+  font-weight: 700;
+}
+
+td {
+  font-size: 10pt;
+  border-bottom: 1px solid #e1e7e3;
+}
+
+td:not(:first-child),
+th:not(:first-child) {
+  text-align: right;
+  white-space: nowrap;
+}
+
+table small {
+  display: block;
+  font-size: 8pt;
+  color: #52665b;
+}
+
+.ledger td:nth-child(2),
+.ledger th:nth-child(2) {
+  text-align: left;
+  white-space: normal;
+}
+
+.sum td {
+  font-weight: 700;
+  background: #f6f8f5;
+  color: #183f32;
+  border-top: 1px solid #829c8d;
+}
+
+.twocol {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 6mm;
+  align-items: start;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: 2mm;
+  border-bottom: 1px solid #e4e8e4;
+  padding: 0.78mm 0;
+  font-size: 9.1pt;
+}
+
+.line span:last-child {
+  white-space: nowrap;
+}
+
+.subtotal {
+  font-weight: 650;
+}
+
+.net {
+  color: #0e402e;
+  font-weight: 700;
+  background: #e8efe9;
+  padding: 1.2mm 2mm;
+}
+
+.bank {
+  background: #f6f4ee;
+  border-top: 2px solid #ceb187;
+  padding: 2.4mm 3.5mm;
+  align-self: start;
+}
+
+.bank h2 {
+  font-size: 11.5pt;
+  margin: 0 0 1mm;
+}
+
+.bank b {
+  display: block;
+  font-size: 9.8pt;
+}
+
+.bank p {
+  margin: 1mm 0 0;
+  font-size: 8.8pt;
+  line-height: 1.32;
+}
+
+.bank .small {
+  font-size: 8pt;
+}
+
+.bank-ref-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5mm;
+  margin-top: 1.6mm;
+  padding-top: 1.4mm;
+  border-top: 1px solid #dfd7c7;
+}
+
+.agreement {
+  margin-top: 2mm;
+  padding: 1.4mm 2.5mm;
+  border-left: 2.5px solid #b79669;
+  background: #f7f8f5;
+  font-size: 8.5pt;
+  line-height: 1.3;
+  break-inside: avoid;
+}
+
+.agreement b {
+  color: #164535;
+}
+
+.agreement p {
+  margin: 0.5mm 0 0;
+}
+
+/* Cierre unificado en 2 columnas: QR/Portal a la izquierda | Sello Ley 21.442 + Firma a la derecha */
+.closing-band {
+  margin-top: auto;
+  padding-top: 2mm;
+  border-top: 1.2px solid #88a499;
+  display: grid;
+  grid-template-columns: 1.45fr 0.92fr;
+  gap: 4mm;
+  align-items: center;
+  break-inside: avoid;
+}
+
+.payment-guide-box {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  color: #19382e;
+}
+
+.payment-guide-box h2 {
+  margin: 0 0 0.7mm;
+  font-size: 11pt;
+  color: #103f32;
+}
+
+.payment-guide-box ol {
+  margin: 0;
+  padding-left: 4.2mm;
+  font-size: 8.6pt;
+  line-height: 1.32;
+}
+
+.payment-guide-box li::marker {
+  font-weight: 700;
+  color: #10553f;
+}
+
+.payment-guide-box p {
+  margin: 0.7mm 0 0;
+  font-size: 8pt;
+  line-height: 1.28;
+  color: #365047;
+}
+
+.payment-guide-box a {
+  color: #104c3d;
+  font-weight: 700;
+}
+
+.payment-guide-box svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.official-seal-box {
+  border-left: 1px solid #d5dfd9;
+  padding-left: 3.5mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8mm;
+}
+
+.seal-row {
+  display: flex;
+  align-items: center;
+  gap: 2.2mm;
+  width: 100%;
+}
+
+.seal-row img {
+  width: 10.5mm;
+  height: 10.5mm;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.seal-title {
+  font-size: 7.7pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #103f32;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+}
+
+.seal-sub {
+  font-size: 7.3pt;
+  color: #466256;
+  line-height: 1.18;
+}
+
+.sig-block {
+  width: 100%;
+  text-align: center;
+}
+
+.sig-block img {
+  height: 7.5mm;
+  width: auto;
+  max-width: 30mm;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 0.5mm;
+}
+
+.sig-line {
+  border-top: 1px solid #496859;
+  padding-top: 0.8mm;
+  font-size: 8.2pt;
+  font-weight: 800;
+  color: #103f32;
+}
+
+.sig-role {
+  font-size: 7.3pt;
+  color: #50675e;
+}
+
+.foot {
+  border-top: 1px solid #cad4ce;
+  margin-top: 1.8mm;
+  padding-top: 1.2mm;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 7.3pt;
+  color: #53675d;
+}
+
+tr {
+  break-inside: avoid;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+  .sheet {
+    width: 215.9mm;
+    min-height: 265mm;
+    height: auto;
+    padding: 0.5mm 11mm 0.5mm;
+    margin: 0 auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+}
+
+@media screen and (max-width: 816px) {
+  .sheet {
+    width: 100%;
+    min-height: 100vh;
+    padding: 3vw;
+  }
+  .mast-header {
+    grid-template-columns: 1fr auto;
+    gap: 2.5mm;
+  }
+  .header-title {
+    grid-column: 1 / -1;
+    order: 3;
+    text-align: left;
+  }
+  .twocol {
+    gap: 3vw;
+  }
+  .mast-header .ap {
+    max-width: 28vw;
+  }
+}
+
+@media screen and (max-width: 540px) {
+  .twocol,
+  .holder,
+  .closing-band {
+    grid-template-columns: 1fr;
+  }
+  .hero,
+  .hero.hero-4 {
+    grid-template-columns: 1fr 1fr;
+    gap: 2mm;
+  }
+  .hero strong {
+    font-size: 11pt;
+  }
+  .hero div:first-child strong {
+    font-size: 16pt;
+  }
+  .official-seal-box {
+    border-left: none;
+    border-top: 1px solid #d5dfd9;
+    padding-left: 0;
+    padding-top: 2.5mm;
+  }
+  .payment-guide-box {
+    align-items: flex-start;
+  }
+  .payment-guide-box svg {
+    width: 60px;
+    height: 60px;
+  }
+  .header-title h1 {
+    font-size: 14.5pt;
+  }
+}

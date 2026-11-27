@@ -1,8 +1,145 @@
-.report .period h1{font-size:20pt}.report h2{font-size:12pt}.report .cap{gap:3mm;align-items:baseline}.report .hero{grid-template-columns:1.25fr 1fr 1fr}.report .hero div:first-child strong{font-size:23pt}
-.report .twocol{grid-template-columns:1fr 1fr;align-items:start;gap:6mm}.report .line{font-size:9.3pt}.report .detail{table-layout:fixed}
-.report .detail th,.report .detail td{text-align:left;white-space:normal;vertical-align:top;padding:1mm 1.3mm}.report .detail td{font-size:8.6pt}.report .detail th{background:white;border-bottom:1px solid #496859}.report .detail small{display:block;font-size:7.8pt;color:#52665b}
-.report .detail th:nth-child(1){width:11%}.report .detail th:nth-child(2){width:23%}.report .detail th:nth-child(3){width:20%}.report .detail th:nth-child(4){width:17%}.report .detail th:nth-child(5){width:14%}.report .detail th:nth-child(6){width:15%}.report .detail td:last-child,.report .detail th:last-child{text-align:right}
-.report .category td{background:#e6eee8;color:#174232;font-weight:700;border-bottom:1px solid #bdcfc3}.report .category{break-after:avoid}.report .status{font-size:8pt;padding:0 .8mm;border-radius:2px}.report .settled{color:#17533b;background:#e4f3e8}.report .pending{color:#704d13;background:#fff0c7}
-@media print{@page{size:letter;margin:8mm 0}.sheet.report{display:block;min-height:0;padding-top:0;padding-bottom:0}.report .auth{margin-top:4mm}.report .twocol{break-inside:avoid}.report .detail thead{display:table-header-group}}
-@media screen and (max-width:600px){.report .twocol{grid-template-columns:1fr}.report section:has(.detail){overflow-x:auto}.report .detail{min-width:580px}.report .period h1{font-size:16pt}}
-@media print{body{background:white}.sheet.report{display:flex;min-height:262.8mm}.report .auth{margin-top:auto;padding-top:4mm}}
+.report .header-title h1 {
+  font-size: 16pt;
+  white-space: nowrap;
+}
+
+.report h2 {
+  font-size: 11.8pt;
+}
+
+.report .cap {
+  gap: 3mm;
+  align-items: baseline;
+}
+
+.report .hero,
+.report .hero.hero-4 {
+  margin-top: 2mm;
+  padding: 2mm 4mm;
+  grid-template-columns: 1.12fr 1fr 1fr 0.95fr;
+}
+
+.report .hero div:first-child strong {
+  font-size: 19pt;
+}
+
+.report section {
+  margin-top: 2mm;
+}
+
+.report .twocol {
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 5.5mm;
+}
+
+.report .line {
+  font-size: 9.3pt;
+  padding: 0.65mm 0;
+}
+
+.report .detail {
+  table-layout: fixed;
+}
+
+.report .detail th,
+.report .detail td {
+  text-align: left;
+  white-space: normal;
+  vertical-align: top;
+  padding: 0.62mm 1.1mm;
+}
+
+.report .detail td {
+  font-size: 8.6pt;
+  line-height: 1.22;
+}
+
+.report .detail th {
+  background: #ffffff;
+  border-bottom: 1.2px solid #496859;
+  font-size: 7.8pt;
+}
+
+.report .detail small {
+  display: block;
+  font-size: 7.8pt;
+  color: #52665b;
+  line-height: 1.2;
+}
+
+.report .detail th:nth-child(1) { width: 10%; }
+.report .detail th:nth-child(2) { width: 29.5%; }
+.report .detail th:nth-child(3) { width: 23.5%; }
+.report .detail th:nth-child(4) { width: 12.5%; }
+.report .detail th:nth-child(5) { width: 12%; }
+.report .detail th:nth-child(6) { width: 12.5%; }
+
+.report .detail td:last-child,
+.report .detail th:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.report .category td {
+  background: #e6eee8;
+  color: #174232;
+  font-weight: 700;
+  border-bottom: 1px solid #bdcfc3;
+  padding: 0.72mm 1.3mm;
+  font-size: 8.6pt;
+}
+
+.report .category {
+  break-after: avoid;
+}
+
+.report .status {
+  font-size: 7.8pt;
+  font-weight: 700;
+  padding: 0.2mm 1.2mm;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.report .settled {
+  color: #17533b;
+  background: #e4f3e8;
+}
+
+.report .pending {
+  color: #704d13;
+  background: #fff0c7;
+}
+
+@media print {
+  .sheet.report {
+    display: flex;
+    min-height: 265mm;
+    height: auto;
+    padding-top: 0.5mm;
+    padding-bottom: 0.5mm;
+  }
+  .report .twocol {
+    break-inside: avoid;
+  }
+  .report .detail thead {
+    display: table-header-group;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .report .twocol {
+    grid-template-columns: 1fr;
+  }
+  .report section:has(.detail) {
+    overflow-x: auto;
+  }
+  .report .detail {
+    min-width: 580px;
+  }
+  .report .header-title h1 {
+    font-size: 14pt;
+    white-space: normal;
+  }
+}
