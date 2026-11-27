@@ -439,17 +439,22 @@
   border-collapse: collapse;
 }
 
-.closing-record td,
-.closing-record th {
+:where(.closing-record) td,
+:where(.closing-record) th {
   padding: 0.85mm 1.8mm;
   border-bottom: 1px solid #dce5df;
   text-align: left;
   font-size: 9pt;
 }
 
-.closing-record th,
+:where(.closing-record) th,
 .closing-figures {
   background: #edf3ef;
+}
+
+:where(.closing-record) tr[class*="bg-"] th,
+:where(.closing-record) thead[class*="bg-"] th {
+  background: transparent;
 }
 
 .closing-record .amount {
@@ -507,6 +512,32 @@
   background: #edf3ef;
 }
 
+.finance-handout {
+  font-size: 9.3pt;
+  line-height: 1.32;
+}
+
+.finance-handout .closing-intro {
+  padding: 1.8mm 3mm;
+  margin-top: 1.8mm;
+}
+
+.finance-handout h3 {
+  margin: 1.8mm 0 0.7mm;
+  font-size: 10.1pt;
+}
+
+.finance-handout p {
+  margin: 0.65mm 0;
+  line-height: 1.3;
+}
+
+.finance-handout td,
+.finance-handout th {
+  padding: 0.62mm 1.8mm;
+  font-size: 8.8pt;
+}
+
 .finance-handout thead th,
 .finance-log .finance-summary {
   background: #164535;
@@ -536,41 +567,67 @@
 }
 
 .collection-debt {
-  background: #ffffff;
-  border-top: 1px solid #d5e1da;
-  padding-top: 1mm;
+  background: #f5f4ef;
+  border: 1px solid #d4b895;
+  border-radius: 14px;
+  padding: 2.5mm 4mm;
+  margin: 2mm 0;
 }
 
 .collection-debt h4 {
-  font-size: 10.5pt;
-  font-weight: 800;
-  color: #103f32;
-  margin: 0 0 1mm;
+  font-size: 9.2pt;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #0f3d2e;
+  margin: 0 0 1.2mm;
 }
 
 .collection-debt table {
   width: 100%;
-  font-size: 9pt;
+  font-size: 9.2pt;
   border-collapse: collapse;
 }
 
 .collection-debt td {
-  padding: 0.7mm 0;
-  border-bottom: 1px solid #e4e8e4;
+  padding: 0.8mm 0;
+  border-bottom: 1px solid #e2ddd0;
+  color: #334155;
 }
 
 .collection-debt td:last-child {
   text-align: right;
   font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
 }
 
 .collection-debt .collection-total td {
-  border-top: 1.5px solid #164535;
+  border-top: 1.5px solid #cbd5e1;
   border-bottom: 0;
-  color: #103f32;
-  background: #e8efe9;
-  padding: 1.1mm 1.5mm;
-  font-weight: 800;
+  color: #0f3d2e;
+  background: transparent;
+  padding: 1.2mm 0 0.2mm;
+  font-weight: 900;
+  font-size: 9.8pt;
+}
+
+.collection-bank-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.5mm;
+}
+
+.collection-bank-foot {
+  margin-top: 1.8mm;
+  padding-top: 1.5mm;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3mm;
+  font-size: 8.4pt;
+  color: #475569;
 }
 
 .collection-ref-banner {
@@ -597,7 +654,7 @@
     box-sizing: border-box;
     display: flex !important;
     flex-direction: column;
-    min-height: 256mm;
+    min-height: 258mm;
     margin: 0 !important;
     padding: 0 !important;
   }

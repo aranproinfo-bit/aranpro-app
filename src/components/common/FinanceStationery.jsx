@@ -214,24 +214,27 @@ export function PaymentAgreementSheet({ community, company, agreement }) {
       </div>
 
       <div className="closing-intro">
-        <b>Convenio formal propuesto para firma</b>
+        <b>Convenio propuesto para firma</b>
         <p>
-          La formalización del presente compromiso requiere visación del Comité de Administración y firmas de ambas partes.
+          La formalización requiere el acuerdo del comité de administración y las firmas de las partes.
         </p>
       </div>
 
       <h3>1. Identificación y autorización</h3>
       <p>
-        Comunidad: <b>{community.name}</b> · Unidad: <b>{unitLabel}</b> · Propietario(a):{' '}
-        <b>{unit.owner || '________________'}</b> (RUT {unit.rut || '______________'}).
+        Comunidad: {community.name}. Administrador(a): {adminName}.
       </p>
       <p>
-        Fecha de suscripción: ____ / ____ / ________ · Acuerdo Comité / Acta N° y fecha: ____________________________________.
+        Propietario(a) o representante: {unit.owner || '____________________________'} · RUT:{' '}
+        {unit.rut || '____________________'} · Unidad: {unitLabel}.
+      </p>
+      <p>
+        Fecha: ____ / ____ / ________ · Acuerdo del comité, acta y fecha: ____________________________________.
       </p>
 
-      <h3>2. Deuda reconocida y forma de pago</h3>
+      <h3>2. Deuda y forma de pago</h3>
       <p>
-        Las partes acuerdan repactar la suma total de <b>{formatCLP(totalHist)}</b>, correspondiente a obligaciones de gastos comunes individualizadas en el estado de cuenta adjunto. Períodos y conceptos comprendidos: ________________________________________________.
+        Las partes acuerdan pagar <b>{formatCLP(totalHist)}</b>, correspondiente a obligaciones de la unidad individualizadas en el estado de cuenta que se incorpora como antecedente. Períodos y conceptos comprendidos: ________________________________________________.
       </p>
       <p>
         El monto se pagará en <b>{totalCuotas} cuota(s) mensuales</b>
@@ -246,25 +249,25 @@ export function PaymentAgreementSheet({ community, company, agreement }) {
             de <b>{formatCLP(lastInstallment)}</b>
           </>
         )}
-        . La primera cuota vence el ____ / ____ / ________ y las siguientes el mismo día de cada mes junto con la colilla ordinaria.
+        . La primera vence el ____ / ____ / ________ y las siguientes el mismo día de cada mes, o en la fecha que se acuerde por escrito.
       </p>
 
-      <h3>3. Cobros mensuales y seguimiento</h3>
+      <h3>3. Cobros y seguimiento</h3>
       <p>
-        Las cuotas del convenio se incluirán desglosadas en la colilla de gasto común vigente. La administración registrará cada abono verificado y emitirá recibo oficial y saldo actualizado en la plataforma digital.
+        Las cuotas del convenio se informarán junto con los gastos comunes que se devenguen durante su vigencia. La administración registrará los pagos verificados y entregará el detalle de abonos y saldo cuando se solicite.
       </p>
       <p>
-        El incumplimiento oportuno de una cuota faculta a la administración y al Comité para revisar el saldo exigible y aplicar las medidas previstas en el Reglamento de Copropiedad y la Ley N° 21.442.
+        Si una cuota no se paga oportunamente, las partes revisarán el saldo y las medidas aplicables conforme al reglamento de copropiedad, los acuerdos pertinentes y la normativa vigente.
       </p>
 
-      <h3>4. Condiciones adicionales y entrega</h3>
+      <h3>4. Condiciones adicionales</h3>
       <p>
         {notes?.trim()
           ? notes
           : '________________________________________________________________________________'}
       </p>
       <p>
-        Las partes declaran haber revisado los antecedentes del estado de cuenta y reciben un ejemplar íntegro de este convenio.
+        Las partes declaran haber revisado los antecedentes de la deuda y reciben un ejemplar del convenio.
       </p>
 
       <FinanceSigningBlock
@@ -309,7 +312,7 @@ export function PaymentAgreementModal({ agreement, community, company, onClose }
                 printDocumentDirectly(domId, filename, {
                   pdfStyle: 'neutral',
                   useBundledStyles: true,
-                  margin: '8mm 10mm'
+                  margin: '7mm 10mm'
                 })
               }
               className="px-4 py-2 bg-[#D4B895] hover:bg-[#c5a67e] text-[#0F3D2E] font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
