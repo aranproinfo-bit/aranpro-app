@@ -3829,11 +3829,11 @@ _Administración ARANPRO_`;
                   >
                     <div className="flex items-center space-x-1.5 min-w-0">
                       <Scale className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'comunicados' && comunicadosSubTab === 'multas' ? 'text-[#0F3D2E]' : 'text-slate-400'}`} />
-                      <span className="truncate">5. Multas & Sanciones</span>
+                      <span className="truncate">5. Amonestaciones & Multas</span>
                     </div>
-                    {((currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0).length > 0) ? (
+                    {((currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0 || (u.warningsHistory?.length || 0) > 0).length > 0) ? (
                       <span className="text-[9.5px] px-1.5 py-0.2 rounded-full font-black shrink-0 bg-rose-100 text-rose-800">
-                        {(currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0).length}
+                        {(currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0 || (u.warningsHistory?.length || 0) > 0).length}
                       </span>
                     ) : (
                       <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${

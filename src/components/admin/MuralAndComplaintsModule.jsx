@@ -205,8 +205,9 @@ export const MuralAndComplaintsModule = ({
     fileName: ''
   });
 
-  // Formulario Aplicación de Multa sincronizado 1-a-1 con el PDF Oficial
+  // Formulario Aplicación de Amonestación ($0) o Multa sincronizado 1-a-1 con el PDF Oficial
   const [fineForm, setFineForm] = useState({
+    sanctionMode: 'fine', // 'fine' | 'warning'
     presetId: 'ruidos',
     unitId: 'u-8',
     conditionType: 'Primera infracción reglamentaria',
@@ -224,6 +225,41 @@ export const MuralAndComplaintsModule = ({
     resolutionFolio: 'SANC-2026-01',
     notifyWhatsApp: true
   });
+
+  const openSanctionModal = (mode = 'fine', overrides = {}) => {
+    const defaultUnitId =
+      overrides.unitId ||
+      fineForm.unitId ||
+      currentCommunity?.units?.[0]?.id ||
+      'u-1';
+    const year = new Date().getFullYear();
+    const isWarningMode = mode === 'warning';
+    setFineForm((prev) => ({
+      ...prev,
+      sanctionMode: mode,
+      unitId: defaultUnitId,
+      conditionType: isWarningMode
+        ? 'Apercibimiento preventivo'
+        : overrides.conditionType ||
+          (prev.conditionType === 'Apercibimiento preventivo'
+            ? 'Primera infracción reglamentaria'
+            : prev.conditionType),
+      appealTerm: isWarningMode
+        ? '48 horas hábiles'
+        : overrides.appealTerm || (prev.appealTerm === '48 horas hábiles' ? '5 días hábiles' : prev.appealTerm),
+      resolutionFolio:
+        overrides.resolutionFolio ||
+        (isWarningMode
+          ? prev.resolutionFolio?.startsWith('ADV-')
+            ? prev.resolutionFolio
+            : `ADV-${year}-01`
+          : prev.resolutionFolio?.startsWith('SANC-')
+          ? prev.resolutionFolio
+          : `SANC-${year}-01`),
+      ...overrides
+    }));
+    setShowFineModal(true);
+  };
   const fineUfOutdated = !!fineForm.ufDate && (!indicators.ufCurrent || fineForm.ufDate !== indicators.today || fineForm.ufValue !== indicators.data?.uf?.value);
 
   // --- Documentación Obligatoria según Ley N° 21.442 (Propuesta 4) ---
@@ -342,6 +378,17 @@ export const MuralAndComplaintsModule = ({
     return (currentCommunity?.units || []).filter(u => (u.extraCharge || 0) > 0);
   }, [currentCommunity?.units]);
 
+  // Historial consolidado de Amonestaciones / Advertencias Preventivas ($0)
+  const registeredWarnings = useMemo(() => {
+    const list = [];
+    (currentCommunity?.units || []).forEach((u) => {
+      (u.warningsHistory || []).forEach((w) => {
+        list.push({ ...w, unit: u });
+      });
+    });
+    return list.sort((a, b) => String(b.issuedDate || '').localeCompare(String(a.issuedDate || '')));
+  }, [currentCommunity?.units]);
+
   const totalFinesAmount = useMemo(() => {
     return unitsWithFines.reduce((acc, u) => acc + (u.extraCharge || 0), 0);
   }, [unitsWithFines]);
@@ -446,12 +493,68 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
     setShowNewDocModal(false);
   };
 
-  // 5. Cargar Multa a la Unidad en Colilla de Gastos Comunes (Propuesta 5)
+  // 5. Emitir Advertencia Preventiva ($0) o Cargar Multa en Colilla de Gastos Comunes
   const handleApplyFineToUnit = (e) => {
     e.preventDefault();
-    if (!Number.isFinite(Number(fineForm.amountClp)) || Number(fineForm.amountClp) <= 0 || fineUfOutdated) return;
-    const targetUnit = (currentCommunity?.units || []).find(u => u.id === fineForm.unitId);
+    const targetUnit =
+      (currentCommunity?.units || []).find((u) => u.id === fineForm.unitId) ||
+      currentCommunity?.units?.[0];
     if (!targetUnit) return;
+
+    const unitLabel = targetUnit.tower
+      ? `${targetUnit.tower} - ${targetUnit.number}`
+      : `Casa ${targetUnit.number}`;
+
+    // MODO A: AMONESTACIÓN / ADVERTENCIA PREVENTIVA ($0 SIN RECARGO EN COLILLA)
+    if (fineForm.sanctionMode === 'warning') {
+      const warningRecord = {
+        id: `warn-${Date.now()}`,
+        variant: 'warning',
+        conditionType: fineForm.conditionType || 'Apercibimiento preventivo',
+        incidentDate: fineForm.incidentDate || new Date().toISOString().slice(0, 10),
+        incidentTime: fineForm.incidentTime || '',
+        reason: fineForm.reason,
+        partialArgument: fineForm.partialArgument || '',
+        reglamentoArticle:
+          fineForm.reglamentoArticle || 'Arts. 17°, 20° y 21° Ley N° 21.442 · Reglamento Interno',
+        evidenceSource: fineForm.evidenceSource || 'Libro de Novedades de Conserjería',
+        appealTerm: fineForm.appealTerm || '48 horas hábiles',
+        resolutionFolio:
+          fineForm.resolutionFolio ||
+          `ADV-${new Date().getFullYear()}-${String((targetUnit.warningsHistory?.length || 0) + 1).padStart(2, '0')}`,
+        issuedDate: new Date().toISOString().slice(0, 10)
+      };
+
+      const prevWarnings = Array.isArray(targetUnit.warningsHistory) ? targetUnit.warningsHistory : [];
+      updateUnit(currentCommunity.id, targetUnit.id, {
+        warningsHistory: [warningRecord, ...prevWarnings]
+      });
+
+      setFineSuccessMessage(
+        `¡Advertencia preventiva (${warningRecord.resolutionFolio}) registrada para ${unitLabel} sin recargo en colilla ($0)! Se abrió el documento oficial con sus 2 copias.`
+      );
+      setTimeout(() => setFineSuccessMessage(''), 6000);
+
+      setNoticePreviewState({
+        isOpen: true,
+        allowStyleSwitch: false,
+        notice: {
+          ...warningRecord,
+          variant: 'warning',
+          unitLabel,
+          ownerName: targetUnit.owner || '',
+          ownerRut: targetUnit.rut || '',
+          folio: warningRecord.resolutionFolio,
+          date: warningRecord.issuedDate
+        }
+      });
+
+      setShowFineModal(false);
+      return;
+    }
+
+    // MODO B: MULTA REGLAMENTARIA CON CARGO EN COLILLA MENSUAL
+    if (!Number.isFinite(Number(fineForm.amountClp)) || Number(fineForm.amountClp) <= 0 || fineUfOutdated) return;
 
     const previousCharge = targetUnit.extraCharge || 0;
     const newCharge = previousCharge + Number(fineForm.amountClp);
@@ -562,6 +665,17 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
     });
   };
 
+  // Eliminar una Advertencia Preventiva del historial de la unidad
+  const handleDeleteWarning = (unitId, warningId) => {
+    const u = (currentCommunity?.units || []).find((item) => item.id === unitId);
+    if (!u) return;
+    updateUnit(currentCommunity.id, unitId, {
+      warningsHistory: (u.warningsHistory || []).filter((w) => w.id !== warningId)
+    });
+    setFineSuccessMessage('Registro de advertencia preventiva eliminado correctamente.');
+    setTimeout(() => setFineSuccessMessage(''), 4000);
+  };
+
   // Reversar / Anular Multa de una unidad
   const handleReverseFine = (unitId) => {
     updateUnit(currentCommunity.id, unitId, {
@@ -628,7 +742,17 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
 
           <button
             type="button"
-            onClick={() => setShowFineModal(true)}
+            onClick={() => openSanctionModal('warning')}
+            className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs rounded-xl flex items-center shadow-xs transition-colors cursor-pointer"
+            title="Emitir Amonestación o Advertencia Preventiva sin cobro ($0) en formato media carta (2 copias)"
+          >
+            <AlertTriangle className="w-3.5 h-3.5 mr-1.5 text-amber-700" />
+            Emitir Advertencia
+          </button>
+
+          <button
+            type="button"
+            onClick={() => openSanctionModal('fine')}
             className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs rounded-xl flex items-center shadow-xs transition-colors cursor-pointer"
             title="Cursar e imprimir Notificación de Multa reglamentaria (2 copias media carta)"
           >
@@ -805,10 +929,10 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
           }`}
         >
           <Scale className="w-3.5 h-3.5" />
-          <span>5. Multas & Sanciones</span>
-          {unitsWithFines.length > 0 && (
+          <span>5. Amonestaciones & Multas</span>
+          {(unitsWithFines.length + registeredWarnings.length) > 0 && (
             <span className="text-[10px] px-1.5 py-0.2 rounded-full font-black bg-rose-100 text-rose-800">
-              {unitsWithFines.length}
+              {unitsWithFines.length + registeredWarnings.length}
             </span>
           )}
         </button>
@@ -1441,35 +1565,161 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       )}
 
       {/* ========================================================================= */}
-      {/* VISTA 4: REGISTRO DE AMONESTACIONES & MULTAS (PROPUESTA 5)               */}
+      {/* VISTA 4: REGISTRO DE AMONESTACIONES & MULTAS                              */}
       {/* ========================================================================= */}
       {currentTab === 'multas' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
             <div>
               <h4 className="text-sm font-black text-slate-900">
-                Registro Oficial de Multas & Sanciones Imputadas al Gasto Común
+                Registro Oficial de Amonestaciones Preventivas ($0) & Multas Reglamentarias
               </h4>
               <p className="text-[11px] text-slate-500">
-                Aplicación reglamentaria de multas (Arts. 18° y 20° Ley N° 21.442) con cargo directo en la colilla mensual
+                Emite un apercibimiento preventivo previo sin cobro o imputa una multa en colilla (formato oficial media carta · 2 copias)
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowFineModal(true)}
-              className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl flex items-center shadow-xs transition-colors cursor-pointer shrink-0"
-            >
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
-              Cursar Nueva Multa
-            </button>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => openSanctionModal('warning')}
+                className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-black text-xs rounded-xl flex items-center shadow-2xs transition-colors cursor-pointer"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 mr-1.5 text-amber-700" />
+                + Emitir Advertencia ($0)
+              </button>
+              <button
+                type="button"
+                onClick={() => openSanctionModal('fine')}
+                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl flex items-center shadow-xs transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                + Cursar Nueva Multa
+              </button>
+            </div>
+          </div>
+
+          {/* BLOQUE 1: AMONESTACIONES Y ADVERTENCIAS PREVENTIVAS ($0) */}
+          <div className="bg-white rounded-2xl border border-amber-200 shadow-2xs overflow-hidden">
+            <div className="px-4 py-3 bg-amber-50/70 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-700" />
+                <h5 className="text-xs font-black text-amber-950 uppercase tracking-wide">
+                  1. Amonestaciones y Advertencias Preventivas Emitidas (Sin Recargo · $0)
+                </h5>
+              </div>
+              <span className="text-[10.5px] font-bold text-amber-800">
+                {registeredWarnings.length} registradas
+              </span>
+            </div>
+
+            {registeredWarnings.length === 0 ? (
+              <div className="p-6 text-center space-y-2">
+                <p className="text-xs text-slate-500">
+                  No hay advertencias preventivas registradas aún. Usa <strong>«+ Emitir Advertencia ($0)»</strong> para notificar formalmente a una unidad antes de aplicar multa.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-700 font-black border-b border-slate-200 uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="py-2.5 px-4">Folio / Fecha</th>
+                      <th className="py-2.5 px-4">Unidad</th>
+                      <th className="py-2.5 px-4">Causal y Antecedentes</th>
+                      <th className="py-2.5 px-4 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {registeredWarnings.map((w) => {
+                      const u = w.unit;
+                      const unitLabel = u.tower ? `${u.tower} - ${u.number}` : `Casa ${u.number}`;
+                      return (
+                        <tr key={w.id} className="hover:bg-amber-50/30 transition-colors">
+                          <td className="py-3 px-4 font-mono">
+                            <div className="font-black text-amber-900">{w.resolutionFolio || 'ADV'}</div>
+                            <div className="text-[10px] text-slate-500">{formatDate(w.issuedDate || w.incidentDate)}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-black text-slate-900">{unitLabel}</div>
+                            <div className="text-[10.5px] text-slate-500">{u.owner}</div>
+                          </td>
+                          <td className="py-3 px-4 max-w-md">
+                            <span className="font-bold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200 text-[10px] inline-block mb-0.5">
+                              Apercibimiento Preventivo ($0)
+                            </span>
+                            <div className="font-bold text-slate-800">{w.reason}</div>
+                            {w.partialArgument && (
+                              <p className="text-[11px] text-slate-600 line-clamp-2 mt-0.5">{w.partialArgument}</p>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex flex-wrap items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setNoticePreviewState({
+                                    isOpen: true,
+                                    allowStyleSwitch: false,
+                                    notice: {
+                                      ...w,
+                                      variant: 'warning',
+                                      unitLabel,
+                                      ownerName: u.owner || '',
+                                      ownerRut: u.rut || '',
+                                      folio: w.resolutionFolio,
+                                      date: w.issuedDate
+                                    }
+                                  })
+                                }
+                                className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                              >
+                                <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                                Vista / PDF (2 copias)
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openSanctionModal('fine', {
+                                    unitId: u.id,
+                                    conditionType: 'Reincidencia reglamentaria',
+                                    reason: w.reason,
+                                    partialArgument: `${w.partialArgument ? `${w.partialArgument} ` : ''}Pese a notificación de advertencia preventiva previa (Folio ${w.resolutionFolio}), se constató reiteración de la infracción.`.trim(),
+                                    reglamentoArticle: w.reglamentoArticle,
+                                    evidenceSource: w.evidenceSource
+                                  })
+                                }
+                                className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-lg font-bold text-[11px] cursor-pointer"
+                                title="Cursar multa por reincidencia tomando como base esta advertencia"
+                              >
+                                Escalar a Multa
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteWarning(u.id, w.id)}
+                                className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer"
+                                title="Eliminar registro de advertencia"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="p-4 bg-rose-50/60 border border-rose-200 rounded-2xl flex items-start space-x-3">
             <ShieldAlert className="w-5 h-5 text-rose-700 shrink-0 mt-0.5" />
             <div className="text-xs text-rose-950">
-              <div className="font-bold">Efecto Operativo de las Multas en ARANPRO:</div>
+              <div className="font-bold">2. Multas Reglamentarias con Cargo en Colilla Mensual:</div>
               <p className="mt-0.5 leading-relaxed text-rose-900">
-                Al aplicar una multa reglamentaria, el monto se adiciona automáticamente al <strong>cargo adicional (extraCharge)</strong> de la unidad infractora en la base de datos comunitaria. De este modo, en el módulo de <strong>Cierre y Cobro del Mes</strong> y en la <strong>Colilla Individual de Pago</strong> del copropietario aparecerá detallado el cobro de la multa.
+                Al aplicar una multa pecuniaria, el monto se suma automáticamente al <strong>cargo adicional</strong> de la unidad infractora para cobrarse en el <strong>Cierre y Cobro del Mes</strong> y en su <strong>Colilla Individual</strong>.
               </p>
             </div>
           </div>
@@ -1855,38 +2105,85 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: CURSAR E IMPUTAR MULTA A LA COLILLA DE GASTO COMÚN (SINCRONIZADO) */}
+      {/* MODAL 3: EMITIR ADVERTENCIA PREVENTIVA ($0) O IMPUTAR MULTA EN COLILLA    */}
       {/* ========================================================================= */}
       {showFineModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden my-auto max-h-[94vh] flex flex-col">
-            <div className="px-5 py-4 bg-gradient-to-r from-rose-950 via-rose-900 to-slate-900 text-white flex items-center justify-between shrink-0">
+            <div
+              className={`px-5 py-4 text-white flex items-center justify-between shrink-0 ${
+                fineForm.sanctionMode === 'warning'
+                  ? 'bg-gradient-to-r from-[#0F3D2E] via-[#14533d] to-slate-900'
+                  : 'bg-gradient-to-r from-rose-950 via-rose-900 to-slate-900'
+              }`}
+            >
               <div className="flex items-center space-x-2.5">
-                <div className="p-2 bg-rose-500/20 text-rose-300 rounded-xl">
-                  <Scale className="w-5 h-5 text-rose-400" />
+                <div
+                  className={`p-2 rounded-xl ${
+                    fineForm.sanctionMode === 'warning'
+                      ? 'bg-[#D4B895]/20 text-[#D4B895]'
+                      : 'bg-rose-500/20 text-rose-300'
+                  }`}
+                >
+                  {fineForm.sanctionMode === 'warning' ? (
+                    <AlertTriangle className="w-5 h-5 text-[#D4B895]" />
+                  ) : (
+                    <Scale className="w-5 h-5 text-rose-400" />
+                  )}
                 </div>
                 <div>
-                  <h4 className="text-sm font-black flex items-center gap-1.5">
-                    Imputar Multa Reglamentaria al Gasto Común
-                    <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-rose-500/30 border border-rose-400/40 text-rose-200 uppercase font-black">
-                      Art. 20° y 27° Ley N° 21.442
+                  <h4 className="text-sm font-black flex items-center gap-1.5 flex-wrap">
+                    {fineForm.sanctionMode === 'warning'
+                      ? 'Emitir Amonestación / Advertencia Preventiva ($0)'
+                      : 'Imputar Multa Reglamentaria al Gasto Común'}
+                    <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-white/15 border border-white/25 text-white uppercase font-black">
+                      Art. 17°, 20° y 27° Ley N° 21.442
                     </span>
                   </h4>
-                  <p className="text-[11px] text-rose-200 mt-0.5">
-                    Selecciona una causal rápida, ajusta la argumentación parcial y genera la notificación oficial en doble copia
+                  <p className="text-[11px] text-white/80 mt-0.5">
+                    {fineForm.sanctionMode === 'warning'
+                      ? 'Apercibimiento formal sin cobro en colilla: deja constancia oficial y genera las 2 copias media carta'
+                      : 'Selecciona causal rápida, ajusta la argumentación parcial y carga la multa en la colilla del mes'}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowFineModal(false)}
-                className="p-1.5 text-rose-300 hover:text-white rounded-lg hover:bg-white/10"
+                className="p-1.5 text-white/75 hover:text-white rounded-lg hover:bg-white/10"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleApplyFineToUnit} className="p-5 space-y-3.5 text-xs overflow-y-auto flex-1">
+              {/* SELECTOR DE TIPO DE DOCUMENTO: ADVERTENCIA ($0) VS MULTA (CON COBRO) */}
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => openSanctionModal('warning')}
+                  className={`py-2 px-3 rounded-lg font-black text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    fineForm.sanctionMode === 'warning'
+                      ? 'bg-[#0F3D2E] text-[#D4B895] shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>1. Advertencia Preventiva ($0)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openSanctionModal('fine')}
+                  className={`py-2 px-3 rounded-lg font-black text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    fineForm.sanctionMode === 'fine'
+                      ? 'bg-rose-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Scale className="w-3.5 h-3.5" />
+                  <span>2. Multa con Cobro en Colilla</span>
+                </button>
+              </div>
               {/* 1. PLANTILLAS DE LLENADO RÁPIDO (1 CLIC) */}
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
@@ -1962,9 +2259,18 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                     onChange={(e) => setFineForm({ ...fineForm, conditionType: e.target.value })}
                     className="w-full p-2.5 border border-slate-300 rounded-xl font-bold text-xs bg-white"
                   >
-                    <option value="Primera infracción reglamentaria">1ª Infracción Reglamentaria</option>
-                    <option value="Reincidencia reglamentaria">Reincidencia (Recargo Reglamentario)</option>
-                    <option value="Falta grave a la convivencia / seguridad">Falta Grave (Seguridad / Convivencia)</option>
+                    {fineForm.sanctionMode === 'warning' ? (
+                      <>
+                        <option value="Apercibimiento preventivo">Apercibimiento Preventivo ($0)</option>
+                        <option value="Última advertencia previa a multa">Última Advertencia Previa a Multa</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="Primera infracción reglamentaria">1ª Infracción Reglamentaria</option>
+                        <option value="Reincidencia reglamentaria">Reincidencia (Recargo Reglamentario)</option>
+                        <option value="Falta grave a la convivencia / seguridad">Falta Grave (Seguridad / Convivencia)</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -2097,91 +2403,97 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                 </div>
               </div>
 
-              {/* 5. ESCALA DE MULTA EN UF Y MONTO FINAL */}
-              <div className="p-3 bg-rose-50/40 border border-rose-200/70 rounded-xl">
-                <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                  Seleccionar Escala de Multa Reglamentaria:
-                </label>
-                <div className="grid grid-cols-4 gap-2 mb-2">
-                  {[0.5, 1, 2, 3].map((quantity) => {
-                    const amount = indicators.ufCurrent ? Math.round(indicators.data.uf.value * quantity) : null;
-                    const label = `${quantity.toFixed(1)} UF`;
-                    return (
-                      <button
-                        key={quantity}
-                        type="button"
-                        disabled={!indicators.ufCurrent}
-                        onClick={() =>
-                          setFineForm({
-                            ...fineForm,
-                            amountClp: amount,
-                            ufEquivalent: label,
-                            ufDate: indicators.data.uf.date,
-                            ufValue: indicators.data.uf.value
-                          })
-                        }
-                        className={`p-2 rounded-xl border text-center font-bold text-xs disabled:opacity-40 cursor-pointer ${
-                          fineForm.ufEquivalent === label && fineForm.ufDate === indicators.today
-                            ? 'bg-rose-900 text-white border-rose-900'
-                            : 'bg-white hover:bg-rose-50 text-slate-700 border-slate-200'
-                        }`}
-                      >
-                        {label}
-                        {amount !== null ? ` (${formatCLP(amount)})` : ''}
-                      </button>
-                    );
-                  })}
+              {/* 5. ESCALA DE MULTA EN UF (SOLO EN MODO MULTA) O AVISO PREVENTIVO ($0) */}
+              {fineForm.sanctionMode === 'warning' ? (
+                <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl text-emerald-950 text-[11px] leading-relaxed">
+                  🛡️ <strong>Apercibimiento Preventivo sin Cobro ($0):</strong> Esta notificación <strong>no agrega recargos</strong> en la colilla de gastos comunes de la unidad, pero queda guardada en el registro oficial de amonestaciones por si luego debes escalarla a multa por reincidencia.
                 </div>
-                <p className="text-[10px] text-slate-600 mb-2">
-                  {indicators.ufCurrent
-                    ? `UF del ${indicators.data.uf.date}: $${indicators.data.uf.value.toLocaleString('es-CL', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}.`
-                    : 'UF de hoy no disponible: puedes ingresar el monto manualmente en pesos.'}{' '}
-                  Datos:{' '}
-                  <a href="https://indicadores.cl/api/" target="_blank" rel="noreferrer" className="underline">
-                    indicadores.cl
-                  </a>{' '}
-                  ·{' '}
-                  <a
-                    href={`https://www.sii.cl/valores_y_fechas/uf/uf${indicators.today.slice(0, 4)}.htm`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline"
-                  >
-                    SII
-                  </a>
-                  .
-                </p>
-                {fineUfOutdated && (
-                  <p className="text-rose-700 font-bold mb-2">
-                    La UF seleccionada ya no está vigente o ha cambiado. Vuelve a elegir la escala o ingresa un monto manual.
+              ) : (
+                <div className="p-3 bg-rose-50/40 border border-rose-200/70 rounded-xl">
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                    Seleccionar Escala de Multa Reglamentaria:
+                  </label>
+                  <div className="grid grid-cols-4 gap-2 mb-2">
+                    {[0.5, 1, 2, 3].map((quantity) => {
+                      const amount = indicators.ufCurrent ? Math.round(indicators.data.uf.value * quantity) : null;
+                      const label = `${quantity.toFixed(1)} UF`;
+                      return (
+                        <button
+                          key={quantity}
+                          type="button"
+                          disabled={!indicators.ufCurrent}
+                          onClick={() =>
+                            setFineForm({
+                              ...fineForm,
+                              amountClp: amount,
+                              ufEquivalent: label,
+                              ufDate: indicators.data.uf.date,
+                              ufValue: indicators.data.uf.value
+                            })
+                          }
+                          className={`p-2 rounded-xl border text-center font-bold text-xs disabled:opacity-40 cursor-pointer ${
+                            fineForm.ufEquivalent === label && fineForm.ufDate === indicators.today
+                              ? 'bg-rose-900 text-white border-rose-900'
+                              : 'bg-white hover:bg-rose-50 text-slate-700 border-slate-200'
+                          }`}
+                        >
+                          {label}
+                          {amount !== null ? ` (${formatCLP(amount)})` : ''}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-slate-600 mb-2">
+                    {indicators.ufCurrent
+                      ? `UF del ${indicators.data.uf.date}: $${indicators.data.uf.value.toLocaleString('es-CL', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}.`
+                      : 'UF de hoy no disponible: puedes ingresar el monto manualmente en pesos.'}{' '}
+                    Datos:{' '}
+                    <a href="https://indicadores.cl/api/" target="_blank" rel="noreferrer" className="underline">
+                      indicadores.cl
+                    </a>{' '}
+                    ·{' '}
+                    <a
+                      href={`https://www.sii.cl/valores_y_fechas/uf/uf${indicators.today.slice(0, 4)}.htm`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      SII
+                    </a>
+                    .
                   </p>
-                )}
+                  {fineUfOutdated && (
+                    <p className="text-rose-700 font-bold mb-2">
+                      La UF seleccionada ya no está vigente o ha cambiado. Vuelve a elegir la escala o ingresa un monto manual.
+                    </p>
+                  )}
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-bold text-slate-700">Monto Final a Imputar:</span>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={fineForm.amountClp}
-                    onChange={(e) =>
-                      setFineForm({
-                        ...fineForm,
-                        amountClp: e.target.value,
-                        ufEquivalent: 'Monto fijado',
-                        ufDate: '',
-                        ufValue: null
-                      })
-                    }
-                    placeholder="Ej. 41412"
-                    className="p-2 border border-slate-300 bg-white rounded-xl font-black text-rose-700 text-sm w-36"
-                  />
-                  <span className="text-xs font-bold text-slate-600">CLP ({fineForm.ufEquivalent})</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-bold text-slate-700">Monto Final a Imputar:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      required={fineForm.sanctionMode === 'fine'}
+                      value={fineForm.amountClp}
+                      onChange={(e) =>
+                        setFineForm({
+                          ...fineForm,
+                          amountClp: e.target.value,
+                          ufEquivalent: 'Monto fijado',
+                          ufDate: '',
+                          ufValue: null
+                        })
+                      }
+                      placeholder="Ej. 41412"
+                      className="p-2 border border-slate-300 bg-white rounded-xl font-black text-rose-700 text-sm w-36"
+                    />
+                    <span className="text-xs font-bold text-slate-600">CLP ({fineForm.ufEquivalent})</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] leading-relaxed">
                 ⚖️ <strong>Formato Legal Doble Copia (Media Carta):</strong> Todos los datos, la argumentación parcial, el medio de respaldo y el plazo de descargos se reflejan directamente en la <strong>Notificación Oficial (2 copias por hoja Carta)</strong>.
@@ -2194,7 +2506,25 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                     const previewUnit =
                       (currentCommunity?.units || []).find((u) => u.id === fineForm.unitId) ||
                       currentCommunity?.units?.[0];
-                    if (previewUnit) {
+                    if (!previewUnit) return;
+                    if (fineForm.sanctionMode === 'warning') {
+                      const unitLabel = previewUnit.tower
+                        ? `${previewUnit.tower} - ${previewUnit.number}`
+                        : `Casa ${previewUnit.number}`;
+                      setNoticePreviewState({
+                        isOpen: true,
+                        allowStyleSwitch: false,
+                        notice: {
+                          ...fineForm,
+                          variant: 'warning',
+                          unitLabel,
+                          ownerName: previewUnit.owner || '',
+                          ownerRut: previewUnit.rut || '',
+                          folio: fineForm.resolutionFolio || 'ADV-2026-01',
+                          date: new Date().toISOString().slice(0, 10)
+                        }
+                      });
+                    } else {
                       handlePrintFineProof(previewUnit, {
                         ...fineForm,
                         amountClp: Number(
@@ -2226,9 +2556,15 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-gradient-to-r from-rose-900 to-rose-950 hover:from-rose-800 hover:to-rose-900 text-white font-black text-xs rounded-xl shadow-xs cursor-pointer"
+                    className={`px-4 py-2 font-black text-xs rounded-xl shadow-xs cursor-pointer ${
+                      fineForm.sanctionMode === 'warning'
+                        ? 'bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895]'
+                        : 'bg-gradient-to-r from-rose-900 to-rose-950 hover:from-rose-800 hover:to-rose-900 text-white'
+                    }`}
                   >
-                    Cargar Multa en Colilla
+                    {fineForm.sanctionMode === 'warning'
+                      ? 'Registrar y Abrir Advertencia PDF'
+                      : 'Cargar Multa en Colilla'}
                   </button>
                 </div>
               </div>
