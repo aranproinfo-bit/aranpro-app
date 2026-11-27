@@ -1,7 +1,6 @@
 import { ResidentInstallHint } from '../common/ResidentInstallHint';
-import { FinanceSigningBlock } from '../common/FinanceStationery';
-import {renderToStaticMarkup} from 'react-dom/server';
-import {FinanceHeader,FinanceFooter,ClosingRecord} from '../common/FinanceStationery';
+import { FinanceSigningBlock, FinanceHeader, FinanceFooter, FinanceHero, FinanceResidentClosingBand, ClosingRecord, PaymentAgreementModal } from '../common/FinanceStationery';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { PortalCode } from '../common/IndividualExpenseBill';
 import { DOMAIN_CONFIG } from '../../config/domains';
 import { PaymentReceipt } from '../common/AccountingPage';
@@ -267,6 +266,7 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
   const [showOfficialRegistryModal, setShowOfficialRegistryModal] = useState(false);
   const [bitacoraUnit, setBitacoraUnit] = useState(null);
   const [collectionLetterUnit, setCollectionLetterUnit] = useState(null);
+  const [previewAgreementData, setPreviewAgreementData] = useState(null);
   const [collectionLetterType, setCollectionLetterType] = useState('preventiva'); // 'preventiva' (1-2 meses) | 'prejudicial' (3+ meses)
   const [collectionLetterNoticeDays, setCollectionLetterNoticeDays] = useState(5);
   const [letterSavedInBitacora, setLetterSavedInBitacora] = useState(false);
@@ -333,7 +333,8 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        if (showExpenseReportModal) setShowExpenseReportModal(false);
+        if (previewAgreementData) setPreviewAgreementData(null);
+        else if (showExpenseReportModal) setShowExpenseReportModal(false);
         else if (showAssemblyBudgetModal) setShowAssemblyBudgetModal(false);
         else if (showResidentBrochureModal) setShowResidentBrochureModal(false);
         else if (showIncreaseExplainerModal) setShowIncreaseExplainerModal(false);
@@ -349,7 +350,7 @@ export const AdminDashboard = ({ onSelectCommunityView, onBackToWeb, initialComm
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showExpenseReportModal, showAssemblyBudgetModal, showResidentBrochureModal, showIncreaseExplainerModal, showNewExpenseModal, collectionLetterUnit, showOfficialRegistryModal, bitacoraUnit, activeUnitBill, showBulkEmailModal, showCommitteeSignoffModal, showClosingConfirmModal]);
+  }, [previewAgreementData, showExpenseReportModal, showAssemblyBudgetModal, showResidentBrochureModal, showIncreaseExplainerModal, showNewExpenseModal, collectionLetterUnit, showOfficialRegistryModal, bitacoraUnit, activeUnitBill, showBulkEmailModal, showCommitteeSignoffModal, showClosingConfirmModal]);
 
   // Formularios de Mural de Avisos y Documentos
   const [annForm, setAnnForm] = useState({ title: '', content: '', priority: 'Importante' });
@@ -1472,8 +1473,8 @@ _Administración ARANPRO_`;
 
   // Impresión directa aislada y generación de PDF formal delegada a la utilidad estándar ARANPRO
   const printDocumentDirectly = (elementId, documentTitle = 'Documento Oficial ARANPRO', options = {}) => {
-    const accounting = ['expense-voucher-printable-doc','assembly-budget-printable-doc','resident-brochure-printable-doc','committee-report-printable-doc','unit-bitacora-printable-doc','collection-letter-printable-doc'].includes(elementId);
-    if (accounting) return printFormalDocument(elementId,documentTitle,{pdfStyle:'neutral',useBundledStyles:true,margin:'9mm 11mm',extraStyles:'.print-wrapper {height:auto!important;max-height:none!important;overflow:visible!important} .print-wrapper table{width:100%} tr,footer,header{break-inside:avoid} thead{display:table-header-group} .print-wrapper .overflow-y-auto{overflow:visible!important;max-height:none!important} .no-print,button{display:none!important} .print-wrapper header{display:flex!important}.print-wrapper header img[src*=ARANPRO_logo_horizontal]{width:32mm!important;height:12mm!important;max-height:12mm!important}.print-wrapper .truncate{overflow:visible!important;white-space:normal!important;text-overflow:clip!important;max-width:none!important}'});
+    const accounting = ['expense-voucher-printable-doc','assembly-budget-printable-doc','resident-brochure-printable-doc','committee-report-printable-doc','unit-bitacora-printable-doc','collection-letter-printable-doc','payment-agreement-printable-doc'].includes(elementId);
+    if (accounting) return printFormalDocument(elementId,documentTitle,{pdfStyle:'neutral',useBundledStyles:true,margin:'7mm 10mm',extraStyles:'.print-wrapper {height:auto!important;max-height:none!important;overflow:visible!important} .print-wrapper table{width:100%} tr{break-inside:avoid} thead{display:table-header-group} .print-wrapper .overflow-y-auto{overflow:visible!important;max-height:none!important} .no-print,button{display:none!important} .print-wrapper .truncate{overflow:visible!important;white-space:normal!important;text-overflow:clip!important;max-width:none!important}'});
     return printFormalDocument(elementId, documentTitle, { pdfStyle, ...options });
   };
 
@@ -12661,257 +12662,145 @@ _Administración ARANPRO_`;
             {/* Documento Imprimible (print-area) con formato estricto de 1 página */}
             <div
               id="expense-voucher-printable-doc"
-              className="print-area print-single-page print-fit-page p-4 sm:p-6 print:p-2 text-slate-800 bg-white space-y-2.5 print:space-y-1.5 overflow-y-auto print:overflow-visible text-xs print:text-[10px]"
+              className="print-area print-single-page print-fit-page p-4 sm:p-6 print:p-0 text-slate-800 bg-white overflow-y-auto print:overflow-visible text-xs"
             >
-              <FinanceHeader community={currentCommunity} title="Comprobante de egreso" reference={viewingExpenseVoucher.documentNumber || viewingExpenseVoucher.id}/>
-{/* Título y Marco Legal */}
-              <div className="text-center bg-[#F5F4EF] p-2 print:p-1 rounded-xl border border-[#D4B895]/60">
-                <h2 className="text-xs sm:text-sm print:text-xs font-black uppercase tracking-wider text-[#0F3D2E]">
-                  Comprobante de Egreso y Rendición de Cuentas
-                </h2>
-                <p className="text-[10px] print:text-[9px] text-slate-600 mt-0.5">
-                  Artículos 6°, 13°, 17° y 20° de la Ley N° 21.442 sobre Copropiedad Inmobiliaria
-                </p>
-                <div className="flex justify-center items-center gap-3 text-[9.5px] print:text-[8.5px] text-slate-500 font-semibold mt-0.5">
-                  <span>Fecha Emisión: <strong>{formatDate(viewingExpenseVoucher.date)}</strong></span>
-                  <span>•</span>
-                  <span>Período: <strong>{viewingExpenseVoucher.periodLabel || viewingExpenseVoucher.period || viewingExpenseVoucher.date?.slice(0,7) || 'Sin informar'}</strong></span>
-                  <span>•</span>
-                  <span>Imputación: <strong>{viewingExpenseVoucher.fundSource === 'fondo_reserva' ? 'Fondo de Reserva' : 'Gasto Común Ordinario'}</strong></span>
-                </div>
-              </div>
+              <div className="finance-closing-sheet closing-record space-y-2.5">
+                <FinanceHeader
+                  community={currentCommunity}
+                  title="Comprobante de egreso"
+                  reference={`Doc. ${viewingExpenseVoucher.documentNumber || viewingExpenseVoucher.id} · ${formatDate(viewingExpenseVoucher.date)}`}
+                />
 
-              {/* Grilla con Datos del Gasto */}
-              <div className="grid grid-cols-2 gap-2 text-xs print:text-[9.5px]">
-                {/* Bloque 1: Clasificación Legal */}
-                <div className="p-2 sm:p-2.5 print:p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5">
-                  <div className="text-[9.5px] print:text-[8.5px] font-black uppercase tracking-wider text-[#0F3D2E] flex items-center gap-1 pb-0.5 border-b border-slate-100">
-                    <BadgeCheck className="w-3.5 h-3.5 text-[#D4B895]" />
-                    Clasificación Legal
+                <FinanceHero
+                  items={[
+                    ['Importe documento', formatCLP(viewingExpenseVoucher.amount)],
+                    ['Pagado al proveedor', formatCLP(paidToSupplier(viewingExpenseVoucher))],
+                    ['Estado', viewingExpenseVoucher.status === 'pagado' ? 'Pagado' : viewingExpenseVoucher.status === 'parcial' ? 'Pago parcial' : 'Por pagar'],
+                    ['Imputación', viewingExpenseVoucher.fundSource === 'fondo_reserva' ? 'Reserva Art. 14' : 'Gasto ordinario']
+                  ]}
+                />
+
+                <div className="finance-holder">
+                  <div>
+                    <span className="finance-identity-k">Proveedor / Razón Social</span>
+                    <b>{viewingExpenseVoucher.provider || 'No informado'}</b>
                   </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">Categoría:</span>
-                    <span className="font-bold text-slate-800 text-right">{viewingExpenseVoucher.category}</span>
+                  <div>
+                    <span className="finance-identity-k">RUT Proveedor</span>
+                    <b>{viewingExpenseVoucher.providerRut ? formatRut(viewingExpenseVoucher.providerRut) : 'No registrado'}</b>
                   </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">Naturaleza:</span>
-                    <span className="font-bold text-slate-800">
-                      {viewingExpenseVoucher.fundSource === 'fondo_reserva' ? 'Fondo Reserva Art. 14' : 'Ordinario de Uso y Consumo'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">Frecuencia:</span>
-                    <span className="font-bold text-slate-800">
-                      {viewingExpenseVoucher.isRecurring ? 'Fijo Periódico' : 'Eventual / Imprevisto'}
-                    </span>
+                  <div>
+                    <span className="finance-identity-k">Documento y Folio</span>
+                    <b>{viewingExpenseVoucher.documentType} · N° {viewingExpenseVoucher.documentNumber || 'S/N'}</b>
                   </div>
                 </div>
 
-                {/* Bloque 2: Proveedor y Documento Tributario */}
-                <div className="p-2 sm:p-2.5 print:p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5">
-                  <div className="text-[9.5px] print:text-[8.5px] font-black uppercase tracking-wider text-[#0F3D2E] flex items-center gap-1 pb-0.5 border-b border-slate-100">
-                    <Briefcase className="w-3.5 h-3.5 text-[#D4B895]" />
-                    Proveedor & Documento
+                {/* Grilla compacta: Clasificación + Pago bancario */}
+                <div className="finance-twocol text-xs">
+                  <div className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-1">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] pb-1 border-b border-slate-100">
+                      Clasificación Legal (Ley N° 21.442)
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Categoría:</span>
+                      <span className="font-bold text-slate-800 text-right">{viewingExpenseVoucher.category}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Período:</span>
+                      <span className="font-bold text-slate-800">{viewingExpenseVoucher.periodLabel || viewingExpenseVoucher.period || viewingExpenseVoucher.date?.slice(0, 7) || 'Sin informar'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Frecuencia:</span>
+                      <span className="font-bold text-slate-800">{viewingExpenseVoucher.isRecurring ? 'Fijo Periódico' : 'Eventual / Imprevisto'}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">Razón Social:</span>
-                    <span className="font-bold text-slate-900 text-right truncate max-w-[150px]">{viewingExpenseVoucher.provider}</span>
-                  </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">RUT:</span>
-                    <span className="font-mono font-bold text-slate-800">
-                      {viewingExpenseVoucher.providerRut ? formatRut(viewingExpenseVoucher.providerRut) : 'No registrado'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">Documento:</span>
-                    <span className="font-bold text-slate-800">
-                      {viewingExpenseVoucher.documentType} (Folio N° {viewingExpenseVoucher.documentNumber || 'S/N'})
-                    </span>
+
+                  <div className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-1">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-[#0F3D2E] pb-1 border-b border-slate-100">
+                      Antecedentes de Egreso Bancario
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Medio de pago:</span>
+                      <span className="font-bold text-slate-800 uppercase">{viewingExpenseVoucher.paymentMethod || 'Transferencia (TEF)'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Fecha / Ref.:</span>
+                      <span className="font-mono font-bold text-slate-800">{viewingExpenseVoucher.paymentDate ? formatDate(viewingExpenseVoucher.paymentDate) : 'Pend.'} · {viewingExpenseVoucher.paymentReference || 'TEF'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Saldo pendiente:</span>
+                      <span className="font-bold text-slate-900">{formatCLP(Math.max(0, Number(viewingExpenseVoucher.amount || 0) - paidToSupplier(viewingExpenseVoucher)))}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Bloque 3: Antecedentes de Pago */}
-                <div className="p-2 sm:p-2.5 print:p-1.5 rounded-xl border border-slate-200 bg-white space-y-0.5">
-                  <div className="text-[9.5px] print:text-[8.5px] font-black uppercase tracking-wider text-[#0F3D2E] flex items-center gap-1 pb-0.5 border-b border-slate-100">
-                    <CreditCard className="w-3.5 h-3.5 text-[#D4B895]" />
-                    Egreso Bancario
-                  </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">Estado:</span>
-                    <span className={`font-black uppercase px-1.5 py-0.2 rounded text-[9.5px] ${
-                      viewingExpenseVoucher.status === 'pagado'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {viewingExpenseVoucher.status === 'pagado' ? 'PAGADO' : viewingExpenseVoucher.status === 'parcial' ? 'PAGO PARCIAL' : 'POR PAGAR'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">Medio de Pago:</span>
-                    <span className="font-bold text-slate-800 uppercase text-[10px]">
-                      {viewingExpenseVoucher.paymentMethod || 'Transferencia (TEF)'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-0.5 text-[11px] print:text-[9.5px]">
-                    <span className="text-slate-500 font-medium">Fecha / Ref:</span>
-                    <span className="font-mono text-slate-800 text-[10px]">
-                      {viewingExpenseVoucher.paymentDate ? formatDate(viewingExpenseVoucher.paymentDate) : 'Pend.'} • {viewingExpenseVoucher.paymentReference || 'TEF'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bloque 4: Monto Total Autorizado */}
-                <div className="p-2 sm:p-2.5 print:p-1.5 rounded-xl border-2 border-[#0F3D2E]/30 bg-emerald-50/40 flex flex-col justify-center items-center text-center">
-                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
-                    Importe del documento
+                {/* Glosa Explicativa */}
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                  <span className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
+                    Glosa y Justificación del Gasto
                   </span>
-                  <div className="text-xl sm:text-2xl print:text-xl font-black text-[#0F3D2E] mt-0.5 tracking-tight">
-                    {formatCLP(viewingExpenseVoucher.amount)}<small className="block text-xs">Pagado: {formatCLP(paidToSupplier(viewingExpenseVoucher))} · Pendiente: {formatCLP(Number(viewingExpenseVoucher.amount)-paidToSupplier(viewingExpenseVoucher))}</small>
-                  </div>
-                  <span className="text-[9px] text-emerald-700 font-semibold mt-0.5">
-                    Pesos Chilenos (Moneda Legal)
-                  </span>
-                </div>
-              </div>
-
-              {/* Glosa Explicativa */}
-              <div className="p-2 sm:p-2.5 print:p-1.5 bg-slate-50 rounded-xl border border-slate-200 text-xs print:text-[9.5px]">
-                <span className="text-[9.5px] print:text-[8.5px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
-                  Glosa y Justificación del Gasto:
-                </span>
-                <p className="font-semibold text-slate-800 leading-snug">
-                  {viewingExpenseVoucher.description}
-                </p>
-                {viewingExpenseVoucher.receiptNotes && (
-                  <p className="text-[10px] print:text-[8.5px] text-slate-600 italic mt-1 pt-1 border-t border-slate-200">
-                    <strong>Observación / Inspección Técnica:</strong> {viewingExpenseVoucher.receiptNotes}
+                  <p className="font-semibold text-slate-800 leading-snug m-0">
+                    {viewingExpenseVoucher.description}
                   </p>
-                )}
-              </div>
+                  {viewingExpenseVoucher.receiptNotes && (
+                    <p className="text-[10px] text-slate-600 italic mt-1 pt-1 border-t border-slate-200">
+                      <strong>Observación:</strong> {viewingExpenseVoucher.receiptNotes}
+                    </p>
+                  )}
+                </div>
 
-              {/* Respaldo Digital Adjunto */}
-              {viewingExpenseVoucher.receiptUrl && (
-                <div className="p-2 print:p-1 bg-emerald-50/60 rounded-xl border border-emerald-200 text-xs print:text-[9.5px] flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <FileCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                    <div>
-                      <span className="font-bold text-emerald-950 block text-[10.5px] print:text-[9.5px]">Respaldo digital adjunto</span>
-                      <span className="text-[9.5px] print:text-[8.5px] text-emerald-700 truncate max-w-[220px] block">
-                        {viewingExpenseVoucher.fileName || 'Factura / Boleta Electrónica adjunta en sistema'}
+                {/* Respaldo Digital + Visación Comité en 1 fila equilibrada */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                  <div className="p-2 bg-emerald-50/60 rounded-xl border border-emerald-200 flex items-center justify-between">
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-bold text-emerald-950 block text-[10.5px]">Respaldo digital</span>
+                        <span className="text-[9.5px] text-emerald-700 truncate block">
+                          {viewingExpenseVoucher.receiptUrl ? (viewingExpenseVoucher.fileName || 'Adjunto en sistema') : 'Sin adjunto digital'}
+                        </span>
+                      </div>
+                    </div>
+                    {viewingExpenseVoucher.receiptUrl && (
+                      <a
+                        href={viewingExpenseVoucher.receiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="no-print px-2 py-1 bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-lg text-[9.5px] font-bold"
+                      >
+                        Ver Archivo
+                      </a>
+                    )}
+                  </div>
+
+                  <div className={`p-2 rounded-xl border flex items-center justify-between gap-2 ${
+                    viewingExpenseVoucher.approvedByCommittee ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
+                  }`}>
+                    <div className="min-w-0">
+                      <div className="text-[10.5px] font-black text-emerald-950">
+                        {viewingExpenseVoucher.approvedByCommittee ? 'VISACIÓN COMITÉ APROBADA' : 'VISACIÓN COMITÉ PENDIENTE'}
+                      </div>
+                      <div className="text-[9.5px] text-slate-700">
+                        {viewingExpenseVoucher.approvedByCommittee
+                          ? `${viewingExpenseVoucher.approvedBy || 'Comité de Administración'} · ${formatDate(viewingExpenseVoucher.approvedAt || viewingExpenseVoucher.date)}`
+                          : 'Gasto en proceso de visación del Comité'}
+                      </div>
+                    </div>
+                    {viewingExpenseVoucher.approvedByCommittee && (
+                      <span className="text-[8.5px] font-mono bg-emerald-700 text-white px-1.5 py-0.5 rounded shrink-0">
+                        LEY21442-{String(viewingExpenseVoucher.id || '').slice(-4).toUpperCase()}
                       </span>
-                    </div>
+                    )}
                   </div>
-                  <a
-                    href={viewingExpenseVoucher.receiptUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="no-print px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-lg text-[9.5px] font-bold flex items-center space-x-1"
-                  >
-                    <Eye className="w-3 h-3" />
-                    <span>Ver Archivo</span>
-                  </a>
                 </div>
-              )}
 
-              {/* Sello de Visación Digital Oficial del Comité */}
-              <div className="p-2 print:p-1 rounded-xl border border-slate-200 text-center">
-                {viewingExpenseVoucher.approvedByCommittee ? (
-                  <div className="flex items-center justify-between gap-2 bg-emerald-50 p-2 print:p-1 rounded-lg border border-emerald-200 text-left">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                        <Check className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <div className="text-[10.5px] print:text-[9.5px] font-black text-emerald-950 flex items-center gap-1.5">
-                          <span>VISACIÓN DIGITAL APROBADA • COMITÉ DE ADMINISTRACIÓN</span>
-                          <span className="text-[8.5px] bg-emerald-700 text-white px-1 py-0.2 rounded font-mono">
-                            VERIFICADO
-                          </span>
-                        </div>
-                        <div className="text-[9.5px] print:text-[8.5px] text-emerald-700 mt-0.2">
-                          Aprobado por: {viewingExpenseVoucher.approvedBy || 'Comité de Administración'} • Fecha: {formatDate(viewingExpenseVoucher.approvedAt || viewingExpenseVoucher.date)}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right text-[9px] font-mono text-emerald-800 shrink-0">
-                      Token: LEY21442-EXP-{viewingExpenseVoucher.id.replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase()}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-1.5 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 text-[10px] font-semibold flex items-center justify-center space-x-1.5">
-                    <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Gasto en proceso de visación del Comité de Administración.</span>
-                  </div>
-                )}
+                <FinanceSigningBlock
+                  company={companySettings}
+                  roles={['Presidente(a) Comité', 'Tesorero(a) / Revisor']}
+                  label="Comprobante de egreso · Art. 20° Ley N° 21.442 · Página 1 de 1"
+                />
               </div>
-
-              {/* Firmas Físicas para la Carpeta del Mes de la Comunidad */}
-              <div className="pt-4 print:pt-3 border-t-2 border-slate-300 mt-2">
-                <div className="text-center text-[10px] print:text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-3 print:mb-2">
-                  Firmas Oficiales para la Carpeta Contable del Mes (Art. 20° Ley N° 21.442)
-                </div>
-                <div className="grid grid-cols-3 gap-6 text-center text-xs">
-                  <div>
-                    <div className="h-20 print:h-16 w-full flex items-center justify-center gap-2 mb-2">
-                      <AranproOfficialSeal size="sm" />
-                      {companySettings?.signatureDataUrl ? (
-                        <img 
-                          src={companySettings.signatureDataUrl} 
-                          alt="Firma Administrador" 
-                          className="max-h-20 print:max-h-16 object-contain mx-auto"
-                          style={{
-                            transform: `scale(${companySettings?.signatureScale || 1.35})`,
-                            transformOrigin: 'bottom center'
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full max-w-[130px] h-14 print:h-12 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] print:text-[8px] text-slate-400 bg-slate-50/50">
-                          <span className="font-bold text-slate-500">Firma y Timbre</span>
-                          <span className="text-[7.5px] text-slate-400">Administrador / Rendidor</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="border-t-2 border-slate-500 pt-1.5">
-                      <div className="font-bold text-slate-900 text-[11px] truncate">
-                        {companySettings.adminName || companySettings.administratorName || 'John Andrés Arancibia M.'}
-                      </div>
-                      <div className="text-[9.5px] text-slate-600">Administrador de Copropiedad</div>
-                      <div className="text-[9px] text-[#0F3D2E] font-semibold">ARANPRO • RNAC MINVU N° {companySettings.rnacNumber || 'Sin informar'}</div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="h-20 print:h-16 w-full flex items-center justify-center mb-2">
-                      <div className="w-full max-w-[130px] h-14 print:h-12 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] print:text-[8px] text-slate-400 bg-slate-50/50">
-                        <span className="font-bold text-slate-500">Firma y Timbre</span>
-                        <span className="text-[7.5px] text-slate-400">Presidente(a) Comité</span>
-                      </div>
-                    </div>
-                    <div className="border-t-2 border-slate-500 pt-1.5">
-                      <div className="font-bold text-slate-900 text-[11px] truncate">Presidente del Comité</div>
-                      <div className="text-[9.5px] text-slate-600">Comité de Administración</div>
-                      <div className="text-[9px] text-slate-400 truncate">{currentCommunity.name}</div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="h-20 print:h-16 w-full flex items-center justify-center mb-2">
-                      <div className="w-full max-w-[130px] h-14 print:h-12 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-[9px] print:text-[8px] text-slate-400 bg-slate-50/50">
-                        <span className="font-bold text-slate-500">Firma y Timbre</span>
-                        <span className="text-[7.5px] text-slate-400">Tesorero / Revisor Cuentas</span>
-                      </div>
-                    </div>
-                    <div className="border-t-2 border-slate-500 pt-1.5">
-                      <div className="font-bold text-slate-900 text-[11px] truncate">Tesorero / Revisor Cuentas</div>
-                      <div className="text-[9.5px] text-slate-600">Comité de Administración</div>
-                      <div className="text-[9px] text-slate-400 truncate">{currentCommunity.name}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            <FinanceFooter community={currentCommunity} label="Comprobante de egreso"/>
-</div>
+            </div>
           </div>
         </div>
       )}
@@ -14078,36 +13967,91 @@ _Administración ARANPRO_`;
                   id="resident-brochure-printable-doc" 
                   className="max-w-3xl mx-auto bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm print:shadow-none print:border-none space-y-5 text-slate-800"
                 >
-                  <article className="finance-closing-sheet closing-record finance-handout">
-                    <FinanceHeader community={currentCommunity} title="Presupuesto de la comunidad" reference={'Propuesta para residentes · '+budgetYear}/>
-                    <section className="closing-intro"><b>¿Cuánto se propone cobrar?</b>
-                      <p>{currentCommunity.units.length === 0 ? 'La cuota individual se podrá estimar cuando se registren las unidades.' : budgetSplitMode === 'equal' ? <>Se proponen <b>{formatCLP(budgetData.effectiveQuotaPerUnit)} al mes por unidad</b>, con reparto en partes iguales entre las {currentCommunity.units.length} unidades.</> : <>La cuota mensual de referencia es de <b>{formatCLP(budgetData.effectiveQuotaPerUnit)}</b>. El monto de cada unidad depende de su porcentaje de participación.</>}</p>
-                      <p>La propuesta cubre doce meses. La colilla individual indicará el cobro que corresponda, junto con los saldos anteriores, convenios o abonos de la unidad.</p>
+                  <div className="finance-closing-sheet closing-record finance-handout space-y-2">
+                    <FinanceHeader
+                      community={currentCommunity}
+                      title="Presupuesto de la comunidad"
+                      reference={`Propuesta para residentes · ${budgetYear}`}
+                    />
+                    <FinanceHero
+                      items={[
+                        ['Cuota mensual propuesta', formatCLP(budgetData.effectiveQuotaPerUnit)],
+                        ['Presupuesto anual', formatCLP(budgetData.totalAnnualBudget)],
+                        ['Gasto operacional', formatCLP(budgetData.ordinaryProjectedTotal)],
+                        ['Unidades', `${currentCommunity.units.length} unid.`]
+                      ]}
+                    />
+                    <section className="closing-intro">
+                      <b>¿Cuánto se propone cobrar?</b>
+                      <p>
+                        {currentCommunity.units.length === 0 ? (
+                          'La cuota individual se podrá estimar cuando se registren las unidades.'
+                        ) : budgetSplitMode === 'equal' ? (
+                          <>
+                            Se proponen <b>{formatCLP(budgetData.effectiveQuotaPerUnit)} al mes por unidad</b>, con reparto en partes iguales entre las {currentCommunity.units.length} unidades.
+                          </>
+                        ) : (
+                          <>
+                            La cuota mensual de referencia es de <b>{formatCLP(budgetData.effectiveQuotaPerUnit)}</b>. El monto de cada unidad depende de su porcentaje de participación.
+                          </>
+                        )}{' '}
+                        La propuesta cubre doce meses y la colilla individual detallará el cobro junto con saldos anteriores, convenios o abonos.
+                      </p>
                     </section>
                     <h3>¿En qué se usaría el dinero?</h3>
-                    <table><thead><tr><th>Destino</th><th className="amount">Monto anual propuesto</th></tr></thead><tbody>
-                      {[...budgetData.categories.map(c=>[c.name,c.projectedAnnual]),['Fondo de reserva',budgetData.reserveFundAnnual],['Mejoras e imprevistos',budgetData.improvementsFundAnnual],['Provisión para meses de mayor gasto',budgetData.seasonalBufferAnnual]].map(([label,value])=><tr key={label}><td>{label}</td><td className="amount">{formatCLP(value)}</td></tr>)}
-                      <tr className="finance-total"><th>Total del año</th><th className="amount">{formatCLP(budgetData.totalAnnualBudget)}</th></tr>
-                    </tbody></table>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Destino</th>
+                          <th className="amount">Monto anual propuesto</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          ...budgetData.categories.map((c) => [c.name, c.projectedAnnual]),
+                          ['Fondo de reserva', budgetData.reserveFundAnnual],
+                          ['Mejoras e imprevistos', budgetData.improvementsFundAnnual],
+                          ['Provisión para meses de mayor gasto', budgetData.seasonalBufferAnnual]
+                        ].map(([label, value]) => (
+                          <tr key={label}>
+                            <td>{label}</td>
+                            <td className="amount">{formatCLP(value)}</td>
+                          </tr>
+                        ))}
+                        <tr className="finance-total">
+                          <th>Total del año</th>
+                          <th className="amount">{formatCLP(budgetData.totalAnnualBudget)}</th>
+                        </tr>
+                      </tbody>
+                    </table>
                     <h3>¿Qué parte financia servicios y qué parte se guarda?</h3>
-                    <p>Del total anual, <b>{formatCLP(budgetData.ordinaryProjectedTotal)}</b> corresponden al funcionamiento de la comunidad. Los otros <b>{formatCLP(budgetData.totalAnnualBudget - budgetData.ordinaryProjectedTotal)}</b> se distribuyen entre las tres partidas del final de la tabla: reserva, mejoras y meses de mayor gasto. Esos montos ya están incluidos en el total.</p>
-                    <h3>¿Por qué distribuir el gasto en doce meses?</h3>
-                    <p>Una mantención puede pagarse en un solo mes aunque beneficie a la comunidad todo el año. Una cuota estable permite distribuir su costo. La administración debe comparar cada mes lo previsto con los gastos efectivos y los pagos recibidos.</p>
+                    <p>
+                      Del total anual, <b>{formatCLP(budgetData.ordinaryProjectedTotal)}</b> corresponden al funcionamiento de la comunidad. Los otros <b>{formatCLP(budgetData.totalAnnualBudget - budgetData.ordinaryProjectedTotal)}</b> corresponden a reserva, mejoras y provisión para meses de mayor gasto, distribuidos en doce meses estables.
+                    </p>
                     <h3>¿Qué conviene revisar en la asamblea?</h3>
-                    <p>{currentCommunity.units.length > 0 && <>Si todas las unidades pagan la cuota propuesta, el ingreso anual estimado es de <b>{formatCLP(budgetData.effectiveAnnualRevenue)}</b>. {budgetData.roundingAnnualDiff < 0 ? 'Quedarían '+formatCLP(-budgetData.roundingAnnualDiff)+' por cubrir en el año.' : budgetData.roundingAnnualDiff > 0 ? 'Quedaría un excedente estimado de '+formatCLP(budgetData.roundingAnnualDiff)+' en el año.' : 'Ese ingreso cubriría el presupuesto anual.'} </>}Antes de votar, pida que se identifiquen las mantenciones programadas y los rubros que aún requieren cotización. El acuerdo de la asamblea permitirá consultar la cuota aprobada y desde qué período se aplicará.</p>
-                    <div className="resident-handout-end">
-                      <div className="resident-handout-sign"><div>
-                        <img className="resident-seal" src="/brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello oficial de administración ARANPRO"/>
-                        <span className="resident-seal-text"><strong>SELLO OFICIAL DE ADMINISTRACIÓN</strong><small>Ley N° 21.442 de Copropiedad Inmobiliaria</small></span>
-                        <span>{companySettings?.signatureDataUrl && <img src={companySettings.signatureDataUrl} alt="Firma del administrador"/>}</span>
-                      </div>
-                        <b>{companySettings?.adminName || companySettings?.administratorName || 'Administración'}</b><small>Administración de la comunidad</small>
-                      </div>
-                      <div className="resident-handout-portal"><div><b>¿Quieres ver más? Ingresa al portal de tu comunidad</b>
-                        <p>Escanea el QR o visita <a href={DOMAIN_CONFIG.getResidentLoginUrl(currentCommunity.slug)}>portaladministracion.aranpro.cl</a> para consultar tus gastos comunes y pagos.</p>
-                        <ResidentInstallHint/></div><PortalCode url={DOMAIN_CONFIG.getResidentLoginUrl(currentCommunity.slug)}/></div>
-                    </div>
-                  </article>
+                    <p>
+                      {currentCommunity.units.length > 0 && (
+                        <>
+                          Con el pago íntegro de las cuotas, el ingreso anual estimado es de <b>{formatCLP(budgetData.effectiveAnnualRevenue)}</b>.{' '}
+                          {budgetData.roundingAnnualDiff < 0
+                            ? `Quedarían ${formatCLP(-budgetData.roundingAnnualDiff)} por cubrir en el año. `
+                            : budgetData.roundingAnnualDiff > 0
+                            ? `Quedaría un excedente estimado de ${formatCLP(budgetData.roundingAnnualDiff)} en el año. `
+                            : 'Ese ingreso cubriría exactamente el presupuesto anual. '}
+                        </>
+                      )}
+                      Antes de votar, solicite revisar las mantenciones programadas y rubros con cotización pendiente.
+                    </p>
+                    <FinanceResidentClosingBand
+                      community={currentCommunity}
+                      company={companySettings}
+                      heading="¿Quieres ver más? Ingresa al portal de tu comunidad"
+                    />
+                    <FinanceFooter
+                      community={currentCommunity}
+                      label={`Presupuesto residentes ${budgetYear} · Página 1 de 1`}
+                    />
+                  </div>
 </div>
               </div>
             </div>
@@ -16014,34 +15958,25 @@ _Administración ARANPRO_`;
                       </div>
 
                       <p className="text-xs text-amber-950">La celebración del convenio requiere el acuerdo del comité. Revise los antecedentes y las condiciones antes de firmar.</p>
-                      <button type="button" className="px-3 py-2 rounded-lg bg-[#0F3D2E] text-white text-xs font-bold" onClick={() => {
+                      <button type="button" className="px-3.5 py-2 rounded-xl bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] border border-[#D4B895] text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs" onClick={() => {
                         if (!Number.isInteger(totalHist) || totalHist <= 0 || !Number.isInteger(cuotaMes) || cuotaMes <= 0 || !Number.isInteger(totalCuotas) || totalCuotas < 1 || (totalCuotas - 1) * cuotaMes >= totalHist || totalCuotas * cuotaMes < totalHist) {
                           alert('Revise el monto y las cuotas. La última cuota debe ser positiva y no superar el valor mensual.');
                           return;
                         }
                         const lastInstallment = totalHist - (totalCuotas - 1) * cuotaMes;
-                        const html = renderToStaticMarkup(
-                          <article className="finance-closing-sheet closing-record">
-                            <FinanceHeader community={currentCommunity} title="Convenio de pago de gastos comunes" reference={['Unidad '+editingUnit.number, editingUnit.tower].filter(Boolean).join(' · ')}/>
-                            <section className="closing-intro"><b>Convenio propuesto para firma</b><p>La formalización requiere el acuerdo del comité de administración y las firmas de las partes.</p></section>
-                            <h3>1. Identificación y autorización</h3>
-                            <p>Comunidad: {currentCommunity.name}. Administrador(a): {companySettings?.adminName || companySettings?.administratorName || '____________________________'}.</p>
-                            <p>Propietario(a) o representante: {editingUnit.owner || '____________________________'} · RUT: {editingUnit.rut || '____________________'} · Unidad: {[editingUnit.tower, editingUnit.number].filter(Boolean).join(' · ')}.</p>
-                            <p>Fecha: ____ / ____ / ________ · Acuerdo del comité, acta y fecha: ____________________________________.</p>
-                            <h3>2. Deuda y forma de pago</h3>
-                            <p>Las partes acuerdan pagar {formatCLP(totalHist)}, correspondiente a obligaciones de la unidad individualizadas en el estado de cuenta que se incorpora como antecedente. Períodos y conceptos comprendidos: ________________________________________________.</p>
-                            <p>El monto se pagará en {totalCuotas} cuota(s) mensuales{totalCuotas > 1 ? <>, las primeras {totalCuotas-1} de {formatCLP(cuotaMes)} y la última de {formatCLP(lastInstallment)}</> : <> de {formatCLP(lastInstallment)}</>}. La primera vence el ____ / ____ / ________ y las siguientes el mismo día de cada mes, o en la fecha que se acuerde por escrito.</p>
-                            <h3>3. Cobros y seguimiento</h3>
-                            <p>Las cuotas del convenio se informarán junto con los gastos comunes que se devenguen durante su vigencia. La administración registrará los pagos verificados y entregará el detalle de abonos y saldo cuando se solicite.</p>
-                            <p>Si una cuota no se paga oportunamente, las partes revisarán el saldo y las medidas aplicables conforme al reglamento de copropiedad, los acuerdos pertinentes y la normativa vigente.</p>
-                            <h3>4. Condiciones adicionales</h3>
-                            <p>{editingUnit.repactacion.notes || '________________________________________________________________________________'}</p>
-                            <p>Las partes declaran haber revisado los antecedentes de la deuda y reciben un ejemplar del convenio.</p>
-                            <FinanceSigningBlock company={companySettings} roles={['Propietario(a) o representante']} label="Convenio de pago"/>
-                          </article>
-                        );
-                        printFormalDocument(html, 'Convenio_Pago_'+editingUnit.number, {pdfStyle:'neutral',useBundledStyles:true,margin:'9mm 11mm',extraStyles:'.print-wrapper header{display:flex!important}.print-wrapper header img[src*=ARANPRO_logo_horizontal]{width:32mm!important;height:12mm!important;max-height:12mm!important}'});
-                      }}>Preparar convenio para firma (PDF)</button>
+                        setPreviewAgreementData({
+                          unit: editingUnit,
+                          totalHist,
+                          cuotaMes,
+                          totalCuotas,
+                          pagadas,
+                          lastInstallment,
+                          notes: editingUnit.repactacion.notes || ''
+                        });
+                      }}>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Vista Previa / Convenio para Firma (PDF)</span>
+                      </button>
 
                       <div>
                         <label className="block text-[10px] font-bold text-amber-950 mb-1">Glosa / Detalle del Convenio</label>
@@ -16291,111 +16226,104 @@ _Administración ARANPRO_`;
         </div>
       )}
 
+      {/* MODAL CONVENIO DE PAGO DE GASTOS COMUNES (VISTA PREVIA + PDF 1 HOJA) */}
+      {previewAgreementData && currentCommunity && (
+        <PaymentAgreementModal
+          agreement={previewAgreementData}
+          community={currentCommunity}
+          company={companySettings}
+          onClose={() => setPreviewAgreementData(null)}
+        />
+      )}
+
       {/* MODAL INFORME / BALANCE FINANCIERO PARA EL COMITÉ DE ADMINISTRACIÓN (IMPRIMIBLE / PDF) */}
       {showCommitteeReportModal && currentCommunity && metrics && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
-          <div 
-            id="committee-report-printable-doc"
-            className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-[#D4B895] overflow-hidden p-8 space-y-5 max-h-[90vh] overflow-y-auto"
-          >
-            <FinanceHeader community={currentCommunity} title="Balance mensual del comité" reference={['Período',currentCommunity.activePeriod?.month,currentCommunity.activePeriod?.year].filter(Boolean).join(' ')}/><button className="no-print" onClick={()=>setShowCommitteeReportModal(false)}>Cerrar</button>
-<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              <div className="p-3.5 bg-[#F5F4EF] rounded-2xl border border-[#D4B895]/60">
-                <span className="text-slate-500 block">Saldo Inicial Banco</span>
-                <span className="text-base font-black text-[#0F3D2E]">{formatCLP(metrics.initialBankBalance)}</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
+          <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+            <div className="px-5 py-3.5 bg-[#0F3D2E] text-white flex flex-wrap items-center justify-between gap-2 shrink-0">
+              <div>
+                <h3 className="text-sm font-black">Balance Mensual para el Comité de Administración</h3>
+                <p className="text-[11px] text-[#D4B895]">
+                  {currentCommunity.name} · Período {currentCommunity.activePeriod?.month}/{currentCommunity.activePeriod?.year}
+                </p>
               </div>
-              <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200">
-                <span className="text-emerald-700 block">Ingresos Recaudados</span>
-                <span className="text-base font-black text-emerald-900">{formatCLP(metrics.totalCollected)}</span>
-              </div>
-              <div className="p-3.5 bg-rose-50 rounded-2xl border border-rose-200">
-                <span className="text-rose-700 block">Pagos registrados a proveedores</span>
-                <span className="text-base font-black text-rose-900">{formatCLP(paidExpenses)}</span>
-              </div>
-              <div className="p-3.5 bg-[#0F3D2E] text-white rounded-2xl">
-                <span className="text-[#D4B895] block">Saldo calculado del período</span>
-                <span className="text-base font-black">{formatCLP(metrics.initialBankBalance + metrics.totalCollected - paidExpenses)}</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0F3D2E]">
-                Detalle de gastos registrados ({currentCommunity.expenses?.length || 0})
-              </h4>
-              <table className="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
-                <thead className="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th className="px-3 py-2">Fecha / Doc</th>
-                    <th className="px-3 py-2">Proveedor</th>
-                    <th className="px-3 py-2">Glosa</th>
-                    <th className="px-3 py-2 text-right">Documento / pagado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {(currentCommunity.expenses || []).map(e => (
-                    <tr key={e.id}>
-                      <td className="px-3 py-2 text-slate-500">{formatDate(e.date)} • {e.documentNumber}</td>
-                      <td className="px-3 py-2 font-semibold text-slate-800">{e.provider}</td>
-                      <td className="px-3 py-2 text-slate-600">{e.description}</td>
-                      <td className="px-3 py-2 text-right font-bold text-slate-900">{formatCLP(e.amount)} / {formatCLP(paidToSupplier(e))}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Sello Oficial y Firma del Administrador para el PDF */}
-            <div className="pt-4 border-t-2 border-slate-200 flex items-end justify-between gap-6">
-              <AranproOfficialSeal size="md" />
-              <div className="text-center min-w-[230px]">
-                <div className="h-16 flex items-end justify-center pb-1">
-                  {companySettings?.signatureDataUrl ? (
-                    <img
-                      src={companySettings.signatureDataUrl}
-                      alt="Firma Administrador"
-                      className="max-h-16 object-contain mx-auto"
-                      style={{
-                        transform: `scale(${companySettings?.signatureScale || 1.35})`,
-                        transformOrigin: 'bottom center'
-                      }}
-                    />
-                  ) : null}
-                </div>
-                <div className="border-t-2 border-[#0F3D2E] pt-1.5">
-                  <div className="text-xs font-black text-slate-900">
-                    {companySettings?.adminName || companySettings?.administratorName || 'Administración'}
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-mono">
-                    RUT: {(companySettings?.adminRut && companySettings.adminRut !== '14.882.140-K') ? companySettings.adminRut : 'Sin informar'} • RNAC MINVU N° {companySettings?.rnacNumber || 'Sin informar'}
-                  </div>
-                  <div className="text-[10px] font-bold text-[#0F3D2E]">
-                    Administrador Titular • {companySettings?.brandName || 'ARANPRO'}
-                  </div>
-                </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const commName = (currentCommunity?.name || 'Condominio').replace(/\s+/g, '_');
+                    const period = `${currentCommunity.activePeriod?.month || ''}_${currentCommunity.activePeriod?.year || ''}`;
+                    printDocumentDirectly('committee-report-printable-doc', `Informe_Balance_Comite_${commName}_${period}`);
+                  }}
+                  className="px-4 py-2 bg-[#D4B895] hover:bg-[#c5a67e] text-[#0F3D2E] font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir / PDF Comité</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCommitteeReportModal(false)}
+                  className="p-2 text-white/75 hover:text-white hover:bg-white/10 rounded-xl cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
 
-            <div className="no-print flex items-center justify-between pt-4 border-t border-slate-200">
-              <button
-                onClick={() => {
-                  const commName = (currentCommunity?.name || 'Condominio').replace(/\s+/g, '_');
-                  const period = `${currentCommunity.activePeriod?.month || ''}_${currentCommunity.activePeriod?.year || ''}`;
-                  printDocumentDirectly('committee-report-printable-doc', `Informe_Balance_Comite_${commName}_${period}`);
-                }}
-                className="px-5 py-2.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold text-xs rounded-xl flex items-center cursor-pointer shadow-xs"
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-100">
+              <div
+                id="committee-report-printable-doc"
+                className="max-w-3xl mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-sm"
               >
-                <Printer className="w-4 h-4 mr-2 text-[#D4B895]" />
-                Imprimir o Guardar en PDF para el Comité
-              </button>
-              <button
-                onClick={() => setShowCommitteeReportModal(false)}
-                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl"
-              >
-                Cerrar
-              </button>
+                <div className="finance-closing-sheet closing-record space-y-3">
+                  <FinanceHeader
+                    community={currentCommunity}
+                    title="Balance mensual del comité"
+                    reference={`Período ${[currentCommunity.activePeriod?.month, currentCommunity.activePeriod?.year].filter(Boolean).join('/')}`}
+                  />
+
+                  <FinanceHero
+                    items={[
+                      ['Saldo calculado', formatCLP(metrics.initialBankBalance + metrics.totalCollected - paidExpenses)],
+                      ['Saldo inicial banco', formatCLP(metrics.initialBankBalance)],
+                      ['Ingresos recaudados', formatCLP(metrics.totalCollected)],
+                      ['Pagos a proveedores', formatCLP(paidExpenses)]
+                    ]}
+                  />
+
+                  <div>
+                    <h3>Detalle de gastos registrados ({currentCommunity.expenses?.length || 0})</h3>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Fecha / Doc</th>
+                          <th>Proveedor</th>
+                          <th>Glosa</th>
+                          <th className="amount">Documento / Pagado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(currentCommunity.expenses || []).map((e) => (
+                          <tr key={e.id}>
+                            <td>{formatDate(e.date)} · {e.documentNumber || 'S/N'}</td>
+                            <td><b>{e.provider}</b></td>
+                            <td>{e.description}</td>
+                            <td className="amount">{formatCLP(e.amount)} / {formatCLP(paidToSupplier(e))}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <FinanceSigningBlock
+                    company={companySettings}
+                    roles={['Presidente(a) Comité', 'Tesorero(a) / Revisor']}
+                    label="Balance mensual del comité · Ley N° 21.442 · Página 1 de 1"
+                  />
+                </div>
+              </div>
             </div>
-          <FinanceFooter community={currentCommunity} label="Balance mensual"/>
-</div>
+          </div>
         </div>
       )}
 
@@ -17600,124 +17528,148 @@ _Administración ARANPRO_`;
                       </button>
                     </div>
 
-                    {/* HOJA DE CARTA COMPLETA (VISIBLE DE PRINCIPIO A FIN) */}
+                    {/* HOJA DE CARTA COMPLETA (ESTÁNDAR MAESTRO FAMILIA 3 EN 1 HOJA) */}
                     <div
                       id="collection-letter-printable-doc"
-                      className="print-area collection-letter bg-white p-6 sm:p-12 rounded-2xl shadow-sm border border-slate-200 space-y-6 text-slate-900 text-sm leading-relaxed"
+                      className="print-area bg-white p-6 sm:p-8 rounded-2xl shadow-sm text-slate-900"
                     >
-                      <article className="collection-letter">{/* Membrete Institucional ARANPRO */}
-<FinanceHeader community={currentCommunity} title="Aviso de cobranza" reference={unitFullName+' · '+new Date().toLocaleDateString('es-CL')}/>
-{/* Ficha del Destinatario */}
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <div>
-                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Destinatario / Copropietario:</span>
-                          <strong className="text-slate-900 text-sm">{unit.owner}</strong>
-                          <div className="text-slate-600 mt-0.5 font-mono">RUT: {unit.rut || 'No informado en ficha'}</div>
-                          <div className="text-slate-600 text-[11px]">Correo Notificación: {unit.email || 'No registrado'}</div>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Unidad Sujeta a Requerimiento:</span>
-                          <strong className="text-[#0F3D2E] text-sm">{unitFullName}</strong>
-                          <div className="text-slate-600 mt-0.5">Alícuota: {unit.sharePercentage}% de prorrateo</div>
-                          <div className="text-slate-600 text-[11px]">Comunidad: {currentCommunity.name} • {currentCommunity.address || ''}</div>
-                        </div>
-                      </div>
+                      <div className="collection-letter closing-record">
+                        <FinanceHeader
+                          community={currentCommunity}
+                          title={isPrejudicial ? 'Carta de cobranza prejudicial' : 'Carta de cobranza preventiva'}
+                          reference={`${unitFullName} · ${new Date().toLocaleDateString('es-CL')}`}
+                        />
 
-                      {/* Referencia Formal */}
-                      <div className={`p-3 rounded-xl border text-xs font-black uppercase tracking-wider ${
-                        isPrejudicial
-                          ? 'bg-rose-50 text-rose-900 border-rose-300'
-                          : 'bg-[#F5F4EF] text-[#0F3D2E] border-[#D4B895]'
-                      }`}>
-                        REF: {isPrejudicial
-                          ? 'REQUERIMIENTO EXTRAJUDICIAL DE PAGO DE GASTOS COMUNES'
-                          : 'AVISO RECORDATORIO DE GASTOS COMUNES Y ESTADO DE CUENTA PENDIENTE'}
-                      </div>
+                        <FinanceHero
+                          items={[
+                            ['Saldo a regularizar', formatCLP(totalDebt)],
+                            ['Mora registrada', `${monthsCount} ${monthsCount === 1 ? 'mes' : 'meses'}`],
+                            ['Plazo regularización', `${collectionLetterNoticeDays} ${collectionLetterNoticeDays <= 5 ? 'días hábiles' : 'días'}`],
+                            ['Unidad', unitFullName]
+                          ]}
+                        />
 
-                      {/* CUERPO LEGAL SEGÚN TIPO DE CARTA */}
-                      {isPrejudicial ? (
-                        <div className="space-y-4 text-justify text-xs sm:text-[13px] text-slate-800 leading-relaxed">
-                          <p>
-                            <strong>DE NUESTRA CONSIDERACIÓN:</strong>
-                          </p>
-                          <p>
-La administración de {currentCommunity.name} solicita revisar y regularizar el saldo de la unidad {unitFullName}. La cartola registra {formatCLP(totalDebt)} pendientes al emitir esta comunicación. Este saldo puede incluir cargos del período actual y saldos anteriores. Revise sus vencimientos en el estado de cuenta.</p>
-                          <div className="collection-debt"><h4>Estado de cuenta pendiente de pago</h4><table><tbody>{[['Cuota del período',fin.currentCharge],['Cargos individuales',fin.extraCharge],['Cuota del convenio',fin.repactedInstallment],['Saldo anterior fuera de convenio',fin.previousDebt],['Crédito anterior',-fin.creditBalance],['Abonos registrados',-fin.paidAmount],['Saldo pendiente',totalDebt]].filter(([label,value])=>value !== 0 || label === 'Saldo pendiente').map(([label,value])=><tr className={label === 'Saldo pendiente' ? 'collection-total' : ''} key={label}><td>{label}</td><td>{formatCLP(value)}</td></tr>)}</tbody></table></div>
-                          <p>Revise los cargos y abonos de su unidad. Si ya realizó el pago, indique la fecha y el número de operación para conciliarlo. También puede solicitar un convenio sujeto al acuerdo del comité.</p><p>La administración solicita su respuesta dentro de {collectionLetterNoticeDays} días {collectionLetterNoticeDays <= 5 ? 'hábiles' : 'corridos'} desde la recepción. En caso de persistir un saldo vencido, la administración podrá evaluar las acciones de cobro que correspondan. El artículo 32 de la Ley N° 21.442 regula el mérito ejecutivo de los avisos de cobro firmados por el administrador.</p>
-                        </div>) : (<div className="space-y-3 text-sm"><p>Estimado(a) copropietario(a), la cuenta de {unitFullName} registra el siguiente saldo.</p>
-{/* Cuadro de Resumen Preventivo */}
-                          <div className="my-3 p-4 bg-[#F5F4EF] rounded-2xl border border-[#D4B895]">
-                            <h4 className="text-xs font-black uppercase text-[#0F3D2E] mb-2">
-                              Estado de Cuenta Pendiente de Pago
-                            </h4>
-                            <table className="w-full text-xs">
+                        <div className="finance-holder">
+                          <div>
+                            <span className="finance-identity-k">Copropietario titular</span>
+                            <b>{unit.owner || 'Sin informar'}</b>
+                          </div>
+                          <div>
+                            <span className="finance-identity-k">RUT titular</span>
+                            <b>{unit.rut || 'Sin informar'}</b>
+                          </div>
+                          <div>
+                            <span className="finance-identity-k">Correo y prorrateo</span>
+                            <b>{unit.email || 'Sin correo'} · {unit.sharePercentage || 0}%</b>
+                          </div>
+                        </div>
+
+                        <div className={`collection-ref-banner ${isPrejudicial ? 'prejudicial' : ''}`}>
+                          REF.: {isPrejudicial
+                            ? 'REQUERIMIENTO EXTRAJUDICIAL DE PAGO DE GASTOS COMUNES (ART. 32 LEY N° 21.442)'
+                            : 'AVISO RECORDATORIO DE GASTOS COMUNES Y ESTADO DE CUENTA PENDIENTE'}
+                        </div>
+
+                        {isPrejudicial ? (
+                          <div className="text-justify text-[12.5px] text-slate-800 leading-snug space-y-2 mt-2">
+                            <p className="m-0">
+                              <strong>DE NUESTRA CONSIDERACIÓN:</strong> La administración de <strong>{currentCommunity.name}</strong> solicita revisar y regularizar el saldo de la unidad <strong>{unitFullName}</strong>, que registra <strong>{formatCLP(totalDebt)}</strong> pendientes al emitir esta comunicación (incluyendo cargos del período actual y saldos anteriores vencidos).
+                            </p>
+                            <p className="m-0">
+                              Agradeceremos regularizar dentro de <strong>{collectionLetterNoticeDays} días {collectionLetterNoticeDays <= 5 ? 'hábiles' : 'corridos'}</strong> desde su recepción, enviar el comprobante si ya pagó o solicitar convenio sujeto al acuerdo del Comité. De persistir la mora, el artículo 32 de la Ley N° 21.442 regula el mérito ejecutivo de los avisos de cobro firmados por el administrador.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="text-justify text-[12.5px] text-slate-800 leading-snug space-y-2 mt-2">
+                            <p className="m-0">
+                              Estimado(a) copropietario(a), informamos que la cuenta de la unidad <strong>{unitFullName}</strong> registra un saldo pendiente de <strong>{formatCLP(totalDebt)}</strong>. El cumplimiento oportuno de los gastos comunes permite sostener la operación continua de la comunidad: servicios básicos, mantenciones reglamentarias, seguridad, aseo y remuneraciones previsionales del personal.
+                            </p>
+                            <p className="m-0">
+                              Solicitamos gestionar el pago dentro de <strong>{collectionLetterNoticeDays} días</strong> o, si ya realizó la transferencia, informar el comprobante en el portal vecinal. Si requiere facilidades o convenio en cuotas, comuníquese con la administración para evaluación del Comité.
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="finance-twocol">
+                          <div className="collection-debt">
+                            <h4>Estado de cuenta pendiente de pago</h4>
+                            <table>
                               <tbody>
-                                <tr className="border-b border-slate-200">
-                                  <td className="py-1 text-slate-600">Cobro del Mes en Curso:</td>
-                                  <td className="py-1 text-right font-bold text-slate-900">{formatCLP(currentMonthCost)}</td>
-                                </tr>
-                                {previousDebtAmount > 0 && (
-                                  <tr className="border-b border-slate-200">
-                                    <td className="py-1 text-slate-600">Saldo Pendiente Acumulado:</td>
-                                    <td className="py-1 text-right font-bold text-amber-700">{formatCLP(previousDebtAmount)}</td>
-                                  </tr>
+                                {isPrejudicial ? (
+                                  [
+                                    ['Cuota del período', fin.currentCharge],
+                                    ['Cargos individuales', fin.extraCharge],
+                                    ['Cuota del convenio', fin.repactedInstallment],
+                                    ['Saldo anterior fuera de convenio', fin.previousDebt],
+                                    ['Crédito anterior', -fin.creditBalance],
+                                    ['Abonos registrados', -fin.paidAmount],
+                                    ['Total saldo pendiente', totalDebt]
+                                  ]
+                                    .filter(([label, value]) => value !== 0 || label === 'Total saldo pendiente')
+                                    .map(([label, value]) => (
+                                      <tr
+                                        className={label === 'Total saldo pendiente' ? 'collection-total' : ''}
+                                        key={label}
+                                      >
+                                        <td>{label}</td>
+                                        <td>{formatCLP(value)}</td>
+                                      </tr>
+                                    ))
+                                ) : (
+                                  <>
+                                    <tr>
+                                      <td>Cobro del mes en curso</td>
+                                      <td>{formatCLP(currentMonthCost)}</td>
+                                    </tr>
+                                    {previousDebtAmount > 0 && (
+                                      <tr>
+                                        <td>Saldo pendiente acumulado</td>
+                                        <td>{formatCLP(previousDebtAmount)}</td>
+                                      </tr>
+                                    )}
+                                    <tr className="collection-total">
+                                      <td>Total saldo a regularizar</td>
+                                      <td>{formatCLP(totalDebt)}</td>
+                                    </tr>
+                                  </>
                                 )}
-                                <tr className="border-t-2 border-[#0F3D2E] font-black text-sm">
-                                  <td className="py-2 text-[#0F3D2E] uppercase">Total Saldo a Regularizar:</td>
-                                  <td className="py-2 text-right text-[#0F3D2E]">{formatCLP(totalDebt)}</td>
-                                </tr>
                               </tbody>
                             </table>
                           </div>
 
-                          <p>
-                            El oportuno cumplimiento de los gastos comunes resulta vital para sostener la continuidad operativa de la comunidad: mantención y certificación reglamentaria de ascensores, funcionamiento de grupos electrógenos, salas de bombas, seguridad, aseo y pago previsional del personal de conserjería.
-                          </p>
+                          <div className="finance-bank">
+                            <h4>Datos oficiales para transferir</h4>
+                            <b>{bank.holderName || currentCommunity.name}</b>
+                            <p>
+                              {bank.bank || 'Banco sin informar'} · {bank.accountType || 'Cuenta corriente'} N.º {bank.accountNumber || 'Por regularizar'}
+                              <br />
+                              RUT · {bank.rut || currentCommunity.rut || 'Comunidad'}
+                            </p>
+                            <div className="finance-bank-ref">
+                              <div>
+                                <span className="finance-identity-k">Referencia</span>
+                                <b>{unitFullName}</b>
+                              </div>
+                              <div>
+                                <span className="finance-identity-k">Comprobantes</span>
+                                <b>{bank.email || companySettings.email || 'pagos@aranpro.cl'}</b>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
 
-                          <p>
-                            Agradeceremos gestionar la cancelación del monto antes indicado dentro de un plazo de <strong>{collectionLetterNoticeDays} días</strong>. En caso de requerir facilidades de pago, repactación en cuotas o si considera que este saldo ya ha sido pagado, rogamos enviar el comprobante de transferencia a la brevedad para realizar la debida conciliación bancaria.
-                          </p>
-                        </div>
-                      )}
+                        <FinanceResidentClosingBand
+                          community={currentCommunity}
+                          company={companySettings}
+                          heading="¿Ya transferiste? Informa tu pago"
+                        />
 
-                      {/* DATOS BANCARIOS OFICIALES DE LA COMUNIDAD */}
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
-                        <h4 className="font-black uppercase text-[#0F3D2E] mb-2 text-[11px] flex items-center">
-                          <DollarSign className="w-3.5 h-3.5 mr-1 text-[#D4B895]" />
-                          Datos Oficiales para Transferencia o Depósito
-                        </h4>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          <div>
-                            <span className="text-[10px] text-slate-400 block uppercase font-bold">Banco:</span>
-                            <strong className="text-slate-800">{bank.bank || 'Sin informar'}</strong>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-400 block uppercase font-bold">Tipo de Cuenta:</span>
-                            <strong className="text-slate-800">{bank.accountType || 'Sin informar'}</strong>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-400 block uppercase font-bold">N° Cuenta:</span>
-                            <strong className="text-slate-800 font-mono">{bank.accountNumber || 'Por regularizar'}</strong>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-400 block uppercase font-bold">RUT Titular:</span>
-                            <strong className="text-slate-800 font-mono">{bank.rut || 'Comunidad'}</strong>
-                          </div>
-                        </div>
-                        <div className="mt-2 pt-2 border-t border-slate-200 flex flex-col sm:flex-row justify-between text-[11px] text-slate-600">
-                          <span>Titular: <strong>{bank.holderName || currentCommunity.name}</strong></span>
-                          <span>Enviar comprobante a: <strong>{bank.email || companySettings.email}</strong> indicando la unidad <strong>{unitFullName}</strong></span>
-                        </div>
+                        <FinanceFooter
+                          community={currentCommunity}
+                          label={`${isPrejudicial ? 'Carta de cobranza prejudicial' : 'Carta de cobranza preventiva'} · Página 1 de 1`}
+                        />
                       </div>
-
-                      <div className="collection-end">
-  <div className="resident-handout-sign"><div>
-    <img className="resident-seal" src="/brand/ARANPRO_sello_circular_integral_transparente.png" alt="Sello oficial de administración ARANPRO"/>
-    <span className="resident-seal-text"><strong>SELLO OFICIAL DE ADMINISTRACIÓN</strong><small>Ley N° 21.442 de Copropiedad Inmobiliaria</small></span>
-    <span>{companySettings?.signatureDataUrl && <img src={companySettings.signatureDataUrl} alt="Firma del administrador"/>}</span>
-  </div><b>{companySettings?.adminName || companySettings?.administratorName || 'Administración'}</b><small>Administración de la comunidad</small></div>
-  <div className="resident-handout-portal"><div><strong>¿Ya transferiste? Informa tu pago</strong><p>Escanea el QR o visita <a href={DOMAIN_CONFIG.getResidentLoginUrl(currentCommunity.slug)}>portaladministracion.aranpro.cl</a>. Inicia sesión, elige <b>Informar Pago</b> y registra tu comprobante.</p><ResidentInstallHint/><small>{currentCommunity.name} · {isPrejudicial ? 'Aviso prejudicial' : 'Aviso preventivo'} · {new Date().toLocaleDateString('es-CL')}</small></div><PortalCode url={DOMAIN_CONFIG.getResidentLoginUrl(currentCommunity.slug)}/></div>
-</div></article>                    </div>
+                    </div>
                   </div>
                 )}
 

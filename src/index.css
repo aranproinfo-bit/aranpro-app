@@ -61,18 +61,6 @@
 #printable-app-brochure,
 #printable-technical-inspection,
 #printable-comparison-matrix,
-#unit-bill-printable-doc,
-#resident-bill-printable-doc,
-#payment-receipt-printable-doc,
-#resident-payment-receipt-printable-doc,
-#committee-report-printable-doc,
-#expense-rendition-printable-doc,
-#expense-voucher-printable-doc,
-#collection-letter-printable-doc,
-#unit-bitacora-printable-doc,
-#printable-unit-account-statement,
-#assembly-budget-printable-doc,
-#resident-brochure-printable-doc,
 #official-registry-printable-doc,
 #assembly-citation-printable-doc,
 #assembly-minutes-draft-doc,
@@ -108,11 +96,7 @@
 [data-pdf-style="alt1"]#printable-agacech-fee-sheet,
 [data-pdf-style="alt1"]#printable-app-brochure,
 [data-pdf-style="alt1"]#printable-technical-inspection,
-[data-pdf-style="alt1"]#printable-comparison-matrix,
-[data-pdf-style="alt1"]#unit-bill-printable-doc,
-[data-pdf-style="alt1"]#resident-bill-printable-doc,
-[data-pdf-style="alt1"]#payment-receipt-printable-doc,
-[data-pdf-style="alt1"]#committee-report-printable-doc {
+[data-pdf-style="alt1"]#printable-comparison-matrix {
   border-left: 3.5px solid #0F3D2E !important;
   background-image: none !important;
 }
@@ -125,11 +109,7 @@
 [data-pdf-style="alt2"]#printable-agacech-fee-sheet,
 [data-pdf-style="alt2"]#printable-app-brochure,
 [data-pdf-style="alt2"]#printable-technical-inspection,
-[data-pdf-style="alt2"]#printable-comparison-matrix,
-[data-pdf-style="alt2"]#unit-bill-printable-doc,
-[data-pdf-style="alt2"]#resident-bill-printable-doc,
-[data-pdf-style="alt2"]#payment-receipt-printable-doc,
-[data-pdf-style="alt2"]#committee-report-printable-doc {
+[data-pdf-style="alt2"]#printable-comparison-matrix {
   border-left: none !important;
   background-image: none !important;
 }
