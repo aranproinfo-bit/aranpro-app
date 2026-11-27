@@ -37,8 +37,10 @@ export function certificateDetails(c) {
     rut: c.rut || '',
     issuer: c.issuedBy
   };
-  if (/Deuda/.test(c.type)) details.debt = Number(c.debtAmount ?? 0);
-  if (/Alícuota/.test(c.type)) details.aliquot = c.aliquotPercent;
+  if (/Deuda/i.test(c.type)) details.debt = Number(c.debtAmount ?? 0);
+  if (/Convenio/i.test(c.type)) details.convenioDebt = Number(c.convenioRemaining ?? c.debtAmount ?? 0);
+  if (/Alícuota|Alicuota|Prorrateo/i.test(c.type)) details.aliquot = c.aliquotPercent;
+  if (/Comité|Comite/i.test(c.type) && c.committeeRole) details.committeeRole = c.committeeRole;
   return details;
 }
 

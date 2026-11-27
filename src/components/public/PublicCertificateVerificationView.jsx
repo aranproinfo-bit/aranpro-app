@@ -80,7 +80,9 @@ export function PublicCertificateVerificationView({ folio, hash, onBackToPortal 
         ['Titular / Solicitante', d.name],
         ['RUT', d.rut ? formatRut(d.rut) : null],
         ['Saldo certificado', d.debt != null ? formatCLP(d.debt) : null],
+        ['Saldo futuro en convenio', d.convenioDebt != null ? formatCLP(d.convenioDebt) : null],
         ['Alícuota informada', d.aliquot != null && String(d.aliquot) !== '' ? `${d.aliquot} %` : null],
+        ['Cargo en comité', d.committeeRole || null],
         ['Fecha de emisión', formatDate(result.date)],
         ['Válido hasta', formatDate(result.expiresAt)],
         ['Emitido por', d.issuer]

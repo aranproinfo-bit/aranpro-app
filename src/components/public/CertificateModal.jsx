@@ -185,9 +185,11 @@ export const CertificateModal = ({ isOpen, onClose, defaultCommunity, defaultUni
                 >
                   <option value="Certificado de Residencia y Domicilio">🏠 Certificado de Residencia y Domicilio</option>
                   <option value="Certificado de Gastos Comunes al Día (No Deuda)">✅ Certificado de Gastos Comunes al Día (No Deuda)</option>
-                  <option value="Certificado Oficial de Estado de Deuda y Liquidación Morosa">📋 Certificado de Estado de Deuda (Art. 36° Ley 21.442)</option>
-                  <option value="Certificado de Salvoconducto y Autorización de Mudanza">🚚 Salvoconducto y Autorización de Mudanza</option>
-                  <option value="Certificado Oficial de Copropiedad y Alícuota de Prorrateo">📑 Certificado de Copropiedad y Alícuota</option>
+                  <option value="Certificado de Estado de Deuda y Liquidación Morosa">📋 Certificado de Estado de Deuda (Art. 36° Ley 21.442)</option>
+                  <option value="Certificado de Estado de Convenio de Pago Vigente">📑 Constancia de Convenio de Pago Vigente</option>
+                  <option value="Certificado de Salvoconducto y Desalojo / Mudanza">🚚 Salvoconducto y Autorización de Mudanza</option>
+                  <option value="Certificado Oficial de Copropiedad y Alícuota de Prorrateo">📐 Constancia de Copropiedad y Alícuota</option>
+                  <option value="Certificado de Vigencia de Miembro del Comité">🏛️ Vigencia de Integrante del Comité</option>
                   <option value="Certificado de Buena Convivencia y No Infracciones">🤝 Certificado de Buena Convivencia</option>
                 </select>
               </div>

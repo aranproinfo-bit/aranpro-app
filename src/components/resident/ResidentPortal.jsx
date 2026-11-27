@@ -1443,10 +1443,13 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {myCertificates.map((cert) => {
-                    const isIssued = cert.status === 'EMITIDO';
+                    const isRevoked = cert.status === 'ANULADO' || cert.revoked === true;
+                    const isIssued = cert.status === 'EMITIDO' && !isRevoked;
                     const emitDate = new Date(cert.date || Date.now());
-                    const validUntil = new Date(emitDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-                    const isValid = validUntil >= new Date();
+                    const validUntil = cert.expiresAt
+                      ? new Date(`${String(cert.expiresAt).slice(0, 10)}T23:59:59`)
+                      : new Date(emitDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+                    const isValid = isIssued && validUntil >= new Date();
 
                     return (
                       <div
@@ -1457,21 +1460,34 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                           {/* Cabecera de la tarjeta */}
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2">
-                              <span className="px-2.5 py-1 bg-[#F5F4EF] text-[#0F3D2E] rounded-lg text-xs font-black font-mono border border-[#D4B895]/50">
+                              <span className="px-2.5 py-1 bg-[#F5F4EF] text-[#0F3D2E] rounded-lg text-[11px] font-black font-mono border border-[#D4B895]/50">
                                 {cert.folio || 'CERT-OFICIAL'}
                               </span>
                               <span className="text-[11px] font-mono text-slate-500">
-                                Verif: <strong className="text-slate-800">{cert.verificationCode || 'VRF-OK'}</strong>
+                                Verif:{' '}
+                                <strong className="text-slate-800">
+                                  {cert.registered && cert.verificationCode
+                                    ? `${String(cert.verificationCode).slice(0, 8)}…`
+                                    : 'Sin registro'}
+                                </strong>
                               </span>
                             </div>
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                              isIssued && isValid
+                              isRevoked
+                                ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                                : isIssued && isValid
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                 : isIssued && !isValid
                                 ? 'bg-slate-100 text-slate-600'
                                 : 'bg-amber-100 text-amber-800'
                             }`}>
-                              {isIssued && isValid ? '✓ EMITIDO • VIGENTE' : isIssued && !isValid ? 'VENCIDO (30 DÍAS)' : 'EN TRÁMITE'}
+                              {isRevoked
+                                ? '✕ ANULADO'
+                                : isIssued && isValid
+                                ? '✓ EMITIDO • VIGENTE'
+                                : isIssued && !isValid
+                                ? 'VENCIDO (30 DÍAS)'
+                                : 'EN TRÁMITE'}
                             </span>
                           </div>
 
@@ -1852,8 +1868,8 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
       {activePaymentReceipt && <PaymentReceipt payment={activePaymentReceipt} community={isDemoActive ? {...community,name:displayCommunityName,documentLogo:null,slug:null} : community} company={companySettings} onClose={()=>setActivePaymentReceipt(null)}/>}
       {/* MODAL CERTIFICADO OFICIAL TIMBRADO Y VERIFICABLE (PDF / IMPRIMIBLE) */}
       {activeResidentCert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/80 backdrop-blur-xs">
-          <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#D4B895] p-5 sm:p-8 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/80 backdrop-blur-xs">
+          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-[#D4B895] p-5 sm:p-8 space-y-6">
             <CommunityCertificate
               id="resident-certificate-printable-doc"
               cert={activeResidentCert}
@@ -1876,6 +1892,16 @@ export const ResidentPortal = ({ onBack, onOpenCertificates, isDemo = false }) =
                   <Printer className="w-3.5 h-3.5 mr-1.5 text-[#D4B895]" />
                   Imprimir / Guardar PDF
                 </button>
+                {verificationUrl(activeResidentCert) && (
+                  <button
+                    type="button"
+                    onClick={() => window.open(verificationUrl(activeResidentCert), '_blank', 'noopener,noreferrer')}
+                    className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#0F3D2E] font-bold text-xs rounded-xl flex items-center cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-[#0F3D2E]" />
+                    Verificar QR
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => handleShareCertificate(activeResidentCert)}

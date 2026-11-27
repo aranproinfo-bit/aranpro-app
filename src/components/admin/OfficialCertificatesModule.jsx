@@ -107,6 +107,14 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
       badgeColor: 'bg-rose-50 text-rose-800 border-rose-200'
     },
     {
+      id: 'Certificado de Estado de Convenio de Pago Vigente',
+      label: 'Constancia de Estado de Convenio de Pago Vigente',
+      shortName: 'Convenio Vigente',
+      legalRef: 'Ley N° 21.442 • Art. 20° y Reglamento de Copropiedad',
+      useCase: 'Acreditar que una unidad con convenio suscrito mantiene sus cuotas vencidas al día e informar saldo en cuotas futuras',
+      badgeColor: 'bg-cyan-50 text-cyan-800 border-cyan-200'
+    },
+    {
       id: 'Certificado de Salvoconducto y Desalojo / Mudanza',
       label: 'Certificado de Salvoconducto y Autorización de Mudanza',
       shortName: 'Mudanza / Salvoconducto',
@@ -421,7 +429,19 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
       registrationAttempted: true,
       issuedBy: companySettings?.administratorName || companySettings?.adminName || 'Administración ARANPRO',
       aliquotPercent: aliquot,
-      debtAmount: cert.type.includes('Deuda') && audit ? audit.pendingDebt : cert.debtAmount
+      committeeRole: cert.committeeRole || audit?.unit?.committeeRole || '',
+      convenioRemaining: cert.convenioRemaining ?? audit?.repactacionRemaining ?? 0,
+      debtAmount: cert.type.includes('Deuda') && audit ? audit.pendingDebt : cert.debtAmount,
+      debtBreakdown:
+        cert.debtBreakdown ||
+        (audit
+          ? {
+              currentCharge: audit.currentCharge,
+              previousDebt: audit.previousDebt,
+              extraCharge: audit.extraCharge,
+              repactedInstallment: audit.repactedInstallment
+            }
+          : undefined)
     };
     updateCertificateStatus(cert.id,'SOLICITADO',{...pending,status:'SOLICITADO'});
     try {
@@ -827,7 +847,11 @@ export const OfficialCertificatesModule = ({ currentCommunity }) => {
                           </span>
                         ) : cert.type.includes('Alícuota') ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200">
-                            Alícuota: {cert.aliquotPercent ? `${cert.aliquotPercent}%` : '—'}
+                            Alícuota: {cert.aliquotPercent || financialAuditMap[cert.unitNumber]?.aliquot ? `${cert.aliquotPercent || financialAuditMap[cert.unitNumber]?.aliquot}%` : '—'}
+                          </span>
+                        ) : cert.type.includes('Convenio') ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-800 border border-cyan-200">
+                            Convenio informado
                           </span>
                         ) : cert.type.includes('Residencia') || cert.type.includes('Comité') || cert.type.includes('Convivencia') ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">

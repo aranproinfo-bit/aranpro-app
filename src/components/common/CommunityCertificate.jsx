@@ -54,6 +54,7 @@ function getUnitPrefix(communityType) {
 
 function resolveCertificateKind(typeStr = '') {
   if (/Residencia/i.test(typeStr)) return 'residencia';
+  if (/Convenio/i.test(typeStr)) return 'convenio';
   if (/No Deuda|al Día/i.test(typeStr)) return 'no_deuda';
   if (/Estado de Deuda|Morosa/i.test(typeStr)) return 'deuda';
   if (/Alícuota|Alicuota|Prorrateo/i.test(typeStr)) return 'alicuota';
@@ -67,6 +68,8 @@ function resolveHeaderTitle(kind, rawType) {
   switch (kind) {
     case 'residencia':
       return 'Certificado de Residencia y Domicilio';
+    case 'convenio':
+      return 'Constancia de Convenio de Pago';
     case 'no_deuda':
       return 'Certificado de Gastos Comunes al Día';
     case 'deuda':
@@ -250,7 +253,18 @@ export function CommunityCertificate({ id, cert = {}, community = {}, company = 
       : matchedUnit?.aliquot ?? matchedUnit?.sharePercentage ?? '';
 
   const hasConvenio = Boolean(matchedUnit?.repactacion?.active);
-  const committeeRole = matchedUnit?.committeeRole || 'Integrante';
+  const convenioFutureBalance = Number(
+    cert.convenioRemaining ??
+      (hasConvenio
+        ? Math.max(
+            0,
+            Number(matchedUnit.repactacion.totalHistoricalDebt || 0) -
+              Number(matchedUnit.repactacion.paidInstallments || 0) * Number(matchedUnit.repactacion.installmentAmount || 0)
+          )
+        : debtAmount)
+  );
+  const committeeRole = cert.committeeRole || matchedUnit?.committeeRole || 'Integrante';
+  const recordedFinesCount = Array.isArray(matchedUnit?.fineNotices) ? matchedUnit.fineNotices.length : 0;
 
   return (
     <div id={id} data-pdf-style="neutral">
@@ -550,6 +564,58 @@ export function CommunityCertificate({ id, cert = {}, community = {}, company = 
             </div>
           )}
 
+          {/* 2B. CONSTANCIA DE CONVENIO DE PAGO VIGENTE */}
+          {kind === 'convenio' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, lineHeight: 1.58, color: '#1e293b' }}>
+              <div>
+                <h2 style={{ fontSize: 16.5, fontWeight: 800, color: '#103f32', margin: '0 0 6px 0' }}>
+                  La administración certifica
+                </h2>
+                <p style={{ margin: 0 }}>
+                  Según los registros de <strong>{communityName}</strong>, la <strong>{unitLabel}</strong> (asociada a{' '}
+                  <strong>{applicantName}</strong>
+                  {formattedRut !== 'Sin informar' ? `, RUT ${formattedRut}` : ''}) mantiene un convenio de pago registrado. Al{' '}
+                  {issueDateLong}, {debtAmount > 0 ? `presenta un saldo vencido de ${formatCLP(debtAmount)}` : 'sus cuotas vencidas se encuentran pagadas'}{' '}
+                  y permanece un saldo en cuotas futuras por <strong>{formatCLP(convenioFutureBalance)}</strong>.
+                </p>
+              </div>
+
+              <VariableDataBox
+                title="Situación del convenio registrado"
+                rows={[
+                  [
+                    ['Unidad y titular', `${unitLabel} · ${applicantName}`],
+                    ['Saldo en cuotas futuras', formatCLP(convenioFutureBalance)]
+                  ],
+                  [
+                    ['Fecha de corte', issueDateLong],
+                    ['Cuotas vencidas a la fecha', debtAmount > 0 ? `Pendiente: ${formatCLP(debtAmount)}` : 'Al día']
+                  ]
+                ]}
+              />
+
+              <div>
+                <h3 style={{ fontSize: 13.5, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Antecedentes revisados
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.2 }}>
+                  El saldo futuro corresponde a cuotas pactadas aún no vencidas conforme al calendario del convenio suscrito con la
+                  comunidad, verificado con los pagos recibidos hasta la fecha de corte.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: 13.5, fontWeight: 800, color: '#103f32', margin: '2px 0 4px 0' }}>
+                  Alcance del certificado
+                </h3>
+                <p style={{ margin: 0, fontSize: 12.2 }}>
+                  Esta constancia acredita exclusivamente el estado del convenio descrito y tiene una vigencia de 30 días. En caso de
+                  compraventa, las cuotas futuras deben liquidarse o informarse expresamente conforme al artículo 36° de la Ley N° 21.442.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* 3. CERTIFICADO DE ESTADO DE DEUDA */}
           {kind === 'deuda' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 11, fontSize: 12.8, lineHeight: 1.54, color: '#1e293b' }}>
@@ -698,7 +764,7 @@ export function CommunityCertificate({ id, cert = {}, community = {}, company = 
                     ['Unidad autorizada', unitLabel]
                   ],
                   [
-                    ['Fecha de emisión', issueDateLong],
+                    ['Estado de cuenta verificado', debtAmount > 0 ? `Saldo informado: ${formatCLP(debtAmount)}` : 'Gastos comunes al día'],
                     ['Horario reglamentario', 'Lun–Vie 09:00 a 18:00 h · Sáb 09:00 a 14:00 h']
                   ]
                 ]}
@@ -785,8 +851,11 @@ export function CommunityCertificate({ id, cert = {}, community = {}, company = 
                 </h2>
                 <p style={{ margin: 0 }}>
                   La administración deja constancia de que, revisados los libros y registros internos para la{' '}
-                  <strong>{unitLabel}</strong> de <strong>{communityName}</strong> (asociada a <strong>{applicantName}</strong>), no
-                  figuran infracciones ni sanciones reglamentarias pendientes a la fecha indicada a continuación.
+                  <strong>{unitLabel}</strong> de <strong>{communityName}</strong> (asociada a <strong>{applicantName}</strong>),{' '}
+                  {recordedFinesCount > 0
+                    ? `registra ${recordedFinesCount} infracción(es) cursada(s) en el historial consultado`
+                    : 'no figuran infracciones ni sanciones reglamentarias pendientes'}{' '}
+                  a la fecha indicada a continuación.
                 </p>
               </div>
 
@@ -795,7 +864,7 @@ export function CommunityCertificate({ id, cert = {}, community = {}, company = 
                 rows={[
                   [
                     ['Unidad', unitLabel],
-                    ['Resultado', 'Sin infracciones vigentes']
+                    ['Resultado', recordedFinesCount > 0 ? `${recordedFinesCount} infracción(es) registrada(s)` : 'Sin infracciones vigentes']
                   ],
                   [
                     ['Titular / Solicitante', `${applicantName}${formattedRut !== 'Sin informar' ? ` · ${formattedRut}` : ''}`],
