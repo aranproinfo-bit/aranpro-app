@@ -16,6 +16,98 @@ import {
   Paperclip, ExternalLink, RefreshCw
 } from 'lucide-react';
 
+const FINE_QUICK_PRESETS = [
+  {
+    id: 'ruidos',
+    shortLabel: '🔊 Ruidos / Fiesta',
+    ufSuggested: 1,
+    reason: 'Ruidos molestos y emisiones sonoras fuera del horario de descanso reglamentario',
+    reglamentoArticle: 'Arts. 18° y 24° Reglamento de Copropiedad · Art. 32° Ley N° 21.442',
+    evidenceSource: 'Libro de Novedades de Conserjería y reclamo vecinal',
+    partialArgument:
+      'Se constató emisión de música y ruidos a alto volumen provenientes de la unidad fuera del horario de silencio permitido, afectando el descanso de las viviendas colindantes pese al aviso preventivo efectuado por conserjería.'
+  },
+  {
+    id: 'estacionamiento',
+    shortLabel: '🚗 Estacionamiento / Visita',
+    ufSuggested: 0.5,
+    reason: 'Uso indebido de estacionamiento de visitas u obstaculización de vías comunes',
+    reglamentoArticle: 'Arts. 15° y 22° Reglamento de Copropiedad · Art. 17° Ley N° 21.442',
+    evidenceSource: 'Bitácora de acceso vehicular y respaldo fotográfico',
+    partialArgument:
+      'Vehículo vinculado a la unidad permaneció estacionado excediendo el tiempo máximo autorizado en calzo de visitas y/o zona de circulación común, obstaculizando el tránsito y uso equitativo del recinto.'
+  },
+  {
+    id: 'mascotas',
+    shortLabel: '🐾 Mascotas sueltas / Higiene',
+    ufSuggested: 0.5,
+    reason: 'Circulación de mascota sin correa o incumplimiento de higiene en áreas comunes',
+    reglamentoArticle: 'Art. 21° Reglamento Interno · Ley N° 21.020 y Ley N° 21.442',
+    evidenceSource: 'Registro de cámaras y constancia de Conserjería',
+    partialArgument:
+      'Se verificó circulación de mascota perteneciente a la unidad sin medio de sujeción (correa) y/o sin retiro oportuno de desechos en espacios comunes, comprometiendo la seguridad e higiene de los residentes.'
+  },
+  {
+    id: 'areas_comunes',
+    shortLabel: '🏊 Quincho / Áreas Comunes',
+    ufSuggested: 1,
+    reason: 'Uso de área común fuera de horario o incumplimiento de condiciones de entrega',
+    reglamentoArticle: 'Arts. 19° y 25° Reglamento de Uso de Espacios Comunes',
+    evidenceSource: 'Acta de recepción e inspección de Conserjería',
+    partialArgument:
+      'Al término del uso de equipamiento común por parte de la unidad, se verificó exceso del horario límite autorizado y/o entrega del recinto sin cumplir las condiciones de orden, aseo e integridad reglamentarias.'
+  },
+  {
+    id: 'basura',
+    shortLabel: '🗑️ Basura / Escombros',
+    ufSuggested: 1,
+    reason: 'Acopio indebido de basura, enseres o escombros en bienes de dominio común',
+    reglamentoArticle: 'Art. 16° Reglamento de Copropiedad · Art. 8° Ley N° 21.442',
+    evidenceSource: 'Inspección en terreno y registro fotográfico de Administración',
+    partialArgument:
+      'Se constató depósito de bolsas, cajas voluminosas o escombros fuera de los contenedores habilitados, afectando la salubridad, libre tránsito y ornato de los espacios comunes del condominio.'
+  },
+  {
+    id: 'obras_mudanza',
+    shortLabel: '🔧 Obras / Mudanza sin permiso',
+    ufSuggested: 2,
+    reason: 'Ejecución de trabajos ruidosos o mudanza sin autorización previa o fuera de horario',
+    reglamentoArticle: 'Art. 26° Reglamento de Copropiedad · Art. 20° Ley N° 21.442',
+    evidenceSource: 'Control de acceso de contratistas / Conserjería',
+    partialArgument:
+      'Se ejecutaron faenas con emisión de ruido, ingreso de carga o mudanza sin salvoconducto ni aviso previo a la administración, o fuera de la franja horaria hábil establecida en el reglamento.'
+  },
+  {
+    id: 'seguridad_arriendo',
+    shortLabel: '🛡️ Seguridad / Ocupantes no reg.',
+    ufSuggested: 3,
+    reason: 'Incumplimiento de normas de control de acceso o registro obligatorio de ocupantes',
+    reglamentoArticle: 'Arts. 17°, 20° y 32° Ley N° 21.442 · Reglamento Interno',
+    evidenceSource: 'Registro de control de acceso y reporte al Comité',
+    partialArgument:
+      'Se verificó vulneración a los protocolos de seguridad en accesos y/o permanencia de ocupantes temporales sin inscripción previa en el Registro Oficial de Copropietarios y Residentes (Art. 17° Ley N° 21.442).'
+  }
+];
+
+const FINE_PARTIAL_CLAUSES = [
+  {
+    label: '+ Ignoró aviso de conserjería',
+    text: 'Cabe hacer presente que personal de conserjería efectuó requerimiento preventivo previo, sin obtener corrección oportuna de la conducta.'
+  },
+  {
+    label: '+ Consta foto / cámaras',
+    text: 'Los hechos cuentan con respaldo objetivo en registro fotográfico y/o sistema de televigilancia en custodia de la administración.'
+  },
+  {
+    label: '+ Reclamo de vecinos',
+    text: 'La infracción generó reclamos formales de unidades vecinas ingresados al libro oficial de la comunidad.'
+  },
+  {
+    label: '+ Conducta reiterada',
+    text: 'Se deja constancia de que la unidad registra antecedentes previos por hechos de similar naturaleza durante el período.'
+  }
+];
+
 export const MuralAndComplaintsModule = ({
   currentCommunity,
   activeSubTab = 'mural',
@@ -113,11 +205,18 @@ export const MuralAndComplaintsModule = ({
     fileName: ''
   });
 
-  // Formulario Aplicación de Multa (Propuesta 5)
+  // Formulario Aplicación de Multa sincronizado 1-a-1 con el PDF Oficial
   const [fineForm, setFineForm] = useState({
+    presetId: 'ruidos',
     unitId: 'u-8',
-    reason: 'Ruidos molestos y música a alto volumen fuera del horario reglamentario',
-    reglamentoArticle: 'Art. 18° y 24° del Reglamento de Copropiedad',
+    conditionType: 'Primera infracción reglamentaria',
+    incidentDate: new Date().toISOString().slice(0, 10),
+    incidentTime: '23:30 hrs',
+    reason: FINE_QUICK_PRESETS[0].reason,
+    partialArgument: FINE_QUICK_PRESETS[0].partialArgument,
+    reglamentoArticle: FINE_QUICK_PRESETS[0].reglamentoArticle,
+    evidenceSource: FINE_QUICK_PRESETS[0].evidenceSource,
+    appealTerm: '5 días hábiles',
     amountClp: '',
     ufEquivalent: 'Monto por definir',
     ufDate: '',
@@ -361,9 +460,25 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       ? `${targetUnit.extraChargeDescription} • Multa: ${fineForm.reason} (${detail})`
       : `Multa: ${fineForm.reason} (${detail})`;
 
+    const savedFineRecord = {
+      conditionType: fineForm.conditionType || 'Primera infracción reglamentaria',
+      incidentDate: fineForm.incidentDate || new Date().toISOString().slice(0, 10),
+      incidentTime: fineForm.incidentTime || '',
+      reason: fineForm.reason,
+      partialArgument: fineForm.partialArgument || '',
+      reglamentoArticle: fineForm.reglamentoArticle || 'Art. 18° y 24° del Reglamento de Copropiedad',
+      evidenceSource: fineForm.evidenceSource || 'Libro de Novedades de Conserjería',
+      appealTerm: fineForm.appealTerm || '5 días hábiles',
+      amountClp: Number(fineForm.amountClp),
+      ufEquivalent: fineForm.ufEquivalent || '',
+      resolutionFolio: fineForm.resolutionFolio || 'SANC-2026-01',
+      issuedDate: new Date().toISOString().slice(0, 10)
+    };
+
     updateUnit(currentCommunity.id, targetUnit.id, {
       extraCharge: newCharge,
-      extraChargeDescription: newDescription
+      extraChargeDescription: newDescription,
+      lastFineRecord: savedFineRecord
     });
 
     void notificationService.notifyUnitFineApplied({
@@ -387,19 +502,26 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       ? `${targetUnit.tower} - ${targetUnit.number}`
       : `Casa ${targetUnit.number}`;
 
-    if (overrideFine) {
+    const src = overrideFine || targetUnit.lastFineRecord || null;
+    if (src) {
       return {
         variant: 'fine',
         unitLabel,
         ownerName: targetUnit.owner || '',
         ownerRut: targetUnit.rut || '',
-        amountClp: Number(overrideFine.amountClp || targetUnit.extraCharge || 0),
-        ufEquivalent: overrideFine.ufEquivalent || '',
-        reason: overrideFine.reason || 'Infracción al Reglamento de Copropiedad',
+        conditionType: src.conditionType || 'Primera infracción reglamentaria',
+        incidentDate: src.incidentDate || src.issuedDate || new Date().toISOString().slice(0, 10),
+        incidentTime: src.incidentTime || '',
+        amountClp: Number(src.amountClp || targetUnit.extraCharge || 0),
+        ufEquivalent: src.ufEquivalent || '',
+        reason: src.reason || 'Infracción al Reglamento de Copropiedad',
+        partialArgument: src.partialArgument || '',
         reglamentoArticle:
-          overrideFine.reglamentoArticle || 'Art. 18° y 24° del Reglamento de Copropiedad',
-        folio: overrideFine.resolutionFolio || 'SANC-2026-01',
-        date: new Date().toISOString().slice(0, 10)
+          src.reglamentoArticle || 'Art. 18° y 24° del Reglamento de Copropiedad',
+        evidenceSource: src.evidenceSource || 'Libro de Novedades de Conserjería',
+        appealTerm: src.appealTerm || '5 días hábiles',
+        folio: src.resolutionFolio || 'SANC-2026-01',
+        date: src.issuedDate || new Date().toISOString().slice(0, 10)
       };
     }
 
@@ -414,10 +536,17 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       unitLabel,
       ownerName: targetUnit.owner || '',
       ownerRut: targetUnit.rut || '',
+      conditionType: 'Infracción reglamentaria vigente',
+      incidentDate: new Date().toISOString().slice(0, 10),
+      incidentTime: '',
       amountClp: Number(targetUnit.extraCharge || 0),
       ufEquivalent: ufMatch ? ufMatch[1].split(';')[0].trim() : '',
       reason: cleanedReason || 'Infracción constatada al Reglamento de Copropiedad',
+      partialArgument:
+        'Hecho verificado y registrado por la administración conforme a los antecedentes del período vigente, imputándose su cobro al estado mensual de gastos comunes de la unidad.',
       reglamentoArticle: 'Arts. 17°, 20° y 27° Ley N° 21.442 · Reglamento de Copropiedad',
+      evidenceSource: 'Registro administrativo y Libro de Conserjería',
+      appealTerm: '5 días hábiles',
       folio: `SANC-${new Date().getFullYear()}-${String(targetUnit.number).padStart(2, '0')}`,
       date: new Date().toISOString().slice(0, 10)
     };
@@ -437,7 +566,8 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
   const handleReverseFine = (unitId) => {
     updateUnit(currentCommunity.id, unitId, {
       extraCharge: 0,
-      extraChargeDescription: ''
+      extraChargeDescription: '',
+      lastFineRecord: null
     });
     setFineSuccessMessage('Cargo de multa anulado correctamente para la unidad.');
     setTimeout(() => setFineSuccessMessage(''), 4000);
@@ -1725,11 +1855,11 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: CURSAR E IMPUTAR MULTA A LA COLILLA DE GASTO COMÚN (PROPUESTA 5) */}
+      {/* MODAL 3: CURSAR E IMPUTAR MULTA A LA COLILLA DE GASTO COMÚN (SINCRONIZADO) */}
       {/* ========================================================================= */}
       {showFineModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden my-auto max-h-[94vh] flex flex-col">
             <div className="px-5 py-4 bg-gradient-to-r from-rose-950 via-rose-900 to-slate-900 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center space-x-2.5">
                 <div className="p-2 bg-rose-500/20 text-rose-300 rounded-xl">
@@ -1739,11 +1869,11 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                   <h4 className="text-sm font-black flex items-center gap-1.5">
                     Imputar Multa Reglamentaria al Gasto Común
                     <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-rose-500/30 border border-rose-400/40 text-rose-200 uppercase font-black">
-                      Art. 20° Ley N° 21.442
+                      Art. 20° y 27° Ley N° 21.442
                     </span>
                   </h4>
                   <p className="text-[11px] text-rose-200 mt-0.5">
-                    Se adicionará automáticamente al cargo del mes de la unidad para cobrarse en su colilla
+                    Selecciona una causal rápida, ajusta la argumentación parcial y genera la notificación oficial en doble copia
                   </p>
                 </div>
               </div>
@@ -1757,31 +1887,183 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
             </div>
 
             <form onSubmit={handleApplyFineToUnit} className="p-5 space-y-3.5 text-xs overflow-y-auto flex-1">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Unidad a Sancionar</label>
-                <select
-                  value={fineForm.unitId}
-                  onChange={(e) => setFineForm({ ...fineForm, unitId: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold text-xs bg-white"
-                >
-                  {(currentCommunity?.units || []).map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.tower ? `${u.tower} - ${u.number}` : `Casa ${u.number}`} — {u.owner || 'Copropietario'} {u.extraCharge > 0 ? `(Multa previa activa: ${formatCLP(u.extraCharge)})` : ''}
-                    </option>
-                  ))}
-                </select>
+              {/* 1. PLANTILLAS DE LLENADO RÁPIDO (1 CLIC) */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-slate-800 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-rose-700" />
+                    Alternativas de Llenado Rápido (Autocompleta causal, norma, respaldo y argumento base)
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-semibold">100% editable</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {FINE_QUICK_PRESETS.map((preset) => {
+                    const isSelected = fineForm.presetId === preset.id;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          const suggestedClp = indicators.ufCurrent
+                            ? Math.round(indicators.data.uf.value * preset.ufSuggested)
+                            : fineForm.amountClp;
+                          setFineForm((prev) => ({
+                            ...prev,
+                            presetId: preset.id,
+                            reason: preset.reason,
+                            partialArgument: preset.partialArgument,
+                            reglamentoArticle: preset.reglamentoArticle,
+                            evidenceSource: preset.evidenceSource,
+                            ...(indicators.ufCurrent
+                              ? {
+                                  amountClp: suggestedClp,
+                                  ufEquivalent: `${preset.ufSuggested.toFixed(1)} UF`,
+                                  ufDate: indicators.data.uf.date,
+                                  ufValue: indicators.data.uf.value
+                                }
+                              : {})
+                          }));
+                        }}
+                        className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-rose-900 text-white border-rose-900 shadow-2xs'
+                            : 'bg-white hover:bg-rose-50 text-slate-700 border-slate-300'
+                        }`}
+                      >
+                        {preset.shortLabel}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
+              {/* 2. UNIDAD, CALIFICACIÓN Y FOLIO */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div className="sm:col-span-6">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Unidad a Sancionar</label>
+                  <select
+                    value={fineForm.unitId}
+                    onChange={(e) => setFineForm({ ...fineForm, unitId: e.target.value })}
+                    className="w-full p-2.5 border border-slate-300 rounded-xl font-bold text-xs bg-white"
+                  >
+                    {(currentCommunity?.units || []).map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.tower ? `${u.tower} - ${u.number}` : `Casa ${u.number}`} — {u.owner || 'Copropietario'}{' '}
+                        {u.extraCharge > 0 ? `(Multa previa: ${formatCLP(u.extraCharge)})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sm:col-span-4">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Calificación de la Falta</label>
+                  <select
+                    value={fineForm.conditionType}
+                    onChange={(e) => setFineForm({ ...fineForm, conditionType: e.target.value })}
+                    className="w-full p-2.5 border border-slate-300 rounded-xl font-bold text-xs bg-white"
+                  >
+                    <option value="Primera infracción reglamentaria">1ª Infracción Reglamentaria</option>
+                    <option value="Reincidencia reglamentaria">Reincidencia (Recargo Reglamentario)</option>
+                    <option value="Falta grave a la convivencia / seguridad">Falta Grave (Seguridad / Convivencia)</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Folio</label>
+                  <input
+                    type="text"
+                    value={fineForm.resolutionFolio}
+                    onChange={(e) => setFineForm({ ...fineForm, resolutionFolio: e.target.value })}
+                    className="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* 3. CAUSAL + ARGUMENTACIÓN PARCIAL COMBINABLE */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Motivo / Infracción Constatada</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Causal / Título de la Infracción Constatada
+                </label>
                 <input
                   type="text"
                   required
                   value={fineForm.reason}
                   onChange={(e) => setFineForm({ ...fineForm, reason: e.target.value })}
-                  className="w-full p-2.5 border border-slate-300 rounded-xl font-medium text-xs"
-                  placeholder="Ej. Ruidos molestos en horario de silencio / Mascota suelta reincidente"
+                  className="w-full p-2.5 border border-slate-300 rounded-xl font-bold text-xs text-slate-900"
+                  placeholder="Ej. Ruidos molestos en horario de silencio nocturno"
                 />
+              </div>
+
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-1 mb-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Argumentación Parcial y Relato del Hecho (aparece en el documento impreso)
+                  </label>
+                  <span className="text-[10px] text-slate-500">Agrega frases con 1 clic o redacta el detalle puntual:</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-1.5">
+                  {FINE_PARTIAL_CLAUSES.map((clause, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() =>
+                        setFineForm((prev) => ({
+                          ...prev,
+                          partialArgument: prev.partialArgument?.includes(clause.text)
+                            ? prev.partialArgument
+                            : `${(prev.partialArgument || '').trim()} ${clause.text}`.trim()
+                        }))
+                      }
+                      className="px-2 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[10.5px] font-bold cursor-pointer transition-colors"
+                      title={clause.text}
+                    >
+                      {clause.label}
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  rows={3}
+                  required
+                  value={fineForm.partialArgument}
+                  onChange={(e) => setFineForm({ ...fineForm, partialArgument: e.target.value })}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-medium leading-relaxed text-slate-800"
+                  placeholder="Detalle el hecho constatado, lugar, circunstancias y antecedentes relevantes..."
+                />
+              </div>
+
+              {/* 4. FECHA/HORA DEL HECHO, NORMA, RESPALDO Y PLAZO DE DESCARGOS */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Fecha del Hecho</label>
+                  <input
+                    type="date"
+                    value={fineForm.incidentDate}
+                    onChange={(e) => setFineForm({ ...fineForm, incidentDate: e.target.value })}
+                    className="w-full p-2 border border-slate-300 rounded-xl text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Hora Aprox. / Franja</label>
+                  <input
+                    type="text"
+                    value={fineForm.incidentTime}
+                    onChange={(e) => setFineForm({ ...fineForm, incidentTime: e.target.value })}
+                    placeholder="Ej. 23:45 hrs / Madrugada"
+                    className="w-full p-2 border border-slate-300 rounded-xl text-xs font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Plazo de Descargos</label>
+                  <select
+                    value={fineForm.appealTerm}
+                    onChange={(e) => setFineForm({ ...fineForm, appealTerm: e.target.value })}
+                    className="w-full p-2 border border-slate-300 rounded-xl text-xs font-bold bg-white"
+                  >
+                    <option value="5 días hábiles">5 días hábiles (Estándar)</option>
+                    <option value="48 horas hábiles">48 horas hábiles</option>
+                    <option value="10 días corridos">10 días corridos</option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1796,47 +2078,113 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Folio Sanción</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Medio de Verificación / Respaldo</label>
                   <input
                     type="text"
-                    value={fineForm.resolutionFolio}
-                    onChange={(e) => setFineForm({ ...fineForm, resolutionFolio: e.target.value })}
-                    className="w-full p-2 border border-slate-300 rounded-xl text-xs font-mono"
+                    list="fine-evidence-options"
+                    value={fineForm.evidenceSource}
+                    onChange={(e) => setFineForm({ ...fineForm, evidenceSource: e.target.value })}
+                    placeholder="Ej. Libro de Novedades de Conserjería"
+                    className="w-full p-2 border border-slate-300 rounded-xl text-xs font-medium"
                   />
+                  <datalist id="fine-evidence-options">
+                    <option value="Libro de Novedades de Conserjería" />
+                    <option value="Registro fotográfico y cámaras de seguridad" />
+                    <option value="Acta del Comité de Administración" />
+                    <option value="Reclamo formal en Libro de Copropiedad" />
+                    <option value="Inspección presencial de Administración" />
+                  </datalist>
                 </div>
               </div>
 
-              {/* Selector de Monto (con atajos en UF) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              {/* 5. ESCALA DE MULTA EN UF Y MONTO FINAL */}
+              <div className="p-3 bg-rose-50/40 border border-rose-200/70 rounded-xl">
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">
                   Seleccionar Escala de Multa Reglamentaria:
                 </label>
                 <div className="grid grid-cols-4 gap-2 mb-2">
-                  {[0.5, 1, 2, 3].map(quantity => {
+                  {[0.5, 1, 2, 3].map((quantity) => {
                     const amount = indicators.ufCurrent ? Math.round(indicators.data.uf.value * quantity) : null;
                     const label = `${quantity.toFixed(1)} UF`;
-                    return <button key={quantity} type="button" disabled={!indicators.ufCurrent} onClick={() => setFineForm({ ...fineForm, amountClp: amount, ufEquivalent: label, ufDate: indicators.data.uf.date, ufValue: indicators.data.uf.value })} className={`p-2 rounded-xl border text-center font-bold text-xs disabled:opacity-40 ${fineForm.ufEquivalent === label && fineForm.ufDate === indicators.today ? 'bg-rose-900 text-white border-rose-900' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>{label}{amount !== null ? ` (${formatCLP(amount)})` : ''}</button>;
+                    return (
+                      <button
+                        key={quantity}
+                        type="button"
+                        disabled={!indicators.ufCurrent}
+                        onClick={() =>
+                          setFineForm({
+                            ...fineForm,
+                            amountClp: amount,
+                            ufEquivalent: label,
+                            ufDate: indicators.data.uf.date,
+                            ufValue: indicators.data.uf.value
+                          })
+                        }
+                        className={`p-2 rounded-xl border text-center font-bold text-xs disabled:opacity-40 cursor-pointer ${
+                          fineForm.ufEquivalent === label && fineForm.ufDate === indicators.today
+                            ? 'bg-rose-900 text-white border-rose-900'
+                            : 'bg-white hover:bg-rose-50 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        {label}
+                        {amount !== null ? ` (${formatCLP(amount)})` : ''}
+                      </button>
+                    );
                   })}
                 </div>
-                <p className="text-[10px] text-slate-600 mb-2">{indicators.ufCurrent ? `UF del ${indicators.data.uf.date}: $${indicators.data.uf.value.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.` : 'UF de hoy no disponible: puedes ingresar el monto manualmente en pesos.'} Datos: <a href="https://indicadores.cl/api/" target="_blank" rel="noreferrer" className="underline">indicadores.cl</a> · <a href={`https://www.sii.cl/valores_y_fechas/uf/uf${indicators.today.slice(0, 4)}.htm`} target="_blank" rel="noreferrer" className="underline">SII</a>.</p>
-                {fineUfOutdated && <p className="text-rose-700 font-bold mb-2">La UF seleccionada ya no está vigente o ha cambiado. Vuelve a elegir la escala o ingresa un monto manual.</p>}
+                <p className="text-[10px] text-slate-600 mb-2">
+                  {indicators.ufCurrent
+                    ? `UF del ${indicators.data.uf.date}: $${indicators.data.uf.value.toLocaleString('es-CL', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}.`
+                    : 'UF de hoy no disponible: puedes ingresar el monto manualmente en pesos.'}{' '}
+                  Datos:{' '}
+                  <a href="https://indicadores.cl/api/" target="_blank" rel="noreferrer" className="underline">
+                    indicadores.cl
+                  </a>{' '}
+                  ·{' '}
+                  <a
+                    href={`https://www.sii.cl/valores_y_fechas/uf/uf${indicators.today.slice(0, 4)}.htm`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    SII
+                  </a>
+                  .
+                </p>
+                {fineUfOutdated && (
+                  <p className="text-rose-700 font-bold mb-2">
+                    La UF seleccionada ya no está vigente o ha cambiado. Vuelve a elegir la escala o ingresa un monto manual.
+                  </p>
+                )}
 
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-bold text-slate-600">Monto Final a Imputar:</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-slate-700">Monto Final a Imputar:</span>
                   <input
                     type="number"
                     min="1"
                     required
                     value={fineForm.amountClp}
-                    onChange={(e) => setFineForm({ ...fineForm, amountClp: e.target.value, ufEquivalent: 'Monto fijado', ufDate: '', ufValue: null })}
-                    className="p-2 border border-slate-300 rounded-xl font-black text-rose-700 text-sm w-36"
+                    onChange={(e) =>
+                      setFineForm({
+                        ...fineForm,
+                        amountClp: e.target.value,
+                        ufEquivalent: 'Monto fijado',
+                        ufDate: '',
+                        ufValue: null
+                      })
+                    }
+                    placeholder="Ej. 41412"
+                    className="p-2 border border-slate-300 bg-white rounded-xl font-black text-rose-700 text-sm w-36"
                   />
-                  <span className="text-xs font-bold text-slate-500">CLP ({fineForm.ufEquivalent})</span>
+                  <span className="text-xs font-bold text-slate-600">CLP ({fineForm.ufEquivalent})</span>
                 </div>
               </div>
 
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] leading-relaxed">
-                ⚖️ <strong>Formato Legal Doble Copia (Media Carta):</strong> Al aplicar la multa se abrirá la <strong>Notificación Oficial con Base Legal Ley N° 21.442</strong> lista con 2 ejemplares por hoja (1 copia para la unidad sancionada y 1 copia para Conserjería / Comité / Libro de Registro).
+                ⚖️ <strong>Formato Legal Doble Copia (Media Carta):</strong> Todos los datos, la argumentación parcial, el medio de respaldo y el plazo de descargos se reflejan directamente en la <strong>Notificación Oficial (2 copias por hoja Carta)</strong>.
               </div>
 
               <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
@@ -1849,7 +2197,16 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                     if (previewUnit) {
                       handlePrintFineProof(previewUnit, {
                         ...fineForm,
-                        amountClp: Number(fineForm.amountClp || 25000)
+                        amountClp: Number(
+                          fineForm.amountClp ||
+                            (indicators.ufCurrent ? Math.round(indicators.data.uf.value) : 41412)
+                        ),
+                        ufEquivalent:
+                          fineForm.amountClp
+                            ? fineForm.ufEquivalent
+                            : indicators.ufCurrent
+                            ? '1.0 UF'
+                            : 'Monto referencial'
                       });
                     }
                   }}
