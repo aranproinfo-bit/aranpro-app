@@ -9,6 +9,7 @@ import {
 import { formatDate } from '../../utils/formatters';
 import { printDocumentDirectly, downloadHtmlDocument } from '../../utils/printDocument';
 import { AranproLogo } from '../common/MauranLogo';
+import { CommunityNoticePreviewModal } from '../common/CommunityNoticeSheet';
 import { COMPLAINT_RESPONSE_TEMPLATES } from '../../data/complaintResponseTemplates';
 
 export const SuggestionsAndComplaintsModule = ({ currentCommunity }) => {
@@ -226,13 +227,10 @@ export const SuggestionsAndComplaintsModule = ({ currentCommunity }) => {
     printDocumentDirectly('complaints-official-book-printable', docName);
   };
 
-  // Impresión aislada de la Carta de Advertencia a la Casa Implicada
+  // Vista Previa e Impresión de Notificación de Advertencia (Media Carta · 2 Copias por Hoja)
   const handlePrintWarningLetter = () => {
     if (!selectedTicket) return;
-    const commName = (currentCommunity?.name || 'Condominio').replace(/\s+/g, '_');
-    const impUnit = (replyForm.implicatedUnitNumber || 'Unidad').replace(/\s+/g, '_');
-    const docName = `Carta_Advertencia_Casa_${impUnit}_${selectedTicket.folio}_${commName}`;
-    printDocumentDirectly('single-warning-letter-printable', docName, { fitPage: true });
+    setShowWarningLetterModal(true);
   };
 
   const getPriorityBadge = (priority) => {
@@ -745,10 +743,10 @@ export const SuggestionsAndComplaintsModule = ({ currentCommunity }) => {
                         type="button"
                         onClick={handlePrintWarningLetter}
                         className="px-2.5 py-1.5 bg-[#0F3D2E] hover:bg-[#0A291F] text-white font-bold rounded-lg transition-colors flex items-center space-x-1 cursor-pointer shadow-xs"
-                        title="Imprimir carta formal de advertencia en formato legal para entregar a la vivienda"
+                        title="Vista previa e impresión en formato media carta (2 copias: Residente y Conserjería/Libro)"
                       >
                         <Printer className="w-3.5 h-3.5 text-[#D4B895]" />
-                        <span>Carta PDF</span>
+                        <span>Notificación PDF (2 copias)</span>
                       </button>
                     </div>
                   </div>
@@ -1106,6 +1104,32 @@ export const SuggestionsAndComplaintsModule = ({ currentCommunity }) => {
           </div>
         )}
       </div>
+
+      {/* Modal de Vista Previa e Impresión Media Carta (2 Copias por Hoja) para Advertencia Preventiva */}
+      <CommunityNoticePreviewModal
+        isOpen={showWarningLetterModal}
+        onClose={() => setShowWarningLetterModal(false)}
+        notice={
+          selectedTicket
+            ? {
+                variant: 'warning',
+                unitLabel:
+                  replyForm.implicatedUnitNumber ||
+                  selectedTicket.implicatedUnitNumber ||
+                  'Unidad Notificada',
+                reason:
+                  replyForm.implicatedNotice ||
+                  `${selectedTicket.title}: ${selectedTicket.description}`,
+                reglamentoArticle: `Arts. 17°, 20° y 21° Ley N° 21.442 · Ticket ${selectedTicket.folio}`,
+                folio: selectedTicket.folio,
+                date: new Date().toISOString().slice(0, 10)
+              }
+            : null
+        }
+        community={currentCommunity}
+        companySettings={companySettings}
+        allowStyleSwitch={false}
+      />
 
       {/* ========================================================================= */}
       {/* MODAL 3: INGRESO DE NUEVO REQUERIMIENTO VECINAL */}

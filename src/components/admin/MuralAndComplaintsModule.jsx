@@ -2,10 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { vaultGet } from '../../utils/fileVault';
 import { useCommunity } from '../../context/CommunityContext';
 import { formatDate, formatRut, formatCLP } from '../../utils/formatters';
-import { printDocumentDirectly } from '../../utils/printDocument';
 import { notificationService } from '../../services/notificationService';
 import { SuggestionsAndComplaintsModule } from './SuggestionsAndComplaintsModule';
 import { AranproConfirmModal } from '../common/AranproConfirmModal';
+import { CommunityNoticePreviewModal } from '../common/CommunityNoticeSheet';
 import { useEconomicIndicators } from '../../hooks/useEconomicIndicators';
 import {
   Megaphone, FolderOpen, MessageSquare, AlertTriangle, ShieldCheck,
@@ -58,6 +58,11 @@ export const MuralAndComplaintsModule = ({
   const [showFineModal, setShowFineModal] = useState(false);
   const indicators = useEconomicIndicators(showFineModal);
   const [activeDocPreview, setActiveDocPreview] = useState(null);
+  const [noticePreviewState, setNoticePreviewState] = useState({
+    isOpen: false,
+    notice: null,
+    allowStyleSwitch: false
+  });
 
   // Modal de confirmación corporativo ARANPRO (reemplaza popups nativos)
   const [modalDialog, setModalDialog] = useState({
@@ -84,6 +89,8 @@ export const MuralAndComplaintsModule = ({
     category: 'Convivencia',
     location: 'Todo el Condominio',
     expiresAt: '',
+    visitDate: '',
+    visitTime: '10:00 a 12:00 h',
     isPinned: false
   });
 
@@ -256,137 +263,31 @@ export const MuralAndComplaintsModule = ({
       category: 'Convivencia',
       location: 'Todo el Condominio',
       expiresAt: '',
+      visitDate: '',
+      visitTime: '10:00 a 12:00 h',
       isPinned: false
     });
     setShowNewAnnModal(false);
   };
 
-  // 2. Imprimir Lámina Formal de Diario Mural Físico (Propuesta 2)
+  // 2. Vista Previa e Impresión Afiche Media Carta (2 copias por Hoja Carta)
   const handlePrintMuralPdf = (ann) => {
     if (!currentCommunity || !ann) return;
-    const brandName = companySettings?.brandName || 'ARANPRO';
-    const primaryColor = companySettings?.colors?.primary || '#0F3D2E';
-    const accentGold = companySettings?.colors?.accent || '#D4B895';
-    const communityName = currentCommunity?.name || 'Condominio';
-
-    const priorityBadgeColor = ann.priority === 'Urgente'
-      ? '#DC2626'
-      : ann.priority === 'Importante'
-      ? '#D97706'
-      : '#059669';
-
-    const priorityBg = ann.priority === 'Urgente'
-      ? '#FEF2F2'
-      : ann.priority === 'Importante'
-      ? '#FFFBEB'
-      : '#ECFDF5';
-
-    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
-    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
-    const sigHtml = companySettings?.signatureDataUrl
-      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 48px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
-      : ``;
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="es">
-      <head>
-        <meta charset="utf-8">
-        <title>Diario_Mural_${communityName.replace(/\\s+/g, '_')}_${ann.title.slice(0, 20).replace(/\\s+/g, '_')}.pdf</title>
-        <style>
-          @page { size: letter; margin: 14mm 14mm 14mm 14mm; }
-          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0F172A; margin: 0; padding: 0; }
-          .mural-frame { border-left: 3px solid ${primaryColor}; box-shadow: inset 5px 0 0 0 #fff, inset 6.5px 0 0 0 ${accentGold}; padding: 14px 16px 14px 26px; position: relative; }
-          .header-table { width: 100%; border-bottom: 2px solid ${primaryColor}; padding-bottom: 14px; margin-bottom: 20px; }
-          .brand-title { font-size: 16px; font-weight: 900; color: ${primaryColor}; margin: 0; }
-          .badge-box { background: ${priorityBg}; border: 2px solid ${priorityBadgeColor}; color: ${priorityBadgeColor}; font-weight: 900; font-size: 13px; text-transform: uppercase; padding: 6px 14px; border-radius: 8px; text-align: center; }
-          .title-area { margin: 20px 0 16px 0; }
-          .mural-title { font-size: 20px; font-weight: 900; color: #0F172A; line-height: 1.3; margin: 0; }
-          .meta-bar { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 14px; font-size: 11px; color: #475569; display: flex; justify-content: space-between; margin-bottom: 22px; }
-          .content-body { font-size: 14px; line-height: 1.65; color: #1E293B; white-space: pre-wrap; text-align: justify; margin-bottom: 30px; }
-          .footer-box { margin-top: 35px; border-top: 1.5px dashed #CBD5E1; padding-top: 14px; font-size: 10px; color: #64748B; text-align: justify; }
-          .sig-table { width: 100%; margin-top: 30px; }
-          .sig-td { width: 50%; text-align: center; vertical-align: bottom; padding: 0 30px; font-size: 11px; }
-          .sig-line { border-top: 1.5px solid #334155; margin-top: 8px; margin-bottom: 6px; }
-          .notice-instruction { background: #FEF9C3; border: 1px solid #FDE047; padding: 8px 12px; font-size: 10px; font-weight: bold; color: #854D0E; border-radius: 6px; margin-bottom: 16px; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="mural-frame">
-          <div class="notice-instruction">
-            📌 INSTRUCCIÓN DE CONSERJERÍA: FIJAR DE FORMA VISIBLE EN VITRINA ACRÍLICA O PANEL DEL DIARIO MURAL HASTA SU VENCIMIENTO
-          </div>
-
-          <table class="header-table">
-            <tr>
-              <td style="vertical-align: middle;">
-                <div style="display: flex; align-items: center; gap: 14px;">
-                  <img src="${logoUrl}" alt="ARANPRO" style="height: 54px; width: auto; object-fit: contain;" />
-                  <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
-                    <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
-                    <div style="font-size: 9.5px; font-weight: bold; color: #64748B; font-family: monospace;">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
-                    <div style="font-size: 13px; font-weight: 800; color: ${primaryColor}; margin-top: 2px;">
-                      Comunidad: ${communityName}
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td style="text-align: right; vertical-align: middle; width: 35%;">
-                <div class="badge-box">
-                  ${ann.priority === 'Urgente' ? '🚨 AVISO URGENTE' : ann.priority === 'Importante' ? '⚠️ COMUNICADO IMPORTANTE' : 'ℹ️ INFORMATIVO OFICIAL'}
-                </div>
-                <div style="font-size: 10px; color: #64748B; margin-top: 6px; font-weight: 600;">
-                  Fecha de Fijación: ${formatDate(ann.date)}
-                </div>
-              </td>
-            </tr>
-          </table>
-
-          <div class="title-area">
-            <div style="font-size: 11px; font-weight: 800; color: ${primaryColor}; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
-              ${ann.category || 'Mural de Avisos'} • Ámbito: ${ann.location || 'Todo el Condominio'}
-            </div>
-            <h2 class="mural-title">${ann.title}</h2>
-          </div>
-
-          <table class="meta-bar" style="width: 100%;">
-            <tr>
-              <td><strong>Emisor:</strong> ${ann.author || 'Administración ARANPRO'}</td>
-              <td><strong>Fecha de Publicación:</strong> ${formatDate(ann.date)}</td>
-              <td><strong>Vigencia:</strong> ${ann.expiresAt ? formatDate(ann.expiresAt) : 'Hasta nuevo aviso'}</td>
-            </tr>
-          </table>
-
-          <div class="content-body">${ann.content}</div>
-
-          <table class="sig-table">
-            <tr>
-              <td class="sig-td">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                  <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 48px; width: 48px; object-fit: contain;" />
-                  <div>${sigHtml}</div>
-                </div>
-                <div class="sig-line"></div>
-                <strong>${companySettings?.adminName || companySettings?.administratorName || `Administración ${brandName}`}</strong><br/>
-                <span style="font-size: 10px; color: #64748B;">Administrador Titular (RNAC N° ${companySettings?.rnacNumber || '48.912'})</span>
-              </td>
-              <td class="sig-td">
-                <div class="sig-line"></div>
-                <strong>Comité de Administración</strong><br/>
-                <span style="font-size: 10px; color: #64748B;">${communityName}</span>
-              </td>
-            </tr>
-          </table>
-
-          <div class="footer-box">
-            <strong>FUNDAMENTO LEGAL LEY N° 21.442:</strong> Las comunicaciones emitidas por la Administración y el Comité de Administración fijadas en el diario mural o publicadas en la plataforma digital oficial constituyen avisos formales y de público conocimiento para todos los copropietarios, residentes y arrendatarios de la comunidad.
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    printDocumentDirectly(htmlContent, `Diario_Mural_${communityName.replace(/\\s+/g, '_')}_${ann.id}.pdf`);
+    setNoticePreviewState({
+      isOpen: true,
+      allowStyleSwitch: true,
+      notice: {
+        title: ann.title,
+        content: ann.content,
+        category: ann.category,
+        priority: ann.priority,
+        location: ann.location || 'Toda la comunidad',
+        date: ann.date || new Date().toISOString().slice(0, 10),
+        expiresAt: ann.expiresAt || '',
+        visitDate: ann.visitDate || ann.expiresAt || ann.date || new Date().toISOString().slice(0, 10),
+        visitTime: ann.visitTime || '10:00 a 12:00 h'
+      }
+    });
   };
 
   // 3. Difundir Aviso por WhatsApp (Propuesta 3)
@@ -464,137 +365,62 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
     setFineSuccessMessage(`¡Multa de ${formatCLP(fineForm.amountClp)} (${fineForm.ufEquivalent}) imputada y notificada en línea a Casa ${targetUnit.number}! Aparecerá en la colilla de cobro del mes.`);
     setTimeout(() => setFineSuccessMessage(''), 5000);
 
-    // Opcional: Imprimir Notificación de Multa
-    handlePrintFineProof(targetUnit);
+    // Abrir Vista Previa Oficial Media Carta (2 Copias por Hoja) lista para imprimir
+    handlePrintFineProof(targetUnit, fineForm);
 
     setShowFineModal(false);
   };
 
-  // Imprimir Notificación Oficial de Multa (PDF)
-  const handlePrintFineProof = (targetUnit) => {
+  // Construir datos normalizados de Notificación de Multa (Media Carta 2-por-hoja)
+  const buildFineNoticePayload = (targetUnit, overrideFine = null) => {
+    const unitLabel = targetUnit.tower
+      ? `${targetUnit.tower} - ${targetUnit.number}`
+      : `Casa ${targetUnit.number}`;
+
+    if (overrideFine) {
+      return {
+        variant: 'fine',
+        unitLabel,
+        ownerName: targetUnit.owner || '',
+        ownerRut: targetUnit.rut || '',
+        amountClp: Number(overrideFine.amountClp || targetUnit.extraCharge || 0),
+        ufEquivalent: overrideFine.ufEquivalent || '',
+        reason: overrideFine.reason || 'Infracción al Reglamento de Copropiedad',
+        reglamentoArticle:
+          overrideFine.reglamentoArticle || 'Art. 18° y 24° del Reglamento de Copropiedad',
+        folio: overrideFine.resolutionFolio || 'SANC-2026-01',
+        date: new Date().toISOString().slice(0, 10)
+      };
+    }
+
+    const rawDesc = String(targetUnit.extraChargeDescription || '')
+      .replace(/^Multa:\s*/i, '')
+      .trim();
+    const ufMatch = /\(([^)]*UF[^)]*)\)/i.exec(rawDesc);
+    const cleanedReason = rawDesc.replace(/\s*\([^)]*UF[^)]*\)\s*$/i, '').trim();
+
+    return {
+      variant: 'fine',
+      unitLabel,
+      ownerName: targetUnit.owner || '',
+      ownerRut: targetUnit.rut || '',
+      amountClp: Number(targetUnit.extraCharge || 0),
+      ufEquivalent: ufMatch ? ufMatch[1].split(';')[0].trim() : '',
+      reason: cleanedReason || 'Infracción constatada al Reglamento de Copropiedad',
+      reglamentoArticle: 'Arts. 17°, 20° y 27° Ley N° 21.442 · Reglamento de Copropiedad',
+      folio: `SANC-${new Date().getFullYear()}-${String(targetUnit.number).padStart(2, '0')}`,
+      date: new Date().toISOString().slice(0, 10)
+    };
+  };
+
+  // Vista Previa e Impresión Oficial de Multa (Media Carta · 2 Ejemplares por Hoja)
+  const handlePrintFineProof = (targetUnit, overrideFine = null) => {
     if (!currentCommunity || !targetUnit) return;
-    const brandName = companySettings?.brandName || 'ARANPRO';
-    const primaryColor = companySettings?.colors?.primary || '#0F3D2E';
-    const communityName = currentCommunity?.name || 'Condominio';
-
-    const logoUrl = `${window.location.origin}/brand/ARANPRO_logo_principal_transparente_trimmed.png`;
-    const sealUrl = `${window.location.origin}/brand/ARANPRO_sello_circular_integral_transparente.png`;
-    const sigHtml = companySettings?.signatureDataUrl
-      ? `<img src="${companySettings.signatureDataUrl}" alt="Firma" style="max-height: 48px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
-      : ``;
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="es">
-      <head>
-        <meta charset="utf-8">
-        <title>Notificacion_Multa_Casa_${targetUnit.number}_${communityName.replace(/\\s+/g, '_')}.pdf</title>
-        <style>
-          @page { size: letter; margin: 14mm 14mm 14mm 14mm; }
-          body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0F172A; margin: 0; padding: 10px 10px 10px 22px; font-size: 11px; line-height: 1.5; border-left: 2.5px solid ${primaryColor}; box-shadow: inset 4px 0 0 0 #fff, inset 5.5px 0 0 0 #D4B895; }
-          .header-table { width: 100%; border-bottom: 2.5px solid #991B1B; padding-bottom: 12px; margin-bottom: 16px; }
-          .brand-title { font-size: 16px; font-weight: 900; color: ${primaryColor}; margin: 0; }
-          .doc-badge { background: #FEF2F2; border: 1.5px solid #F87171; border-radius: 8px; padding: 6px 12px; text-align: right; }
-          .title-box { background: #FEF2F2; border-left: 4px solid #DC2626; padding: 10px 14px; margin-bottom: 18px; border-radius: 4px; }
-          .data-table { width: 100%; border-collapse: collapse; margin: 14px 0; }
-          .data-table td { padding: 6px 10px; border: 1px solid #CBD5E1; font-size: 11px; }
-          .data-table td.header { background: #F8FAFC; font-weight: bold; width: 35%; color: #334155; }
-          .legal-box { background: #F8FAFC; border: 1px solid #CBD5E1; padding: 10px 12px; margin: 16px 0; border-radius: 6px; font-size: 10px; text-align: justify; }
-          .sig-table { width: 100%; margin-top: 35px; }
-          .sig-td { width: 50%; text-align: center; vertical-align: bottom; padding: 0 25px; }
-          .sig-line { border-top: 1.5px solid #334155; margin-top: 8px; margin-bottom: 6px; }
-        </style>
-      </head>
-      <body>
-        <table class="header-table">
-          <tr>
-            <td>
-              <div style="display: flex; align-items: center; gap: 14px;">
-                <img src="${logoUrl}" alt="ARANPRO" style="height: 52px; width: auto; object-fit: contain;" />
-                <div style="border-left: 1px solid #CBD5E1; padding-left: 14px;">
-                  <h1 class="brand-title">${brandName} • GESTIÓN INTEGRAL INMOBILIARIA</h1>
-                  <div style="font-size: 9.5px; color: #64748B; font-weight: 600; font-family: monospace;">${companySettings?.companyRut && !String(companySettings.companyRut).includes('76.999.888') ? `RUT Empresa: ${companySettings.companyRut} • ` : ''}Ley N° 21.442 de Copropiedad Inmobiliaria</div>
-                  <div style="font-size: 11px; font-weight: bold; color: ${primaryColor}; margin-top: 2px;">
-                    Condominio: ${communityName}
-                  </div>
-                </div>
-              </div>
-            </td>
-            <td style="text-align: right;">
-              <div class="doc-badge">
-                <div style="font-size: 9px; font-weight: 800; color: #991B1B; text-transform: uppercase;">Infracción y Sanción Reglamentaria</div>
-                <div style="font-size: 13px; font-weight: 900; color: #991B1B;">${fineForm.resolutionFolio}</div>
-                <div style="font-size: 9px; color: #64748B; margin-top: 2px;">Fecha: ${formatDate(new Date().toISOString().slice(0, 10))}</div>
-              </div>
-            </td>
-          </tr>
-        </table>
-
-        <div class="title-box">
-          <div style="font-size: 10px; font-weight: 800; color: #991B1B; text-transform: uppercase;">
-            NOTIFICACIÓN OFICIAL DE IMPUTACIÓN DE MULTA AL GASTO COMÚN
-          </div>
-          <h2 style="font-size: 14px; font-weight: 900; color: #0F172A; margin: 4px 0 0 0;">
-            Cobro Imputable en Colilla Mensual por Infracción al Reglamento
-          </h2>
-        </div>
-
-        <table class="data-table">
-          <tr>
-            <td class="header">Unidad Sancionada:</td>
-            <td><strong>${targetUnit.tower ? `${targetUnit.tower} - ${targetUnit.number}` : `Casa N° ${targetUnit.number}`}</strong></td>
-          </tr>
-          <tr>
-            <td class="header">Copropietario / Ocupante:</td>
-            <td>${targetUnit.owner} (RUT: ${targetUnit.rut ? formatRut(targetUnit.rut) : '—'})</td>
-          </tr>
-          <tr>
-            <td class="header">Motivo de la Sanción:</td>
-            <td><strong style="color: #991B1B;">${fineForm.reason}</strong></td>
-          </tr>
-          <tr>
-            <td class="header">Fundamento Legal / Reglamentario:</td>
-            <td>${fineForm.reglamentoArticle}</td>
-          </tr>
-          <tr>
-            <td class="header">Monto Aplicado:</td>
-            <td><strong style="font-size: 13px; color: #991B1B;">${formatCLP(fineForm.amountClp)}</strong> (${fineForm.ufEquivalent})</td>
-          </tr>
-          ${fineForm.ufDate ? `<tr><td class="header">UF de referencia:</td><td>$${fineForm.ufValue.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} al ${fineForm.ufDate} · indicadores.cl / SII</td></tr>` : ''}
-          <tr>
-            <td class="header">Modalidad de Cobro:</td>
-            <td>Cargado directamente en la colilla de gastos comunes del período activo para su recaudación conjunta.</td>
-          </tr>
-        </table>
-
-        <div class="legal-box">
-          <strong>FUNDAMENTO LEGAL Y PROCEDIMIENTO DE APELACIÓN (ART. 20° Y 21° LEY N° 21.442):</strong><br/>
-          De conformidad a la Ley N° 21.442 sobre Copropiedad Inmobiliaria y el Reglamento Interno de la Comunidad, el Administrador y el Comité de Administración se encuentran facultados para cursar multas reglamentarias ante faltas graves a la convivencia o seguridad. El copropietario podrá formular sus descargos por escrito ante el Comité de Administración dentro de 5 días hábiles siguientes a esta notificación, o recurrir ante el Juzgado de Policía Local respectivo.
-        </div>
-
-        <table class="sig-table">
-          <tr>
-            <td class="sig-td">
-              <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                <img src="${sealUrl}" alt="Sello ARANPRO" style="height: 46px; width: 46px; object-fit: contain;" />
-                <div>${sigHtml}</div>
-              </div>
-              <div class="sig-line"></div>
-              <strong>${companySettings?.adminName || companySettings?.administratorName || `Administración ${brandName}`}</strong><br/>
-              <span style="font-size: 9.5px; color: #64748B;">Administrador Titular (RNAC N° ${companySettings?.rnacNumber || '48.912'})</span>
-            </td>
-            <td class="sig-td">
-              <div class="sig-line"></div>
-              <strong>Comité de Administración</strong><br/>
-              <span style="font-size: 9.5px; color: #64748B;">Visación y Visto Bueno Reglamentario</span>
-            </td>
-          </tr>
-        </table>
-      </body>
-      </html>
-    `;
-
-    printDocumentDirectly(htmlContent, `Notificacion_Multa_Casa_${targetUnit.number}_${communityName.replace(/\\s+/g, '_')}.pdf`);
+    setNoticePreviewState({
+      isOpen: true,
+      allowStyleSwitch: false,
+      notice: buildFineNoticePayload(targetUnit, overrideFine)
+    });
   };
 
   // Reversar / Anular Multa de una unidad
@@ -995,10 +821,10 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                           type="button"
                           onClick={() => handlePrintMuralPdf(ann)}
                           className="px-3 py-1.5 bg-gradient-to-r from-[#0F3D2E] to-[#14533d] hover:from-[#0A291F] hover:to-[#0F3D2E] text-[#D4B895] border border-[#D4B895] font-black text-[11px] rounded-xl flex items-center shadow-2xs transition-all cursor-pointer"
-                          title="Imprimir Lámina oficial de Diario Mural en PDF para fijar en vitrina de conserjería"
+                          title="Vista previa e impresión en formato afiche media carta (2 copias por hoja carta)"
                         >
                           <Printer className="w-3.5 h-3.5 mr-1 text-[#D4B895]" />
-                          Lámina Mural (PDF)
+                          Afiche / PDF (2 copias)
                         </button>
                       </div>
                     </div>
@@ -1352,10 +1178,10 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                               type="button"
                               onClick={() => handlePrintFineProof(u)}
                               className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer"
-                              title="Reimprimir Comprobante Oficial de Notificación de Multa"
+                              title="Ver e imprimir Notificación Oficial Media Carta (2 copias: Residente y Conserjería/Registro)"
                             >
-                              <Printer className="w-3.5 h-3.5 text-slate-600" />
-                              PDF
+                              <Printer className="w-3.5 h-3.5 text-[#0F3D2E]" />
+                              Vista / PDF (2 copias)
                             </button>
 
                             <button
@@ -1454,14 +1280,45 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                     onChange={(e) => setAnnForm({ ...annForm, category: e.target.value })}
                     className="w-full p-2 border border-slate-300 rounded-xl font-bold text-xs bg-white"
                   >
-                    <option value="Convivencia">Convivencia Vecinal</option>
+                    <option value="Convivencia">Convivencia Vecinal (Afiche Media Carta)</option>
+                    <option value="Visita de Administración">Visita de Administración en Terreno</option>
+                    <option value="Mantención & Obras">Mantención & Obras Programadas</option>
                     <option value="Servicios Básicos">Servicios Básicos & Suministros</option>
-                    <option value="Mantención & Obras">Mantención & Obras</option>
                     <option value="Seguridad">Seguridad & Conserjería</option>
                     <option value="Administración">Administración & Cobros</option>
                   </select>
                 </div>
               </div>
+
+              {(annForm.category === 'Visita de Administración' ||
+                annForm.category === 'Mantención & Obras' ||
+                annForm.category === 'Servicios Básicos') && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-[#F5F4EF] border border-[#D4B895]/60 rounded-xl">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F3D2E] mb-1">
+                      Fecha Programada de Visita / Actividad
+                    </label>
+                    <input
+                      type="date"
+                      value={annForm.visitDate}
+                      onChange={(e) => setAnnForm({ ...annForm, visitDate: e.target.value })}
+                      className="w-full p-2 border border-slate-300 rounded-xl text-xs font-bold bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F3D2E] mb-1">
+                      Horario Estimado (para afiche de visita)
+                    </label>
+                    <input
+                      type="text"
+                      value={annForm.visitTime}
+                      onChange={(e) => setAnnForm({ ...annForm, visitTime: e.target.value })}
+                      placeholder="Ej. 10:00 a 12:00 h"
+                      className="w-full p-2 border border-slate-300 rounded-xl text-xs font-bold bg-white"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -1512,20 +1369,37 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
                 </div>
               </label>
 
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end space-x-2">
+              <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowNewAnnModal(false)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
+                  onClick={() =>
+                    handlePrintMuralPdf({
+                      ...annForm,
+                      title: annForm.title || (annForm.category === 'Visita de Administración' ? 'Visita de administración' : 'Cuidemos la buena convivencia'),
+                      content: annForm.content || 'Comunicado oficial dirigido a todos los residentes de la comunidad.',
+                      date: new Date().toISOString().slice(0, 10)
+                    })
+                  }
+                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-[#0F3D2E] font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
                 >
-                  Cancelar
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Vista Previa Afiche (2 copias)</span>
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] font-black text-xs rounded-xl shadow-xs cursor-pointer"
-                >
-                  Publicar en Mural
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowNewAnnModal(false)}
+                    className="px-4 py-2 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#0F3D2E] hover:bg-[#0A291F] text-[#D4B895] font-black text-xs rounded-xl shadow-xs cursor-pointer"
+                  >
+                    Publicar en Mural
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -1747,23 +1621,44 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
               </div>
 
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] leading-relaxed">
-                ⚖️ <strong>Validación Legal:</strong> Al hacer clic en <em>"Cargar Multa en Colilla"</em>, se generará el <strong>Comprobante Oficial de Notificación (PDF)</strong> para entrega formal y se sumará inmediatamente el valor a la colilla de la unidad seleccionada.
+                ⚖️ <strong>Formato Legal Doble Copia (Media Carta):</strong> Al aplicar la multa se abrirá la <strong>Notificación Oficial con Base Legal Ley N° 21.442</strong> lista con 2 ejemplares por hoja (1 copia para la unidad sancionada y 1 copia para Conserjería / Comité / Libro de Registro).
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end space-x-2 shrink-0">
+              <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setShowFineModal(false)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
+                  onClick={() => {
+                    const previewUnit =
+                      (currentCommunity?.units || []).find((u) => u.id === fineForm.unitId) ||
+                      currentCommunity?.units?.[0];
+                    if (previewUnit) {
+                      handlePrintFineProof(previewUnit, {
+                        ...fineForm,
+                        amountClp: Number(fineForm.amountClp || 25000)
+                      });
+                    }
+                  }}
+                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
                 >
-                  Cancelar
+                  <Eye className="w-3.5 h-3.5 text-rose-700" />
+                  <span>Vista Previa (2 copias)</span>
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-gradient-to-r from-rose-900 to-rose-950 hover:from-rose-800 hover:to-rose-900 text-white font-black text-xs rounded-xl shadow-xs cursor-pointer"
-                >
-                  Cargar Multa en Colilla
-                </button>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowFineModal(false)}
+                    className="px-4 py-2 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-gradient-to-r from-rose-900 to-rose-950 hover:from-rose-800 hover:to-rose-900 text-white font-black text-xs rounded-xl shadow-xs cursor-pointer"
+                  >
+                    Cargar Multa en Colilla
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -1820,6 +1715,16 @@ _Administración ARANPRO • Gestión Integral de Condominios_`;
           </div>
         </div>
       )}
+      {/* Modal unificado de Vista Previa e Impresión Media Carta (2 Copias por Hoja) */}
+      <CommunityNoticePreviewModal
+        isOpen={noticePreviewState.isOpen}
+        onClose={() => setNoticePreviewState((prev) => ({ ...prev, isOpen: false }))}
+        notice={noticePreviewState.notice}
+        community={currentCommunity}
+        companySettings={companySettings}
+        allowStyleSwitch={noticePreviewState.allowStyleSwitch}
+      />
+
       {/* Modal de confirmación corporativo ARANPRO (elimina popups nativos) */}
       <AranproConfirmModal
         isOpen={modalDialog.isOpen}
